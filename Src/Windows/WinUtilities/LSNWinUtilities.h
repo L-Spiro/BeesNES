@@ -57,6 +57,7 @@ namespace lsn {
 			LSN_PWI_NONE										= 0,	// CPatchWindowLayout::LSN_PATCH_WINDOW_IDS
 			LSN_SFI_NONE										= 0,	// CSelectRomDialogLayout::LSN_SELECT_FILE_IDS
 			LSN_WEWI_NONE										= 0,	// CWavEditorWindowLayout::LSN_WAV_EDITOR_WINDOW_IDS
+			LSN_CWI_NONE										= 0,	// CCheatsWindowLayout::LSN_CHEATS_WINDOW_IDS
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -662,7 +663,9 @@ namespace lsn {
 			LSN_WEWI_OUTPUT_MASTER_NUMBERED_CHECK,
 
 
-			// CCheatsDialogLayout::LSN_CHEATS_WINDOW_IDS
+			// CCheatsWindowLayout::LSN_CHEATS_WINDOW_IDS
+			LSN_CWI_CHEAT_DIALOG,
+			LSN_CWI_TOOLBAR,
 			LSN_CWI_ADD_BUTTON,
 			LSN_CWI_DELETE_BUTTON,
 			LSN_CWI_DUPLICATE_BUTTON,

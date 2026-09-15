@@ -128,7 +128,7 @@ namespace lsn {
 		 * \param _wsError If false is returned, this contains the error to print for the user.
 		 * \return Returns true if all cheats were loaded.  If false, _wsError is filled with an error string to present to the user.
 		 **/
-		static bool										LoadMesenJson( const std::vector<uint8_t> &_vJson, std::vector<LSN_CHEAT_ENTRY> &_vCheats, const std::u16string &_u16sFileName,
+		static bool										LoadMesenJson( std::vector<uint8_t> &_vJson, std::vector<LSN_CHEAT_ENTRY> &_vCheats, const std::u16string &_u16sFileName,
 			std::wstring &_wsError );
 
 		/**

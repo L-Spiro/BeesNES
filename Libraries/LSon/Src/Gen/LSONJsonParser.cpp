@@ -44,15 +44,15 @@
 #include "../LSONJsonContainer.h"
 #include "../LSONJsonLexer.h"
 #include <string>
+#include <string_view>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // MACROS
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #define YYINCLUDED_STDLIB_H
 
-//extern char yytext[];
 // Announce to Flex the prototype we want for lexing function.
-extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, lson::CJsonLexer * _pxlLexer );
+extern int yylex( void * _pvNodeUnion, lson::CJsonLexer * _pxlLexer );
 
 #include "../LSONJsonSyntaxNodes.h"
 
@@ -420,7 +420,7 @@ namespace yy {
       {
 	  case 3:
 
-    { m_pjcContainer->AddJson( (yyval.nNode) ); }
+    { m_pjcContainer->AddJson( (yysemantic_stack_[(1) - (1)].nNode) ); }
     break;
 
   case 4:
@@ -505,7 +505,7 @@ namespace yy {
 
   case 20:
 
-    { (yyval.sStringIndex) = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ); }
+    { (yyval.sStringIndex) = m_pjcContainer->AddQuoteString( std::string_view( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ) ); }
     break;
 
   case 21:
@@ -957,3 +957,4 @@ int yylex( /*YYSTYPE*/void * /*_pvNodeUnion*/, lson::CJsonLexer * _pxlLexer ) {
 void yy::CJsonParser::error( const yy::location &/*_lLoc*/, const std::string &/*_strM*/ ) {
 
 }
+

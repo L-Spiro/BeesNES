@@ -19,17 +19,15 @@ namespace lson {
 	/**
 	 * Adds a string and returns its index into the stack.
 	 *
-	 * \param _pcText The string to add or whose existing index is to be found.
-	 * \param _sLen The number of characters in _pcText.
+	 * \param _svText The string to add or whose existing index is to be found.
 	 * \return Returns the index of the added string.
 	 */
-	size_t CJsonContainer::AddString( const char * _pcText, size_t _sLen ) {
-		std::string sTmp( _pcText, _sLen );
-		size_t stRet = FindString( sTmp );
+	size_t CJsonContainer::AddString( std::string_view _svText ) {
+		size_t stRet = FindString( _svText );
 		if ( stRet == size_t( -1 ) ) {
 			auto sIdx = m_vStrings.size();
-			m_mStringIndex[sTmp] = sIdx;
-			m_vStrings.emplace_back( sTmp );
+			m_mStringIndex[_svText] = sIdx;
+			m_vStrings.push_back( _svText );
 			
 			return sIdx;
 		}
@@ -39,26 +37,22 @@ namespace lson {
 	/**
 	 * Removes quotes from the front and end before adding the string.
 	 *
-	 * \param _pcText The string to add or whose existing index is to be found.
-	 * \param _sLen The number of characters in _pcText.
+	 * \param _svText The string to add or whose existing index is to be found.
 	 * \return Returns the index of the added string after stripping the enclosing quotes from it.
 	 */
-	size_t CJsonContainer::AddQuoteString( const char * _pcText, size_t _sLen ) {
-		return AddString( _pcText + 1, _sLen - 2 );
+	size_t CJsonContainer::AddQuoteString( std::string_view _svText ) {
+		return AddString( _svText.substr( 1, _svText.size() - 2 ) );
 	}
 
 	/**
 	 * Returns the index of a string or -1 if it does not exist.
 	 *
-	 * \param _sText The string to find.
+	 * \param _svText The string to find.
 	 * \return Returns the index of the string if it exists or size_t( -1 ).
 	 */
-	size_t CJsonContainer::FindString( const std::string &_sText ) const {
-		auto aIdx = m_mStringIndex.find( _sText );
+	size_t CJsonContainer::FindString( std::string_view _svText ) const {
+		auto aIdx = m_mStringIndex.find( _svText );
 		if ( aIdx != m_mStringIndex.end() ) { return aIdx->second; }
-		/*for ( auto I = m_vStrings.size(); I--; ) {
-			if ( m_vStrings[I] == _sText ) { return I; }
-		}*/
 		return size_t( -1 );
 	}
 
@@ -374,7 +368,7 @@ namespace lson {
 									jvVal.vtType = LSON_VT_STRING;
 									jvVal.u.stString = m_vNodes[stNodeIdx].u.vValue.v.stValue;
 #ifdef _DEBUG
-									jvVal.sString = GetString( jvVal.u.stString );
+									jvVal.svString = GetString( jvVal.u.stString );
 #endif	// #ifdef _DEBUG
 									break;
 								}
@@ -438,7 +432,7 @@ namespace lson {
 								jmMember.stName = m_vNodes[stNodeIdx].u.mMember.stName;
 								jmMember.stValue = vStack[stThis].stParmResult[0];
 #ifdef _DEBUG
-								jmMember.sName = GetString( jmMember.stName );
+								jmMember.svName = GetString( jmMember.stName );
 #endif	// #ifdef _DEBUG
 								pjvCurVal->oObject.vMembers.push_back( jmMember );
 							}
@@ -495,16 +489,16 @@ namespace lson {
 	}
 
 	/**
-	 * Finds a member by name and returns a pointer to the given value or nullptr.  _jvValue must be an object.
+	 * Finds a member by name and returns a pointer to the given value or nullptr. _jvValue must be an object.
 	 *
 	 * \param _jvValue The object owning the member to find.
-	 * \param _sName The name of the member to locate.
+	 * \param _svName The name of the member to locate.
 	 * \return Returns a pointer to the member value with the given name or nullptr if it can't be found.
 	 */
-	const CJsonContainer::LSON_JSON_VALUE * CJsonContainer::GetMemberByName( const LSON_JSON_VALUE &_jvValue, const std::string &_sName ) {
+	const CJsonContainer::LSON_JSON_VALUE * CJsonContainer::GetMemberByName( const LSON_JSON_VALUE &_jvValue, std::string_view _svName ) {
 		if ( _jvValue.vtType == LSON_VT_OBJECT ) {
 			for ( size_t I = 0; I < _jvValue.oObject.vMembers.size(); ++I ) {
-				if ( GetString( _jvValue.oObject.vMembers[I].stName ) == _sName ) {
+				if ( GetString( _jvValue.oObject.vMembers[I].stName ) == _svName ) {
 					return &GetValue( _jvValue.oObject.vMembers[I].stValue );
 				}
 			}

@@ -30,7 +30,7 @@ namespace lson {
 	 * \param _pcJson The NULL-terminated JSON data.
 	 * \return Returns true if the JSON data was successfully parsed.
 	 */
-	bool CJson::SetJson( const char * _pcJson ) {
+	bool CJson::SetJson( char * _pcJson ) {
 		Reset();
 		if ( !_pcJson ) { return false; }
 
@@ -42,22 +42,31 @@ namespace lson {
 			return false;
 		}
 
+		struct yy_buffer_state * pbState = pjlLexer->ScanMemoryBuffer( const_cast<char *>(_pcJson), std::strlen( _pcJson ) + 2 );
+		if ( !pbState ) {
+			pjlLexer->yy_delete_buffer( pbState );
+			return false;
+		}
+
 		m_pjcContainer = new( std::nothrow ) CJsonContainer( pjlLexer.get() );
 
 		std::unique_ptr<CJsonParser> ppppParser = std::make_unique<CJsonParser>( pjlLexer.get(), m_pjcContainer );
 		if ( !ppppParser ) {
+			pjlLexer->yy_delete_buffer( pbState );
 			Reset();
 			return false;
 		}
 
 
 		if ( ppppParser->parse() == 0 ) {
+			pjlLexer->yy_delete_buffer( pbState );
 			//m_pjcContainer->PrintNode( m_pjcContainer->Root(), 0 );
 			m_pjcContainer->BuildTree();
 			//m_pjcContainer->PrintTree();
 			// Parsed.
 			return true;
 		}
+		pjlLexer->yy_delete_buffer( pbState );
 		Reset();
 		return false;
 	}

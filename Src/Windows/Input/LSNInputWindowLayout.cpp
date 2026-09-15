@@ -889,7 +889,7 @@ namespace lsn {
 	/**
 	 * Creates the global-settings page.
 	 *
-	 * \param _pwParent the parent of the page.
+	 * \param _pwParent The parent of the page.
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */
@@ -900,7 +900,7 @@ namespace lsn {
 	/**
 	 * Creates the per-game-settings page.
 	 *
-	 * \param _pwParent the parent of the page.
+	 * \param _pwParent The parent of the page.
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns the created widget.
 	 */

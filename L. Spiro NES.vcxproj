@@ -2172,6 +2172,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h" />
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h" />
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Graphics\LSNGraphicsOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNControllerConfigurePage.h" />
@@ -2367,6 +2368,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindow.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp" />
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Graphics\LSNGraphicsOptionsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNControllerConfigurePage.cpp" />
@@ -2465,6 +2467,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-bee-16.ico" />
     <Image Include="Resources\icons8-bee-32.ico" />
     <Image Include="Resources\icons8-bee-64.png" />
+    <Image Include="Resources\icons8-broken-shield-16.ico" />
+    <Image Include="Resources\icons8-broken-shield-32.ico" />
     <Image Include="Resources\icons8-down-radio-waves-24.bmp" />
     <Image Include="Resources\icons8-exit-24.bmp" />
     <Image Include="Resources\icons8-file-24.bmp" />
@@ -2472,6 +2476,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-file-48.ico" />
     <Image Include="Resources\icons8-folder-open-24.bmp" />
     <Image Include="Resources\icons8-folder-open-48.ico" />
+    <Image Include="Resources\icons8-joystick-16.ico" />
+    <Image Include="Resources\icons8-joystick-32.ico" />
     <Image Include="Resources\icons8-minus-radio-waves-24.bmp" />
     <Image Include="Resources\icons8-patch-16.ico" />
     <Image Include="Resources\icons8-patch-32.ico" />

@@ -274,7 +274,7 @@
 			return false;
 		}
     
-		if ( _sCode[4] != ':' || _sCode[7] != ':' ) {
+		if ( (_sCode[4] != ':' && _sCode[4] != '?') || _sCode[7] != ':' ) {
 			return false;
 		}
 
@@ -296,7 +296,13 @@
 			return false;
 		}
 
-		_ui8Data = static_cast<uint8_t>((ui8Data0 << 4) | ui8Data1);
+		if ( _sCode[4] == '?' ) {
+			_ui8Compare = static_cast<uint8_t>((ui8Data0 << 4) | ui8Data1);
+		}
+		else {
+			_ui8Data = static_cast<uint8_t>((ui8Data0 << 4) | ui8Data1);
+		}
+		
 
 		uint8_t ui8Comp0 = uint8_t( ee::CExpEval::HexToUint32( _sCode[8] ) );
 		uint8_t ui8Comp1 = uint8_t( ee::CExpEval::HexToUint32( _sCode[9] ) );
@@ -305,7 +311,13 @@
 			return false;
 		}
 
-		_ui8Compare = static_cast<uint8_t>((ui8Comp0 << 4) | ui8Comp1);
+		if ( _sCode[4] == '?' ) {
+			_ui8Data = static_cast<uint8_t>((ui8Comp0 << 4) | ui8Comp1);
+		}
+		else {
+			_ui8Compare = static_cast<uint8_t>((ui8Comp0 << 4) | ui8Comp1);
+		}
+		
 
 		return true;
 	}
@@ -319,19 +331,24 @@
 	 * \param _wsError If false is returned, this contains the error to print for the user.
 	 * \return Returns true if all cheats were loaded.  If false, _wsError is filled with an error string to present to the user.
 	 **/
-	bool CCheatConverter::LoadMesenJson( const std::vector<uint8_t> &_vJson, std::vector<LSN_CHEAT_ENTRY> &_vCheats, const std::u16string &_u16sFileName,
-		std::wstring &_wsError ) {
+	bool CCheatConverter::LoadMesenJson( std::vector<uint8_t> &_vJson, std::vector<LSN_CHEAT_ENTRY> &_vCheats, const std::u16string &_u16sFileName, std::wstring &_wsError ) {
 		try {
 			lson::CJson jSon;
 
-			if ( !jSon.SetJson( reinterpret_cast<const char *>(_vJson.data()) ) ) {
+			if ( !jSon.SetJson( reinterpret_cast<char *>(_vJson.data()) ) ) {
 				_wsError = LSN_LSTR( LSN_INVALID_JSON_FILE );
 				return false;
 			}
 
 			const lson::CJsonContainer::LSON_JSON_VALUE & jvRoot = jSon.GetContainer()->GetValue( jSon.GetContainer()->GetRoot() );
-			if ( jvRoot.vtType != lson::CJsonContainer::LSON_VT_OBJECT ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-			if ( !jvRoot.oObject.vMembers.size() ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
+			if ( jvRoot.vtType != lson::CJsonContainer::LSON_VT_OBJECT ) {
+				_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+				return false;
+			}
+			if ( !jvRoot.oObject.vMembers.size() ) {
+				_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+				return false;
+			}
 
 			size_t stCheats = jSon.GetContainer()->FindString( "Cheats" );
 			size_t stDescription = jSon.GetContainer()->FindString( "Description" );
@@ -340,64 +357,96 @@
 			size_t stCodes = jSon.GetContainer()->FindString( "Codes" );
 
 			for ( size_t J = 0; J < jvRoot.oObject.vMembers.size(); ++J ) {
-				if ( jvRoot.oObject.vMembers[J].stName != stCheats ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-				auto aItem = jSon.GetContainer()->GetValue( jvRoot.oObject.vMembers[J].stValue );
-				if ( aItem.vtType != lson::CJsonContainer::LSON_VT_ARRAY ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-				for ( size_t I = 0; I < aItem.vArray.size(); ++I ) {
-					auto aThis = jSon.GetContainer()->GetValue( aItem.vArray[I] );
-					if ( aThis.vtType != lson::CJsonContainer::LSON_VT_OBJECT ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
+				if ( jvRoot.oObject.vMembers[J].stName != stCheats ) {
+					_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+					return false;
+				}
+				const auto & jvItem = jSon.GetContainer()->GetValue( jvRoot.oObject.vMembers[J].stValue );
+				if ( jvItem.vtType != lson::CJsonContainer::LSON_VT_ARRAY ) {
+					_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+					return false;
+				}
+				for ( size_t I = 0; I < jvItem.vArray.size(); ++I ) {
+					const auto & jvThis = jSon.GetContainer()->GetValue( jvItem.vArray[I] );
+					if ( jvThis.vtType != lson::CJsonContainer::LSON_VT_OBJECT ) {
+						_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+						return false;
+					}
 					LSN_CHEAT_ENTRY ceEntry;
-					for ( auto K = aThis.oObject.vMembers.size(); K--; ) {
-						auto aTmp = jSon.GetContainer()->GetValue( aThis.oObject.vMembers[K].stValue );
+					for ( auto K = jvThis.oObject.vMembers.size(); K--; ) {
+						const auto & jvTmp = jSon.GetContainer()->GetValue( jvThis.oObject.vMembers[K].stValue );
 					
-						if ( aThis.oObject.vMembers[K].stName == stDescription ) {
-							if ( aTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-							auto aThisVal = jSon.GetContainer()->GetValue( aThis.oObject.vMembers[K].stValue );
-							if ( aThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-							auto sTmpStr = jSon.GetContainer()->GetString( aThisVal.u.stString );
-							ceEntry.wsDescription = ParseDescription( sTmpStr, ceEntry.wsNotes );
+						if ( jvThis.oObject.vMembers[K].stName == stDescription ) {
+							if ( jvTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
+							const auto & jvThisVal = jSon.GetContainer()->GetValue( jvThis.oObject.vMembers[K].stValue );
+							if ( jvThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
+							std::string_view svTmpStr = jSon.GetContainer()->GetString( jvThisVal.u.stString );
+							ceEntry.wsDescription = ParseDescription( std::string( svTmpStr ), ceEntry.wsNotes );
 						}
-						else if ( aThis.oObject.vMembers[K].stName == stType ) {
-							if ( aTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-							auto aThisVal = jSon.GetContainer()->GetValue( aThis.oObject.vMembers[K].stValue );
-							if ( aThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-							auto sTmpStr = jSon.GetContainer()->GetString( aThisVal.u.stString );
-							if ( sTmpStr == "NesGameGenie" ) {
+						else if ( jvThis.oObject.vMembers[K].stName == stType ) {
+							if ( jvTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
+							const auto & jvThisVal = jSon.GetContainer()->GetValue( jvThis.oObject.vMembers[K].stValue );
+							if ( jvThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
+							std::string_view svTmpStr = jSon.GetContainer()->GetString( jvThisVal.u.stString );
+							if ( svTmpStr == "NesGameGenie" ) {
 								ceEntry.ctType = LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE;
 							}
-							else if ( sTmpStr == "NesCustom" ) {
+							else if ( svTmpStr == "NesCustom" ) {
 								ceEntry.ctType = LSN_CHEAT_ENTRY::LSN_CT_CUSTOM;
 							}
 							else {
-								lsn::DebugW( std::format( L"{}: Unknown Code type: {}.\r\n", CUtilities::XStringToWString( _u16sFileName.c_str(), _u16sFileName.size() ), CUtilities::XStringToWString( sTmpStr.c_str(), sTmpStr.size() ) ).c_str() );
+								lsn::DebugW( std::format( L"{}: Unknown Code type: {}.\r\n", CUtilities::XStringToWString( _u16sFileName.c_str(), _u16sFileName.size() ), CUtilities::XStringToWString( svTmpStr.data(), svTmpStr.size() ) ).c_str() );
 							}
 						}
-						else if ( aThis.oObject.vMembers[K].stName == stEnabled ) {
-							if ( aTmp.vtType == lson::CJsonContainer::LSON_VT_TRUE ) {
+						else if ( jvThis.oObject.vMembers[K].stName == stEnabled ) {
+							if ( jvTmp.vtType == lson::CJsonContainer::LSON_VT_TRUE ) {
 								ceEntry.bEnabled = true;
 							}
-							else if ( aTmp.vtType == lson::CJsonContainer::LSON_VT_FALSE ) {
+							else if ( jvTmp.vtType == lson::CJsonContainer::LSON_VT_FALSE ) {
 								ceEntry.bEnabled = false;
 							}
-							else { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
+							else {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
 						}
-						else if ( aThis.oObject.vMembers[K].stName == stCodes ) {
-							if ( aTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
-							auto aThisVal = jSon.GetContainer()->GetValue( aThis.oObject.vMembers[K].stValue );
-							if ( aThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) { _wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE ); return false; }
+						else if ( jvThis.oObject.vMembers[K].stName == stCodes ) {
+							if ( jvTmp.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
+							const auto & jvThisVal = jSon.GetContainer()->GetValue( jvThis.oObject.vMembers[K].stValue );
+							if ( jvThisVal.vtType != lson::CJsonContainer::LSON_VT_STRING ) {
+								_wsError = LSN_LSTR( LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE );
+								return false;
+							}
 							std::string sEscaped;
-							ee::CExpEval::ResolveAllEscapes( jSon.GetContainer()->GetString( aThisVal.u.stString ), sEscaped, true );
+							ee::CExpEval::ResolveAllEscapes( std::string( jSon.GetContainer()->GetString( jvThisVal.u.stString ) ), sEscaped, true );
 							std::string sCodes = CUtilities::Replace( sEscaped, '\r', '\n' );
-							auto vCodes = ee::CExpEval::Tokenize<std::string>( sCodes, '\n', false );
-							if ( !vCodes.size() ) { continue; }
+							std::vector<std::string> vCodes = ee::CExpEval::Tokenize<std::string>( sCodes, '\n', false );
+							if ( !vCodes.size() ) {
+								continue;
+							}
 							ceEntry.vAddresses.resize( vCodes.size() );
 							for ( size_t G = 0; G < vCodes.size(); ++G ) {
 								ceEntry.vAddresses[G].sCode = vCodes[G];
 							}
 						}
 						else {
-							auto sTmpStr = jSon.GetContainer()->GetString( aThis.oObject.vMembers[K].stValue );
-							lsn::DebugW( std::format( L"{}: Unknown JSON type: {}.\r\n", CUtilities::XStringToWString( _u16sFileName.c_str(), _u16sFileName.size() ), CUtilities::XStringToWString( sTmpStr.c_str(), sTmpStr.size() ) ).c_str() );
+							std::string_view svTmpStr = jSon.GetContainer()->GetString( jvThis.oObject.vMembers[K].stValue );
+							lsn::DebugW( std::format( L"{}: Unknown JSON type: {}.\r\n", CUtilities::XStringToWString( _u16sFileName.c_str(), _u16sFileName.size() ), CUtilities::XStringToWString( svTmpStr.data(), svTmpStr.size() ) ).c_str() );
 						}
 					}
 					ceEntry.u16sFile = std::filesystem::path( _u16sFileName ).replace_extension().generic_u16string();
@@ -491,7 +540,10 @@
 				}
 			}
 		}
-		catch ( ... ) { _wsError = LSN_LSTR( LSN_OUT_OF_MEMORY ); return false; }
+		catch ( ... ) {
+			_wsError = LSN_LSTR( LSN_OUT_OF_MEMORY );
+			return false;
+		}
 		return _wsError.empty();
 	}
 
@@ -509,40 +561,18 @@
 		sEscaped = CUtilities::Replace( sEscaped, std::string( "\\/" ), std::string( "/" ) );
 		// Gather until either the end of the string or {{...}} is found.
 		std::string sTmp;
-		size_t stNoteStart, stNoteEnd;
+		size_t stNoteStart = sEscaped.size(), stNoteEnd;
 		if ( FindNoteString( sEscaped, stNoteStart, stNoteEnd ) ) {
 			// Notes are not processed.
 			_wsNote = ee::CExpEval::ToUtf16( sEscaped.substr( stNoteStart + 2, stNoteEnd - stNoteStart - 3 ) );
 			sEscaped.erase( sEscaped.begin() + stNoteStart, sEscaped.begin() + stNoteEnd + 1 );
 		}
+		else if ( sEscaped.size() != stNoteStart ) {
+			lsn::DebugLine( std::format( "Check Note Format: {}.", _sDescription ) );
+		}
 		// Titlize the description part.
 		auto vWords = ee::CExpEval::TokenizeUtf( sEscaped, ' ', false );
-		/*static const struct LSN_REPLACE_TABLE {
-			const char *		pcReplaceMe;
-			const char *		pcWithMe;
-		} rtTable[] = {
-			{ "A", "a" },
-			{ "An", "an" },
-			{ "The", "the" },
 
-			{ "And", "and" },
-			{ "But", "but" },
-			{ "Or", "or" },
-			{ "Nor", "nor" },
-			{ "So", "so" },
-			{ "For", "for" },
-			{ "Yet", "yet" },
-
-			{ "In", "in" },
-			{ "On", "on" },
-			{ "At", "at" },
-			{ "By", "by" },
-			{ "To", "to" },
-			{ "From", "from" },
-			{ "Up", "up" },
-			{ "Off", "off" },
-			{ "In", "in" },
-		};*/
 		for ( auto I = vWords.size(); I--; ) {
 			auto vCompounds = ee::CExpEval::TokenizeUtf( vWords[I], '-', false );
 			for ( auto J = vCompounds.size(); J--; ) {
@@ -605,6 +635,10 @@
 						return true;
 					}
 				}
+			}
+			else if ( _sDescription[I] == '{' && _sDescription[I+1] == '[' ) {
+				// Most likely an error.
+				_stLeft = I;
 			}
 		}
 		return false;

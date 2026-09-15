@@ -655,17 +655,20 @@
 #define LSN_WE_FAILED_TO_WRITE_METADATA										Failed to write to metadata file \u201C{}\u201D.
 
 // Cheats.
+#define LSN_STR__CHEATS														&Cheats
 #define LSN_STR_CHEATS														Cheats
+#define LSN_STR_AVAILABLE_CHEATS											Available Cheats
 #define LSN_STR_ACTIVATE													Activate
 #define LSN_STR_ACTIVATE_WITH_HOTKEY										Activate With Hotkey
 #define LSN_STR_DEACTIVATE													Deactivate
 #define LSN_STR_TOGGLE_HOTKEY												Toggle Hotkey
-#define LSN_STR_ACCEPTED_CHEAT_FORMATS										Accepts Game Genie\u00AE codes and AAAA:VV:CC formats.\r\nOne code per line.
+#define LSN_STR_ACCEPTED_CHEAT_FORMATS										Accepts Game Genie\u00AE, AAAA?CC:VV, and AAAA:VV:CC formats.\r\nOne code per line.
 #define LSN_STR_ADD															Add
 #define LSN_STR_DELETE														Delete
 #define LSN_STR_EDIT														Edit
 #define LSN_STR_DUPLICATE													Duplicate
 #define LSN_STR_SEARCH														Search
+#define LSN_STR_SEARCH_GAME													Search Game
 #define LSN_STR_ADD_CHEAT													Add Cheat
 #define LSN_STR_EDIT_CHEAT													Edit Cheat
 #define LSN_STR_DESCRIPTION_												Description:

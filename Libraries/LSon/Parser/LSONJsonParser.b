@@ -7,15 +7,15 @@
 #include "../LSONJsonContainer.h"
 #include "../LSONJsonLexer.h"
 #include <string>
+#include <string_view>
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // MACROS
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #define YYINCLUDED_STDLIB_H
 
-//extern char yytext[];
 // Announce to Flex the prototype we want for lexing function.
-extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, lson::CJsonLexer * _pxlLexer );
+extern int yylex( void * _pvNodeUnion, lson::CJsonLexer * _pxlLexer );
 
 #include "../LSONJsonSyntaxNodes.h"
 
@@ -48,8 +48,8 @@ extern int yylex( /*YYSTYPE*/void * _pvNodeUnion, lson::CJsonLexer * _pxlLexer )
 
 json
 	:
-    | value													{ m_pjcContainer->AddJson( $$ ); }
-    ;
+	| value													{ m_pjcContainer->AddJson( $1 ); }
+	;
 
 value
 	: object												{ m_pjcContainer->AddObjectValue( $$, $1 ); }
@@ -73,7 +73,7 @@ members
 
 member
 	: string LSON_COLON value								{ m_pjcContainer->AddMember( $$, $1, $3 ); }
-    ;
+	;
 
 array
 	: LSON_LBRAC LSON_RBRAC									{ m_pjcContainer->AddArray( $$ ); }
@@ -86,7 +86,7 @@ values
 	;
 	
 string
-	: LSON_STRING											{ $$ = m_pjcContainer->AddQuoteString( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ); }
+	: LSON_STRING											{ $$ = m_pjcContainer->AddQuoteString( std::string_view( m_pjlLexer->YYText(), m_pjlLexer->YYLeng() ) ); }
 	
 decimal
 	: LSON_DECIMAL											{ $$ = ::atof( m_pjlLexer->YYText() ); }

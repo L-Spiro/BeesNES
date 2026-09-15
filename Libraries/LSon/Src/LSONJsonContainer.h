@@ -4,6 +4,7 @@
 #include "Gen/LSONJsonParser.h"
 
 #include <map>
+#include <string_view>
 #include <vector>
 
 
@@ -41,7 +42,7 @@ namespace lson {
 			size_t										stName;									/**< Name of the member. */
 			size_t										stValue;								/**< Index of the member value. */
 #ifdef _DEBUG
-			std::string									sName;
+			std::string_view							svName;
 #endif	// #ifdef _DEBUG
 		};
 
@@ -60,7 +61,7 @@ namespace lson {
 			std::vector<size_t>							vArray;									/**< The array, if vtType is LSON_VT_ARRAY. */
 			LSON_OBJECT									oObject;								/**< The object, if vtType is LSON_VT_OBJECT. */
 #ifdef _DEBUG
-			std::string									sString;
+			std::string_view							svString;
 #endif	// #ifdef _DEBUG
 		};
 
@@ -71,36 +72,34 @@ namespace lson {
 		/**
 		 * Adds a string and returns its index into the stack.
 		 *
-		 * \param _pcText The string to add or whose existing index is to be found.
-		 * \param _sLen The number of characters in _pcText.
+		 * \param _svText The string to add or whose existing index is to be found.
 		 * \return Returns the index of the added string.
 		 */
-		size_t											AddString( const char * _pcText, size_t _sLen );
+		size_t											AddString( std::string_view _svText );
 
 		/**
 		 * Removes quotes from the front and end before adding the string.
 		 *
-		 * \param _sText The string to add or whose existing index is to be found.
-		 * \param _sLen The number of characters in _pcText.
+		 * \param _svText The string to add or whose existing index is to be found.
 		 * \return Returns the index of the added string after stripping the enclosing quotes from it.
 		 */
-		size_t											AddQuoteString( const char * _pcText, size_t _sLen );
+		size_t											AddQuoteString( std::string_view _svText );
 
 		/**
 		 * Returns the index of a string or -1 if it does not exist.
 		 *
-		 * \param _sText The string to find.
+		 * \param _svText The string to find.
 		 * \return Returns the index of the string if it exists or size_t( -1 ).
 		 */
-		size_t											FindString( const std::string &_sText ) const;
+		size_t											FindString( std::string_view _svText ) const;
 
 		/**
-		 * Gets a reference to a string by index.
+		 * Gets a view to a string by index.
 		 *
 		 * \param _stIdx String index.
-		 * \return Returns a constant reference to the string given its index.
+		 * \return Returns a constant string_view given its index.
 		 */
-		const std::string								GetString( size_t _stIdx ) const { return m_vStrings[_stIdx]; }
+		std::string_view								GetString( size_t _stIdx ) const { return m_vStrings[_stIdx]; }
 
 		/**
 		 * Creates an object value node.
@@ -266,19 +265,19 @@ namespace lson {
 		/**
 		 * Gets a value by index.
 		 *
-		 * \param _stIdx Index of te value to get.
+		 * \param _stIdx Index of the value to get.
 		 * \return Returns a constant reference to a value loaded from the JSON file by index.
 		 */
 		inline const LSON_JSON_VALUE &					GetValue( size_t _stIdx ) const { return m_vValues[_stIdx]; }
 
 		/**
-		 * Finds a member by name and returns a pointer to the given value or nullptr.  _jvValue must be an object.
+		 * Finds a member by name and returns a pointer to the given value or nullptr. _jvValue must be an object.
 		 *
 		 * \param _jvValue The object owning the member to find.
-		 * \param _sName The name of the member to locate.
+		 * \param _svName The name of the member to locate.
 		 * \return Returns a pointer to the member value with the given name or nullptr if it can't be found.
 		 */
-		const LSON_JSON_VALUE *							GetMemberByName( const LSON_JSON_VALUE &_jvValue, const std::string &_sName );
+		const LSON_JSON_VALUE *							GetMemberByName( const LSON_JSON_VALUE &_jvValue, std::string_view _svName );
 
 
 	protected :
@@ -288,9 +287,9 @@ namespace lson {
 		/** The stack of nodes. */
 		std::vector<YYSTYPE::LSON_NODE>					m_vNodes;
 		/** The stack of UTF-8 strings. */
-		std::vector<std::string>						m_vStrings;
+		std::vector<std::string_view>					m_vStrings;
 		/** Quick indexing of strings. */
-		std::map<std::string, size_t>					m_mStringIndex;
+		std::map<std::string_view, size_t>				m_mStringIndex;
 		/** Tree values, referenced by index. */
 		std::vector<LSON_JSON_VALUE>					m_vValues;
 		/** The resulting tree. */

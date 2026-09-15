@@ -24,27 +24,27 @@ namespace lsn {
 	/** The layout for the template window. */
 	LSW_WIDGET_LAYOUT CTemplatePageLayout::m_wlPage[] = {
 		{
-			LSN_LT_INPUT_DIALOG,					// ltType
-			LSN_TWI_MAINWINDOW,						// wId
-			nullptr,								// lpwcClass
-			TRUE,									// bEnabled
-			FALSE,									// bActive
-			0,										// iLeft
-			0,										// iTop
-			LSN_TEMPLATE_W,							// dwWidth
-			LSN_TEMPLATE_H,							// dwHeight
+			LSN_LT_INPUT_DIALOG,							// ltType
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,			// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			0,												// iLeft
+			0,												// iTop
+			LSN_TEMPLATE_W,									// dwWidth
+			LSN_TEMPLATE_H,									// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | DS_3DLOOK | DS_FIXEDSYS | DS_SETFONT | DS_CONTROL,										// dwStyle
 			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_CONTROLPARENT,												// dwStyleEx
-			nullptr,								// pwcText
-			0,										// sTextLen
-			LSN_TWI_NONE,							// dwParentId
+			nullptr,										// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_CWI_NONE,					// dwParentId
 
-			LSN_PARENT_VCLEFT,						// pcLeftSizeExp
-			nullptr, 0,								// pcRightSizeExp
-			LSN_PARENT_VCTOP,						// pcTopSizeExp
-			nullptr, 0,								// pcBottomSizeExp
-			LSN_FIXED_WIDTH,						// pcWidthSizeExp
-			LSN_FIXED_HEIGHT,						// pcHeightSizeExp
+			LSN_PARENT_VCLEFT,								// pcLeftSizeExp
+			nullptr, 0,										// pcRightSizeExp
+			LSN_PARENT_VCTOP,								// pcTopSizeExp
+			nullptr, 0,										// pcBottomSizeExp
+			LSN_FIXED_WIDTH,								// pcWidthSizeExp
+			LSN_FIXED_HEIGHT,								// pcHeightSizeExp
 		},
 	};
 
@@ -56,7 +56,7 @@ namespace lsn {
 	/**
 	 * Creates the page.
 	 *
-	 * \param _pwParent the parent of the page.
+	 * \param _pwParent The parent of the page.
 	 * \return Returns the created widget.
 	 */
 	CWidget * CTemplatePageLayout::CreatePage( CWidget * _pwParent ) {

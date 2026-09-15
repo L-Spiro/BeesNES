@@ -40,6 +40,10 @@ namespace lsn {
 		LSN_LT_WAV_EDITOR_SEQUENCING,
 		LSN_LT_WAV_EDITOR_FILE_SETTINGS,
 		LSN_LT_WAV_EDITOR_OUTPUT,
+
+		LSN_LT_CHEATS,
+		LSN_LT_ADD_CHEAT,
+		LSN_LT_CHEAT_HOTKEYS,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

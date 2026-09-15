@@ -236,8 +236,9 @@ int WINAPI wWinMain( _In_ HINSTANCE /*_hInstance*/, _In_opt_ HINSTANCE /*_hPrevI
 			if ( sfFile.Open( reinterpret_cast<const char16_t *>((wsRoot + wcFile).c_str()) ) ) {
 				sfFile.LoadToMemory( vBytes );
 				vBytes.push_back( 0 );
+				vBytes.push_back( 0 );
 
-				if ( !jSon.SetJson( reinterpret_cast<const char *>(vBytes.data()) ) ) {
+				if ( !jSon.SetJson( reinterpret_cast<char *>(vBytes.data()) ) ) {
 					lsn::DebugA( "JSON FAIL\r\n" );
 				}
 				else {

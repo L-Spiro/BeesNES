@@ -82,6 +82,14 @@ IDI_SOUND_MIXER_ICON_16 ICON                    "Resources\\icons8-sound-mixer-1
 
 IDI_SOUND_MIXER_ICON_32 ICON                    "Resources\\icons8-sound-mixer-32.ico"
 
+IDI_SHIELD_16           ICON                    "Resources\\icons8-broken-shield-16.ico"
+
+IDI_SHIELD_32           ICON                    "Resources\\icons8-broken-shield-32.ico"
+
+IDI_JOYSTICK_16         ICON                    "Resources\\icons8-joystick-16.ico"
+
+IDI_JOYSTICK_32         ICON                    "Resources\\icons8-joystick-32.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

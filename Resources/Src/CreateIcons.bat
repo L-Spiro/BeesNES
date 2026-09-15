@@ -225,3 +225,40 @@ SurfaceLevel2.exe -file "icons8-unpin-2-96.png" -outfile "..\icons8-unpin-2-16.i
 SurfaceLevel2.exe -file "icons8-unpin-96.png" -outfile "..\icons8-unpin-48.ico" -icon -fit 48 48
 SurfaceLevel2.exe -file "icons8-unpin-96.png" -outfile "..\icons8-unpin-32.ico" -icon -fit 32 32
 SurfaceLevel2.exe -file "icons8-unpin-96.png" -outfile "..\icons8-unpin-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-exchange-48.png" -outfile "..\icons8-exchange-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-exchange-32.png" -outfile "..\icons8-exchange-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-exchange-16.png" -outfile "..\icons8-exchange-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-up-arrow-48 (1).png" -outfile "..\icons8-up-arrow-48 (1).ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-up-arrow-32 (1).png" -outfile "..\icons8-up-arrow-32 (1).ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-up-arrow-16 (1).png" -outfile "..\icons8-up-arrow-16 (1).ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-right-arrow-48.png" -outfile "..\icons8-right-arrow-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-right-arrow-32.png" -outfile "..\icons8-right-arrow-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-right-arrow-16.png" -outfile "..\icons8-right-arrow-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-repeat-48.png" -outfile "..\icons8-repeat-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-repeat-32.png" -outfile "..\icons8-repeat-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-repeat-16.png" -outfile "..\icons8-repeat-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-reload-48.png" -outfile "..\icons8-reload-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-reload-32.png" -outfile "..\icons8-reload-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-reload-16.png" -outfile "..\icons8-reload-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-up-arrow-48.png" -outfile "..\icons8-up-arrow-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-up-arrow-32.png" -outfile "..\icons8-up-arrow-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-up-arrow-16.png" -outfile "..\icons8-up-arrow-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-down-arrow-48.png" -outfile "..\icons8-down-arrow-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-down-arrow-32.png" -outfile "..\icons8-down-arrow-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-down-arrow-16.png" -outfile "..\icons8-down-arrow-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-broken-shield-48.png" -outfile "..\icons8-broken-shield-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-broken-shield-32.png" -outfile "..\icons8-broken-shield-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-broken-shield-16.png" -outfile "..\icons8-broken-shield-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-coding-48.png" -outfile "..\icons8-coding-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-coding-32.png" -outfile "..\icons8-coding-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-coding-16.png" -outfile "..\icons8-coding-16.ico" -icon -fit 16 16
+

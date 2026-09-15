@@ -23,14 +23,18 @@
 #define IDI_PATCH_ICON_16               126
 #define IDI_PATCH_ICON_32               127
 #define IDI_SOUND_MIXER_ICON_16         128
-#define IDI_ICON3                       129
 #define IDI_SOUND_MIXER_ICON_32         129
+#define IDI_SHIELD_16                   130
+#define IDI_SHIELD_32                   131
+#define IDI_JOYSTICK_16                 132
+#define IDI_ICON4                       133
+#define IDI_JOYSTICK_32                 133
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

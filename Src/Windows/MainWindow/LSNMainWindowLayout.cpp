@@ -116,6 +116,7 @@ namespace lsn {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	
 		{ FALSE,		LSN_MWMI_TOOLS_PATCH,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_PATCH ) },
 		{ FALSE,		LSN_MWMI_TOOLS_WAV_EDIT,	FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_WAV_EDIT ) },
+		{ FALSE,		LSN_MWMI_TOOLS_CHEATS,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_STR__CHEATS ) },
 	};
 
 	/** Windows menu. */

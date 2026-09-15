@@ -2975,7 +2975,7 @@ namespace lsn {
 	/**
 	 * Creates the page.
 	 *
-	 * \param _pwParent the parent of the page.
+	 * \param _pwParent The parent of the page.
 	 * \param _oOptions A reference to the options object.
 	 * \return Returns TRUE if the dialog was created successfully.
 	 */

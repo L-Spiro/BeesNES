@@ -25,6 +25,7 @@
 #include "../../Utilities/LSNScopedNoSubnormals.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../Audio/LSNAudioOptionsWindowLayout.h"
+#include "../Cheats/LSNCheatsWindowLayout.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
 #include "../Patch/LSNPatchWindowLayout.h"
@@ -55,7 +56,6 @@ namespace lsn {
 		m_aiThreadState( LSN_TS_INACTIVE ),
 		m_pabIsAlive( reinterpret_cast<std::atomic_bool *>(_ui64Data) ),
 		m_bMaximized( false ),
-		m_pwPatchWindow( nullptr ),
 		m_psbCachedBar( nullptr ) {
 		(*m_pabIsAlive) = true;
 
@@ -114,17 +114,6 @@ namespace lsn {
 		m_bnEmulator.LoadSettings();
 		m_bnEmulator.SetCurFilter( m_bnEmulator.Options().fFilter );
 
-		/*for ( size_t I = 0; I < LSN_I_TOTAL; ++I ) {
-			std::wstring wsTemp = wsRoot + L"Resources\\";
-			wsTemp += sImages[I].lpwsImageName;
-			wsTemp += L".bmp";
-
-			m_bBitmaps[sImages[I].dwConst].LoadFromFile( wsTemp.c_str(), 0, 0, LR_CREATEDIBSECTION );
-			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
-		}*/
-
-		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-48.ico").c_str(), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT ) );
-		//HICON hIcon = reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), (wsRoot + L"Resources\\icons8-bee-64.png").c_str(), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT ) );
 		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON2 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
 			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_ICON1 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
@@ -748,23 +737,15 @@ namespace lsn {
 			}
 
 			case CMainWindowLayout::LSN_MWMI_TOOLS_PATCH : {
-				if ( m_pwPatchWindow ) {
-					m_pwPatchWindow->SetFocus();
-				}
-				else {
-					m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( nullptr, m_bnEmulator.Options() );
-					if ( m_pwPatchWindow ) { m_pwPatchWindow->SetWidgetParent( this ); }
-				}
+				ShowPatchWindow();
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_WAV_EDIT : {
-				if ( m_pwWavEditorWindow ) {
-					m_pwWavEditorWindow->SetFocus();
-				}
-				else {
-					m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( nullptr, m_bnEmulator.Options() );
-					if ( m_pwWavEditorWindow ) { m_pwWavEditorWindow->SetWidgetParent( this ); }
-				}
+				ShowWavEditor();
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_TOOLS_CHEATS : {
+				ShowCheats();
 				break;
 			}
 
@@ -2085,6 +2066,39 @@ namespace lsn {
 	}
 
 	/**
+	 * Shows the iPatch window.
+	 **/
+	void CMainWindow::ShowPatchWindow() {
+		if ( m_pwPatchWindow ) {
+			m_pwPatchWindow->SetFocus();
+		}
+		else {
+			m_pwPatchWindow = CPatchWindowLayout::CreatePatchWindow( nullptr, m_bnEmulator.Options() );
+			if ( m_pwPatchWindow ) { m_pwPatchWindow->SetWidgetParent( this ); }
+		}
+	}
+
+	/**
+	 * Shows the Wave Editor.
+	 **/
+	void CMainWindow::ShowWavEditor() {
+		if ( m_pwWavEditorWindow ) {
+			m_pwWavEditorWindow->SetFocus();
+		}
+		else {
+			m_pwWavEditorWindow = CWavEditorWindowLayout::CreateWavEditorWindow( nullptr, m_bnEmulator.Options() );
+			if ( m_pwWavEditorWindow ) { m_pwWavEditorWindow->SetWidgetParent( this ); }
+		}
+	}
+
+	/**
+	 * Shows the Cheats dialog.
+	 **/
+	void CMainWindow::ShowCheats() {
+		CCheatsWindowLayout::CreateCheatsDialog( this, &m_bnEmulator.CheatManager() );
+	}
+
+	/**
 	 * Gets the window rectangle for correct output at a given scale and ratio.
 	 *
 	 * \param _dScale A scale override or -1.0 to use m_dScale.
@@ -2123,93 +2137,6 @@ namespace lsn {
 			m_bnEmulator.SetRatio( (m_bnEmulator.GetRatioActual() * m_pdcClient->DisplayHeight()) / m_pdcClient->DisplayWidth() );
 		}
 	}
-
-	/**
-	 * Sends a given palette to the console.
-	 *
-	 * \param _vPalette The loaded palette file.
-	 * \param _bIsProbablyFloat When the size alone is not enough to determine the palette type, this is used to make the decision.
-	 * \param _bApplySrgb If true, an sRGB curve is applied to the loaded palette.
-	 */
-#if 0
-	void CMainWindow::SetPalette( const std::vector<uint8_t> &_vPalette, bool _bIsProbablyFloat, bool _bApplySrgb ) {
-#if 1
-		if ( !m_bnEmulator.GetSystem() ) { return; }
-		lsn::LSN_PALETTE * ppPal = m_bnEmulator.GetSystem()->Palette();
-		if ( !ppPal ) { return; }
-
-		std::vector<Double3> vTmp;
-		if ( _bIsProbablyFloat && (1 << 6) * 3 * sizeof( double ) == _vPalette.size() ) {
-			vTmp = Load32_64bitPalette_64_512<double>( _vPalette );
-		}
-		else {
-			switch ( _vPalette.size() ) {
-				case (1 << 6) * 3 * sizeof( uint8_t ) : { /* Drop through! */ }
-				case (1 << 9) * 3 * sizeof( uint8_t ) : {
-					vTmp = Load8bitPalette_64_512( _vPalette );
-					break;
-				}
-				case (1 << 6) * 3 * sizeof( float ) : { /* Drop through! */ }
-				case (1 << 9) * 3 * sizeof( float ) : {
-					vTmp = Load32_64bitPalette_64_512<float>( _vPalette );
-					break;
-				}
-				case (1 << 9) * 3 * sizeof( double ) : {
-					vTmp = Load32_64bitPalette_64_512<double>( _vPalette );
-					break;
-				}
-			}
-		}
-		if ( !vTmp.size() ) { return; }
-		for ( size_t I = 0; I < 512; ++I ) {
-			if ( _bApplySrgb ) {
-				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( vTmp[I].x[2] ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( vTmp[I].x[1] ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( vTmp[I].x[0] ) * 255.0 ) );
-			}
-			else {
-#if 1
-				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[2], 1.0 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[1], 1.0, 0.0181 * 0.5 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( vTmp[I].x[0], 1.0 ) ) * 255.0 ) );
-
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[2] ), 1.0 / 2.2 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[1] ), 1.0 / 2.2 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( CUtilities::SMPTE170MtoLinear( vTmp[I].x[0] ), 1.0 / 2.2 ) ) * 255.0 ) );*/
-				
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[2] ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[1] ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( CUtilities::SMPTE170MtoLinear_Precise( vTmp[I].x[0] ) ) * 255.0 ) );*/
-
-				/*ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[2], 1.0 / 0.45 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[1], 1.0 / 0.45 ) ) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( CUtilities::LinearTosRGB_Precise( std::pow( vTmp[I].x[0], 1.0 / 0.45 ) ) * 255.0 ) );*/
-#else
-				ppPal->uVals[I].sRgb.ui8R = uint8_t( std::round( (vTmp[I].x[2]) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8G = uint8_t( std::round( (vTmp[I].x[1]) * 255.0 ) );
-				ppPal->uVals[I].sRgb.ui8B = uint8_t( std::round( (vTmp[I].x[0]) * 255.0 ) );
-#endif
-			}
-		}
-
-#else
-		if ( _vPalette.size() != 0x40 * 3 && _vPalette.size() != (1 << 9) * 3 ) { return; }
-		if ( !m_bnEmulator.GetSystem() ) { return; }
-		lsn::LSN_PALETTE * ppPal = m_bnEmulator.GetSystem()->Palette();
-		if ( !ppPal ) { return; }
-		for ( size_t I = 0; I < _vPalette.size(); I += 3 ) {
-			size_t stIdx = (I / 3);
-			ppPal->uVals[stIdx].sRgb.ui8R = uint8_t( std::round( CHelpers::LinearTosRGB_Precise( _vPalette[I+2] / 255.0 ) * 255.0 ) );
-			ppPal->uVals[stIdx].sRgb.ui8G = uint8_t( std::round( CHelpers::LinearTosRGB_Precise( _vPalette[I+1] / 255.0 ) * 255.0 ) );
-			ppPal->uVals[stIdx].sRgb.ui8B = uint8_t( std::round( CHelpers::LinearTosRGB_Precise( _vPalette[I+0] / 255.0 ) * 255.0 ) );
-
-			/*ppPal->uVals[stIdx].sRgb.ui8R = _vPalette[I+2];
-			ppPal->uVals[stIdx].sRgb.ui8G = _vPalette[I+1];
-			ppPal->uVals[stIdx].sRgb.ui8B = _vPalette[I+0];*/
-		}
-#endif	// 1
-	}
-#endif		// #if 0
 
 	/**
 	 * Loads a ROM given its in-memory image and its file name.

@@ -12,6 +12,7 @@
 
 #include "../../LSNLSpiroNes.h"
 #include "../../Options/LSNOptions.h"
+#include "../WinUtilities/LSNWinUtilities.h"
 
 #include <Layout/LSWMenuLayout.h>
 #include <Layout/LSWWidgetLayout.h>
@@ -44,7 +45,7 @@ namespace lsn {
 		/**
 		 * Creates the page.
 		 *
-		 * \param _pwParent the parent of the page.
+		 * \param _pwParent The parent of the page.
 		 * \return Returns the created widget.
 		 */
 		static CWidget *						CreatePage( CWidget * _pwParent );

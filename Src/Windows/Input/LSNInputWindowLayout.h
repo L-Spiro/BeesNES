@@ -51,7 +51,7 @@ namespace lsn {
 		/**
 		 * Creates the global-settings page.
 		 *
-		 * \param _pwParent the parent of the page.
+		 * \param _pwParent The parent of the page.
 		 * \param _oOptions A reference to the options object.
 		 * \param _pmwMainWindow A pointer to the main window to allow access to USB controllers.
 		 * \return Returns the created widget.
@@ -61,7 +61,7 @@ namespace lsn {
 		/**
 		 * Creates the per-game-settings page.
 		 *
-		 * \param _pwParent the parent of the page.
+		 * \param _pwParent The parent of the page.
 		 * \param _oOptions A reference to the options object.
 		 * \param _pmwMainWindow A pointer to the main window to allow access to USB controllers.
 		 * \return Returns the created widget.

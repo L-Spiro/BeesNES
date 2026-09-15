@@ -343,6 +343,21 @@ namespace lsn {
 		 **/
 		void									UpdateGpuPalette();
 
+		/**
+		 * Shows the iPatch window.
+		 **/
+		void									ShowPatchWindow();
+
+		/**
+		 * Shows the Wave Editor.
+		 **/
+		void									ShowWavEditor();
+
+		/**
+		 * Shows the Cheats dialog.
+		 **/
+		void									ShowCheats();
+
 
 	protected :
 		// == Enumerations.
@@ -402,6 +417,8 @@ namespace lsn {
 		lsw::CWidget *							m_pwPatchWindow = nullptr;
 		/** The WAV Editor window. */
 		lsw::CWidget *							m_pwWavEditorWindow = nullptr;
+		/** The Cheats window. */
+		lsw::CWidget *							m_pwCheatshWindow = nullptr;
 		/** The window/UI settings/options. */
 		LSN_WINDOW_OPTIONS						m_woWindowOptions;
 

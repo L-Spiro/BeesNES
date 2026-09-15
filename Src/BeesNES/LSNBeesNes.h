@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Cheats/LSNCheatManager.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX12
@@ -507,6 +508,20 @@ namespace lsn {
 		void									ApplyAudioOptions();
 
 		/**
+		 * Gets a reference to the Cheat Manager.
+		 * 
+		 * \return Returns a reference to the Cheat Manager.
+		 **/
+		CCheatManager &							CheatManager() { return m_cmCheatManager; }
+
+		/**
+		 * Gets a constant reference to the Cheat Manager.
+		 * 
+		 * \return Returns a constant reference to the Cheat Manager.
+		 **/
+		const CCheatManager &					CheatManager() const { return m_cmCheatManager; }
+
+		/**
 		 * Gets the default folder for cheats.
 		 * 
 		 * \return Returns the default folder where default cheats can be found.
@@ -749,6 +764,9 @@ namespace lsn {
 		CSystemBase *							m_psbSystem = nullptr;
 		/** The path to the executable folder. */
 		std::wstring							m_wsFolder;
+
+		/** The Cheat Manager. */
+		CCheatManager							m_cmCheatManager;
 
 		/** The CPU temperature. */
 		CCpuTemperatureReader					m_trTemperatureReader;

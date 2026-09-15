@@ -18,6 +18,8 @@
 
 #include <dbt.h>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -42,6 +44,9 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CControllerSetupWindow::InitDialog() {
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_JOYSTICK_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_JOYSTICK_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+
 		CTab * ptTab = GetTab();
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );

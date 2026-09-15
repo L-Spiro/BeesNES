@@ -12,6 +12,7 @@
 #include "../Audio/LSNAudioOptionsGeneralPage.h"
 #include "../Audio/LSNAudioOptionsRecordingPage.h"
 #include "../Audio/LSNAudioOptionsWindow.h"
+#include "../Cheats/LSNCheatsWindow.h"
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
@@ -93,6 +94,10 @@ namespace lsn {
 			}
 			case LSN_LT_WAV_EDITOR_OUTPUT : {
 				return new CWavEditorOutputPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
+			}
+
+			case LSN_LT_CHEATS : {
+				return new CCheatsWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

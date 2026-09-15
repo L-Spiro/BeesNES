@@ -11,7 +11,10 @@
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../Cheats/LSNCheatManager.h"
 #include "../../Options/LSNOptions.h"
+#include "../WinUtilities/LSNWinUtilities.h"
+
 
 #include <Layout/LSWMenuLayout.h>
 #include <Layout/LSWWidgetLayout.h>
@@ -22,21 +25,22 @@ using namespace lsw;
 namespace lsn {
 	
 	/**
-	 * Class CCheatsDialogLayout
+	 * Class CCheatsWindowLayout
 	 * \brief The layout for the Cheats dialog.
 	 *
 	 * Description: The layout for the Cheats dialog.
 	 */
-	class CCheatsDialogLayout {
+	class CCheatsWindowLayout {
 	public :
 		// == Functions.
 		/**
-		 * Creates the page.
+		 * Creates the Cheats dialog.
 		 *
-		 * \param _pwParent the parent of the page.
-		 * \return Returns the created widget.
+		 * \param _pwParent The parent of the page.
+		 * \param _pcmCheatManager A pointer to the cheat manager.
+		 * \return TRUE if the dialog was created successfully.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent );
+		static BOOL								CreateCheatsDialog( CWidget * _pwParent, CCheatManager * _pcmCheatManager );
 
 
 	protected :
@@ -52,9 +56,10 @@ namespace lsn {
 		 * \param _pwParent The parent widget.
 		 * \param _pwlLayout The page layout.
 		 * \param _sTotal The number of items to which _pwlLayout points.
-		 * \return Returns the created page.
+		 * \param _pcmCheatManager A pointer to the cheat manager.
+		 * \return TRUE if the dialog was created successfully.
 		 */
-		static CWidget *						CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal );
+		static BOOL							CreatePage( CWidget * _pwParent, const LSW_WIDGET_LAYOUT * _pwlLayout, size_t _sTotal, CCheatManager * _pcmCheatManager );
  		
 	};
 
