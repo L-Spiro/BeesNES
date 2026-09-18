@@ -1691,7 +1691,7 @@ namespace lsw {
 							pwParent = pwParent->Parent();
 						}
 						if ( bRedraw ) {
-							::RedrawWindow( _hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN /*| RDW_UPDATENOW*/ );
+							::RedrawWindow( _hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME /*| RDW_UPDATENOW*/ );
 						}
 					}
 				}
