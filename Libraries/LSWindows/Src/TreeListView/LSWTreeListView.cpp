@@ -1089,8 +1089,33 @@ namespace lsw {
 	 */
 	CWidget::LSW_HANDLED CTreeListView::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		CWidget::Size( _wParam, _lWidth, _lHeight );
-		//::ShowScrollBar( Wnd(), SB_VERT, FALSE );
-		//ResizeControls( VirtualClientRect( nullptr ) );
+
+		INT iCols = GetColumnCount();
+		if ( iCols > 0 && !m_bAutoResizing ) {
+			m_bAutoResizing = true;
+
+			if ( m_lLastColBaseWidth == -1 ) {
+				m_lLastColBaseWidth = GetColumnWidth( iCols - 1 );
+			}
+
+			LONG lTotalExceptLast = 0;
+			for ( INT I = 0; I < iCols - 1; ++I ) {
+				lTotalExceptLast += GetColumnWidth( I );
+			}
+
+			RECT rcClient;
+			::GetClientRect( Wnd(), &rcClient );
+			LONG lClientWidth = rcClient.right - rcClient.left;
+
+			LONG lRemaining = lClientWidth - lTotalExceptLast;
+			LONG lTargetWidth = lRemaining > m_lLastColBaseWidth ? lRemaining : m_lLastColBaseWidth;
+
+			if ( GetColumnWidth( iCols - 1 ) != lTargetWidth ) {
+				SetColumnWidth( iCols - 1, lTargetWidth );
+			}
+
+			m_bAutoResizing = false;
+		}
 
 		return LSW_H_CONTINUE;
 	}
@@ -1703,14 +1728,12 @@ namespace lsw {
 					};
 					LSW_HANDLED hHandled = ptlThis->LButtonDblClk( static_cast<DWORD>(_wParam), pPos );
 
-					// Return value
 					//	An application should return zero if it processes this message.
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
 				break;
 			}
 			case WM_NCLBUTTONDBLCLK : {
-				//::MoveWindow( _hWnd, ee::CExpEval::Time() % 10, ee::CExpEval::Time() % 20, ee::CExpEval::Time() % 10 + 350, ee::CExpEval::Time() % 10 + 250, TRUE );
 				break;
 			}
 			case WM_LBUTTONDOWN : {
@@ -1721,7 +1744,6 @@ namespace lsw {
 					};
 					LSW_HANDLED hHandled = ptlThis->LButtonDown( static_cast<DWORD>(_wParam), pPos );
 
-					// Return value
 					//	An application should return zero if it processes this message.
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
@@ -1731,7 +1753,6 @@ namespace lsw {
 				if ( ptlThis ) {
 					LSW_HANDLED hHandled = ptlThis->KeyDown( static_cast<UINT>(_wParam), static_cast<UINT>(_lParam) );
 
-					// Return value
 					//	An application should return zero if it processes this message.
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
@@ -1743,9 +1764,8 @@ namespace lsw {
 			case WM_SIZE : {
 				if ( ptlThis ) {
 					LSW_RECT rTemp;
-					::GetWindowRect( _hWnd, &rTemp );
-					/*LSW_HANDLED hHandled =*/ ptlThis->Size( _wParam, rTemp.Width(), rTemp.Height() );
-					//::RedrawWindow( _hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW );
+					::GetClientRect( _hWnd, &rTemp );
+					ptlThis->Size( _wParam, rTemp.Width(), rTemp.Height() );
 				}
 				break;
 			}
@@ -1759,15 +1779,114 @@ namespace lsw {
 			case LVM_INSERTCOLUMNA : {}
 			case LVM_INSERTCOLUMNW : {
 				if ( wpOrig ) {
+					// 1. Restore the last column's base width before inserting a new one at the end.
+					if ( ptlThis && ptlThis->m_lLastColBaseWidth != -1 ) {
+						int iCols = ptlThis->GetColumnCount();
+						if ( iCols > 0 ) {
+							ptlThis->m_bAutoResizing = true;
+							::SendMessageW( _hWnd, LVM_SETCOLUMNWIDTH, iCols - 1, MAKELPARAM( ptlThis->m_lLastColBaseWidth, 0 ) );
+							ptlThis->m_bAutoResizing = false;
+						}
+					}
+					if ( ptlThis ) { ptlThis->m_lLastColBaseWidth = -1; }
+
 					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+					
+					// 2. Pulse the item count to force native horizontal scrollbar evaluation.
+					int iCount = static_cast<int>(::SendMessageW( _hWnd, LVM_GETITEMCOUNT, 0, 0 ));
+					::SendMessageW( _hWnd, LVM_SETITEMCOUNT, static_cast<WPARAM>(iCount), LVSICF_NOSCROLL );
+					
 					if ( ptlThis ) {
-						// Natively, LVS_OWNERDATA list views defer horizontal scrollbar calculations 
-						// when columns are inserted dynamically to prevent screen flickering.
-						// Re-affirming the item count forces the OS to immediately validate the scroll state.
-						int iCount = ptlThis->GetItemCount();
-						::SendMessageW( _hWnd, LVM_SETITEMCOUNT, static_cast<WPARAM>(iCount), 0 );
+						RECT rcClient;
+						::GetClientRect( _hWnd, &rcClient );
+						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
 					}
 					return lRes;
+				}
+				break;
+			}
+			case LVM_DELETECOLUMN : {
+				if ( ptlThis ) { ptlThis->m_lLastColBaseWidth = -1; }
+				if ( wpOrig ) {
+					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+					if ( ptlThis ) {
+						RECT rcClient;
+						::GetClientRect( _hWnd, &rcClient );
+						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
+					}
+					return lRes;
+				}
+				break;
+			}
+			case LVM_SETCOLUMNWIDTH : {
+				if ( ptlThis && !ptlThis->m_bAutoResizing ) {
+					int iCols = ptlThis->GetColumnCount();
+					if ( iCols > 0 && static_cast<int>(_wParam) == iCols - 1 ) {
+						if ( static_cast<short>(LOWORD( _lParam )) >= 0 ) {
+							ptlThis->m_lLastColBaseWidth = static_cast<LONG>(LOWORD( _lParam ));
+						}
+					}
+				}
+				if ( wpOrig ) {
+					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+					if ( ptlThis && !ptlThis->m_bAutoResizing ) {
+						RECT rcClient;
+						::GetClientRect( _hWnd, &rcClient );
+						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
+					}
+					return lRes;
+				}
+				break;
+			}
+			case WM_NOTIFY : {
+				if ( ptlThis ) {
+					NMHDR * pNmHdr = reinterpret_cast<NMHDR *>( _lParam );
+					HWND hHeader = ListView_GetHeader( _hWnd );
+					
+					if ( pNmHdr->hwndFrom == hHeader ) {
+						
+						if ( pNmHdr->code == HDN_ITEMCHANGINGW || pNmHdr->code == HDN_ITEMCHANGINGA ) {
+							NMHEADERW * pNmHeader = reinterpret_cast<NMHEADERW *>( _lParam );
+							if ( pNmHeader->pitem && (pNmHeader->pitem->mask & HDI_WIDTH) ) {
+								int iCols = ptlThis->GetColumnCount();
+								LONG lProposedTotal = 0;
+								for ( int I = 0; I < iCols; ++I ) {
+									if ( I == pNmHeader->iItem ) {
+										lProposedTotal += pNmHeader->pitem->cxy;
+									} else {
+										lProposedTotal += ptlThis->GetColumnWidth( I );
+									}
+								}
+								
+								RECT rcClient;
+								::GetClientRect( _hWnd, &rcClient );
+								if ( lProposedTotal <= (rcClient.right - rcClient.left) ) {
+									// The proposed shrink will destroy the scrollbar.
+									// Send SB_LEFT now while the scrollbar still exists to unstrand the origin natively.
+									if ( ::GetScrollPos( _hWnd, SB_HORZ ) > 0 ) {
+										::SendMessageW( _hWnd, WM_HSCROLL, MAKEWPARAM( SB_LEFT, 0 ), 0 );
+									}
+								}
+							}
+						}
+						else if ( pNmHdr->code == HDN_ITEMCHANGEDW || pNmHdr->code == HDN_ITEMCHANGEDA ) {
+							NMHEADERW * pNmHeader = reinterpret_cast<NMHEADERW *>( _lParam );
+							
+							if ( !ptlThis->m_bAutoResizing && pNmHeader->pitem && (pNmHeader->pitem->mask & HDI_WIDTH) ) {
+								int iCols = ptlThis->GetColumnCount();
+								if ( iCols > 0 && pNmHeader->iItem == iCols - 1 ) {
+									ptlThis->m_lLastColBaseWidth = pNmHeader->pitem->cxy;
+								}
+								if ( wpOrig ) {
+									LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+									RECT rcClient;
+									::GetClientRect( _hWnd, &rcClient );
+									ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
+									return lRes;
+								}
+							}
+						}
+					}
 				}
 				break;
 			}

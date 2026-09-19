@@ -630,7 +630,7 @@
 	 * \return Returns true if a note string is embedded in the description.
 	 **/
 	bool CCheatConverter::FindNoteString( const std::string &_sDescription, size_t &_stLeft, size_t &_stRight ) {
-		if ( !_sDescription.size() ) { return false; }
+		if ( !_sDescription.size() ) { _stLeft = 1; return false; }
 		for ( size_t I = 0; I < _sDescription.size() - 1; ++I ) {
 			if ( _sDescription[I] == '{' && _sDescription[I+1] == '{' ) {
 				_stLeft = I;
