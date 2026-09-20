@@ -672,9 +672,16 @@
 #define LSN_STR_SEARCH_GAME													Search Game
 #define LSN_STR_ADD_CHEAT													Add Cheat
 #define LSN_STR_EDIT_CHEAT													Edit Cheat
+#define LSN_STR_DELETE_CHEAT												Delete Cheat
+#define LSN_STR_DUPLICATE_CHEAT												Duplicate Cheat
+#define LSN_STR__ADD_CHEAT													&Add Cheat
+#define LSN_STR__EDIT_CHEAT													&Edit Cheat
+#define LSN_STR_DE_LETE_CHEAT												De&lete Cheat
+#define LSN_STR__DUPLICATE_CHEAT											&Duplicate Cheat
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code
+#define LSN_STR_CODES														Codes
 #define LSN_STR_TOGGLE_ON_OFF												Toggle On/Off
 #define LSN_STR_ACTIVATE_DEACTIVATE											Activate/Deactivate
 #define LSN_STR_HOTKEY_S_													Hotkey(s)

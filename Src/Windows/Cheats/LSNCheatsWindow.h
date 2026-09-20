@@ -45,6 +45,11 @@ namespace lsn {
 			LSN_I_TOTAL
 		};
 
+		// Menus.
+		enum LSN_MENUS {
+			LSN_M_CONTEXT_MENU								= 300,
+		};
+
 
 		// == Functions.
 		/**
@@ -80,6 +85,32 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED									MenuCommand( WORD _wId );
 
+		/**
+		 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+		 *
+		 * \param _lplvParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_ItemChanged( LPNMLISTVIEW _lplvParm );
+
+		/**
+		 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+		 *
+		 * \param _lposcParm The notifacation structure.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED									Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm );
+
+		/**
+		 * Handles the WM_CONTEXTMENU message.
+		 * 
+		 * \param _pwControl The control that was clicked.
+		 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED									ContextMenu( CWidget * _pwControl, INT _iX, INT _iY );
+
 
 	protected :
 		// == Members.
@@ -87,6 +118,20 @@ namespace lsn {
 		CImageList											m_iImages;									/** the image list for the toolbar. */
 		CBitmap												m_bBitmaps[LSN_I_TOTAL];					/** Images for the toolbar. */
 		INT													m_iImageMap[LSN_I_TOTAL];					/** Toolbar image mapping. */
+
+
+		// == Functions.
+		/**
+		 * Fills the TreeListView with filtered cheats.
+		 * 
+		 * \return Returns the number of cheats added to the TreeListView.
+		 **/
+		size_t												AddCheats();
+
+		/**
+		 * Updates the addresses and notes edits based on the TreeListView selection.
+		 **/
+		void												UpdateSelection();
 
 
 	private :

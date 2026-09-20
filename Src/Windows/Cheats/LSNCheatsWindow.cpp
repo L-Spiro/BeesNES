@@ -10,9 +10,12 @@
 
 #include "LSNCheatsWindow.h"
 #include "../../Localization/LSNLocalization.h"
+#include "../Layout/LSNLayoutMacros.h"
+#include "../Layout/LSNLayoutManager.h"
 
 #include <Rebar/LSWRebar.h>
 #include <ToolBar/LSWToolBar.h>
+#include <TreeListView/LSWTreeListView.h>
 
 #include "../../../resource.h"
 
@@ -116,6 +119,21 @@ namespace lsn {
 		{
 			::MoveWindow( Wnd(), int( rThisRect.left ), int( rThisRect.top ), int( rThisRect.Width() ), int( rThisRect.Height() + rRebarRect.Height() ), FALSE );
 		}
+
+		{
+			auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+			if ( ptlTree ) {
+				ptlTree->SetColumnText( LSN_LSTR( LSN_STR_CODES ), 0 );
+				ptlTree->SetColumnWidth( 0, 287 );
+				ptlTree->InsertColumn( LSN_LSTR( LSN_STR_HOTKEY_S_ ), 100, -1 );
+				ptlTree->FitColumndsToControlWidth( 0 );
+
+				AddCheats();
+				ptlTree->FitColumndsToControlWidth( 1 );
+			}
+		}
+
+
 		UpdateRects();
 		return LSW_H_CONTINUE;
 	}
@@ -147,6 +165,35 @@ namespace lsn {
 				::EndDialog( Wnd(), 1 );
 				return LSW_H_HANDLED;
 			}
+
+			case Layout::LSN_CWI_EXPAND_SELECTED : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->ExpandSelected();
+				}
+				break;
+			}
+			case Layout::LSN_CWI_EXPAND_ALL : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->ExpandAll();
+				}
+				break;
+			}
+			case Layout::LSN_CWI_COLLAPSE_SELECTED : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->CollapseSelected();
+				}
+				break;
+			}
+			case Layout::LSN_CWI_COLLAPSE_ALL : {
+				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlTree ) {
+					ptlTree->CollapseAll();
+				}
+				break;
+			}
 		}
 		
 		return LSW_H_CONTINUE;
@@ -168,6 +215,195 @@ namespace lsn {
 		}
 		
 		return Parent::MenuCommand( _wId );
+	}
+
+	/**
+	 * The WM_NOTIFY -> LVN_ITEMCHANGED handler.
+	 *
+	 * \param _lplvParm The notifacation structure.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CCheatsWindow::Notify_ItemChanged( LPNMLISTVIEW /*_lplvParm*/ ) {
+		UpdateSelection();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * The WM_NOTIFY -> LVN_ODSTATECHANGED handler.
+	 *
+	 * \param _lposcParm The notifacation structure.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CCheatsWindow::Notify_OdStateChange( LPNMLVODSTATECHANGE /*_lposcParm*/ ) {
+		UpdateSelection();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Handles the WM_CONTEXTMENU message.
+	 * 
+	 * \param _pwControl The control that was clicked.
+	 * \param _iX The horizontal position of the cursor, in screen coordinates, at the time of the mouse click.
+	 * \param _iY The vertical position of the cursor, in screen coordinates, at the time of the mouse click.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CCheatsWindow::ContextMenu( CWidget * _pwControl, INT _iX, INT _iY ) {
+		if ( _pwControl->Id() == Layout::LSN_CWI_CHEAT_TREELISTVIEW ) {
+			auto ptlvTree = static_cast<CTreeListView *>(_pwControl);
+			bool bExpSel = ptlvTree->AnySelectedHasUnexpandedChildren();
+			bool bExpAll = ptlvTree->AnyHasUnexpandedChildren();
+			bool bColSel = ptlvTree->AnySelectedHasExpandedChildren();
+			bool bColAll = ptlvTree->AnyHasExpandedChildren();
+			bool bHasItems = ptlvTree->HasItem();
+			std::vector<LPARAM> vSelected;
+			ptlvTree->GatherSelectedLParam( vSelected );
+			for ( auto I = vSelected.size(); I--; ) {
+				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
+			}
+
+			bool bSelected = vSelected.size() != 0;
+			bool bAllSelectedAreCustom = true;
+			for ( auto I = vSelected.size(); I--; ) {
+				if ( uint32_t( vSelected[I] & 0x80000000 ) == 0 ) {
+					bAllSelectedAreCustom = false;
+					break;
+				}
+			}
+			lsw::LSW_MENU_ITEM miMenuBar[] = {
+				{ FALSE,		Layout::LSN_CWI_ADD_BUTTON,						FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__ADD_CHEAT ),				FALSE },
+				{ FALSE,		Layout::LSN_CWI_DELETE_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR_DE_LETE_CHEAT ),			FALSE },
+				{ FALSE,		Layout::LSN_CWI_DUPLICATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								LSN_LSTR( LSN_STR__DUPLICATE_CHEAT ),		FALSE },
+				{ FALSE,		Layout::LSN_CWI_EDIT_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR__EDIT_CHEAT ),			FALSE },
+				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
+				{ FALSE,		Layout::LSN_CWI_EXPAND_SELECTED,				FALSE,		FALSE,		bHasItems && bExpSel,								LSN_LSTR( LSN_PATCH_EXPAND_SELECTED ),		FALSE },
+				{ FALSE,		Layout::LSN_CWI_EXPAND_ALL,						FALSE,		FALSE,		bHasItems && bExpAll,								LSN_LSTR( LSN_PATCH_EXPAND_ALL ),			FALSE },
+				{ FALSE,		Layout::LSN_CWI_COLLAPSE_SELECTED,				FALSE,		FALSE,		bHasItems && bColSel,								LSN_LSTR( LSN_PATCH_COLLAPSE_SELECTED ),	FALSE },
+				{ FALSE,		Layout::LSN_CWI_COLLAPSE_ALL,					FALSE,		FALSE,		bHasItems && bColAll,								LSN_LSTR( LSN_PATCH_COLLAPSE_ALL ),			FALSE },
+				
+			};
+
+			const lsw::LSW_MENU_LAYOUT miMenus[] = {
+				{
+					LSN_M_CONTEXT_MENU,
+					0,
+					0,
+					std::size( miMenuBar ),
+					miMenuBar
+				},
+			};
+			lsn::CLayoutManager * plmLayout = static_cast<lsn::CLayoutManager *>(lsw::CBase::LayoutManager());
+			Command( 0, static_cast<WORD>(plmLayout->CreatePopupMenuEx( this, miMenus, std::size( miMenus ), _iX, _iY, TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD )), ptlvTree );
+			return LSW_H_HANDLED;
+		}
+		return Parent::ContextMenu( _pwControl, _iX, _iY );
+	}
+
+	/**
+	 * Fills the TreeListView with filtered cheats.
+	 * 
+	 * \return Returns the number of cheats added to the TreeListView.
+	 **/
+	size_t CCheatsWindow::AddCheats() {
+		if ( nullptr == m_pcmCheatManager ) { return 0; }
+		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlTree ) { return 0; }
+		try {
+			std::vector<LPARAM> vSelected;
+			ptlTree->GatherSelectedLParam( vSelected, true );
+			ptlTree->DeleteAll();
+
+			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
+			for ( auto I = sGames.begin(); I != sGames.end(); ++I ) {
+				auto vCheats = m_pcmCheatManager->GatherCheatsForGame( (*I) );
+				HTREEITEM hParent = NULL;
+				// If there is only one game after the filter, no need to add a heirarchy.  Just make a flat list.
+				if ( sGames.size() > 1 ) {
+					// Add the game names with children.
+					std::wstring pwsTmp = CUtilities::XStringToWString( (*I).c_str(), (*I).size() );
+					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(pwsTmp.c_str()),
+						-1, TVI_ROOT );
+					hParent = ptlTree->InsertItem( &isInsertMe );
+				}
+				for ( size_t J = 0; J < vCheats.size(); ++J ) {
+					auto cCheat = m_pcmCheatManager->CheatByIdx( vCheats[J] );
+					std::wstring wsText;
+					if ( cCheat.wsNotes.size() ) {
+						wsText = std::format( L"{}: {}", cCheat.wsDescription, cCheat.wsNotes );
+					}
+					else {
+						wsText = cCheat.wsDescription;
+					}
+					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsText.c_str()),
+						vCheats[J], hParent );
+						ptlTree->InsertItem( &isInsertMe );
+				}
+			}
+
+		}
+		catch ( ... ) {}
+		return ptlTree->GetItemCount();
+	}
+
+	/**
+	 * Updates the addresses and notes edits based on the TreeListView selection.
+	 **/
+	void CCheatsWindow::UpdateSelection() {
+		try {
+			auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+			if ( !ptlTree || !m_pcmCheatManager ) { return; }
+			std::vector<LPARAM> vSelected;
+			ptlTree->GatherSelectedLParam( vSelected, true );
+			for ( auto I = vSelected.size(); I--; ) {
+				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
+			}
+
+			auto pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
+			if ( !pwCodes ) { return; }
+			auto pwNotes = FindChild( Layout::LSN_CWI_NOTES_EDIT );
+			if ( !pwNotes ) { return; }
+
+			std::wstring wsCodes;
+			std::wstring wsNotes;
+			for ( size_t I = 0; I < vSelected.size(); ++I ) {
+				auto ceEntry = m_pcmCheatManager->CheatByIdx( uint32_t( vSelected[I] ) );
+				if ( vSelected.size() > 1 ) {
+					if ( wsCodes.size() ) {
+						wsCodes += L"\r\n\r\n";
+						wsNotes += L"\r\n\r\n";
+					}
+					if ( wsNotes.size() ) {
+						wsNotes += L"\r\n\r\n";
+					}
+					wsCodes += ceEntry.wsDescription;
+					wsCodes += L":\r\n";
+
+					wsNotes += ceEntry.wsDescription;
+					wsNotes += L":\r\n";
+				}
+				for ( size_t J = 0; J < ceEntry.vAddresses.size(); ++J ) {
+					if ( J > 0 ) { wsCodes += L"\r\n"; }
+					if ( ceEntry.ctType == LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE ) {
+						if ( ceEntry.vAddresses[J].bUseCompare ) {
+							wsCodes += std::format( L"{} ({:04X}:{:02X}:{:02X})",
+								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
+								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value, ceEntry.vAddresses[J].ui8CompareValue );
+						}
+						else {
+							wsCodes += std::format( L"{} ({:04X}:{:02X})",
+								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
+								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value );
+						}
+					}
+					else {
+						wsCodes += CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() );
+					}
+				}
+				wsNotes += ceEntry.wsNotes;
+			}
+			pwCodes->SetTextW( wsCodes.c_str() );
+			pwNotes->SetTextW( wsNotes.c_str() );
+		}
+		catch ( ... ) {}
 	}
 
 }	// namespace lsn

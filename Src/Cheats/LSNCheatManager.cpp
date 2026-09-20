@@ -10,11 +10,7 @@
 #include "../File/LSNZipFile.h"
 #include "../Localization/LSNLocalization.h"
 
-
 namespace lsn {
-
-	// == Members.
-	std::vector<LSN_CHEAT_ENTRY> CCheatManager::s_vBuiltInCheats;					/**< Built-in cheats. */
 
 	// == Functions.
 	/**
@@ -44,7 +40,7 @@ namespace lsn {
 						vExtracted.push_back( 0 );
 						vExtracted.push_back( 0 );
 						std::wstring wsTmp;
-						if ( !CCheatConverter::LoadMesenJson( vExtracted, s_vBuiltInCheats, vFiles[I], wsTmp ) ) {
+						if ( !CCheatConverter::LoadMesenJson( vExtracted, m_vBuiltInCheats, vFiles[I], wsTmp ) ) {
 							if ( wsError.size() ) { wsError += L"\r\n"; }
 							wsError += CUtilities::XStringToWString( vFiles[I].c_str(), vFiles[I].size() );
 							wsError += L" ";
@@ -66,7 +62,93 @@ namespace lsn {
 	 * Shuts down the cheat manager at the end of the application life cycle.
 	 **/
 	void CCheatManager::DestroyCheatLibrary() {
-		s_vBuiltInCheats = std::vector<LSN_CHEAT_ENTRY>();
+		m_vBuiltInCheats = std::vector<LSN_CHEAT_ENTRY>();
+	}
+
+	/**
+	 * Determines how many games remain through the current filter.  If the filter is empty, all games pass.
+	 * 
+	 * \return Returns the number of games that are unfiltered via SetCheatFilter().
+	 **/
+	size_t CCheatManager::CountUnfiltered() const {
+		std::set<std::u16string> sCnt;
+		try {
+			std::wstring wsCompareMe = CUtilities::ToLower( m_wsFilter );
+			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
+				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( CUtilities::XStringToWString( m_vBuiltInCheats[I].u16sFile.c_str(), m_vBuiltInCheats[I].u16sFile.size() ), wsCompareMe, wsCompareMe.size() ) ) {
+					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
+				}
+			}
+		}
+		catch ( ... ) {}
+		return sCnt.size();
+	}
+
+	/**
+	 * Determines if there is more than 1 game in the unfiltered set.
+	 * 
+	 * \return Returns true if there is more than 1 game in the unfiltered set.
+	 **/
+	bool CCheatManager::MoreThanOneUnfiltered() const {
+		std::set<std::u16string> sCnt;
+		try {
+			std::wstring wsCompareMe = CUtilities::ToLower( m_wsFilter );
+			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
+				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( CUtilities::XStringToWString( m_vBuiltInCheats[I].u16sFile.c_str(), m_vBuiltInCheats[I].u16sFile.size() ), wsCompareMe, wsCompareMe.size() ) ) {
+					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
+					if ( sCnt.size() > 1 ) { return true; }
+				}
+			}
+		}
+		catch ( ... ) {}
+		return false;
+	}
+
+	/**
+	 * Gathers all of the names of the games that match the filter string.
+	 * 
+	 * \return Returns all names of games that pass the filter.
+	 **/
+	std::set<std::u16string> CCheatManager::GatherGamesWithFilter() const {
+		std::set<std::u16string> sCnt;
+		try {
+			std::wstring wsCompareMe = CUtilities::ToLower( m_wsFilter );
+			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
+				std::wstring wsTmp = CUtilities::XStringToWString( m_vBuiltInCheats[I].u16sFile.c_str(), m_vBuiltInCheats[I].u16sFile.size() );
+				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( wsTmp, wsCompareMe, wsCompareMe.size() ) ) {
+					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
+				}
+			}
+		}
+		catch ( ... ) {}
+		return sCnt;
+	}
+
+	/**
+	 * Gathers all of the cheats for a given game.
+	 * 
+	 * \param _u16sGame The name of the game whose cheats are to be gathered.
+	 * \return Returns a vector of indices into the built-in and custom cheats.  If the high bit is set, the cheat is part of the custom set.
+	 **/
+	std::vector<uint32_t> CCheatManager::GatherCheatsForGame( const std::u16string &_u16sGame ) const {
+		std::vector<uint32_t> vTmp;
+		try {
+			// Built-ins.
+			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
+				if ( m_vBuiltInCheats[I].u16sFile == _u16sGame ) {
+					vTmp.push_back( uint32_t( I ) );
+				}
+			}
+			// Customs.
+			/*
+			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
+				if ( m_vBuiltInCheats[I].u16sFile == _u16sGame ) {
+					vTmp.push_back( uint32_t( I ) );
+				}
+			}*/
+		}
+		catch ( ... ) {}
+		return vTmp;
 	}
 
 }	// namespace lsn

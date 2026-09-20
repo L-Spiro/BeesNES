@@ -143,11 +143,11 @@ namespace lsw {
 	}
 
 	/**
-	 * Sets an item's color.
+	 * Sets an itemÅ's color.
 	 * 
 	 * \param _tiItem The item whose color is to be updated.
 	 * \param _rgbColor The color to apply to the item (alpha respected).
-	 * \return Returns TRUE if the item's color was set.  FALSE indicates that the item was invalid.
+	 * \return Returns TRUE if the itemÅ's color was set.  FALSE indicates that the item was invalid.
 	 **/
 	BOOL CTreeListView::SetItemColor( HTREEITEM _tiItem, RGBQUAD _rgbColor ) {
 		ee::CTree<LSW_TREE_ROW> * pntItem = TreeItemToPointer( _tiItem );
@@ -1013,7 +1013,7 @@ namespace lsw {
 			if ( _ptThis->Size() ) { MoveUp( _ptThis->GetChild( 0 ), _sItems ); }
 
 			if ( std::find( _sItems.begin(), _sItems.end(), _ptThis->Value().lpParam ) != _sItems.end() ) {
-				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it can't be moved.
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canÅft be moved.
 				if ( _ptThis->Prev() && i64ThisIdx - i64Idx > 1 ) {
 					ee::CTree<LSW_TREE_ROW>::MoveUp( _ptThis );
 				}
@@ -1044,7 +1044,7 @@ namespace lsw {
 			if ( _ptThis->Size() ) { MoveDown( _ptThis->GetChild( 0 ), _sItems ); }
 
 			if ( std::find( _sItems.begin(), _sItems.end(), _ptThis->Value().lpParam ) != _sItems.end() ) {
-				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it can't be moved.
+				// Can we move this one?  If the previous item was just moved or there is nothing before this one, it canÅft be moved.
 				if ( _ptThis->Next() && i64ThisIdx - i64Idx > 1 ) {
 					ee::CTree<LSW_TREE_ROW>::MoveDown( _ptThis );
 				}
@@ -1089,33 +1089,8 @@ namespace lsw {
 	 */
 	CWidget::LSW_HANDLED CTreeListView::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		CWidget::Size( _wParam, _lWidth, _lHeight );
-
-		INT iCols = GetColumnCount();
-		if ( iCols > 0 && !m_bAutoResizing ) {
-			m_bAutoResizing = true;
-
-			if ( m_lLastColBaseWidth == -1 ) {
-				m_lLastColBaseWidth = GetColumnWidth( iCols - 1 );
-			}
-
-			LONG lTotalExceptLast = 0;
-			for ( INT I = 0; I < iCols - 1; ++I ) {
-				lTotalExceptLast += GetColumnWidth( I );
-			}
-
-			RECT rcClient;
-			::GetClientRect( Wnd(), &rcClient );
-			LONG lClientWidth = rcClient.right - rcClient.left;
-
-			LONG lRemaining = lClientWidth - lTotalExceptLast;
-			LONG lTargetWidth = lRemaining > m_lLastColBaseWidth ? lRemaining : m_lLastColBaseWidth;
-
-			if ( GetColumnWidth( iCols - 1 ) != lTargetWidth ) {
-				SetColumnWidth( iCols - 1, lTargetWidth );
-			}
-
-			m_bAutoResizing = false;
-		}
+		//::ShowScrollBar( Wnd(), SB_VERT, FALSE );
+		//ResizeControls( VirtualClientRect( nullptr ) );
 
 		return LSW_H_CONTINUE;
 	}
@@ -1386,7 +1361,7 @@ namespace lsw {
 	}
 
 	/**
-	 * The WM_NOTIFY -> NM_CUSTOMDRAW -> CDDS_PREPAINT handler.
+	 * The WM_NOTIFY -> NM_CUSTOMDRAW -> CDDS_ITEMPREPAINT handler.
 	 *
 	 * \param _lpcdParm The notifacation structure.
 	 * \return Returns an LSW_HANDLED code.
@@ -1569,34 +1544,10 @@ namespace lsw {
 	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).
 	 */
 	void CTreeListView::UpdateListView() {
+		LSW_SETREDRAW srRedraw( this );
 		ClearCache();
 		size_t stTotal = CountExpanded();
-		INT iNewCount = static_cast<INT>( stTotal );
-		INT iCurrentCount = ListView_GetItemCount( Wnd() );
-
-		if ( iNewCount < iCurrentCount ) {
-			INT iTopIndex = ListView_GetTopIndex( Wnd() );
-			INT iPerPage = ListView_GetCountPerPage( Wnd() );
-			
-			INT iMaxTop = iNewCount - iPerPage;
-			if ( iMaxTop < 0 ) { iMaxTop = 0; }
-
-			// If the current view is stranded past the new boundary, force the view up.
-			if ( iTopIndex > iMaxTop ) {
-				if ( iMaxTop == 0 ) {
-					// If we are shrinking to less than a single page, slam the view to the top.
-					::SendMessageW( Wnd(), WM_VSCROLL, MAKEWPARAM( SB_TOP, 0 ), 0 );
-				}
-				else {
-					ListView_EnsureVisible( Wnd(), iMaxTop, FALSE );
-				}
-			}
-		}
-
-		// Now it is safe to apply the new item count. The view is within valid bounds.
-		const_cast<CTreeListView *>(this)->SetItemCount( iNewCount );
-
-		LSW_SETREDRAW srRedraw( this );
+		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );
 
 		UnfocusCollapsed();
 		size_t stHighlighted = FindHighlighted();
@@ -1744,6 +1695,7 @@ namespace lsw {
 					};
 					LSW_HANDLED hHandled = ptlThis->LButtonDown( static_cast<DWORD>(_wParam), pPos );
 
+					// Return value
 					//	An application should return zero if it processes this message.
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
@@ -1753,6 +1705,7 @@ namespace lsw {
 				if ( ptlThis ) {
 					LSW_HANDLED hHandled = ptlThis->KeyDown( static_cast<UINT>(_wParam), static_cast<UINT>(_lParam) );
 
+					// Return value
 					//	An application should return zero if it processes this message.
 					if ( hHandled == LSW_H_HANDLED ) { return 0; }
 				}
@@ -1761,133 +1714,11 @@ namespace lsw {
 			case WM_ERASEBKGND : {
 				break;
 			}
-			case WM_SIZE : {
-				if ( ptlThis ) {
-					LSW_RECT rTemp;
-					::GetClientRect( _hWnd, &rTemp );
-					ptlThis->Size( _wParam, rTemp.Width(), rTemp.Height() );
-				}
-				break;
-			}
 
 			// =======================================
 			// List-View Messages.
 			// =======================================
 			case LVM_SETITEMSTATE : {
-				break;
-			}
-			case LVM_INSERTCOLUMNA : {}
-			case LVM_INSERTCOLUMNW : {
-				if ( wpOrig ) {
-					// 1. Restore the last column's base width before inserting a new one at the end.
-					if ( ptlThis && ptlThis->m_lLastColBaseWidth != -1 ) {
-						int iCols = ptlThis->GetColumnCount();
-						if ( iCols > 0 ) {
-							ptlThis->m_bAutoResizing = true;
-							::SendMessageW( _hWnd, LVM_SETCOLUMNWIDTH, iCols - 1, MAKELPARAM( ptlThis->m_lLastColBaseWidth, 0 ) );
-							ptlThis->m_bAutoResizing = false;
-						}
-					}
-					if ( ptlThis ) { ptlThis->m_lLastColBaseWidth = -1; }
-
-					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
-					
-					// 2. Pulse the item count to force native horizontal scrollbar evaluation.
-					int iCount = static_cast<int>(::SendMessageW( _hWnd, LVM_GETITEMCOUNT, 0, 0 ));
-					::SendMessageW( _hWnd, LVM_SETITEMCOUNT, static_cast<WPARAM>(iCount), LVSICF_NOSCROLL );
-					
-					if ( ptlThis ) {
-						RECT rcClient;
-						::GetClientRect( _hWnd, &rcClient );
-						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
-					}
-					return lRes;
-				}
-				break;
-			}
-			case LVM_DELETECOLUMN : {
-				if ( ptlThis ) { ptlThis->m_lLastColBaseWidth = -1; }
-				if ( wpOrig ) {
-					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
-					if ( ptlThis ) {
-						RECT rcClient;
-						::GetClientRect( _hWnd, &rcClient );
-						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
-					}
-					return lRes;
-				}
-				break;
-			}
-			case LVM_SETCOLUMNWIDTH : {
-				if ( ptlThis && !ptlThis->m_bAutoResizing ) {
-					int iCols = ptlThis->GetColumnCount();
-					if ( iCols > 0 && static_cast<int>(_wParam) == iCols - 1 ) {
-						if ( static_cast<short>(LOWORD( _lParam )) >= 0 ) {
-							ptlThis->m_lLastColBaseWidth = static_cast<LONG>(LOWORD( _lParam ));
-						}
-					}
-				}
-				if ( wpOrig ) {
-					LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
-					if ( ptlThis && !ptlThis->m_bAutoResizing ) {
-						RECT rcClient;
-						::GetClientRect( _hWnd, &rcClient );
-						ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
-					}
-					return lRes;
-				}
-				break;
-			}
-			case WM_NOTIFY : {
-				if ( ptlThis ) {
-					NMHDR * pNmHdr = reinterpret_cast<NMHDR *>( _lParam );
-					HWND hHeader = ListView_GetHeader( _hWnd );
-					
-					if ( pNmHdr->hwndFrom == hHeader ) {
-						
-						if ( pNmHdr->code == HDN_ITEMCHANGINGW || pNmHdr->code == HDN_ITEMCHANGINGA ) {
-							NMHEADERW * pNmHeader = reinterpret_cast<NMHEADERW *>( _lParam );
-							if ( pNmHeader->pitem && (pNmHeader->pitem->mask & HDI_WIDTH) ) {
-								int iCols = ptlThis->GetColumnCount();
-								LONG lProposedTotal = 0;
-								for ( int I = 0; I < iCols; ++I ) {
-									if ( I == pNmHeader->iItem ) {
-										lProposedTotal += pNmHeader->pitem->cxy;
-									} else {
-										lProposedTotal += ptlThis->GetColumnWidth( I );
-									}
-								}
-								
-								RECT rcClient;
-								::GetClientRect( _hWnd, &rcClient );
-								if ( lProposedTotal <= (rcClient.right - rcClient.left) ) {
-									// The proposed shrink will destroy the scrollbar.
-									// Send SB_LEFT now while the scrollbar still exists to unstrand the origin natively.
-									if ( ::GetScrollPos( _hWnd, SB_HORZ ) > 0 ) {
-										::SendMessageW( _hWnd, WM_HSCROLL, MAKEWPARAM( SB_LEFT, 0 ), 0 );
-									}
-								}
-							}
-						}
-						else if ( pNmHdr->code == HDN_ITEMCHANGEDW || pNmHdr->code == HDN_ITEMCHANGEDA ) {
-							NMHEADERW * pNmHeader = reinterpret_cast<NMHEADERW *>( _lParam );
-							
-							if ( !ptlThis->m_bAutoResizing && pNmHeader->pitem && (pNmHeader->pitem->mask & HDI_WIDTH) ) {
-								int iCols = ptlThis->GetColumnCount();
-								if ( iCols > 0 && pNmHeader->iItem == iCols - 1 ) {
-									ptlThis->m_lLastColBaseWidth = pNmHeader->pitem->cxy;
-								}
-								if ( wpOrig ) {
-									LRESULT lRes = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
-									RECT rcClient;
-									::GetClientRect( _hWnd, &rcClient );
-									ptlThis->Size( 0, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top );
-									return lRes;
-								}
-							}
-						}
-					}
-				}
 				break;
 			}
 		}

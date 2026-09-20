@@ -45,7 +45,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
-		/** The layout for the per-game-setup panel. */
+		/** The layout for the Cheats window. */
 		static LSW_WIDGET_LAYOUT				m_wlPage[];
 
 

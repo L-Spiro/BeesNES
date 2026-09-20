@@ -30,8 +30,8 @@ namespace lsn {
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ),
 		m_ui32RecentLimit( 13 * 4 ) {
-
-		CCheatManager::InitializeCheatLibrary( DefaultCheatsFolder() + L"Cheats.zip" );
+		
+		m_cmCheatManager.InitializeCheatLibrary( DefaultCheatsFolder() + L"Cheats.zip" );
 
 		//CUtilities::GenGaussianNoise( 0.0225f );
 		//m_trTemperatureReader.SetBuffer( reinterpret_cast<float *>(CUtilities::m_fNoiseBuffers), std::size( CUtilities::m_fNoiseBuffers ) );
@@ -444,7 +444,7 @@ namespace lsn {
 		UpdateCurrentSystem();
 	}
 	CBeesNes::~CBeesNes() {
-		CCheatManager::DestroyCheatLibrary();
+		m_cmCheatManager.DestroyCheatLibrary();
 	}
 
 	// == Functions.

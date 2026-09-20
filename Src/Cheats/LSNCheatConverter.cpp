@@ -450,6 +450,7 @@
 						}
 					}
 					ceEntry.u16sFile = std::filesystem::path( _u16sFileName ).replace_extension().generic_u16string();
+					//::OutputDebugStringW( std::format( L"Path: {}. Entry Path: {}.\r\n", CUtilities::XStringToWString( _u16sFileName.c_str(), _u16sFileName.size() ), CUtilities::XStringToWString( ceEntry.u16sFile.c_str(), ceEntry.u16sFile.size() ) ).c_str() );
 					for ( auto K = ceEntry.vAddresses.size(); K--; ) {
 						if ( ceEntry.ctType == LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE ) {
 							if ( ceEntry.vAddresses[K].sCode.size() == 6 ) {

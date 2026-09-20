@@ -59,6 +59,7 @@ namespace lsn {
 			if ( m_iStatusCol >= 0 ) {
 				ptControllerList->SetColumnWidth( m_iStatusCol, 50 );
 			}
+			ptControllerList->FitColumndsToControlWidth( 0 );
 			UpdateInputList();
 		}
 

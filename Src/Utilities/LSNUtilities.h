@@ -299,12 +299,13 @@ namespace lsn {
 		/**
 		 * Performs ::towlower() on the given input.
 		 * 
-		 * \param _pcStr The string to convert to lower-case
+		 * \param _tType The string type.
+		 * \param _tStr The string to convert to lower-case.
 		 * \return Returns the lower-cased input.
 		 **/
 		template <typename _tType = std::u8string>
-		static inline _tType								ToLower( const _tType &_Str ) {
-			_tType sRet = _Str;
+		static inline _tType								ToLower( const _tType &_tStr ) {
+			_tType sRet = _tStr;
 			std::transform( sRet.begin(), sRet.end(), sRet.begin(), []( _tType::value_type _iC ) { return ::towlower( static_cast<wint_t>(_iC) ); } );	
 			return sRet;
 		}
@@ -312,14 +313,33 @@ namespace lsn {
 		/**
 		 * Performs ::towupper() on the given input.
 		 * 
-		 * \param _pcStr The string to convert to upper-case
+		 * \param _tType The string type.
+		 * \param _tStr The string to convert to upper-case.
 		 * \return Returns the upper-cased input.
 		 **/
 		template <typename _tType = std::u8string>
-		static inline _tType								ToUpper( const _tType &_Str ) {
-			_tType sRet = _Str;
+		static inline _tType								ToUpper( const _tType &_tStr ) {
+			_tType sRet = _tStr;
 			std::transform( sRet.begin(), sRet.end(), sRet.begin(), []( _tType::value_type _iC ) { return ::towupper( static_cast<wint_t>(_iC) ); } );	
 			return sRet;
+		}
+
+		/**
+		 * Performs a case-insensitive string compare where the right string is assumed to have already been lower-cased.
+		 * 
+		 * \param _tType The string type.
+		 * \param _tLeft The left string, which will have its characters lower-cased for the compare.
+		 * \param _tRight The left operand, which is assumed to have already been lower-cased.
+		 * \param _stLen The number of characters to compare.
+		 * \return Returns true if the characters match up until _stLen characters.
+		 **/
+		template <typename _tType = std::u8string>
+		static inline bool									StrICmp_RightIsLowered( const _tType &_tLeft, const _tType &_tRight, size_t _stLen ) {
+			_stLen = std::min( _tLeft.size(), _tRight.size() );
+			for ( size_t I = 0; I < _stLen; ) {
+				if ( ::towlower( static_cast<wint_t>(_tLeft[I]) ) != _tRight[I] ) { return false; }
+			}
+			return true;
 		}
 
 		/**

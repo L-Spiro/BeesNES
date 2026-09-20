@@ -166,40 +166,6 @@ namespace lsn {
 			::MoveWindow( pwSettingsPage->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top, aFileSettingsRect.Width(), aFileSettingsRect.Height(), TRUE );
 			::MoveWindow( m_pweopOutput->Wnd(), aSeqRect.Width() + aGroupRect.left * 3, aGroupRect.top + aFileSettingsRect.Height(), aOutputRect.Width(), aOutputRect.Height(), TRUE );
 
-			
-
-			/*auto pwSeqGroup = pwSeqPage->FindChild( Layout::LSN_WEWI_SEQ_RANGE_GROUP );
-			if ( pwSeqGroup ) {
-				auto rTmpGrpRect = pwSeqGroup->WindowRect().ScreenToClient( Wnd() );
-
-				
-
-				LONG lTreeRight = 100;
-				static const WORD dwIds[] = {
-					Layout::LSN_WEWI_FILES_ADD_BUTTON,
-					Layout::LSN_WEWI_FILES_ADD_META_BUTTON,
-					Layout::LSN_WEWI_FILES_REMOVE_BUTTON,
-					Layout::LSN_WEWI_FILES_UP_BUTTON,
-					Layout::LSN_WEWI_FILES_DOWN_BUTTON,
-				};
-				for ( size_t I = 0; I < std::size( dwIds ); ++I ) {
-					auto pwButton = m_pwefFiles->FindChild( dwIds[I] );
-					if ( pwButton ) {
-						auto rTmpThisRect = pwButton->WindowRect().ScreenToClient( Wnd() );
-						lTreeRight = rTmpGrpRect.right - rTmpThisRect.Width() - aGroupRect.left;
-						::MoveWindow( pwButton->Wnd(), rTmpGrpRect.right - rTmpThisRect.Width(), rTmpThisRect.top, rTmpThisRect.Width(), rTmpThisRect.Height(), TRUE );
-					}
-				}
-				
-
-				auto pwTree = m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW );
-				if ( pwTree ) {
-					auto rTmpTreeRect = pwTree->WindowRect().ScreenToClient( Wnd() );
-					
-					::MoveWindow( pwTree->Wnd(), rTmpGrpRect.left, rTmpTreeRect.top, lTreeRight - rTmpGrpRect.left, rTmpTreeRect.Height(), TRUE );
-				}
-			}*/
-
 
 			aSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
 			aOutputRect = m_pweopOutput->WindowRect().ScreenToClient( Wnd() );

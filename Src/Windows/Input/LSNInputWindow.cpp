@@ -17,6 +17,8 @@
 
 #include <dbt.h>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -34,6 +36,9 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CInputWindow::InitDialog() {
 		Parent::InitDialog();
+
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_JOYSTICK_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_JOYSTICK_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
 
 		CTab * ptTab = static_cast<CTab *>(FindChild( Layout::LSN_IWI_TAB ));
 		// Order of pushing them here determines the order in the window/list.
