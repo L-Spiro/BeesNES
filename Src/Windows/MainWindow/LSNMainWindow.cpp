@@ -58,6 +58,7 @@ namespace lsn {
 		m_bMaximized( false ),
 		m_psbCachedBar( nullptr ) {
 		(*m_pabIsAlive) = true;
+		m_bnEmulator.HotkeyManager().SetWindow( Wnd() );
 
 #ifdef LSN_DX9
 		CDx9FilterBase::SetRenderWindowParent( this );

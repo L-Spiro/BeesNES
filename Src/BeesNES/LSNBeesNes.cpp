@@ -29,9 +29,10 @@ namespace lsn {
 		m_dRatioActual( 4.0 / 3.0 ),
 		m_pdhDisplayHost( _pdhDisplayHost ),
 		m_pipPoller( _pipPoller ),
-		m_ui32RecentLimit( 13 * 4 ) {
+		m_ui32RecentLimit( 13 * 4 ),
+		m_hmHotkeyManager( 0x1000 ) {
 		
-		m_cmCheatManager.InitializeCheatLibrary( DefaultCheatsFolder() + L"Cheats.zip" );
+		m_cmCheatManager.InitializeCheatLibrary( DefaultCheatsFolder() + L"Cheats.zip", &m_hmHotkeyManager );
 
 		//CUtilities::GenGaussianNoise( 0.0225f );
 		//m_trTemperatureReader.SetBuffer( reinterpret_cast<float *>(CUtilities::m_fNoiseBuffers), std::size( CUtilities::m_fNoiseBuffers ) );

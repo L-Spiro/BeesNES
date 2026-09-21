@@ -1374,6 +1374,9 @@
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h">
       <Filter>Header Files\Windows\Cheats</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Utilities\LSNHotkeyManager.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">
@@ -1954,6 +1957,9 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp">
       <Filter>Source Files\Windows\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Utilities\LSNHotkeyManager.cpp">
+      <Filter>Source Files\Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -2121,6 +2121,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Utilities\LSNAlignmentAllocator.h" />
     <ClInclude Include="Src\Utilities\LSNCpuTemperatureReader.h" />
     <ClInclude Include="Src\Utilities\LSNDelayedValue.h" />
+    <ClInclude Include="Src\Utilities\LSNHotkeyManager.h" />
     <ClInclude Include="Src\Utilities\LSNLargeVector.h" />
     <ClInclude Include="Src\Utilities\LSNMd5.h" />
     <ClInclude Include="Src\Utilities\LSNPerformance.h" />
@@ -2327,6 +2328,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\System\LSNSystemBase.cpp" />
     <ClCompile Include="Src\Time\LSNClock.cpp" />
     <ClCompile Include="Src\Utilities\LSNCpuTemperatureReader.cpp" />
+    <ClCompile Include="Src\Utilities\LSNHotkeyManager.cpp" />
     <ClCompile Include="Src\Utilities\LSNTextureAddressing.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp" />

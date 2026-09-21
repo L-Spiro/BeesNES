@@ -133,9 +133,23 @@ namespace lsn {
 		 **/
 		void												UpdateSelection();
 
+		/**
+		 * Creates the string representation for a given cheat entry intended for use in the TreeListView.
+		 * 
+		 * \param _ceEntry The cheat entry whose string representation is to be generated.
+		 * \return Returns the string representation of the given cheat entry.
+		 **/
+		std::wstring										CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry );
+
+		/**
+		 * Reveals enabled cheats.
+		 * 
+		 * \param _bSelect If true, the items are also selected.
+		 **/
+		void												RevealEnabled( bool _bSelect = false );
+
 
 	private :
-		//typedef CAudioOptionsWindowLayout					Layout;
 		typedef CWinUtilities								Layout;
 		typedef lsw::CMainWindow							Parent;
 	};

@@ -11,8 +11,11 @@
 
 
 #include "../LSNLSpiroNes.h"
+#include "../Utilities/LSNHotkeyManager.h"
 #include "LSNCheatConverter.h"
 #include "LSNCheatEntry.h"
+
+#include <Helpers/LSWHelpers.h>
 
 #include <filesystem>
 #include <set>
@@ -35,14 +38,47 @@ namespace lsn {
 		}
 
 
+		// == Types.
+		/** An active cheat. */
+		struct LSN_ACTIVE_CHEAT {
+			uint32_t								ui32Idx;					/**< The "extended" or "virtual" index of the item (high bit set = custom cheat. */
+#ifdef LSN_USE_WINDOWS
+			lsw::LSW_KEY							kToggleOrEnable;			/**< If kDisable is 0, this is a toggle key, otherwise it is the Enable companion to the Disable key. */
+			lsw::LSW_KEY							kDisable;					/**< If 0, the mode is Toggle, otherwise it is Enable/Disable. */
+#endif	// #ifdef LSN_USE_WINDOWS
+
+			
+			/**
+			 * Less-than operator.
+			 * 
+			 * \param _acOther the operand.
+			 * \return Returns true if this->ui32Idx < _acOther.ui32Idx.
+			 **/
+			inline bool								operator < ( const LSN_ACTIVE_CHEAT &_acOther ) const {
+				return this->ui32Idx < _acOther.ui32Idx;
+			}
+
+			/**
+			 * Equality operator.
+			 * 
+			 * \param _acOther the operand.
+			 * \return Returns true if this->ui32Idx == _acOther.ui32Idx.
+			 **/
+			inline bool								operator == ( const LSN_ACTIVE_CHEAT &_acOther ) const {
+				return this->ui32Idx == _acOther.ui32Idx;
+			}
+		};
+
+
 		// == Functions.
 		/**
 		 * Loads all of the built-in cheats given a path to the .ZIP file.
 		 * 
 		 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
+		 * \param _phmHotkeyManager A pointer to a hotkey manager to be used by this object.
 		 * \return Returns an error string to present to the user or an empty string on success.
 		 **/
-		std::wstring								InitializeCheatLibrary( const std::filesystem::path &_pPath );
+		std::wstring								InitializeCheatLibrary( const std::filesystem::path &_pPath, CHotkeyManager * _phmHotkeyManager );
 
 		/**
 		 * Shuts down the cheat manager at the end of the application life cycle.
@@ -111,11 +147,20 @@ namespace lsn {
 			return m_vBuiltInCheats[_ui32Idx];
 		}
 
+		/**
+		 * Gets a pointer to the hotkey manager used by this object.
+		 * 
+		 * \return Returns a pointer to our hotkey manager.
+		 **/
+		inline CHotkeyManager *						HotkeyManager() { return m_phmHotkeyManager; }
+
 
 	protected :
 		// == Members.
 		std::vector<LSN_CHEAT_ENTRY>				m_vBuiltInCheats;				/**< Built-in cheats. */
 		std::wstring								m_wsFilter;						/**< The cheat filter. */
+		std::set<LSN_ACTIVE_CHEAT>					m_sActiveCheats;				/**< The list of active cheats. */
+		CHotkeyManager *							m_phmHotkeyManager = nullptr;	/**< A pointer to the hotkey manager. */
 	};
 
 }	// namespace lsn

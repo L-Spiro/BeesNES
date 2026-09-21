@@ -49,6 +49,7 @@
 #include "../Peripherals/LSNPeripheralBase.h"
 #include "../System/LSNSystem.h"
 #include "../Utilities/LSNCpuTemperatureReader.h"
+#include "../Utilities/LSNHotkeyManager.h"
 #include "../Utilities/LSNStream.h"
 
 
@@ -522,6 +523,20 @@ namespace lsn {
 		const CCheatManager &					CheatManager() const { return m_cmCheatManager; }
 
 		/**
+		 * Gets a reference to the Hotkey Manager.
+		 * 
+		 * \return Returns a reference to the Hotkey Manager.
+		 **/
+		CHotkeyManager &						HotkeyManager() { return m_hmHotkeyManager; }
+
+		/**
+		 * Gets a constant reference to the Hotkey Manager.
+		 * 
+		 * \return Returns a constant reference to the Hotkey Manager.
+		 **/
+		const CHotkeyManager &					HotkeyManager() const { return m_hmHotkeyManager; }
+
+		/**
 		 * Gets the default folder for cheats.
 		 * 
 		 * \return Returns the default folder where default cheats can be found.
@@ -767,6 +782,8 @@ namespace lsn {
 
 		/** The Cheat Manager. */
 		CCheatManager							m_cmCheatManager;
+		/** The Hotkey Manager. */
+		CHotkeyManager							m_hmHotkeyManager;
 
 		/** The CPU temperature. */
 		CCpuTemperatureReader					m_trTemperatureReader;

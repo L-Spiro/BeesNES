@@ -121,18 +121,24 @@ namespace lsn {
 		}
 
 		{
-			auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-			if ( ptlTree ) {
-				ptlTree->SetColumnText( LSN_LSTR( LSN_STR_CODES ), 0 );
-				ptlTree->SetColumnWidth( 0, 287 );
-				ptlTree->InsertColumn( LSN_LSTR( LSN_STR_HOTKEY_S_ ), 100, -1 );
-				ptlTree->FitColumndsToControlWidth( 0 );
+			auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+			if ( ptlvTree ) {
+				ptlvTree->SetColumnText( LSN_LSTR( LSN_STR_CODES ), 0 );
+				ptlvTree->SetColumnWidth( 0, 287 );
+				ptlvTree->InsertColumn( LSN_LSTR( LSN_STR_HOTKEY_S_ ), 100, -1 );
+				ptlvTree->FitColumndsToControlWidth( 0 );
 
 				AddCheats();
-				ptlTree->FitColumndsToControlWidth( 1 );
+				ptlvTree->FitColumndsToControlWidth( 1 );
 			}
 		}
 
+		
+		CWidget * pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
+		if ( pwCodes ) {
+			HFONT hFixedFont = static_cast<HFONT>(::GetStockObject( SYSTEM_FIXED_FONT ));
+			::SendMessageW( pwCodes->Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(hFixedFont), MAKELPARAM( TRUE, 0 ) );
+		}
 
 		UpdateRects();
 		return LSW_H_CONTINUE;
@@ -166,31 +172,39 @@ namespace lsn {
 				return LSW_H_HANDLED;
 			}
 
+			case Layout::LSN_CWI_SHOW_ENABLED : {
+				RevealEnabled();
+				break;
+			}
+			case Layout::LSN_CWI_SELECT_ENABLED : {
+				RevealEnabled( true );
+				break;
+			}
 			case Layout::LSN_CWI_EXPAND_SELECTED : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->ExpandSelected();
+				lsw::CTreeListView * ptlvTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlvTree ) {
+					ptlvTree->ExpandSelected();
 				}
 				break;
 			}
 			case Layout::LSN_CWI_EXPAND_ALL : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->ExpandAll();
+				lsw::CTreeListView * ptlvTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlvTree ) {
+					ptlvTree->ExpandAll();
 				}
 				break;
 			}
 			case Layout::LSN_CWI_COLLAPSE_SELECTED : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->CollapseSelected();
+				lsw::CTreeListView * ptlvTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlvTree ) {
+					ptlvTree->CollapseSelected();
 				}
 				break;
 			}
 			case Layout::LSN_CWI_COLLAPSE_ALL : {
-				lsw::CTreeListView * ptlTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-				if ( ptlTree ) {
-					ptlTree->CollapseAll();
+				lsw::CTreeListView * ptlvTree = static_cast<lsw::CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+				if ( ptlvTree ) {
+					ptlvTree->CollapseAll();
 				}
 				break;
 			}
@@ -275,6 +289,9 @@ namespace lsn {
 				{ FALSE,		Layout::LSN_CWI_DUPLICATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								LSN_LSTR( LSN_STR__DUPLICATE_CHEAT ),		FALSE },
 				{ FALSE,		Layout::LSN_CWI_EDIT_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR__EDIT_CHEAT ),			FALSE },
 				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
+				{ FALSE,		Layout::LSN_CWI_SHOW_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__REVEAL_ENABLED_CHEATS ),	FALSE },
+				{ FALSE,		Layout::LSN_CWI_SELECT_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__SELECT_ENABLED_CHEATS ),	FALSE },
+				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
 				{ FALSE,		Layout::LSN_CWI_EXPAND_SELECTED,				FALSE,		FALSE,		bHasItems && bExpSel,								LSN_LSTR( LSN_PATCH_EXPAND_SELECTED ),		FALSE },
 				{ FALSE,		Layout::LSN_CWI_EXPAND_ALL,						FALSE,		FALSE,		bHasItems && bExpAll,								LSN_LSTR( LSN_PATCH_EXPAND_ALL ),			FALSE },
 				{ FALSE,		Layout::LSN_CWI_COLLAPSE_SELECTED,				FALSE,		FALSE,		bHasItems && bColSel,								LSN_LSTR( LSN_PATCH_COLLAPSE_SELECTED ),	FALSE },
@@ -305,12 +322,12 @@ namespace lsn {
 	 **/
 	size_t CCheatsWindow::AddCheats() {
 		if ( nullptr == m_pcmCheatManager ) { return 0; }
-		auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-		if ( !ptlTree ) { return 0; }
+		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlvTree ) { return 0; }
 		try {
 			std::vector<LPARAM> vSelected;
-			ptlTree->GatherSelectedLParam( vSelected, true );
-			ptlTree->DeleteAll();
+			ptlvTree->GatherSelectedLParam( vSelected, true );
+			ptlvTree->DeleteAll();
 
 			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
 			for ( auto I = sGames.begin(); I != sGames.end(); ++I ) {
@@ -319,29 +336,23 @@ namespace lsn {
 				// If there is only one game after the filter, no need to add a heirarchy.  Just make a flat list.
 				if ( sGames.size() > 1 ) {
 					// Add the game names with children.
-					std::wstring pwsTmp = CUtilities::XStringToWString( (*I).c_str(), (*I).size() );
-					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(pwsTmp.c_str()),
+					std::wstring wsTmp = CUtilities::XStringToWString( (*I).c_str(), (*I).size() );
+					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
 						-1, TVI_ROOT );
-					hParent = ptlTree->InsertItem( &isInsertMe );
+					hParent = ptlvTree->InsertItem( &isInsertMe );
 				}
 				for ( size_t J = 0; J < vCheats.size(); ++J ) {
 					auto cCheat = m_pcmCheatManager->CheatByIdx( vCheats[J] );
-					std::wstring wsText;
-					if ( cCheat.wsNotes.size() ) {
-						wsText = std::format( L"{}: {}", cCheat.wsDescription, cCheat.wsNotes );
-					}
-					else {
-						wsText = cCheat.wsDescription;
-					}
+					std::wstring wsText = CheatEntryToString( cCheat );
 					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsText.c_str()),
 						vCheats[J], hParent );
-						ptlTree->InsertItem( &isInsertMe );
+						ptlvTree->InsertItem( &isInsertMe );
 				}
 			}
 
 		}
 		catch ( ... ) {}
-		return ptlTree->GetItemCount();
+		return ptlvTree->GetItemCount();
 	}
 
 	/**
@@ -349,10 +360,10 @@ namespace lsn {
 	 **/
 	void CCheatsWindow::UpdateSelection() {
 		try {
-			auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
-			if ( !ptlTree || !m_pcmCheatManager ) { return; }
+			auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+			if ( !ptlvTree || !m_pcmCheatManager ) { return; }
 			std::vector<LPARAM> vSelected;
-			ptlTree->GatherSelectedLParam( vSelected, true );
+			ptlvTree->GatherSelectedLParam( vSelected, true );
 			for ( auto I = vSelected.size(); I--; ) {
 				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
 			}
@@ -384,12 +395,12 @@ namespace lsn {
 					if ( J > 0 ) { wsCodes += L"\r\n"; }
 					if ( ceEntry.ctType == LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE ) {
 						if ( ceEntry.vAddresses[J].bUseCompare ) {
-							wsCodes += std::format( L"{} ({:04X}:{:02X}:{:02X})",
+							wsCodes += std::format( L"{}\t({:04X}:{:02X}:{:02X})",
 								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
 								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value, ceEntry.vAddresses[J].ui8CompareValue );
 						}
 						else {
-							wsCodes += std::format( L"{} ({:04X}:{:02X})",
+							wsCodes += std::format( L"{}  \t({:04X}:{:02X})",
 								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
 								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value );
 						}
@@ -404,6 +415,61 @@ namespace lsn {
 			pwNotes->SetTextW( wsNotes.c_str() );
 		}
 		catch ( ... ) {}
+	}
+
+	/**
+	 * Creates the string representation for a given cheat entry intended for use in the TreeListView.
+	 * 
+	 * \param _ceEntry The cheat entry whose string representation is to be generated.
+	 * \return Returns the string representation of the given cheat entry.
+	 **/
+	std::wstring CCheatsWindow::CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry ) {
+		std::wstring wsText = _ceEntry.bEnabled ? L"\u25A0 " : L"\u25A1 ";
+		if ( _ceEntry.wsNotes.size() ) {
+			wsText += std::format( L"{}: {}",
+				_ceEntry.wsDescription, _ceEntry.wsNotes );
+		}
+		else {
+			wsText += _ceEntry.wsDescription;
+		}
+		return wsText;
+	}
+
+	/**
+	 * Reveals enabled cheats.
+	 * 
+	 * \param _bSelect If true, the items are also selected.
+	 **/
+	void CCheatsWindow::RevealEnabled( bool _bSelect ) {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlvTree ) { return; }
+		if ( ptlvTree ) {
+			ptlvTree->BeginLargeUpdate();
+			auto hThis = ptlvTree->GetNext( TVI_ROOT );
+			HTREEITEM htiParent = NULL;
+			while ( hThis ) {
+				auto lpParm = ptlvTree->GetItemLParam( hThis );
+				if ( -1 != lpParm ) {
+					bool bEnabled = m_pcmCheatManager->CheatByIdx( uint32_t( lpParm ) ).bEnabled;
+					if ( htiParent ) {
+						ptlvTree->SetItemExpand( htiParent, bEnabled );
+						if ( bEnabled ) {
+							htiParent = NULL;	// Don't collapse it back down on the next item.
+						}
+					}
+					if ( _bSelect ) {
+						ptlvTree->SetItemSelection( hThis, bEnabled && ptlvTree->CountChildren( hThis ) == 0 );
+					}
+				}
+				else {
+					htiParent = hThis;
+					ptlvTree->SetItemSelection( hThis, false );
+				}
+				hThis = ptlvTree->GetNext( hThis );
+			}
+			ptlvTree->FinishUpdate();
+		}
 	}
 
 }	// namespace lsn

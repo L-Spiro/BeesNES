@@ -678,6 +678,8 @@
 #define LSN_STR__EDIT_CHEAT													&Edit Cheat
 #define LSN_STR_DE_LETE_CHEAT												De&lete Cheat
 #define LSN_STR__DUPLICATE_CHEAT											&Duplicate Cheat
+#define LSN_STR__REVEAL_ENABLED_CHEATS										&Reveal Enabled Cheats
+#define LSN_STR__SELECT_ENABLED_CHEATS										&Select Enabled Cheats
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code

@@ -17,9 +17,12 @@ namespace lsn {
 	 * Loads all of the built-in cheats given a path to the .ZIP file.
 	 * 
 	 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
+	 * \param _phmHotkeyManager A pointer to a hotkey manager to be used by this object.
 	 * \return Returns an error string to present to the user or an empty string on success.
 	 **/
-	std::wstring CCheatManager::InitializeCheatLibrary( const std::filesystem::path &_pPath ) {
+	std::wstring CCheatManager::InitializeCheatLibrary( const std::filesystem::path &_pPath, CHotkeyManager * _phmHotkeyManager ) {
+		DestroyCheatLibrary();
+		m_phmHotkeyManager = _phmHotkeyManager;
 		CZipFile zfFile;
 		if ( !zfFile.Open( _pPath.generic_u16string().c_str() ) ) { return LSN_LSTR( LSN_FAILED_TO_OPEN_FILE ); }
 		std::vector<std::u16string> vFiles;
