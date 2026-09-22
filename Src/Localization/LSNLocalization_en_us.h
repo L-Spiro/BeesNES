@@ -684,8 +684,12 @@
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code
 #define LSN_STR_CODES														Codes
+#define LSN_STR_CODE_S_														Code(s)
 #define LSN_STR_TOGGLE_ON_OFF												Toggle On/Off
 #define LSN_STR_ACTIVATE_DEACTIVATE											Activate/Deactivate
+#define LSN_STR_ACTIVATE													Activate
+#define LSN_STR_DEACTIVATE													Deactivate
+#define LSN_STR_TOGGLE														Toggle
 #define LSN_STR_HOTKEY_S_													Hotkey(s)
 #define LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE							Valid .JSON file but invalid cheat-file structure.
 #define LSN_STR_INVALID_CODE												Invalid code.

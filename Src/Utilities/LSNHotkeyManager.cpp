@@ -20,6 +20,7 @@
 		{
 	}
 	CHotkeyManager::~CHotkeyManager() {
+		DeleteAllHotkeys();
 	}
 
 // == Functions.
@@ -79,6 +80,17 @@
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Deletes all hotkeys.
+	 **/
+	void CHotkeyManager::DeleteAllHotkeys() {
+		std::lock_guard<std::recursive_mutex> lgLock( m_rmtxAccess );
+		auto sHotkeys = m_sHotkeys;
+		for ( const auto & rhThis : sHotkeys ) {
+			DeleteHotkey( rhThis.i32Id );
+		}
 	}
 
 	/**

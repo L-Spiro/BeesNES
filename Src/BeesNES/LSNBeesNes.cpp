@@ -957,6 +957,9 @@ namespace lsn {
 			LoadPerGameSettings( m_u16PerGameSettings );
 			UpdateCurrentSystem();
 			if ( m_psbSystem->LoadRom( rTmp ) ) {
+				if LSN_LIKELY( m_psbSystem->GetRom() ) {
+					m_cmCheatManager.AutoSetCheatFilter( m_psbSystem->GetRom()->riInfo.s16RomName );
+				}
 				//m_psbSystem->ResetState( false );
 				m_trTemperatureReader.StartThread();
 				AddPath( _s16Path );

@@ -71,6 +71,11 @@ namespace lsn {
 		bool										DeleteHotkey( int32_t _i32Id );
 
 		/**
+		 * Deletes all hotkeys.
+		 **/
+		void										DeleteAllHotkeys();
+
+		/**
 		 * Determines if a given key and modifier exist.
 		 * 
 		 * \param _i32Code The key code.

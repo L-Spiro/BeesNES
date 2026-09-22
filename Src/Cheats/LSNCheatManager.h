@@ -105,6 +105,14 @@ namespace lsn {
 		}
 
 		/**
+		 * Auto-sets the cheat filter given a game name.
+		 * 
+		 * \param _u16sName The name of the game for which to auto-set the filter.
+		 * \return Returns the previous cheat filter.
+		 **/
+		std::wstring								AutoSetCheatFilter( const std::u16string &_u16sName );
+
+		/**
 		 * Determines how many games remain through the current filter.  If the filter is empty, all games pass.
 		 * 
 		 * \return Returns the number of games that are unfiltered via SetCheatFilter().

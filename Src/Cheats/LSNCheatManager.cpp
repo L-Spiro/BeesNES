@@ -10,6 +10,8 @@
 #include "../File/LSNZipFile.h"
 #include "../Localization/LSNLocalization.h"
 
+#include <filesystem>
+
 namespace lsn {
 
 	// == Functions.
@@ -66,6 +68,39 @@ namespace lsn {
 	 **/
 	void CCheatManager::DestroyCheatLibrary() {
 		m_vBuiltInCheats = std::vector<LSN_CHEAT_ENTRY>();
+	}
+
+	/**
+	 * Auto-sets the cheat filter given a game name.
+	 * 
+	 * \param _u16sName The name of the game for which to auto-set the filter.
+	 * \return Returns the previous cheat filter.
+	 **/
+	std::wstring CCheatManager::AutoSetCheatFilter( const std::u16string &_u16sName ) {
+		auto wsTmp = std::filesystem::path( _u16sName ).replace_extension( L"" ).generic_wstring();
+		auto wsOriginalFilter = SetCheatFilter( wsTmp );
+		if ( CountUnfiltered() == 1 ) { return wsOriginalFilter; }
+		
+		auto wsTmpCopy = wsTmp;
+
+		// If we go this far, we can get fatal mismatches (IE "8 Eyes (Japan)" could be loaded but this would match with "8 Eyes (USA)" and the cheats will crash the game).
+		// So after this point we can only accept 2 or more matches.  This allows the game names to be shown in the Cheats window.
+		auto iFound = std::find( wsTmp.begin(), wsTmp.end(), L'(' );
+		if ( iFound != wsTmp.end() ) {
+			wsTmp = wsTmp.substr( 0, iFound - wsTmp.begin() );
+		}
+		while ( wsTmp.size() && std::iswspace( wsTmp[wsTmp.size()-1] ) ) {
+			wsTmp.pop_back();
+		}
+		SetCheatFilter( wsTmp );
+		while ( !MoreThanOneUnfiltered() && wsTmp.size() ) {
+			wsTmp.pop_back();
+			SetCheatFilter( wsTmp );
+		}
+		if ( !MoreThanOneUnfiltered() ) {
+			SetCheatFilter( wsTmpCopy );
+		}
+		return wsOriginalFilter;
 	}
 
 	/**

@@ -75,10 +75,10 @@ namespace lsn {
 				{ m_iImageMap[LSN_I_EDIT],					Layout::LSN_CWI_EDIT_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_EDIT ) ) },
 				{ m_iImageMap[LSN_I_DUPLICATE],				Layout::LSN_CWI_DUPLICATE_BUTTON,			TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_DUPLICATE ) ) },
 				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-				{ m_iImageMap[LSN_I_FILTER],				Layout::LSN_CWI_FILTER_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_FILTER ) ) },
-				{ m_iImageMap[LSN_I_SEARCH],				Layout::LSN_CWI_SEARCH_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_SEARCH ) ) },
-				/*{ 150,										Layout::LSN_CWI_FILTER_BUTTON,			TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-				{ 150,										Layout::LSN_CWI_SEARCH_BUTTON,					TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },*/
+				/*{ m_iImageMap[LSN_I_FILTER],				Layout::LSN_CWI_FILTER_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_FILTER ) ) },
+				{ m_iImageMap[LSN_I_SEARCH],				Layout::LSN_CWI_SEARCH_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_SEARCH ) ) },*/
+				{ 150,										Layout::LSN_CWI_FILTER_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ 150,										Layout::LSN_CWI_SEARCH_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 			};
 #undef LSN_TOOL_STR
 
@@ -93,7 +93,7 @@ namespace lsn {
 						RBBS_FIXEDBMP );
 					riRebarInfo.SetChild( plvToolBar->Wnd() );
 					riRebarInfo.SetChildSize( plvToolBar->GetMinBoundingRect().Width(), plvToolBar->GetMinBoundingRect().Height() );
-					riRebarInfo.SetId( Layout::LSN_WEWI_TOOLBAR0 );
+					riRebarInfo.SetId( Layout::LSN_CWI_TOOLBAR );
 					plvRebar->InsertBand( -1, riRebarInfo );
 				}
 			}
@@ -136,11 +136,17 @@ namespace lsn {
 		
 		CWidget * pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
 		if ( pwCodes ) {
-			HFONT hFixedFont = static_cast<HFONT>(::GetStockObject( SYSTEM_FIXED_FONT ));
-			::SendMessageW( pwCodes->Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(hFixedFont), MAKELPARAM( TRUE, 0 ) );
+			pwCodes->SetSystemFixedFont();
+			::SendMessageW( pwCodes->Wnd(), EM_SETCUEBANNER, FALSE, reinterpret_cast<LPARAM>(LSN_LSTR( LSN_STR_CODE_S_ ) ) );
+		}
+		CWidget * pwNotes = FindChild( Layout::LSN_CWI_NOTES_EDIT );
+		if ( pwNotes ) {
+			pwNotes->SetSystemFixedFont();
+			::SendMessageW( pwNotes->Wnd(), EM_SETCUEBANNER, FALSE, reinterpret_cast<LPARAM>(LSN_LSTR( LSN_STR_NOTES ) ) );
 		}
 
 		UpdateRects();
+		UpdateSelection();
 		return LSW_H_CONTINUE;
 	}
 
@@ -332,7 +338,7 @@ namespace lsn {
 			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
 			for ( auto I = sGames.begin(); I != sGames.end(); ++I ) {
 				auto vCheats = m_pcmCheatManager->GatherCheatsForGame( (*I) );
-				HTREEITEM hParent = NULL;
+				HTREEITEM hParent = TVI_ROOT;
 				// If there is only one game after the filter, no need to add a heirarchy.  Just make a flat list.
 				if ( sGames.size() > 1 ) {
 					// Add the game names with children.
@@ -367,6 +373,9 @@ namespace lsn {
 			for ( auto I = vSelected.size(); I--; ) {
 				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
 			}
+			bool bSelected = !vSelected.empty();
+			//bool bHasBuiltIn = false;
+			bool bHasCustom = false;
 
 			auto pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
 			if ( !pwCodes ) { return; }
@@ -376,6 +385,8 @@ namespace lsn {
 			std::wstring wsCodes;
 			std::wstring wsNotes;
 			for ( size_t I = 0; I < vSelected.size(); ++I ) {
+				//bHasBuiltIn |= (uint32_t( vSelected[I] ) & 0x800000) == 0;
+				bHasCustom |= (uint32_t( vSelected[I] ) & 0x800000) != 0;
 				auto ceEntry = m_pcmCheatManager->CheatByIdx( uint32_t( vSelected[I] ) );
 				if ( vSelected.size() > 1 ) {
 					if ( wsCodes.size() ) {
@@ -413,6 +424,21 @@ namespace lsn {
 			}
 			pwCodes->SetTextW( wsCodes.c_str() );
 			pwNotes->SetTextW( wsNotes.c_str() );
+
+			CToolBar * plvToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_CWI_TOOLBAR ));
+			if ( plvToolBar ) {
+				struct LSN_CONTROLS {
+					Layout::LSN_CONTROL_IDS								wId;
+					bool												bCloseCondition0;
+				} cControls[] = {
+					{ Layout::LSN_CWI_DELETE_BUTTON,					bSelected && bHasCustom },
+					{ Layout::LSN_CWI_DUPLICATE_BUTTON,					bSelected && vSelected.size() == 1 },
+					{ Layout::LSN_CWI_EDIT_BUTTON,						bSelected && bHasCustom && vSelected.size() == 1 },
+				};
+				for ( auto I = std::size( cControls ); I--; ) {
+					plvToolBar->EnableButton( WORD( cControls[I].wId ), cControls[I].bCloseCondition0 );
+				}
+			}
 		}
 		catch ( ... ) {}
 	}

@@ -335,8 +335,8 @@ namespace lsn {
 		 **/
 		template <typename _tType = std::u8string>
 		static inline bool									StrICmp_RightIsLowered( const _tType &_tLeft, const _tType &_tRight, size_t _stLen ) {
-			_stLen = std::min( _tLeft.size(), _tRight.size() );
-			for ( size_t I = 0; I < _stLen; ) {
+			if ( _tLeft.size() < _tRight.size() ) { return false; }
+			for ( size_t I = 0; I < _stLen; ++I ) {
 				if ( ::towlower( static_cast<wint_t>(_tLeft[I]) ) != _tRight[I] ) { return false; }
 			}
 			return true;
