@@ -24,23 +24,42 @@ namespace lsn {
 	CCheatsWindow::CCheatsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_pcmCheatManager( reinterpret_cast<CCheatManager *>(_ui64Data) ) {
+		/*{
+			static const struct {
+				WORD				wImageName;
+				DWORD				dwConst;
+			} sImages[] = {
+				{ IDB_CHEAT_ADD_24,				LSN_I_ADD },
+				{ IDB_CHEAT_DELETE_24,			LSN_I_DELETE },
+				{ IDB_CHEAT_EDIT_24,			LSN_I_EDIT },
+				{ IDB_CHEAT_DUPLICATE_24,		LSN_I_DUPLICATE },
+				{ IDB_CHEAT_FILTER_24,			LSN_I_FILTER },
+				{ IDB_CHEAT_SEARCH_24,			LSN_I_SEARCH },
+			};
+			m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
 
-		static const struct {
-			WORD				wImageName;
-			DWORD				dwConst;
-		} sImages[] = {
-			{ IDB_CHEAT_ADD_24,				LSN_I_ADD },
-			{ IDB_CHEAT_DELETE_24,			LSN_I_DELETE },
-			{ IDB_CHEAT_EDIT_24,			LSN_I_EDIT },
-			{ IDB_CHEAT_DUPLICATE_24,		LSN_I_DUPLICATE },
-			{ IDB_CHEAT_FILTER_24,			LSN_I_FILTER },
-			{ IDB_CHEAT_SEARCH_24,			LSN_I_SEARCH },
-		};
-		m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
-
-		for ( size_t I = 0; I < std::size( sImages ); ++I ) {
-			m_bBitmaps[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
-			m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps[sImages[I].dwConst].Handle() );
+			for ( size_t I = 0; I < std::size( sImages ); ++I ) {
+				m_bBitmaps24[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
+				m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps24[sImages[I].dwConst].Handle() );
+			}
+		}*/
+		{
+			static const struct {
+				WORD				wImageName;
+				DWORD				dwConst;
+			} sImages[] = {
+				{ IDB_CHEAT_ADD_16,				LSN_I_ADD },
+				{ IDB_CHEAT_DELETE_16,			LSN_I_DELETE },
+				{ IDB_CHEAT_EDIT_16,			LSN_I_EDIT },
+				{ IDB_CHEAT_DUPLICATE_16,		LSN_I_DUPLICATE },
+				{ IDB_CHEAT_FILTER_16,			LSN_I_FILTER },
+				{ IDB_CHEAT_SEARCH_16,			LSN_I_SEARCH },
+			};
+			m_iImages.Create( 16, 16, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
+			for ( size_t I = 0; I < std::size( sImages ); ++I ) {
+				m_bBitmaps16[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
+				m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps16[sImages[I].dwConst].Handle() );
+			}
 		}
 	}
 
@@ -77,12 +96,29 @@ namespace lsn {
 				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 				/*{ m_iImageMap[LSN_I_FILTER],				Layout::LSN_CWI_FILTER_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_FILTER ) ) },
 				{ m_iImageMap[LSN_I_SEARCH],				Layout::LSN_CWI_SEARCH_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_SEARCH ) ) },*/
-				{ 150,										Layout::LSN_CWI_FILTER_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
-				{ 150,										Layout::LSN_CWI_SEARCH_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ 200,										Layout::LSN_CWI_FILTER_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
+				{ 200,										Layout::LSN_CWI_SEARCH_BUTTON_PLACHOLDER,	TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 			};
 #undef LSN_TOOL_STR
 
 			plvToolBar->AddButtons( bButtons, std::size( bButtons ) );
+			{
+				CWidget * pwEdit;
+				if ( plvToolBar->CreateIconEditBox( Layout::LSN_CWI_FILTER_BUTTON_PLACHOLDER, Layout::LSN_CWI_FILTER_BUTTON,
+					IMAGE_BITMAP, m_bBitmaps16[LSN_I_FILTER], LSN_LSTR( LSN_STR_FILTER_ ), pwEdit ) ) {
+					m_peFilterEdit = reinterpret_cast<CEdit *>(pwEdit);
+					if ( m_pcmCheatManager ) {
+						m_peFilterEdit->SetTextW( m_pcmCheatManager->GetCheatFilter().c_str() );
+					}
+				}
+			}
+			{
+				CWidget * pwEdit;
+				if ( plvToolBar->CreateIconEditBox( Layout::LSN_CWI_SEARCH_BUTTON_PLACHOLDER, Layout::LSN_CWI_SEARCH_BUTTON,
+					IMAGE_BITMAP, m_bBitmaps16[LSN_I_SEARCH], LSN_LSTR( LSN_STR_SEARCH_ ), pwEdit ) ) {
+					m_peSearchEdit = reinterpret_cast<CEdit *>(pwEdit);
+				}
+			}
 
 			if ( plvRebar ) {
 				plvRebar->SetImageList( m_iImages );
@@ -141,7 +177,6 @@ namespace lsn {
 		}
 		CWidget * pwNotes = FindChild( Layout::LSN_CWI_NOTES_EDIT );
 		if ( pwNotes ) {
-			pwNotes->SetSystemFixedFont();
 			::SendMessageW( pwNotes->Wnd(), EM_SETCUEBANNER, FALSE, reinterpret_cast<LPARAM>(LSN_LSTR( LSN_STR_NOTES ) ) );
 		}
 
@@ -168,7 +203,7 @@ namespace lsn {
 	 * \param _pwSrc The source control if _wCtrlCode is not 0 or 1.
 	 * \return Returns an LSW_HANDLED code.
 	 */
-	CWidget::LSW_HANDLED CCheatsWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+	CWidget::LSW_HANDLED CCheatsWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
 			case Layout::LSN_CWI_CANCEL : {
 				return Close();
@@ -176,6 +211,14 @@ namespace lsn {
 			case Layout::LSN_CWI_OK : {
 				::EndDialog( Wnd(), 1 );
 				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_CWI_FILTER_BUTTON : {
+				if ( _pwSrc && _wCtrlCode == EN_CHANGE && m_pcmCheatManager ) {
+					auto wsFilter = _pwSrc->GetTextW();
+					m_pcmCheatManager->SetCheatFilter( wsFilter );
+					AddCheats();
+				}
+				break;
 			}
 
 			case Layout::LSN_CWI_SHOW_ENABLED : {
@@ -331,8 +374,8 @@ namespace lsn {
 		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
 		if ( !ptlvTree ) { return 0; }
 		try {
-			std::vector<LPARAM> vSelected;
-			ptlvTree->GatherSelectedLParam( vSelected, true );
+			ptlvTree->BeginLargeUpdate();
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
 			ptlvTree->DeleteAll();
 
 			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
@@ -356,6 +399,9 @@ namespace lsn {
 				}
 			}
 
+			ptlvTree->SetItemSelectionByLParam( vSelected );
+			ptlvTree->FinishUpdate();
+			UpdateSelection();
 		}
 		catch ( ... ) {}
 		return ptlvTree->GetItemCount();
@@ -496,6 +542,22 @@ namespace lsn {
 			}
 			ptlvTree->FinishUpdate();
 		}
+	}
+
+	/**
+	 * Gathers selected cheats, omitting the game namess from the return.
+	 * 
+	 * \return Returns an array of cheat ID's with the game names omitted.
+	 **/
+	std::vector<LPARAM> CCheatsWindow::GatherSelectedGames() const {
+		auto ptlvTree = reinterpret_cast<const CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlvTree ) { return std::vector<LPARAM>(); }
+		std::vector<LPARAM> vSelected;
+		ptlvTree->GatherSelectedLParam( vSelected, true );
+		for ( auto I = vSelected.size(); I--; ) {
+			if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
+		}
+		return vSelected;
 	}
 
 }	// namespace lsn

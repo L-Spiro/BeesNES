@@ -122,6 +122,18 @@ IDB_CHEAT_FILTER_24     BITMAP                  "Resources\\icons8-filter-24.bmp
 
 IDB_CHEAT_SEARCH_24     BITMAP                  "Resources\\icons8-search-24.bmp"
 
+IDB_CHEAT_FILTER_16     BITMAP                  "Resources\\icons8-filter-16.bmp"
+
+IDB_CHEAT_SEARCH_16     BITMAP                  "Resources\\icons8-search-16.bmp"
+
+IDB_CHEAT_ADD_16        BITMAP                  "Resources\\icons8-add-16.bmp"
+
+IDB_CHEAT_DELETE_16     BITMAP                  "Resources\\icons8-delete-16.bmp"
+
+IDB_CHEAT_DUPLICATE_16  BITMAP                  "Resources\\icons8-duplicate-16.bmp"
+
+IDB_CHEAT_EDIT_16       BITMAP                  "Resources\\icons8-edit-16.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -2126,6 +2126,24 @@
     <Image Include="Resources\icons8-search-24.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-filter-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-search-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-add-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-delete-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-duplicate-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-edit-16.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">

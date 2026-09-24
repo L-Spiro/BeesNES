@@ -33,14 +33,20 @@
 #define IDB_CHEAT_EDIT_24               136
 #define IDB_CHEAT_DUPLICATE_24          137
 #define IDB_CHEAT_FILTER_24             138
-#define IDB_BITMAP1                     139
 #define IDB_CHEAT_SEARCH_24             139
+#define IDB_CHEAT_FILTER_16             140
+#define IDB_CHEAT_SEARCH_16             141
+#define IDB_CHEAT_ADD_16                142
+#define IDB_CHEAT_DELETE_16             143
+#define IDB_CHEAT_DUPLICATE_16          144
+#define IDB_BITMAP2                     145
+#define IDB_CHEAT_EDIT_16               145
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        140
+#define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

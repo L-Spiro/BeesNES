@@ -690,6 +690,8 @@
 #define LSN_STR_ACTIVATE													Activate
 #define LSN_STR_DEACTIVATE													Deactivate
 #define LSN_STR_TOGGLE														Toggle
+#define LSN_STR_FILTER_														Filter\u2026
+#define LSN_STR_SEARCH_														Search\u2026
 #define LSN_STR_HOTKEY_S_													Hotkey(s)
 #define LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE							Valid .JSON file but invalid cheat-file structure.
 #define LSN_STR_INVALID_CODE												Invalid code.

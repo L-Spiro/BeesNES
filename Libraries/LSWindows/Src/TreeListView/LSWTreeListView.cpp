@@ -176,6 +176,31 @@ namespace lsw {
 	}
 
 	/**
+	 * Restores the selection after a previous call to GatherSelectedLParam().  Selects items based on their LPARAM values in the given array.
+	 * 
+	 * \param _vSelections The array of LPARAM's by which to select items in the tree.
+	 * \return Returns TRUE if the window is valid.
+	 **/
+	BOOL CTreeListView::SetItemSelectionByLParam( std::vector<LPARAM> &_vSelections ) {
+		if ( !Wnd() ) { return FALSE; }
+		ee::CTree<LSW_TREE_ROW> * pntItem = TreeItemToPointer( TVI_ROOT );
+		try {
+			std::set<LPARAM> sItems( _vSelections.begin(), _vSelections.end() );
+			while ( pntItem ) {
+				if ( sItems.find( pntItem->Value().lpParam ) != sItems.end() ) {
+					pntItem->Value().uiState |= TVIS_SELECTED;
+				}
+				else {
+					pntItem->Value().uiState &= ~TVIS_SELECTED;
+				}
+				pntItem = Next( pntItem );
+			}
+		}
+		catch ( ... ) { return FALSE; }
+		return TRUE;
+	}
+
+	/**
 	 * Gets an item given an LPARAM.  Only the first item with the given LPARAM is returned.
 	 * 
 	 * \param _lpValue The LPARAM value to find on an item.

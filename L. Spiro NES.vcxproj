@@ -2430,6 +2430,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icon.ico" />
+    <Image Include="Resources\icons8-add-16.bmp" />
     <Image Include="Resources\icons8-add-24.bmp" />
     <Image Include="Resources\icons8-add-radio-waves-24.bmp" />
     <Image Include="Resources\icons8-alarm-32.ico" />
@@ -2438,14 +2439,18 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-bee-64.png" />
     <Image Include="Resources\icons8-broken-shield-16.ico" />
     <Image Include="Resources\icons8-broken-shield-32.ico" />
+    <Image Include="Resources\icons8-delete-16.bmp" />
     <Image Include="Resources\icons8-delete-24.bmp" />
     <Image Include="Resources\icons8-down-radio-waves-24.bmp" />
+    <Image Include="Resources\icons8-duplicate-16.bmp" />
     <Image Include="Resources\icons8-duplicate-24.bmp" />
+    <Image Include="Resources\icons8-edit-16.bmp" />
     <Image Include="Resources\icons8-edit-24.bmp" />
     <Image Include="Resources\icons8-exit-24.bmp" />
     <Image Include="Resources\icons8-file-24.bmp" />
     <Image Include="Resources\icons8-file-48.bmp" />
     <Image Include="Resources\icons8-file-48.ico" />
+    <Image Include="Resources\icons8-filter-16.bmp" />
     <Image Include="Resources\icons8-filter-24.bmp" />
     <Image Include="Resources\icons8-folder-open-24.bmp" />
     <Image Include="Resources\icons8-folder-open-48.ico" />
@@ -2458,6 +2463,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-puzzle-32.ico" />
     <Image Include="Resources\icons8-radio-waves-16.ico" />
     <Image Include="Resources\icons8-radio-waves-32.ico" />
+    <Image Include="Resources\icons8-search-16.bmp" />
     <Image Include="Resources\icons8-search-24.bmp" />
     <Image Include="Resources\icons8-sound-mixer-16.ico" />
     <Image Include="Resources\icons8-sound-mixer-32.ico" />

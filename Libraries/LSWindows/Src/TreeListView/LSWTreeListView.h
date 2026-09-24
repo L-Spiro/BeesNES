@@ -96,6 +96,14 @@ namespace lsw {
 		BOOL								SetItemSelection( HTREEITEM _tiItem, bool _bSelect );
 
 		/**
+		 * Restores the selection after a previous call to GatherSelectedLParam().  Selects items based on their LPARAM values in the given array.
+		 * 
+		 * \param _vSelections The array of LPARAM's by which to select items in the tree.
+		 * \return Returns TRUE if the window is valid.
+		 **/
+		BOOL								SetItemSelectionByLParam( std::vector<LPARAM> &_vSelections );
+
+		/**
 		 * Gets an item by index accounting for children being expanded or not.
 		 *
 		 * \param _stIdx The index of the item to get with collapsed items being taken into account.
