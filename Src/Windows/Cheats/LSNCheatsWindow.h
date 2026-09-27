@@ -122,6 +122,7 @@ namespace lsn {
 		CBitmap												m_bBitmaps16[LSN_I_TOTAL];					/**< Images for the toolbar. */
 		CEdit *												m_peFilterEdit = nullptr;					/**< The Filter toolbar edit. */
 		CEdit *												m_peSearchEdit = nullptr;					/**< The Search toolbar edit. */
+		std::map<LPARAM, std::wstring>						m_mGameNameAssociation;						/**< Associates an LPARAM ID with a name of a game. */
 
 
 		// == Functions.
@@ -158,6 +159,60 @@ namespace lsn {
 		 * \return Returns an array of cheat ID's with the game names omitted.
 		 **/
 		std::vector<LPARAM>									GatherSelectedGames() const;
+
+		/**
+		 * Determines if the given array of selected items has a custom cheat in it.
+		 * 
+		 * \param _vSelection The array to scan for a custom cheat.
+		 * \return Returns true if there is a custom cheat among the selection.
+		 **/
+		static inline bool									HasCustom( const std::vector<LPARAM> &_vSelection ) {
+			for ( auto I = _vSelection.size(); I--; ) {
+				if ( CCheatManager::IsCustom( uint32_t( _vSelection[I] ) ) ) { return true; }
+			}
+			return false;
+		}
+
+		/**
+		 * Determines if the given array of selected items has a built-in cheat in it.
+		 * 
+		 * \param _vSelection The array to scan for a built-in cheat.
+		 * \return Returns true if there is a built-in cheat among the selection.
+		 **/
+		static inline bool									HasBuiltIn( const std::vector<LPARAM> &_vSelection ) {
+			for ( auto I = _vSelection.size(); I--; ) {
+				if ( !CCheatManager::IsCustom( uint32_t( _vSelection[I] ) ) ) { return true; }
+			}
+			return false;
+		}
+
+		/**
+		 * Determines if the given array of selected items has an active cheat in it.
+		 * 
+		 * \param _vSelection The array to scan for an active cheat.
+		 * \return Returns true if there is an active cheat among the selection.
+		 **/
+		inline bool											HasActive( const std::vector<LPARAM> &_vSelection ) const {
+			for ( auto I = _vSelection.size(); I--; ) {
+				//if ( !CCheatManager::IsCustom( uint32_t( _vSelection[I] ) ) ) { return true; }
+				// TODO.
+			}
+			return false;
+		}
+
+		/**
+		 * Determines if the given array of selected items has an inactive cheat in it.
+		 * 
+		 * \param _vSelection The array to scan for an inactive cheat.
+		 * \return Returns true if there is an inactive cheat among the selection.
+		 **/
+		inline bool											HasInactive( const std::vector<LPARAM> &_vSelection ) const {
+			for ( auto I = _vSelection.size(); I--; ) {
+				//if ( !CCheatManager::IsCustom( uint32_t( _vSelection[I] ) ) ) { return true; }
+				// TODO.
+			}
+			return false;
+		}
 
 
 	private :

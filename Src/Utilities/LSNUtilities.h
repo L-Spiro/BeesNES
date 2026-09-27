@@ -229,10 +229,11 @@ namespace lsn {
 		static _tType										Replace( const _tType &_tString, const _tType &_cReplaceMe, const _tType &_cWithMe ) {
 			_tType sCopy = _tString;
 			const size_t sLen = _cReplaceMe.size();
+			const size_t sWithLen = _cWithMe.size();
 			size_t sIdx = sCopy.find( _cReplaceMe );
 			while ( _tType::npos != sIdx ) {
 				sCopy = sCopy.replace( sIdx, sLen, _cWithMe );
-				sIdx = sCopy.find( _cReplaceMe );
+				sIdx = sCopy.find( _cReplaceMe, sIdx + sWithLen );
 			}
 			return sCopy;
 		}

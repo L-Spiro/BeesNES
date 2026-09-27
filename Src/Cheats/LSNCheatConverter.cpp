@@ -567,6 +567,11 @@
 			// Notes are not processed.
 			_wsNote = ee::CExpEval::ToUtf16( sEscaped.substr( stNoteStart + 2, stNoteEnd - stNoteStart - 3 ) );
 			sEscaped.erase( sEscaped.begin() + stNoteStart, sEscaped.begin() + stNoteEnd + 1 );
+			_wsNote = CUtilities::Replace<std::wstring>( _wsNote, std::wstring( L"\u201C" ), std::wstring( L" \u201C" ) );
+			_wsNote = CUtilities::Replace<std::wstring>( _wsNote, std::wstring( L"  " ), std::wstring( L" " ) );
+			while ( _wsNote.size() && std::iswspace( _wsNote[0] ) ) {
+				_wsNote.erase( _wsNote.begin() );
+			}
 		}
 		else if ( sEscaped.size() != stNoteStart ) {
 			lsn::DebugLine( std::format( "Check Note Format: {}.", _sDescription ) );

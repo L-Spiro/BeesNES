@@ -318,20 +318,11 @@ namespace lsn {
 			bool bColSel = ptlvTree->AnySelectedHasExpandedChildren();
 			bool bColAll = ptlvTree->AnyHasExpandedChildren();
 			bool bHasItems = ptlvTree->HasItem();
-			std::vector<LPARAM> vSelected;
-			ptlvTree->GatherSelectedLParam( vSelected );
-			for ( auto I = vSelected.size(); I--; ) {
-				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
-			}
+			std::vector<LPARAM> vSelected = GatherSelectedGames()/*, vFullselection*/;
+			//ptlvTree->GatherSelectedLParam( vFullselection );
 
 			bool bSelected = vSelected.size() != 0;
-			bool bAllSelectedAreCustom = true;
-			for ( auto I = vSelected.size(); I--; ) {
-				if ( uint32_t( vSelected[I] & 0x80000000 ) == 0 ) {
-					bAllSelectedAreCustom = false;
-					break;
-				}
-			}
+			bool bAllSelectedAreCustom = !HasBuiltIn( vSelected );
 			lsw::LSW_MENU_ITEM miMenuBar[] = {
 				{ FALSE,		Layout::LSN_CWI_ADD_BUTTON,						FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__ADD_CHEAT ),				FALSE },
 				{ FALSE,		Layout::LSN_CWI_DELETE_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR_DE_LETE_CHEAT ),			FALSE },
@@ -377,6 +368,8 @@ namespace lsn {
 			ptlvTree->BeginLargeUpdate();
 			std::vector<LPARAM> vSelected = GatherSelectedGames();
 			ptlvTree->DeleteAll();
+			m_mGameNameAssociation.clear();
+			uint32_t ui32GameIdx = 0;
 
 			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
 			for ( auto I = sGames.begin(); I != sGames.end(); ++I ) {
@@ -386,9 +379,11 @@ namespace lsn {
 				if ( sGames.size() > 1 ) {
 					// Add the game names with children.
 					std::wstring wsTmp = CUtilities::XStringToWString( (*I).c_str(), (*I).size() );
+					uint32_t ui32Id = 0x80000000U + ui32GameIdx++;
 					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
-						-1, TVI_ROOT );
+						ui32Id, TVI_ROOT );
 					hParent = ptlvTree->InsertItem( &isInsertMe );
+					m_mGameNameAssociation.insert( std::make_pair( ui32Id, wsTmp ) );
 				}
 				for ( size_t J = 0; J < vCheats.size(); ++J ) {
 					auto cCheat = m_pcmCheatManager->CheatByIdx( vCheats[J] );
@@ -414,11 +409,7 @@ namespace lsn {
 		try {
 			auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
 			if ( !ptlvTree || !m_pcmCheatManager ) { return; }
-			std::vector<LPARAM> vSelected;
-			ptlvTree->GatherSelectedLParam( vSelected, true );
-			for ( auto I = vSelected.size(); I--; ) {
-				if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
-			}
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
 			bool bSelected = !vSelected.empty();
 			//bool bHasBuiltIn = false;
 			bool bHasCustom = false;
@@ -452,12 +443,12 @@ namespace lsn {
 					if ( J > 0 ) { wsCodes += L"\r\n"; }
 					if ( ceEntry.ctType == LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE ) {
 						if ( ceEntry.vAddresses[J].bUseCompare ) {
-							wsCodes += std::format( L"{}\t({:04X}:{:02X}:{:02X})",
+							wsCodes += std::format( L"{}  ({:04X}:{:02X}:{:02X})",
 								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
 								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value, ceEntry.vAddresses[J].ui8CompareValue );
 						}
 						else {
-							wsCodes += std::format( L"{}  \t({:04X}:{:02X})",
+							wsCodes += std::format( L"{}    ({:04X}:{:02X})",
 								CUtilities::XStringToWString( ceEntry.vAddresses[J].sCode.c_str(), ceEntry.vAddresses[J].sCode.size() ),
 								ceEntry.vAddresses[J].ui16Address, ceEntry.vAddresses[J].ui8Value );
 						}
@@ -522,7 +513,7 @@ namespace lsn {
 			HTREEITEM htiParent = NULL;
 			while ( hThis ) {
 				auto lpParm = ptlvTree->GetItemLParam( hThis );
-				if ( -1 != lpParm ) {
+				if ( (lpParm & 0x80000000U) == 0 ) {
 					bool bEnabled = m_pcmCheatManager->CheatByIdx( uint32_t( lpParm ) ).bEnabled;
 					if ( htiParent ) {
 						ptlvTree->SetItemExpand( htiParent, bEnabled );
@@ -555,7 +546,7 @@ namespace lsn {
 		std::vector<LPARAM> vSelected;
 		ptlvTree->GatherSelectedLParam( vSelected, true );
 		for ( auto I = vSelected.size(); I--; ) {
-			if ( vSelected[I] == -1 ) { vSelected.erase( vSelected.begin() + I ); }
+			if ( vSelected[I] & 0x80000000U ) { vSelected.erase( vSelected.begin() + I ); }
 		}
 		return vSelected;
 	}

@@ -21,6 +21,8 @@
 #include <set>
 #include <vector>
 
+#define LSN_CHEAT_MAN_CUSTOM_FLAG					0x80000U
+
 namespace lsn {
 
 	/**
@@ -147,12 +149,22 @@ namespace lsn {
 		 * \param _ui32Idx The extended index of the cheat to get.
 		 * \return Returns a reference to the given cheat.
 		 **/
-		const LSN_CHEAT_ENTRY &						CheatByIdx( uint32_t _ui32Idx ) const {
-			if ( _ui32Idx & 0x80000000U ) {
+		inline const LSN_CHEAT_ENTRY &				CheatByIdx( uint32_t _ui32Idx ) const {
+			if ( IsCustom( _ui32Idx ) ) {
 				// Temp.
 				//return m_vBuiltInCheats[0];
 			}
 			return m_vBuiltInCheats[_ui32Idx];
+		}
+
+		/**
+		 * Returns true if the given index goes to a custom cheat.
+		 * 
+		 * \param _ui32Idx The extended index.
+		 * \return Returns true if the top bit is set.
+		 **/
+		static inline bool							IsCustom( uint32_t _ui32Idx ) {
+			return (_ui32Idx & LSN_CHEAT_MAN_CUSTOM_FLAG) != 0;
 		}
 
 		/**

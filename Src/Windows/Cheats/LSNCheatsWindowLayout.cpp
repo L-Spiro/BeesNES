@@ -17,13 +17,15 @@
 
 namespace lsn {
 
-#define LSN_SECTION_W											250
+#define LSN_LEFT_SIDE_W											300
+#define LSN_ACTIVATE_BUTTON_W									(LSN_DEF_BUTTON_WIDTH + 35)
+#define LSN_RIGHT_SIDE_W										(LSN_ACTIVATE_BUTTON_W + LSN_LEFT_JUST + LSN_ACTIVATE_BUTTON_W)
 #define LSN_CODE_EDIT_H											50
 #define LSN_NOTES_EDIT_H										154
-#define LSN_TREELISTVIEW_H										(LSN_NOTES_EDIT_H + LSN_CODE_EDIT_H + LSN_TOP_JUST)
+#define LSN_TREELISTVIEW_H										(LSN_NOTES_EDIT_H + LSN_TOP_JUST + LSN_CODE_EDIT_H + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT)
 
-#define LSN_CHEAT_GROUP_W										(LSN_GROUP_LEFT + LSN_SECTION_W + LSN_LEFT_JUST + LSN_SECTION_W + LSN_GROUP_LEFT)
-#define LSN_CHEAT_GROUP_H										(LSN_GROUP_TOP + (LSN_CODE_EDIT_H + LSN_TOP_JUST + LSN_NOTES_EDIT_H) + LSN_TOP_JUST + LSN_GROUP_BOTTOM)
+#define LSN_CHEAT_GROUP_W										(LSN_GROUP_LEFT + LSN_LEFT_SIDE_W + LSN_LEFT_JUST + LSN_RIGHT_SIDE_W + LSN_GROUP_LEFT)
+#define LSN_CHEAT_GROUP_H										(LSN_GROUP_TOP + LSN_TREELISTVIEW_H + LSN_GROUP_BOTTOM)
 #define LSN_CHEAT_GROUP_T										(LSN_TOP_JUST)
 #define LSN_CHEAT_GROUP_L										LSN_LEFT_JUST
 
@@ -110,7 +112,7 @@ namespace lsn {
 			FALSE,												// bActive
 			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT),				// iLeft
 			LSN_CHEAT_GROUP_T + LSN_GROUP_TOP,					// iTop
-			LSN_SECTION_W,										// dwWidth
+			LSN_LEFT_SIDE_W,										// dwWidth
 			LSN_TREELISTVIEW_H,									// dwHeight
 			LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | LVS_OWNERDATA | WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP,						// dwStyle
 			LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER,			// dwStyleEx
@@ -124,9 +126,9 @@ namespace lsn {
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
-			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_SECTION_W + LSN_LEFT_JUST,															// iLeft
+			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_LEFT_SIDE_W + LSN_LEFT_JUST,															// iLeft
 			LSN_CHEAT_GROUP_T + LSN_GROUP_TOP,					// iTop
-			LSN_SECTION_W,										// dwWidth
+			LSN_RIGHT_SIDE_W,									// dwWidth
 			LSN_CODE_EDIT_H,									// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL,					// dwStyle
 			WS_EX_CLIENTEDGE,									// dwStyleEx
@@ -140,13 +142,46 @@ namespace lsn {
 			nullptr,											// lpwcClass
 			TRUE,												// bEnabled
 			FALSE,												// bActive
-			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_SECTION_W + LSN_LEFT_JUST,															// iLeft
+			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_LEFT_SIDE_W + LSN_LEFT_JUST,															// iLeft
 			LSN_CHEAT_GROUP_T + LSN_GROUP_TOP + LSN_CODE_EDIT_H + LSN_TOP_JUST,																// iTop
-			LSN_SECTION_W,										// dwWidth
-			LSN_NOTES_EDIT_H + LSN_TOP_JUST,					// dwHeight
+			LSN_RIGHT_SIDE_W,									// dwWidth
+			LSN_NOTES_EDIT_H,									// dwHeight
 			WS_CHILDWINDOW | WS_VISIBLE | WS_TABSTOP | ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL,					// dwStyle
 			WS_EX_CLIENTEDGE,									// dwStyleEx
 			nullptr,											// pwcText
+			0,													// sTextLen
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,										// ltType
+			CWinUtilities::LSN_CWI_ACTIVATE_BUTTON,				// wId
+			WC_BUTTONW,											// lpwcClass
+			TRUE,												// bEnabled
+			FALSE,												// bActive
+			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_LEFT_SIDE_W + LSN_LEFT_JUST,															// iLeft
+			LSN_CHEAT_GROUP_T + LSN_GROUP_TOP + LSN_CODE_EDIT_H + LSN_TOP_JUST + LSN_NOTES_EDIT_H + LSN_TOP_JUST,							// iTop
+			LSN_ACTIVATE_BUTTON_W,								// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,								// dwHeight
+			LSN_BUTTONSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_STR_ACTIVATE ),						// pwcText
+			0,													// sTextLen
+			CWinUtilities::LSN_CWI_CHEAT_DIALOG,				// dwParentId
+		},
+		
+		{
+			LSW_LT_BUTTON,										// ltType
+			CWinUtilities::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON,	// wId
+			WC_BUTTONW,											// lpwcClass
+			TRUE,												// bEnabled
+			FALSE,												// bActive
+			(LSN_CHEAT_GROUP_L + LSN_GROUP_LEFT) + LSN_LEFT_SIDE_W + LSN_LEFT_JUST + LSN_ACTIVATE_BUTTON_W + LSN_LEFT_JUST,					// iLeft
+			LSN_CHEAT_GROUP_T + LSN_GROUP_TOP + LSN_CODE_EDIT_H + LSN_TOP_JUST + LSN_NOTES_EDIT_H + LSN_TOP_JUST,							// iTop
+			LSN_ACTIVATE_BUTTON_W,								// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,								// dwHeight
+			LSN_BUTTONSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,													// dwStyleEx
+			LSN_LSTR( LSN_STR_ACTIVATE_WITH_HOTKEY ),			// pwcText
 			0,													// sTextLen
 			CWinUtilities::LSN_CWI_CHEAT_DIALOG,				// dwParentId
 		},

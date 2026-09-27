@@ -687,8 +687,6 @@
 #define LSN_STR_CODE_S_														Code(s)
 #define LSN_STR_TOGGLE_ON_OFF												Toggle On/Off
 #define LSN_STR_ACTIVATE_DEACTIVATE											Activate/Deactivate
-#define LSN_STR_ACTIVATE													Activate
-#define LSN_STR_DEACTIVATE													Deactivate
 #define LSN_STR_TOGGLE														Toggle
 #define LSN_STR_FILTER_														Filter\u2026
 #define LSN_STR_SEARCH_														Search\u2026
