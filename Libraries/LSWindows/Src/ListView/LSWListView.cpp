@@ -518,7 +518,7 @@ namespace lsw {
 	 * Sets highlight on an item by index.
 	 *
 	 * \param _iItem The item to update.
-	 * \param _bSelected Whether the item is highlighted or not.
+	 * \param _bHighlighted Whether the item is highlighted or not.
 	 */
 	void CListView::SetItemHighlight( INT _iItem, BOOL _bHighlighted ) {
 		LVITEMW iItem = {};
@@ -994,12 +994,56 @@ namespace lsw {
 	}
 
 	/**
+	 * Builds the name passed to RegisterWindowMessageW() for the snap message.
+	 *
+	 * The name is generated at run time rather than stored as a literal, so the binary holds no fixed, searchable string by which the message
+	 *	(or this class) could be identified.  The first character is fixed so the name belongs to this class and the rest are random, giving a
+	 *	name well over 16 characters long that will not collide with another registered message while matching nothing searchable.  Only single
+	 *	character constants and generic arithmetic constants reach the binary; no string does.
+	 *
+	 * \return Returns the generated message name.
+	 **/
+	static std::wstring MakeSnapMessageName() {
+		// Mix entropy that differs between runs and machines into a 64-bit seed.
+		uint64_t ui64Seed = 0x9E3779B97F4A7C15ULL;
+		LARGE_INTEGER liCounter = {};
+		::QueryPerformanceCounter( &liCounter );
+		ui64Seed ^= static_cast<uint64_t>(liCounter.QuadPart);
+		ui64Seed ^= static_cast<uint64_t>(::GetTickCount64()) * 0x100000001B3ULL;
+		ui64Seed ^= static_cast<uint64_t>(::GetCurrentProcessId()) << 16;
+		ui64Seed ^= static_cast<uint64_t>(::GetCurrentThreadId()) << 32;
+		ui64Seed ^= static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&liCounter));				// Stack address (ASLR).
+		ui64Seed ^= static_cast<uint64_t>(reinterpret_cast<uintptr_t>(&MakeSnapMessageName));	// Code address (ASLR).
+
+		// SplitMix64 keeps the generator self-contained: its constants are generic and shared by countless projects, so nothing here is a
+		//	fingerprint, and no string-bearing library facility is pulled in.
+		auto aNext = [&ui64Seed]() -> uint64_t {
+			ui64Seed += 0x9E3779B97F4A7C15ULL;
+			uint64_t ui64Z = ui64Seed;
+			ui64Z = (ui64Z ^ (ui64Z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+			ui64Z = (ui64Z ^ (ui64Z >> 27)) * 0x94D049BB133111EBULL;
+			return ui64Z ^ (ui64Z >> 31);
+		};
+
+		// A fixed first character, then 23 random letters: 24 characters in all, comfortably over the 16 that keep collisions negligible.
+		std::wstring wsName;
+		wsName.push_back( L'L' );
+		for ( INT I = 0; I < 23; ++I ) {
+			wsName.push_back( static_cast<wchar_t>(L'a' + static_cast<wchar_t>(aNext() % 26)) );
+		}
+		return wsName;
+	}
+
+	/**
 	 * Gets the private message that RequestSnap() posts to the list-view control.
+	 *
+	 * The name registered is generated once, at run time, by MakeSnapMessageName(); every instance in the process shares the message it
+	 *	returns.
 	 *
 	 * \return Returns the registered message.
 	 **/
 	UINT CListView::SnapMessage() {
-		static const UINT uiMsg = ::RegisterWindowMessageW( L"lsw::CListView::SnapRightColumn" );
+		static const UINT uiMsg = ::RegisterWindowMessageW( MakeSnapMessageName().c_str() );
 		return uiMsg;
 	}
 
