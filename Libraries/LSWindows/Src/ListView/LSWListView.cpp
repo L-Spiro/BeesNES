@@ -587,8 +587,6 @@ namespace lsw {
 		::SendMessageW( Wnd(), LVM_DELETEALLITEMS, 0, 0 );
 	}
 
-	
-
 	/**
 	 * Snaps the column widths to the control width bi adjusting the given column's width.
 	 * 
@@ -628,13 +626,24 @@ namespace lsw {
 		return CDRF_DODEFAULT;
 	}
 
-	// Setting the HWND after the control has been created.
+	/**
+	 * Setting the HWND after the control has been created.
+	 * 
+	 * \param _hWnd The handle to the control.
+	 **/
 	void CListView::InitControl( HWND _hWnd ) {
 		CWidget::InitControl( _hWnd );
 		ListView_SetExtendedListViewStyleEx( Wnd(), m_dwExtendedStyles, 0xFFFFFFFF );
 	}
 
-	// Sort routine.
+	/**
+	 * Sort routine.  The comparison callback that SortItems() passes to the list-view control.
+	 * 
+	 * \param _lParam1 The first item to compare.
+	 * \param _lParam2 The second item to compare.
+	 * \param _lParamSort A pointer to the LSW_LISTSORT structure for the sort in progress.
+	 * \return Returns a negative value if the first item should precede the second, a positive value if the first item should follow the second, or zero if the two items are equivalent.
+	 **/
 	int CALLBACK CListView::CompareFunc( LPARAM _lParam1, LPARAM _lParam2, LPARAM _lParamSort ) {
 		LSW_LISTSORT * plsSort = reinterpret_cast<LSW_LISTSORT *>(_lParamSort);
 		return plsSort->plvListView->SortCompare( static_cast<INT>(_lParam1), static_cast<INT>(_lParam2), plsSort->iSubItem );

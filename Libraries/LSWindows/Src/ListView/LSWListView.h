@@ -5,13 +5,22 @@
 
 namespace lsw {
 
+	/**
+	 * A list-view (SysListView32) control.
+	 * 
+	 * Wraps the Win32 list-view control with helpers for columns, items, selection, and sorting.
+	 **/
 	class CListView : public CWidget {
 	public :
 		CListView( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 
 
 		// == Functions.
-		// Set sort case sensitivity.
+		/**
+		 * Sets whether sorting is case-sensitive.
+		 * 
+		 * \param _bVal TRUE to sort with case sensitivity, FALSE to sort without it.
+		 **/
 		VOID								SetSortCaseSensitivity( BOOL _bVal ) { m_bSortWithCase = (_bVal != FALSE); }
 
 		/**
@@ -372,7 +381,7 @@ namespace lsw {
 		 * Sets highlight on an item by index.
 		 *
 		 * \param _iItem The item to update.
-		 * \param _bSelected Whether the item is highlighted or not.
+		 * \param _bHighlighted Whether the item is highlighted or not.
 		 */
 		void								SetItemHighlight( INT _iItem, BOOL _bHighlighted );
 
@@ -463,6 +472,7 @@ namespace lsw {
 		/**
 		 * Requesting information (notification responder).
 		 *
+		 * \param _plvdiInfo A pointer to an NMLVDISPINFOW structure that specifies the item or subitem and the information requested, and receives that information.
 		 * \return Returns TRUE.
 		 **/
 		virtual BOOL						GetDispInfoNotify( NMLVDISPINFOW * /*_plvdiInfo*/ ) { return TRUE; }
@@ -500,9 +510,12 @@ namespace lsw {
 
 	protected :
 		// == Types.
+		/**
+		 * Sort data passed to CompareFunc() through its _lParamSort parameter.
+		 **/
 		struct LSW_LISTSORT {
-			CListView *						plvListView;
-			INT								iSubItem;
+			CListView *						plvListView;					/**< The list-view control whose items are being sorted. */
+			INT								iSubItem;						/**< The index of the sub-item to use for comparisons. */
 		};
 
 		// == Members.
@@ -511,14 +524,28 @@ namespace lsw {
 
 
 		// == Functions.
-		// Setting the HWND after the control has been created.
+		/**
+		 * Setting the HWND after the control has been created.
+		 * 
+		 * \param _hWnd The handle to the control.
+		 **/
 		virtual void						InitControl( HWND _hWnd );
 
-		// Sort routine.
+		/**
+		 * Sort routine.  The comparison callback that SortItems() passes to the list-view control.
+		 * 
+		 * \param _lParam1 The first item to compare.
+		 * \param _lParam2 The second item to compare.
+		 * \param _lParamSort A pointer to the LSW_LISTSORT structure for the sort in progress.
+		 * \return Returns a negative value if the first item should precede the second, a positive value if the first item should follow the second, or zero if the two items are equivalent.
+		 **/
 		static int CALLBACK					CompareFunc( LPARAM _lParam1, LPARAM _lParam2, LPARAM _lParamSort );
 
 
 	private :
+		/**
+		 * The parent class.
+		 **/
 		typedef CWidget						Parent;
 	};
 
