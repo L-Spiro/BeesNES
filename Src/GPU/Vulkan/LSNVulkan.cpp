@@ -658,7 +658,6 @@ namespace lsn {
 	 * \return Returns true if Vulkan 1.0 is supported.
 	 **/
 	bool CVulkan::IsSupported() {
-		//return false;	// Disabling Vulkan for now.  Causes UI problems and is less performant.
 		GatherDevices();
 
 		return m_vDisplayDevices.size() != 0;
