@@ -99,9 +99,10 @@ namespace lsn {
 		VkQueue													m_qGraphicsQueue = VK_NULL_HANDLE;	/**< The swapchain queue. */
 		HWND													m_hWnd = NULL;						/**< The owning window. */
 		
-		VkFormat												m_fSwapFormat = VK_FORMAT_UNDEFINED;
-		VkPresentModeKHR										m_pmPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-		uint32_t												m_ui32QueueFamilyIndex = 0;
+		VkFormat												m_fSwapFormat = VK_FORMAT_UNDEFINED;	/**< The swap-chain image format. */
+		VkPresentModeKHR										m_pmPresentMode = VK_PRESENT_MODE_FIFO_KHR;	/**< The swap-chain present mode. */
+		uint32_t												m_ui32QueueFamilyIndex = 0;			/**< The graphics/present queue family. */
+		uint32_t												m_ui32SwapImages = 0;				/**< The swap-chain image count chosen by Create().  ResizeSwapChain() must keep it. */
 	};
 
 }	// namespace lsn

@@ -210,6 +210,7 @@ namespace lsn {
 			m_pdPhysicalDevice = pdPhysicalDevice;
 			m_fSwapFormat = fSwapFormat;
 			m_pmPresentMode = pmPresentMode;
+			m_ui32SwapImages = ui32SwapImages;
 			
 			m_fFence = std::move( fFence );
 			m_qGraphicsQueue = qGraphicsQueue;
@@ -268,11 +269,15 @@ namespace lsn {
 		sciSwapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		sciSwapChainCreateInfo.pNext = NULL;
 		sciSwapChainCreateInfo.surface = m_sBackbuffer.sSurface;
-		// Maintain current image count or clamp to capabilities.
-		sciSwapChainCreateInfo.minImageCount = 2;
-		if ( scCapabilities.maxImageCount > 0 && sciSwapChainCreateInfo.minImageCount > scCapabilities.maxImageCount ) {
-			sciSwapChainCreateInfo.minImageCount = scCapabilities.maxImageCount;
+		// Keep the image count Create() chose (minImageCount + 1), clamped to the current capabilities.  This used to drop to 2, and with
+		//	only minImageCount images the presentation engine may hold all of them (one on screen, one queued), so every
+		//	vkAcquireNextImageKHR() waits for the next composition.  That wait happens on the UI thread.
+		uint32_t ui32Images = m_ui32SwapImages ? m_ui32SwapImages : (scCapabilities.minImageCount + 1);
+		ui32Images = std::max<uint32_t>( ui32Images, scCapabilities.minImageCount );
+		if ( scCapabilities.maxImageCount > 0 && ui32Images > scCapabilities.maxImageCount ) {
+			ui32Images = scCapabilities.maxImageCount;
 		}
+		sciSwapChainCreateInfo.minImageCount = ui32Images;
 		sciSwapChainCreateInfo.imageFormat = m_fSwapFormat;
 		sciSwapChainCreateInfo.imageExtent.width = std::clamp( ui32Width, scCapabilities.minImageExtent.width, scCapabilities.maxImageExtent.width );
 		sciSwapChainCreateInfo.imageExtent.height = std::clamp( ui32Height, scCapabilities.minImageExtent.height, scCapabilities.maxImageExtent.height );
@@ -315,6 +320,7 @@ namespace lsn {
 		m_pdPhysicalDevice = VK_NULL_HANDLE;
 		m_qGraphicsQueue = VK_NULL_HANDLE;
 		m_hWnd = NULL;
+		m_ui32SwapImages = 0;
 	}
 
 }	// namespace lsn
