@@ -39,6 +39,9 @@ namespace lsn {
 		 * \param _pCpu Pointer to the CPU base class to trigger subsequent DMA fetches.
 		 */
 		void									Tick( CCpuBase * _pCpu ) {
+			if ( m_ui8StartDelay && --m_ui8StartDelay == 0 && m_bBufferEmpty && m_ui16BytesRemaining ) {
+				_pCpu->BeginDmcDma( false );
+			}
 			if ( m_ui16Timer > 0 ) { m_ui16Timer--; }
 			else {
 				m_ui16Timer = m_ui16TimerPeriod;
@@ -155,7 +158,7 @@ namespace lsn {
 				if ( m_ui16BytesRemaining == 0 ) {
 					RestartSample();
 					if ( m_bBufferEmpty ) {
-						_pCpu->BeginDmcDma( false );
+						m_ui8StartDelay = (_pCpu->GetCycleCount() & 1) ? 4 : 3;
 					}
 				}
 			}
@@ -226,6 +229,7 @@ namespace lsn {
         uint8_t									m_ui8SampleBuffer = 0;										/**< The current sample buffer to decode. */
         uint8_t									m_ui8ShiftRegister = 0;										/**< The shift register. */
         uint8_t									m_ui8BitsRemaining = 8;										/**< The number of bits left to decode. */
+		uint8_t									m_ui8StartDelay = 0;										/**< CPU cycles until a load DMA halts the CPU (4 after a $4015 write on a get cycle, 3 after one on a put cycle). */
 
         uint16_t								m_ui16Timer = 0;											/**< The rate timer. */
         uint16_t								m_ui16TimerPeriod = 0;										/**< The timer period. */

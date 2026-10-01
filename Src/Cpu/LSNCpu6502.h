@@ -177,6 +177,8 @@ namespace lsn {
 			m_fsState.rRegs.ui8S = 0x0;
 			m_ui64CycleCount = 0ULL;
 			m_fsState.ui8Operand = 0;
+			m_ui64PortReadCycle[0] = m_ui64PortReadCycle[1] = ~0ULL;
+			m_ui8PortReadValue[0] = m_ui8PortReadValue[1] = 0;
 
 			m_ui16DmaCounter = 0;
 			m_ui16DmaAddress = 0;
@@ -388,6 +390,9 @@ namespace lsn {
 
 		uint8_t												m_ui8DmaPos = 0;																	/**< The DMA transfer offset.*/
 		uint8_t												m_ui8DmaValue = 0;																	/**< The DMA transfer value.*/
+
+		uint64_t											m_ui64PortReadCycle[2] = { ~0ULL, ~0ULL };											/**< The CPU cycle of the last read of $4016/$4017. */
+		uint8_t												m_ui8PortReadValue[2] = {};															/**< The value returned by the last read of $4016/$4017. */
 
 		uint8_t												m_ui8RdyOffCnt = 0;																	/**< Keeps track of on which cycle the RDY flag goes low, relative to the start of an instruction. */
 		
@@ -762,6 +767,21 @@ namespace lsn {
 		}
 
 		/**
+		 * Reads a controller port.  Reads on back-to-back cycles hold the port's output-enable line low, so on an NES the controller is clocked only
+		 *	once and every read in the run returns the same value.
+		 *
+		 * \param _ui8Port The port to read (0 = $4016, 1 = $4017).
+		 * \return Returns bits 0-4 of the port.
+		 **/
+		inline uint8_t										ReadPort( uint8_t _ui8Port ) {
+			if ( m_ui64CycleCount != m_ui64PortReadCycle[_ui8Port] + 1 ) {
+				m_ui8PortReadValue[_ui8Port] = m_pipPoller->Read( uint16_t( 0x4016 + _ui8Port ) ) & 0b00011111;
+			}
+			m_ui64PortReadCycle[_ui8Port] = m_ui64CycleCount;
+			return m_ui8PortReadValue[_ui8Port];
+		}
+
+		/**
 		 * Reading from 0x4016 gets the MSB of the current controller-1 state.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
@@ -772,7 +792,7 @@ namespace lsn {
 		static void LSN_FASTCALL							Read4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
 			if LSN_LIKELY( pcThis->m_pipPoller ) {
-				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4016 ) & 0b00011111);
+				_ui8Ret = (_ui8Ret & 0b11100000) | pcThis->ReadPort( 0 );
 			}
 		}
 
@@ -802,7 +822,7 @@ namespace lsn {
 		static void LSN_FASTCALL							Read4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
 			if LSN_LIKELY( pcThis->m_pipPoller ) {
-				_ui8Ret = (_ui8Ret & 0b11100000) | (pcThis->m_pipPoller->Read( 0x4017 ) & 0b00011111);
+				_ui8Ret = (_ui8Ret & 0b11100000) | pcThis->ReadPort( 1 );
 			}
 		}
 

@@ -39,6 +39,7 @@ namespace lsn {
         m_ui8SampleBuffer = 0;
         m_ui8ShiftRegister = 0;
         m_ui8BitsRemaining = 8;
+		m_ui8StartDelay = 0;
 
         m_ui16Timer = 0;
         m_ui16TimerPeriod = 0;

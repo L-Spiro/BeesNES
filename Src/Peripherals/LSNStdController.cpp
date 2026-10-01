@@ -11,7 +11,7 @@ namespace lsn {
 	 **/
 	uint8_t CStdController::Read() {
 		uint8_t ui8Ret = ((m_ui8Status & 0x80) != 0);	// Upper 3 bits will be forced to open bus.
-		m_ui8Status <<= 1;
+		m_ui8Status = uint8_t( (m_ui8Status << 1) | 1 );	// Reads after the 8th return 1.
 		return ui8Ret;
 	}
 
