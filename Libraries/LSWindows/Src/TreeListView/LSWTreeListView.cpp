@@ -143,11 +143,11 @@ namespace lsw {
 	}
 
 	/**
-	 * Sets an itemÅ's color.
+	 * Sets an item's color.
 	 * 
 	 * \param _tiItem The item whose color is to be updated.
 	 * \param _rgbColor The color to apply to the item (alpha respected).
-	 * \return Returns TRUE if the itemÅ's color was set.  FALSE indicates that the item was invalid.
+	 * \return Returns TRUE if the item's color was set.  FALSE indicates that the item was invalid.
 	 **/
 	BOOL CTreeListView::SetItemColor( HTREEITEM _tiItem, RGBQUAD _rgbColor ) {
 		ee::CTree<LSW_TREE_ROW> * pntItem = TreeItemToPointer( _tiItem );
