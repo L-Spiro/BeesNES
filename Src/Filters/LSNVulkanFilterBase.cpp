@@ -143,6 +143,39 @@ namespace lsn {
 	}
 
 	/**
+	 * Waits at most LSN_MAX_UI_GPU_WAIT nanoseconds for the GPU to retire the previous frame (m_fRenderFence).  ApplyFilter() runs
+	 *	on the UI thread, which must not wait on the GPU for long:  while it waits, the emulator thread posts the next draw request,
+	 *	and while posted messages are pending, Windows generates no WM_PAINT for any window on the thread.  Drop the frame when this
+	 *	returns false.  Check it before touching anything the previous frame used (uploads, descriptor sets, size-dependent resources).
+	 *
+	 * \return Returns true if the previous frame has retired and the resources it used can be modified.
+	 */
+	bool CVulkanFilterBase::PrevFrameRetired() {
+		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() ) { return false; }
+		VkFence fFence = m_fRenderFence.Get();
+		if LSN_UNLIKELY( fFence == VK_NULL_HANDLE ) { return false; }
+		return CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, LSN_MAX_UI_GPU_WAIT ) == VK_SUCCESS;
+	}
+
+	/**
+	 * Acquires the next swap-chain image without waiting.  On VK_SUCCESS or VK_SUBOPTIMAL_KHR, m_ui32ImageIndex is set and
+	 *	m_sImageAvailable will be signaled, so the frame must be submitted (waiting on m_sImageAvailable) and presented; Present()
+	 *	re-creates a suboptimal swap chain afterward.  On VK_ERROR_OUT_OF_DATE_KHR, the swap chain is re-created.  Any other result
+	 *	(VK_NOT_READY, for example) acquired nothing:  drop the frame.
+	 *
+	 * \return Returns the result of vkAcquireNextImageKHR().
+	 */
+	VkResult CVulkanFilterBase::AcquireNextImage() {
+		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() || m_pvkDevice->GetSwapChain() == VK_NULL_HANDLE ) { return VK_ERROR_INITIALIZATION_FAILED; }
+		// A timeout of 0 never blocks; it returns VK_NOT_READY while the presentation engine holds every image.
+		VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( m_pvkDevice->GetDevice(), m_pvkDevice->GetSwapChain(), 0, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
+		if ( rRes == VK_ERROR_OUT_OF_DATE_KHR ) {
+			m_pvkDevice->ResizeSwapChain();
+		}
+		return rRes;
+	}
+
+	/**
 	 * Registers the custom Win32 child window class used for the rendering surface.
 	 *
 	 * \return Returns true if the class registered successfully.

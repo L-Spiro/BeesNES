@@ -778,7 +778,10 @@ namespace lsn {
 				break;
 			}
 			case CWinUtilities::LSN_GPU_DRAW : {
+				// Clear before rendering so that a frame finished during this one queues its own draw.
+				m_abGpuDrawQueued = false;
 				Paint();
+				FlushPendingPaints();
 				break;
 			}
 		}
@@ -1804,12 +1807,31 @@ namespace lsn {
 			m_bnEmulator.Swap( _bActuallySwap );
 		}
 		if ( (m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter()) ) {
-			::PostMessageW( Wnd(), CWinUtilities::LSN_GPU_DRAW, 0, 0 );
+			// Posted messages outrank input and WM_PAINT, so never let draw requests pile up:  one queued draw always renders the newest frame.
+			if ( !m_abGpuDrawQueued.exchange( true ) ) {
+				if ( !::PostMessageW( Wnd(), CWinUtilities::LSN_GPU_DRAW, 0, 0 ) ) {
+					m_abGpuDrawQueued = false;
+				}
+			}
 		}
 		else {
 			::RedrawWindow( Wnd(), NULL, NULL,
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_ALLCHILDREN );
+		}
+	}
+
+	/**
+	 * Dispatches the WM_PAINT messages pending for this thread's windows.  Windows generates WM_PAINT only once no posted or input
+	 *	messages are waiting, so a steady stream of LSN_GPU_DRAW posts would otherwise defer the repaints of every window on this
+	 *	thread (dialogs included) for as long as the stream lasts.
+	 **/
+	void CMainWindow::FlushPendingPaints() {
+		// PM_QS_PAINT limits the peek to paint messages, so posted and input messages stay queued for the real message loop (dialog
+		//	navigation and accelerators still apply to them).  Bounded because a window that never validates keeps producing WM_PAINT.
+		MSG mMsg;
+		for ( size_t I = 0; I < 64 && ::PeekMessageW( &mMsg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE | PM_QS_PAINT ); ++I ) {
+			::DispatchMessageW( &mMsg );
 		}
 	}
 

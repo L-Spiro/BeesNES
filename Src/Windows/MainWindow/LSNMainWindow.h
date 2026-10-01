@@ -413,6 +413,8 @@ namespace lsn {
 		std::unique_ptr<std::thread>			m_ptThread;
 		/** 0 = Thread Inactive. 1 = Thread Running. -1 = Thread Requested to Stop. */
 		volatile std::atomic_int				m_aiThreadState;
+		/** True while an LSN_GPU_DRAW is waiting in the message queue.  Posted messages outrank input and WM_PAINT, so only one is ever queued. */
+		std::atomic_bool						m_abGpuDrawQueued = false;
 		/** The Patch window. */
 		lsw::CWidget *							m_pwPatchWindow = nullptr;
 		/** The WAV Editor window. */
@@ -521,6 +523,13 @@ namespace lsn {
 		 * Leave borderless mode.
 		 **/
 		void									LeaveBorderless();
+
+		/**
+		 * Dispatches the WM_PAINT messages pending for this thread's windows.  Windows generates WM_PAINT only once no posted or input
+		 *	messages are waiting, so a steady stream of LSN_GPU_DRAW posts would otherwise defer the repaints of every window on this
+		 *	thread (dialogs included) for as long as the stream lasts.
+		 **/
+		void									FlushPendingPaints();
 
 		/**
 		 * Opens an HID device by its ID string.

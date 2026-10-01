@@ -289,6 +289,7 @@ namespace lsn {
 		static const wchar_t *									LSN_VULKAN_TARGET_CLASS;			/**< Global: window class name for the Vulkan child target (Windows only). */
 #endif
 		static LSN_VULKAN_GLOBAL_STATE							s_vgsState;							/**< The global Vulkan state containing the shared device. */
+		static constexpr uint64_t								LSN_MAX_UI_GPU_WAIT = 2ULL * 1000ULL * 1000ULL;	/**< The longest (in nanoseconds; 2 ms) the UI thread waits for the GPU to retire the previous frame before dropping the new one. */
 
 		CVulkanDevice *											m_pvkDevice = nullptr;				/**< Pointer to the shared Vulkan device. */
 
@@ -430,6 +431,26 @@ namespace lsn {
 		 * \return Returns true if creating the point sampler m_sPointSampler succeeded.
 		 **/
 		bool													CreateSamplers( VkDevice _dDevice );
+
+		/**
+		 * Waits at most LSN_MAX_UI_GPU_WAIT nanoseconds for the GPU to retire the previous frame (m_fRenderFence).  ApplyFilter() runs
+		 *	on the UI thread, which must not wait on the GPU for long:  while it waits, the emulator thread posts the next draw request,
+		 *	and while posted messages are pending, Windows generates no WM_PAINT for any window on the thread.  Drop the frame when this
+		 *	returns false.  Check it before touching anything the previous frame used (uploads, descriptor sets, size-dependent resources).
+		 *
+		 * \return Returns true if the previous frame has retired and the resources it used can be modified.
+		 */
+		bool													PrevFrameRetired();
+
+		/**
+		 * Acquires the next swap-chain image without waiting.  On VK_SUCCESS or VK_SUBOPTIMAL_KHR, m_ui32ImageIndex is set and
+		 *	m_sImageAvailable will be signaled, so the frame must be submitted (waiting on m_sImageAvailable) and presented; Present()
+		 *	re-creates a suboptimal swap chain afterward.  On VK_ERROR_OUT_OF_DATE_KHR, the swap chain is re-created.  Any other result
+		 *	(VK_NOT_READY, for example) acquired nothing:  drop the frame.
+		 *
+		 * \return Returns the result of vkAcquireNextImageKHR().
+		 */
+		VkResult												AcquireNextImage();
 	};
 
 }	// namespace lsn

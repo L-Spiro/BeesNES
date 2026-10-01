@@ -133,6 +133,7 @@ namespace lsn {
 	uint8_t * CVulkanPaletteFilter::ApplyFilter( uint8_t * _pui8Input, uint32_t &_ui32Width, uint32_t &_ui32Height, uint16_t &/*_ui16BitDepth*/, uint32_t &_ui32Stride, uint64_t /*_ui64PpuFrame*/, uint64_t /*_ui64RenderStartCycle*/,
 		int32_t _i32DispLeft, int32_t _i32DispTop, uint32_t _ui32DispWidth, uint32_t _ui32DispHeight ) {
 		
+		m_bCanPresent = false;
 		if LSN_UNLIKELY( !m_pvkDevice ) {
 			/*if ( !s_vgsState.CreateVulkan() ) { return m_vBasicRenderTarget[0].data(); }
 			m_pvkDevice = &s_vgsState.vkDevice;
@@ -140,7 +141,9 @@ namespace lsn {
 			m_bUpdatePalette = true;
 			return m_vBasicRenderTarget[0].data();
 		}
-		if ( m_pvkDevice ) {
+		// This runs on the UI thread, so never wait on the GPU here:  if the previous frame has not retired, drop this one.  Check it
+		//	first; everything below (resource re-creation, the LUT and index uploads) writes memory that frame may still be reading.
+		if LSN_LIKELY( PrevFrameRetired() ) {
 			if LSN_UNLIKELY( _ui32Width != m_ui32SrcW || _ui32Height != m_ui32SrcH ) {
 				m_ui32SrcW = _ui32Width;
 				m_ui32SrcH = _ui32Height;
@@ -161,19 +164,11 @@ namespace lsn {
 			rRect.bottom = rRect.top + LONG( _ui32DispHeight );
 
 			if ( m_bValidState ) {
-				VkDevice dDevice = m_pvkDevice->GetDevice();
-				VkQueue qQueue = m_pvkDevice->GetCommandQueue();
-
-
-				m_fRenderFence.Wait( UINT64_MAX );
-
-				m_bCanPresent = false;
-
-				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
-				if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
-					m_pvkDevice->ResizeSwapChain();
-				}
-				else if ( rRes == VK_SUCCESS ) {
+				// VK_SUBOPTIMAL_KHR still acquires an image and will signal m_sImageAvailable, so render and present it like VK_SUCCESS
+				//	(Present() re-creates the swap chain afterward).  Re-creating it here instead left that image acquired and the semaphore
+				//	pending for the next acquire.  Any other result acquired nothing, so the frame is dropped.
+				VkResult rRes = AcquireNextImage();
+				if ( rRes == VK_SUCCESS || rRes == VK_SUBOPTIMAL_KHR ) {
 					m_fRenderFence.ResetFence();
 				
 
@@ -194,8 +189,7 @@ namespace lsn {
 					siSubmit.signalSemaphoreCount = 1;
 					siSubmit.pSignalSemaphores = sSignals;
 
-					CVulkan::m_pfQueueSubmit( qQueue, 1, &siSubmit, m_fRenderFence.Get() );
-					m_bCanPresent = true;
+					m_bCanPresent = CVulkan::m_pfQueueSubmit( m_pvkDevice->GetCommandQueue(), 1, &siSubmit, m_fRenderFence.Get() ) == VK_SUCCESS;
 				}
 			}
 
