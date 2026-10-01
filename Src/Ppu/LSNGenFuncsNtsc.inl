@@ -2284,6 +2284,7 @@ void LSN_FASTCALL								Cycle_0__340x261() {
 
 
 void LSN_FASTCALL								Cycle_0__1x261() {
+	m_ui8StatusPreClear = m_psPpuStatus.ui8Reg;
 	m_psPpuStatus.s.ui8VBlank = 0;
 	m_psPpuStatus.s.ui8SpriteOverflow = 0;
 	m_psPpuStatus.s.ui8Sprite0Hit = 0;

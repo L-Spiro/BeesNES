@@ -73,6 +73,7 @@ namespace lsn {
 			m_ui8NextTileLsb( 0 ),
 			m_ui8NextTileMsb( 0 ),
 			m_ui8IoBusLatch( 0 ),
+			m_ui8StatusPreClear( 0 ),
 			m_ui8OamAddr( 0 ),
 			m_ui8OamLatch( 0 ),
 			m_ui8Oam2ClearIdx( 0 ),
@@ -255,6 +256,7 @@ namespace lsn {
 			m_psPpuStatus.s.ui8SpriteOverflow = 0;
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			m_psPpuStatus.s.ui8VBlank = 0;
+			m_ui8StatusPreClear = 0;
 			
 			m_pnNmiTarget->ClearNmi();
 
@@ -738,58 +740,58 @@ namespace lsn {
 
 				uint16_t ui16ScanLine = uint16_t( m_ui16CurY );
 				
-				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
-					// Calculate m_ui16SpritePatternTmp.
-					if ( !m_pcPpuCtrl.s.ui8SpriteSize ) {
-						// 8-by-8.
-						if ( !(m_ui8SpriteAttrib & 0x80) ) {
-							// No vertical flip.
-							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
-								(m_ui8SpriteM << 4) |
-								((ui16ScanLine - m_ui8SpriteN) & 0x7);
+				// Calculate m_ui16SpritePatternTmp.
+				if ( !m_pcPpuCtrl.s.ui8SpriteSize ) {
+					// 8-by-8.
+					if ( !(m_ui8SpriteAttrib & 0x80) ) {
+						// No vertical flip.
+						m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
+							(m_ui8SpriteM << 4) |
+							((ui16ScanLine - m_ui8SpriteN) & 0x7);
+					}
+					else {
+						// Major vertical flippage going on here.
+						m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
+							(m_ui8SpriteM << 4) |
+							((7 - (ui16ScanLine - m_ui8SpriteN)) & 0x7);
+					}
+				}
+				else {
+					// 8-by-16.
+					uint8_t ui8PatternLine = uint8_t( ui16ScanLine - m_ui8SpriteN );
+					if ( !(m_ui8SpriteAttrib & 0x80) ) {
+						// No vertical flip.
+						if ( ui8PatternLine < 8 ) {
+							// Top half.
+							m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+								((m_ui8SpriteM & 0xFE) << 4) |
+								(ui8PatternLine & 0x7);
 						}
 						else {
-							// Major vertical flippage going on here.
-							m_ui16SpritePatternTmp = (m_pcPpuCtrl.s.ui8SpriteTileSelect << 12) |
-								(m_ui8SpriteM << 4) |
-								((7 - (ui16ScanLine - m_ui8SpriteN)) & 0x7);
+							// Bottom half.
+							m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+								(((m_ui8SpriteM & 0xFE) + 1) << 4) |
+								(ui8PatternLine & 0x7);
 						}
 					}
 					else {
-						// 8-by-16.
-						uint8_t ui8PatternLine = uint8_t( ui16ScanLine - m_ui8SpriteN );
-						if ( !(m_ui8SpriteAttrib & 0x80) ) {
-							// No vertical flip.
-							if ( ui8PatternLine < 8 ) {
-								// Top half.
-								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
-									((m_ui8SpriteM & 0xFE) << 4) |
-									(ui8PatternLine & 0x7);
-							}
-							else {
-								// Bottom half.
-								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
-									(((m_ui8SpriteM & 0xFE) + 1) << 4) |
-									(ui8PatternLine & 0x7);
-							}
+						// Major vertical flippage going on here.
+						if ( ui8PatternLine < 8 ) {
+							// Top half (using bottom tile).
+							m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+								(((m_ui8SpriteM & 0xFE) + 1) << 4) |
+								((7 - ui8PatternLine) & 0x7);
 						}
 						else {
-							// Major vertical flippage going on here.
-							if ( ui8PatternLine < 8 ) {
-								// Top half (using bottom tile).
-								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
-									(((m_ui8SpriteM & 0xFE) + 1) << 4) |
-									((7 - ui8PatternLine) & 0x7);
-							}
-							else {
-								// Bottom half (using top tile).
-								m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
-									((m_ui8SpriteM & 0xFE) << 4) |
-									((7 - ui8PatternLine) & 0x7);
-							}
+							// Bottom half (using top tile).
+							m_ui16SpritePatternTmp = ((m_ui8SpriteM & 0x01) << 12) |
+								((m_ui8SpriteM & 0xFE) << 4) |
+								((7 - ui8PatternLine) & 0x7);
 						}
 					}
-					uint8_t ui8Bits = Read( m_ui16SpritePatternTmp );
+				}
+				uint8_t ui8Bits = Read( m_ui16SpritePatternTmp );
+				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -808,8 +810,8 @@ namespace lsn {
 			// Sprite MSB.
 			// ========================
 			if constexpr ( _uStage == 6 ) {
+				uint8_t ui8Bits = Read( (m_ui16SpritePatternTmp + 8) );			// Empty slots are fetched too (see above).
 				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
-					uint8_t ui8Bits = Read( (m_ui16SpritePatternTmp + 8) );
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -946,7 +948,7 @@ namespace lsn {
 				int32_t i32ClearDif = i32CurIdx - i32ClearIdx;
 				
 				if ( i32ClearDif == -1 ) {
-					ui8Status |= 0x80;
+					ui8Status = ppPpu->m_ui8StatusPreClear;
 				}
 			}
 
@@ -1358,6 +1360,7 @@ namespace lsn {
 
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
+		uint8_t											m_ui8StatusPreClear;							/**< PPUSTATUS as it was just before the pre-render scanline's dot-1 clear.  A $2002 read that resolves to the dot before the clear reports these flags. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
@@ -1784,7 +1787,7 @@ namespace lsn {
 		inline void										RenderPixel() {
 			uint16_t ui16ThisX = uint16_t( m_ui16CurX ), ui16ThisY = uint16_t( m_ui16CurY );
 			uint16_t ui16X, ui16Y;
-			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) && m_pui8RenderTarget ) {
+			if ( CycleToRenderTarget( ui16ThisX, ui16ThisY, ui16X, ui16Y ) ) {
 				
 				uint16_t ui16Val = 0x0F;
 				if ( (m_bFlipOutput && ui16Y >= _tRender) || (!m_bFlipOutput && ui16Y < _tPreRender) ) {}													// Black pre-render scanline on PAL.
@@ -1901,6 +1904,7 @@ namespace lsn {
 					ui16Val = ui8BackgroundPalette * (255 / 4);// + ui8BackgroundPixel * 10;	// TMP
 #endif	// #ifdef LSN_SHOW_PIXEL
 				}
+				if ( !m_pui8RenderTarget ) { return; }
 					
 #ifdef LSN_SHOW_PIXEL
 				{
@@ -1986,6 +1990,7 @@ namespace lsn {
 			//	This keeps the flags alive until the CPU can read them if that happens on the same PPU tick as they should be cleared.
 			if ( _uY == _tDotHeight - 1 && _uX == 1 /*+ 1*/ ) {
 				sRet += "\r\n"
+				"	m_ui8StatusPreClear = m_psPpuStatus.ui8Reg;\r\n"
 				"	m_psPpuStatus.s.ui8VBlank = 0;\r\n"
 				"	m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
 				"	m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
