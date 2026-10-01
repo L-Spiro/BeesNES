@@ -2290,6 +2290,7 @@ void LSN_FASTCALL								Cycle_0__1x261() {
 	m_psPpuStatus.s.ui8Sprite0Hit = 0;
 	m_bSuppressNmi = false;
 	m_pnNmiTarget->ClearNmi();
+	PreRenderOamGlitches();
 
 	m_ui8OamLatch = ReadOam( m_ui8OamAddr );
 

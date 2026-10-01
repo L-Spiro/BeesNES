@@ -1580,6 +1580,7 @@ void LSN_FASTCALL								Cycle_2__1x311() {
 	m_psPpuStatus.s.ui8Sprite0Hit = 0;
 	m_bSuppressNmi = false;
 	m_pnNmiTarget->ClearNmi();
+	PreRenderOamGlitches();
 
 	if ( m_bRendering ) {
 

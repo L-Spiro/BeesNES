@@ -62,6 +62,7 @@ namespace lsn {
 			m_ui64Frame( 0 ),
 			//m_ui64Cycle( 0 ),
 			m_stCurCycle( 0 ),
+			m_ui32OamCorruptRows( 0 ),
 			m_ui16ShiftPatternLo( 0 ),
 			m_ui16ShiftPatternHi( 0 ),
 			m_ui16ShiftAttribLo( 0 ),
@@ -83,6 +84,9 @@ namespace lsn {
 			//m_dvLeftShowRedGreenDelay( nullptr, this ),
 			//m_dvPpuMaskDelay( nullptr, this ),
 			m_dvPpuMaskDelay( MaskCallback, this ),
+			m_bRendering( false ),
+			m_bShowBg( false ),
+			m_bShowSprites( false ),
 			m_bAddresLatch( false ),
 			m_bSkipDot( false ) {
 
@@ -133,6 +137,10 @@ namespace lsn {
 			m_dvPpuMaskDelay.Tick();
 			m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();
+			if LSN_UNLIKELY( m_psStatusPending.ui8Reg ) {
+				m_psPpuStatus.ui8Reg |= m_psStatusPending.ui8Reg;
+				m_psStatusPending.ui8Reg = 0;
+			}
 			
 #ifdef LSN_INT_OAM_DECAY
 #else
@@ -257,6 +265,8 @@ namespace lsn {
 			m_psPpuStatus.s.ui8Sprite0Hit = 0;
 			m_psPpuStatus.s.ui8VBlank = 0;
 			m_ui8StatusPreClear = 0;
+			m_psStatusPending.ui8Reg = 0;
+			m_ui32OamCorruptRows = 0;
 			
 			m_pnNmiTarget->ClearNmi();
 
@@ -516,15 +526,6 @@ namespace lsn {
 				m_bSprite0IsInSecondary = false;
 				m_ui8Oam2WriteIdx = 0;
 				m_ui8Oam2SpriteCpyCnt = 0;
-				if ( m_bRendering ) {
-					// On the 2C02G and 2C02H, if the sprite address (OAMADDR, $2003) is not zero, the process of starting sprite evaluation triggers an OAM hardware refresh bug that causes the 8 bytes beginning at OAMADDR & $F8 to be copied and replace the first 8 bytes of OAM.
-					if ( m_ui8OamAddr != 0 ) {
-						for ( size_t I = 0; I < 8; ++I ) {
-							//WriteOam( I, ReadOam( (m_ui8OamAddr + I) & 0xF8 ) );
-							WriteOam( I, ReadOam( (m_ui8OamAddr & 0xF8) + I ) );
-						}
-					}
-				}
 			}
 			if ( !m_bRendering ) { return; }
 			
@@ -596,7 +597,7 @@ namespace lsn {
 
 							if ( i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8) ) {
 								// Overflow.
-								m_psPpuStatus.s.ui8SpriteOverflow = true;
+								m_psStatusPending.s.ui8SpriteOverflow = true;
 								
 								// Move to the fake copy stage.
 								m_sesStage = LSN_SES_OF_SEARCH_ADD_SPRITE;
@@ -948,7 +949,7 @@ namespace lsn {
 				int32_t i32ClearDif = i32CurIdx - i32ClearIdx;
 				
 				if ( i32ClearDif == -1 ) {
-					ui8Status = ppPpu->m_ui8StatusPreClear;
+					ui8Status = (ui8Status & 0x7F) | (ppPpu->m_ui8StatusPreClear & 0x80);
 				}
 			}
 
@@ -1328,6 +1329,7 @@ namespace lsn {
 		LSN_PPUCTRL										m_pcPpuCtrl;									/**< The PPUCTRL register. */
 		//LSN_PPUMASK										m_pmPpuMask;									/**< The PPUMASK register. */
 		LSN_PPUSTATUS									m_psPpuStatus;									/**< The PPUSTATUS register. */
+		LSN_PPUSTATUS									m_psStatusPending;								/**< Sprite-0-hit and sprite-overflow flags raised during the last dot.  They are merged into PPUSTATUS at the start of the next dot, so $2002 sees them one dot after the event. */
 		LSN_SPRITE_EVAL_STATE							m_sesStage;										/**< The sprite-evaluation stage. */
 		//CDelayedValue<LSN_PPUMASK, 2>					m_dvLeftShowRedGreenDelay;						/**< The PPUMASK register (left*, show*, red, green bits). */
 		CDelayedValue<LSN_PPUMASK, 4>					m_dvPpuMaskDelay;								/**< The PPUMASK register (the rest of the bits). */
@@ -1345,6 +1347,7 @@ namespace lsn {
 #ifndef LSN_INT_OAM_DECAY
 		float											m_fOamDecayFactor;								/**< The primary OAM decay rate. */
 #endif	// #ifndef LSN_INT_OAM_DECAY
+		uint32_t										m_ui32OamCorruptRows;							/**< One bit per 8-byte OAM row waiting to be overwritten with row 0 (OAM corruption from turning rendering off mid-scanline). */
 		uint16_t										m_ui16CurX;										/**< The current dot.  Value updated at the start of every PPU tick. */
 		uint16_t										m_ui16CurY;										/**< The current scanline.  Value updated at the start of every PPU tick. */
 		uint16_t										m_ui16ShiftPatternLo;							/**< The 16-bit shifter for the pattern low bits. */
@@ -1360,7 +1363,7 @@ namespace lsn {
 
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
-		uint8_t											m_ui8StatusPreClear;							/**< PPUSTATUS as it was just before the pre-render scanline's dot-1 clear.  A $2002 read that resolves to the dot before the clear reports these flags. */
+		uint8_t											m_ui8StatusPreClear;							/**< PPUSTATUS as it was just before the pre-render scanline's dot-1 clear.  A $2002 read that resolves to the dot before the clear takes its V-blank flag from here. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
@@ -1655,11 +1658,13 @@ namespace lsn {
 		/**
 		 * Reads an OAM value by index, accounting for decay.
 		 *
+		 * \tparam _bClearPhaseFf If true, reads during the secondary-OAM clear (dots 1-64 of a rendering scanline) return $FF.  The OAM
+		 *	glitches copy OAM internally rather than through the read path, so they pass false.
 		 * \param _stIdx The index of the value to read.
 		 * \return Returns the fetched value, which will be 0x00 after decay.
 		 */
+		template <bool _bClearPhaseFf = true>
 		inline uint8_t									ReadOam( size_t _stIdx ) {
-			uint16_t ui16Scan = m_ui16CurY;
 			uint8_t * pui8Val = &m_oOam.ui8Bytes[_stIdx];
 #if 0
 			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
@@ -1679,13 +1684,16 @@ namespace lsn {
 				(*pui8Val) = 0x00;
 			}
 			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
-			// If the scanline is >= 0 and < 240, or -1.
-			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
-				uint16_t ui16Dot = m_ui16CurX;
-				// During the OAM-clear phase.
-				if LSN_UNLIKELY( ui16Dot >= 1 && ui16Dot <= 64 && m_bRendering ) {
-					//(*pui8Val) = 0xFF;
-					return 0xFF;
+			if constexpr ( _bClearPhaseFf ) {
+				uint16_t ui16Scan = m_ui16CurY;
+				// If the scanline is >= 0 and < 240, or -1.
+				if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+					uint16_t ui16Dot = m_ui16CurX;
+					// During the OAM-clear phase.
+					if LSN_UNLIKELY( ui16Dot >= 1 && ui16Dot <= 64 && m_bRendering ) {
+						//(*pui8Val) = 0xFF;
+						return 0xFF;
+					}
 				}
 			}
 			return (*pui8Val);
@@ -1695,13 +1703,16 @@ namespace lsn {
 				(*pui8Val) = 0x00;
 			}
 			(*pfDecay) = 1.0f;
-			// If the scanline is >= 0 and < 240, or -1.
-			if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
-				uint16_t ui16Dot = m_ui16CurX;
-				// During the OAM-clear phase.
-				if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
-					//(*pui8Val) = 0xFF;
-					return 0xFF;
+			if constexpr ( _bClearPhaseFf ) {
+				uint16_t ui16Scan = m_ui16CurY;
+				// If the scanline is >= 0 and < 240, or -1.
+				if ( (ui16Scan < (_tPreRender + _tRender)) || ui16Scan == (_tDotHeight - 1) ) {
+					uint16_t ui16Dot = m_ui16CurX;
+					// During the OAM-clear phase.
+					if ( ui16Dot >= 1 && ui16Dot <= 64 ) {
+						//(*pui8Val) = 0xFF;
+						return 0xFF;
+					}
 				}
 			}
 			if ( (_stIdx & 0b11) == 2 ) { return (*pui8Val) & 0b11100011; }
@@ -1726,6 +1737,62 @@ namespace lsn {
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
 #endif	// #ifdef LSN_INT_OAM_DECAY
 			return _ui8Val;
+		}
+
+		/**
+		 * Records which OAM row gets corrupted because rendering was turned off on a rendering scanline.  The row is the secondary-OAM
+		 *	address at that moment: during the secondary-OAM clear (dots 1-64) it advances every 2 dots, during sprite evaluation (dots
+		 *	65-256) it is the write address rounded up to a multiple of 4, and during sprite fetches (dots 257-320) it advances on the first
+		 *	3 dots of each 8-dot slot.  The next time the PPU renders on a rendering scanline, that row is overwritten with OAM row 0 (see
+		 *	OamCorruptionApply()).  m_ui16CurX must be the last dot that ran with rendering on.
+		 */
+		inline void										OamCorruptionSeed() {
+			uint32_t ui32Dot = m_ui16CurX;
+			uint32_t ui32Row;
+			if ( ui32Dot <= 64 ) {
+				ui32Row = ui32Dot >> 1;
+			}
+			else if ( ui32Dot <= 256 ) {
+				ui32Row = (m_ui8Oam2WriteIdx + 3U) & ~3U;
+			}
+			else if ( ui32Dot <= 320 ) {
+				ui32Dot -= 256;
+				uint32_t ui32Step = ui32Dot & 0x7;
+				ui32Row = (ui32Dot >> 3) * 4 + (ui32Step < 3 ? ui32Step : 3);
+			}
+			else { return; }
+			m_ui32OamCorruptRows |= 1U << (ui32Row & 0x1F);
+		}
+
+		/**
+		 * Applies any pending OAM-row corruption: each marked row is overwritten with OAM row 0 (OAM bytes 0-7).
+		 */
+		inline void										OamCorruptionApply() {
+			if LSN_UNLIKELY( m_ui32OamCorruptRows ) {
+				for ( uint32_t I = 1; I < 32; ++I ) {
+					if ( m_ui32OamCorruptRows & (1U << I) ) {
+						for ( size_t J = 0; J < 8; ++J ) {
+							WriteOam( I * 8 + J, ReadOam<false>( J ) );
+						}
+					}
+				}
+				m_ui32OamCorruptRows = 0;
+			}
+		}
+
+		/**
+		 * OAM glitches that happen when rendering starts a frame (dot 1 of the pre-render scanline): pending OAM-row corruption is applied,
+		 *	and on the 2C02G/H, if OAMADDR is 8 or more, the 8 bytes at (OAMADDR & $F8) are copied over the first 8 bytes of OAM.
+		 */
+		inline void										PreRenderOamGlitches() {
+			if ( m_bRendering ) {
+				OamCorruptionApply();
+				if ( m_ui8OamAddr >= 8 ) {
+					for ( size_t I = 0; I < 8; ++I ) {
+						WriteOam( I, ReadOam<false>( (m_ui8OamAddr & 0xF8) + I ) );
+					}
+				}
+			}
 		}
 
 		/**
@@ -1776,9 +1843,20 @@ namespace lsn {
 		static void										MaskCallback( void * _pvParm, CDelayedValue<LSN_PPUMASK, 1>::Type _tNewVal, CDelayedValue<LSN_PPUMASK, 1>::Type /*_tOldVal*/ ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm);
 
+			bool bWasRendering = ppPpu->m_bRendering;
 			ppPpu->m_bShowBg = !!_tNewVal.s.ui8ShowBackground;
 			ppPpu->m_bShowSprites = !!_tNewVal.s.ui8ShowSprites;
 			ppPpu->m_bRendering = bool( ppPpu->m_bShowBg | ppPpu->m_bShowSprites );
+
+			if ( bWasRendering != ppPpu->m_bRendering &&
+				(ppPpu->m_ui16CurY < (_tPreRender + _tRender) || ppPpu->m_ui16CurY == (_tDotHeight - 1)) ) {
+				if ( ppPpu->m_bRendering ) {
+					ppPpu->OamCorruptionApply();
+				}
+				else {
+					ppPpu->OamCorruptionSeed();
+				}
+			}
 		}
 
 		/**
@@ -1867,7 +1945,7 @@ namespace lsn {
 							if ( ((ui16X >= 8) || (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftBackground | m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftSprites)) &&
 								// At x=255, for an obscure reason related to the pixel pipeline.
 								ui16X != 255 ) {
-								m_psPpuStatus.s.ui8Sprite0Hit = 1;
+								m_psStatusPending.s.ui8Sprite0Hit = 1;
 							}
 						}
 					}
@@ -1995,7 +2073,8 @@ namespace lsn {
 				"	m_psPpuStatus.s.ui8SpriteOverflow = 0;\r\n"
 				"	m_psPpuStatus.s.ui8Sprite0Hit = 0;\r\n"
 				"	m_bSuppressNmi = false;\r\n"
-				"	m_pnNmiTarget->ClearNmi();\r\n";
+				"	m_pnNmiTarget->ClearNmi();\r\n"
+				"	PreRenderOamGlitches();\r\n";
 			}
 			
 

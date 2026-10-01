@@ -506,6 +506,7 @@ namespace lsn {
 			m_ui64Cycles = 0;
 			m_ui64StepCycles = 0;
 			m_ui64RawExportStartCycle = 0;
+			m_ui64FrameIrqClearCycle = 0;
 			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
@@ -936,6 +937,8 @@ namespace lsn {
 		CInterruptable *								m_piIrqTarget = nullptr;
 		/** The CPU base. */
 		CCpuBase *										m_pcbCpu = nullptr;
+		/** The CPU cycle on which bit 6 of $4015 (frame IRQ) actually clears after a read.  It clears on the APU's next "get" cycle, so reads before this cycle still see it set. */
+		uint64_t										m_ui64FrameIrqClearCycle = 0;
 		/** WAV streamer for the source signal. */
 		CWavFile *										m_pwfRawStream = nullptr;
 		/** WAV streamer for the output signal. */
@@ -1661,10 +1664,15 @@ namespace lsn {
 				_ui8Ret |= 0b00010000;
 			}
 
+			uint64_t ui64Cycle = paApu->m_pcbCpu->GetCycleCount();
 			if ( paApu->m_piIrqTarget->GetIrqStatus( LSN_IS_APU ) ) {
 				_ui8Ret |= 0b01000000;
 				// TODO: If an interrupt flag was set at the same moment as the read, it will read back as 1 but it will not be cleared.
 				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU );
+				paApu->m_ui64FrameIrqClearCycle = ui64Cycle + ((ui64Cycle & 1) ? 2 : 1);
+			}
+			else if ( ui64Cycle < paApu->m_ui64FrameIrqClearCycle ) {
+				_ui8Ret |= 0b01000000;
 			}
 
 			if ( paApu->m_dDmc.IsIrqAsserted( paApu->m_pcbCpu ) ) {
