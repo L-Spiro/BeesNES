@@ -128,7 +128,7 @@ namespace lsn {
 		 * \param _ui8Val The 8-bit value written to the register.
 		 */
 		void									Write4012( uint8_t _ui8Val ) {
-			m_ui16SampleAddress = 0x4000 + (uint16_t( _ui8Val ) * 64);
+			m_ui16SampleAddress = 0xC000 + (uint16_t( _ui8Val ) * 64);
 		}
 
 		/**
