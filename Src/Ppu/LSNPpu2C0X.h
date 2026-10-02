@@ -838,7 +838,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			bool bPrevNmi = ppPpu->m_pcPpuCtrl.s.ui8Nmi != 0;
-			ppPpu->m_ui8IoBusLatch = ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val;
+			ppPpu->SetIoBus( ppPpu->m_pcPpuCtrl.ui8Reg = _ui8Val );
 			ppPpu->m_paPpuAddrT.s.ui16NametableX = LSN_CTRL_NAMETABLE_X( ppPpu->m_pcPpuCtrl );
 			ppPpu->m_paPpuAddrT.s.ui16NametableY = LSN_CTRL_NAMETABLE_Y( ppPpu->m_pcPpuCtrl );
 			ppPpu->GlitchyVUpdate( ppPpu->m_ui8IoBusLatch << 10, 0x0400 );
@@ -898,7 +898,7 @@ namespace lsn {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			//uint8_t ui8Last = ppPpu->m_pbBus->GetFloat();
 			LSN_PPUMASK pmTmp;
-			ppPpu->m_ui8IoBusLatch = pmTmp.ui8Reg = _ui8Val;
+			ppPpu->SetIoBus( pmTmp.ui8Reg = _ui8Val );
 			ppPpu->m_dvPpuMaskDelay.WriteWithDelay( pmTmp );
 			//ppPpu->m_dvLeftShowRedGreenDelay.WriteWithDelay( pmTmp );
 			/*char szBuffer[256];
@@ -954,8 +954,7 @@ namespace lsn {
 			}
 
 
-			ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8IoBusLatch & 0x1F) | (ui8Status & 0xE0);
-			_ui8Ret = ppPpu->m_ui8IoBusLatch;
+			_ui8Ret = ppPpu->SetIoBus( ui8Status, 0xE0 );
 			// Reads cause the v-blank flag to reset.
 			ppPpu->m_psPpuStatus.s.ui8VBlank = 0;
 			ppPpu->m_pnNmiTarget->ClearNmi();
@@ -973,7 +972,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->SetIoBus( _ui8Val );
 		}
 
 		/**
@@ -986,7 +985,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8OamAddr = _ui8Val;
+			ppPpu->SetIoBus( ppPpu->m_ui8OamAddr = _ui8Val );
 		}
 
 		/**
@@ -1009,7 +1008,7 @@ namespace lsn {
 
 			// If the scanline is NOT (>= 0 and < 240, or -1).
 			if ( !(ppPpu->m_bRendering && (i16AdjustedY < (_tPreRender + _tRender) || i16AdjustedY == (_tDotHeight - 1))) ) {
-				ppPpu->m_ui8IoBusLatch = ppPpu->ReadOam( ppPpu->m_ui8OamAddr );
+				ppPpu->SetIoBus( ppPpu->ReadOam( ppPpu->m_ui8OamAddr ) );
 			}
 			else {
 #define LSN_LEFT				1
@@ -1017,10 +1016,10 @@ namespace lsn {
 #define LSN_NEXT_TWO			(LSN_RIGHT + 8 * 8)			// 321.
 				//int16_t i16AdjustedX = ppPpu->m_ui16CurX;
 				if ( i16AdjustedX >= LSN_NEXT_TWO || i16AdjustedX == 0 ) {
-					ppPpu->m_ui8IoBusLatch = ppPpu->m_soSecondaryOam.ui8Bytes[0];
+					ppPpu->SetIoBus( ppPpu->m_soSecondaryOam.ui8Bytes[0] );
 				}
 				else {
-					ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8OamLatch;
+					ppPpu->SetIoBus( ppPpu->m_ui8OamLatch );
 				}
 			}
 			_ui8Ret = ppPpu->m_ui8IoBusLatch;
@@ -1045,7 +1044,7 @@ namespace lsn {
 				ppPpu->m_ui8OamAddr = (ppPpu->m_ui8OamAddr + 4) & 0xFC;
 				return;
 			}
-			ppPpu->m_ui8IoBusLatch = ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val );
+			ppPpu->SetIoBus( ppPpu->WriteOam( ppPpu->m_ui8OamAddr++, _ui8Val ) );
 		}
 
 		/**
@@ -1058,7 +1057,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write2005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->SetIoBus( _ui8Val );
 			if ( !ppPpu->m_bAddresLatch ) {
 				ppPpu->m_ui8FineScrollX = _ui8Val & 0x7;
 				ppPpu->m_paPpuAddrT.s.ui16CourseX = _ui8Val >> 3;
@@ -1082,7 +1081,7 @@ namespace lsn {
 		static void LSN_FASTCALL						Write2006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
 			// Write top 8 bits first.  Easily acheived by flipping the latch before writing.
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->SetIoBus( _ui8Val );
 			ppPpu->m_bAddresLatch ^= 1;
 			ppPpu->m_paPpuAddrT.ui8Bytes[ppPpu->m_bAddresLatch] = _ui8Val;
 			if ( !ppPpu->m_bAddresLatch ) {
@@ -1125,14 +1124,14 @@ namespace lsn {
 				if ( (ui16Mirrored & 0x03) == 0x00 ) {
 					ui16Mirrored = ui16Mirrored & ~0x0010;
 				}
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = (ppPpu->m_ui8PaletteRam[ui16Mirrored] | (ppPpu->m_ui8IoBusLatch & ~0x3F));
+				_ui8Ret = ppPpu->SetIoBus( ppPpu->m_ui8PaletteRam[ui16Mirrored] & (ppPpu->m_dvPpuMaskDelay.MostRecentValue().s.ui8Greyscale ? 0x30 : 0x3F), 0x3F );
 				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 				
 			}
 			else {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
-				_ui8Ret = ppPpu->m_ui8IoBusLatch = ppPpu->m_ui8DataBuffer;
+				_ui8Ret = ppPpu->SetIoBus( ppPpu->m_ui8DataBuffer );
 				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 			}
 			//ppPpu->UpdateVramAddr();
@@ -1161,7 +1160,7 @@ namespace lsn {
 			else {
 				ppPpu->m_bBus.Write( ui16Addr, _ui8Val );
 			}
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->SetIoBus( _ui8Val );
 			//ppPpu->UpdateVramAddr();
 			ppPpu->m_bUpdateVramAddr = true;
 		}
@@ -1176,7 +1175,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PpuNoRead( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			_ui8Ret = ppPpu->m_ui8IoBusLatch;
+			_ui8Ret = ppPpu->IoBus();
 		}
 
 		/**
@@ -1189,7 +1188,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						PpuNoWrite( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CPpu2C0X * ppPpu = reinterpret_cast<CPpu2C0X *>(_pvParm0);
-			ppPpu->m_ui8IoBusLatch = _ui8Val;
+			ppPpu->SetIoBus( _ui8Val );
 		}
 
 
@@ -1306,7 +1305,7 @@ namespace lsn {
 
 		// == Members.
 #ifdef LSN_INT_OAM_DECAY
-		uint64_t										m_ui64OamDecay[256];							/**< The OAM decay timers. */
+		uint64_t										m_ui64OamDecay[32];								/**< The OAM decay timers, one for each 8-byte DRAM row. */
 		uint64_t										m_ui64OamDecayTime;								/**< The number of PPU cycles it takes for OAM to decay. */
 #else
 		std::vector<float>								m_vOamDecay;									/**< Decaying OAM values. */
@@ -1361,6 +1360,7 @@ namespace lsn {
 			uint8_t										m_ui8AddressBus[2];								/**< The address bus and databus. */
 		};
 
+		uint64_t										m_ui64IoBusDecay[8] = {};						/**< The PPU cycle at which each bit of the I/O bus decays to 0 unless it is refreshed first. */
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
 		uint8_t											m_ui8StatusPreClear;							/**< PPUSTATUS as it was just before the pre-render scanline's dot-1 clear.  A $2002 read that resolves to the dot before the clear takes its V-blank flag from here. */
@@ -1546,6 +1546,7 @@ namespace lsn {
 		 **/
 		inline void										WritePalette( uint16_t _ui16Addr, uint8_t _ui8Val ) {
 			_ui16Addr &= (LSN_PPU_PALETTE_MEMORY_SIZE - 1);		// Mirror $3F20-$3FFF into $3F00-$3F1F.
+			_ui8Val &= 0x3F;									// Palette RAM is 6 bits wide.
 			if ( (_ui16Addr & 0x03) != 0 ) {					// XX01 XX02 XX03 XX05...
 				m_ui8PaletteRam[_ui16Addr] = _ui8Val;
 			}
@@ -1656,12 +1657,79 @@ namespace lsn {
 #endif	// #ifdef LSN_INT_OAM_DECAY
 
 		/**
+		 * Refreshes the OAM DRAM row (8 bytes) holding the given index.  Any access to a row refreshes the whole row.  A row that went
+		 *	longer than m_ui64OamDecayTime without one has decayed first:  each of its bytes reads back as its own OAM address (with the
+		 *	unimplemented attribute bits clear), so decayed sprites spread down the screen rather than piling onto the same scanlines.
+		 *
+		 * \param _stIdx The OAM index being accessed.
+		 */
+		inline void										RefreshOamRow( size_t _stIdx ) {
+			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx>>3];
+			if LSN_UNLIKELY( m_ui64Cycle >= (*pui64Decay) ) {
+				const size_t stRow = _stIdx & ~size_t( 7 );
+				for ( size_t I = stRow; I < stRow + 8; ++I ) {
+					m_oOam.ui8Bytes[I] = uint8_t( ((I & 0b11) == 2) ? (I & 0b11100011) : I );
+				}
+			}
+			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
+		}
+
+		/**
+		 * Gets the number of PPU cycles that a bit of the I/O bus holds its value without being refreshed (about 600 milliseconds).
+		 *
+		 * \return Returns the number of PPU cycles before an unrefreshed I/O bus bit decays to 0.
+		 */
+		uint64_t constexpr								IoBusDecayCycles() const {
+			double dFps;
+			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+				dFps = 60.098813897440515529533511098629;
+			}
+			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
+				dFps = 50.006978908188585607940446650124;
+			}
+			else {
+				dFps = 60.098477556112263192919547153838;
+			}
+			return uint64_t( dFps * (_tDotWidth * _tDotHeight) * 0.6 );
+		}
+
+		/**
+		 * Gets the I/O bus after clearing the bits that went too long without being refreshed.
+		 *
+		 * \return Returns the I/O bus value.
+		 */
+		inline uint8_t									IoBus() {
+			if ( m_ui8IoBusLatch ) {
+				for ( size_t I = 0; I < 8; ++I ) {
+					if ( m_ui64Cycle >= m_ui64IoBusDecay[I] ) { m_ui8IoBusLatch &= ~uint8_t( 1 << I ); }
+				}
+			}
+			return m_ui8IoBusLatch;
+		}
+
+		/**
+		 * Drives bits of the I/O bus, refreshing only those bits.
+		 *
+		 * \param _ui8Val The value driven onto the I/O bus.
+		 * \param _ui8Mask The bits that are driven.  The other bits keep their (possibly decayed) values.
+		 * \return Returns the new I/O bus value.
+		 */
+		inline uint8_t									SetIoBus( uint8_t _ui8Val, uint8_t _ui8Mask = 0xFF ) {
+			m_ui8IoBusLatch = uint8_t( (IoBus() & ~_ui8Mask) | (_ui8Val & _ui8Mask) );
+			const uint64_t ui64Decay = m_ui64Cycle + IoBusDecayCycles();
+			for ( size_t I = 0; I < 8; ++I ) {
+				if ( _ui8Mask & (1 << I) ) { m_ui64IoBusDecay[I] = ui64Decay; }
+			}
+			return m_ui8IoBusLatch;
+		}
+
+		/**
 		 * Reads an OAM value by index, accounting for decay.
 		 *
 		 * \tparam _bClearPhaseFf If true, reads during the secondary-OAM clear (dots 1-64 of a rendering scanline) return $FF.  The OAM
 		 *	glitches copy OAM internally rather than through the read path, so they pass false.
 		 * \param _stIdx The index of the value to read.
-		 * \return Returns the fetched value, which will be 0x00 after decay.
+		 * \return Returns the fetched value.
 		 */
 		template <bool _bClearPhaseFf = true>
 		inline uint8_t									ReadOam( size_t _stIdx ) {
@@ -1679,11 +1747,7 @@ namespace lsn {
 			return (*pui8Val);
 #endif	// 0
 #ifdef LSN_INT_OAM_DECAY
-			uint64_t * pui64Decay = &m_ui64OamDecay[_stIdx];
-			if LSN_UNLIKELY( m_ui64Cycle >= (*pui64Decay) ) {
-				(*pui8Val) = 0x00;
-			}
-			(*pui64Decay) = m_ui64Cycle + m_ui64OamDecayTime;
+			RefreshOamRow( _stIdx );
 			if constexpr ( _bClearPhaseFf ) {
 				uint16_t ui16Scan = m_ui16CurY;
 				// If the scanline is >= 0 and < 240, or -1.
@@ -1730,7 +1794,7 @@ namespace lsn {
 		inline uint8_t									WriteOam( size_t _stIdx, uint8_t _ui8Val ) {
 			if ( (_stIdx & 0b11) == 2 ) { _ui8Val &= 0b11100011; }
 #ifdef LSN_INT_OAM_DECAY
-			m_ui64OamDecay[_stIdx] = m_ui64Cycle + m_ui64OamDecayTime;
+			RefreshOamRow( _stIdx );
 			m_oOam.ui8Bytes[_stIdx] = _ui8Val;
 #else
 			m_vOamDecay.data()[_stIdx] = 1.0f;

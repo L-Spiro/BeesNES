@@ -553,6 +553,7 @@ namespace lsn {
 		/**
 		 * Performs a DMA read.  The 2A03's registers respond only while the halted CPU's address is in $4000-$401F, in which case the register
 		 *	selected by the low 5 bits of the DMA address is read alongside it (a bus conflict).  Otherwise DMA reads of $4000-$401F see open bus.
+		 *	In a bus conflict, the byte from memory reaches only the external data bus; the register drives the internal one.
 		 *
 		 * \param _ui16Addr The address read by the DMA.
 		 * \param _bDmc If true, the read is for the DMC, which keeps the byte from memory.
@@ -563,8 +564,10 @@ namespace lsn {
 			if ( (_ui16Addr & 0xFFE0) == 0x4000 ) {
 				return bRegs ? m_pbBus->Read( _ui16Addr ) : m_pbBus->GetFloat();
 			}
+			const uint8_t ui8Internal = m_pbBus->GetInternal();
 			uint8_t ui8Ret = m_pbBus->Read( _ui16Addr );
 			if ( bRegs ) {
+				m_pbBus->SetInternal( ui8Internal );
 				uint8_t ui8Reg = m_pbBus->Read( uint16_t( 0x4000 | (_ui16Addr & 0x1F) ) );
 				if ( !_bDmc ) { ui8Ret = ui8Reg; }
 			}

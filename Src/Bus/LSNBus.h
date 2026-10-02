@@ -89,7 +89,8 @@ namespace lsn {
 	public :
 		// == Various constructors.
 		CBus() :
-			m_ui8LastRead( 0 ) {
+			m_ui8LastRead( 0 ),
+			m_ui8InternalBus( 0 ) {
 		}
 		~CBus() {
 			ResetToKnown();
@@ -129,6 +130,7 @@ namespace lsn {
 			ResetAnalog();
 			std::memset( m_ui8Ram, 0, sizeof( m_ui8Ram ) );
 			m_ui8LastRead = 0;
+			m_ui8InternalBus = 0;
 		}
 
 		/**
@@ -163,10 +165,11 @@ namespace lsn {
 			uint8_t ui8Mask;
 			if constexpr ( _uSize == 0x10000 ) {
 				const LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Addr];
+				ui8Mask = m_ui8OpenBusMask[_ui16Addr];
+				if LSN_UNLIKELY( !ui8Mask ) { ui8Ret = m_ui8InternalBus; }		// Registers inside the 2A03 never reach the external bus, so their open bits come from the internal one.
 				aaAcc.pfReader( aaAcc.pvReaderParm0,
 					aaAcc.ui16ReaderParm1,
 					m_ui8Ram, ui8Ret );
-				ui8Mask = m_ui8OpenBusMask[_ui16Addr];
 			}
 			else {
 				uint16_t ui16Addr = _ui16Addr & (_uSize - 1);
@@ -177,6 +180,7 @@ namespace lsn {
 				ui8Mask = m_ui8OpenBusMask[ui16Addr];
 			}
 			m_ui8LastRead = (m_ui8LastRead & ~ui8Mask) | (ui8Ret & ui8Mask);
+			m_ui8InternalBus = ui8Ret;
 
 #ifdef LSN_CPU_VERIFY
 			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = ui8Ret, .bRead = true } );
@@ -209,6 +213,7 @@ namespace lsn {
 			}
 			//m_ui8LastRead = (m_ui8LastRead & ~ui8Mask) | (_ui8Val & ui8Mask);
 			m_ui8LastRead = _ui8Val;
+			m_ui8InternalBus = _ui8Val;
 #ifdef LSN_CPU_VERIFY
 			m_vReadWriteLog.push_back( { .ui16Address = _ui16Addr, .ui8Value = _ui8Val, .bRead = false } );
 #endif	// #ifdef LSN_CPU_VERIFY
@@ -230,6 +235,21 @@ namespace lsn {
 		 * \return Returns the floating value on the bus.
 		 */
 		inline uint8_t						GetFloat() const { return m_ui8LastRead; }
+
+		/**
+		 * Gets the CPU's internal data bus.  It matches the floating (external) bus except after reads of registers inside the 2A03 ($4015),
+		 *	which drive only the internal bus.
+		 *
+		 * \return Returns the value on the internal data bus.
+		 */
+		inline uint8_t						GetInternal() const { return m_ui8InternalBus; }
+
+		/**
+		 * Sets the CPU's internal data bus.
+		 *
+		 * \param _ui8Val The value to put on the internal data bus.
+		 */
+		inline void							SetInternal( uint8_t _ui8Val ) { m_ui8InternalBus = _ui8Val; }
 
 		/**
 		 * Sets the floating-bus mask for an address.
@@ -464,10 +484,11 @@ namespace lsn {
 	protected :
 		// == Members.
 		LSN_ALIGN( 0x100 )
-		uint8_t								m_ui8OpenBusMask[_uSize];		/**< The open-bus update mask.  Usually 0xFF to update all bits, but $4015 is set to 0x00 to update no floating-bus bits. */
+		uint8_t								m_ui8OpenBusMask[_uSize];		/**< The open-bus update mask.  Usually 0xFF to update all bits, but $4015 is set to 0x00 to update no floating-bus bits (its open bits come from the internal bus instead). */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
+		uint8_t								m_ui8InternalBus;				/**< The CPU's internal data bus. */
 
 
 #ifdef LSN_CPU_VERIFY
