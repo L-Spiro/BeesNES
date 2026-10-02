@@ -39,12 +39,12 @@ namespace lsn {
 		 * \param _pCpu Pointer to the CPU base class to trigger subsequent DMA fetches.
 		 */
 		void									Tick( CCpuBase * _pCpu ) {
-			if ( m_ui8StartDelay && --m_ui8StartDelay == 0 && m_bBufferEmpty && m_ui16BytesRemaining ) {
-				_pCpu->BeginDmcDma( false );
-			}
+			m_bImplicitAbort = false;
+			m_bClocked = false;
 			if ( m_ui16Timer > 0 ) { m_ui16Timer--; }
 			else {
 				m_ui16Timer = m_ui16TimerPeriod;
+				m_bClocked = true;
 
 				if ( !m_bSilent ) {
 					if ( m_ui8ShiftRegister & 1 ) {
@@ -67,11 +67,23 @@ namespace lsn {
 						m_bSilent = false;
 						m_ui8ShiftRegister = m_ui8SampleBuffer;
 						m_bBufferEmpty = true;
-                    
-						if ( m_ui16BytesRemaining > 0 ) {
+					}
+					if ( m_ui16BytesRemaining > 0 || m_bSetImplicitAbort ) {
+						if ( _pCpu->GetCycleCount() != m_ui64FetchCycle + 1 ) {
 							_pCpu->BeginDmcDma( true );
 						}
+						m_bImplicitAbort = m_bSetImplicitAbort;
+						m_bSetImplicitAbort = false;
 					}
+				}
+			}
+			if ( m_ui8StartDelay && --m_ui8StartDelay == 0 && m_bBufferEmpty && m_ui16BytesRemaining ) {
+				_pCpu->BeginDmcDma( false );
+			}
+			if ( m_ui8EnableDelay && --m_ui8EnableDelay == 0 ) {
+				m_bEnabled = m_bEnableWritten;
+				if ( !m_bEnabled ) {
+					ClearBytesRemaining();
 				}
 			}
 		}
@@ -87,14 +99,17 @@ namespace lsn {
 			m_bBufferEmpty = false;
 
 			m_ui16CurrentAddress = (m_ui16CurrentAddress + 1) | 0x8000;
+			m_ui64FetchCycle = _pCpu->GetCycleCount();
 
-			m_ui16BytesRemaining--;
-			if ( m_ui16BytesRemaining == 0 ) {
+			if ( m_ui16BytesRemaining && --m_ui16BytesRemaining == 0 ) {
 				if ( m_bLoop ) {
 					RestartSample();
 				} 
-				else if ( m_bIrqEnabled ) {
-					_pCpu->Irq( LSN_IS_APU_DMC );
+				else {
+					m_bEnabled = false;
+					if ( m_bIrqEnabled ) {
+						_pCpu->Irq( LSN_IS_APU_DMC );
+					}
 				}
 			}
 		}
@@ -145,24 +160,47 @@ namespace lsn {
 
 		/**
 		 * Enables or disables the DMC channel. If enabled while bytes remaining is 0, 
-		 * it restarts the sample.
+		 * it restarts the sample.  The DMA sees the change 3 or 4 cycles later (5 or 6 for a disable in the APU cycle that clocks the
+		 *	output unit), and an enable 4 APU cycles before the output unit is clocked arms a 1-cycle DMA (the implicit abort).
 		 *
 		 * \param _bEnabled True to enable the DMC, false to disable.
 		 * \param _pCpu Pointer to the CPU base class to trigger DMA if a fetch is immediately required.
 		 */
 		void									SetEnabled( bool _bEnabled, CCpuBase * _pCpu ) {
+			const bool bGet = (_pCpu->GetCycleCount() & 1) != 0;
+			m_bEnableWritten = _bEnabled;
+			m_ui8EnableDelay = bGet ? 4 : 3;
 			if ( !_bEnabled ) {
-				ClearBytesRemaining();
+				if ( bGet ? m_ui16Timer == 0 : m_bClocked ) {
+					m_ui8EnableDelay += 2;
+				}
 			}
 			else {
+				if ( m_ui16Timer == (bGet ? 8 : 7) ) {
+					m_bSetImplicitAbort = true;
+				}
 				if ( m_ui16BytesRemaining == 0 ) {
 					RestartSample();
 					if ( m_bBufferEmpty ) {
-						m_ui8StartDelay = (_pCpu->GetCycleCount() & 1) ? 4 : 3;
+						m_ui8StartDelay = m_ui8EnableDelay;
 					}
 				}
 			}
 		}
+
+		/**
+		 * Determines whether a pending DMC DMA may halt the CPU.
+		 *
+		 * \return Returns true if the DMC is enabled or a 1-cycle implicit-abort DMA is due.
+		 */
+		inline bool								DmaAllowed() const { return m_bEnabled || m_bImplicitAbort; }
+
+		/**
+		 * Determines whether bit 4 of $4015 reads as set.
+		 *
+		 * \return Returns true if bytes remain and the last $4015 write enabled the DMC.
+		 */
+		inline bool								IsActive() const { return m_ui16BytesRemaining > 0 && m_bEnableWritten; }
 
 		/**
 		 * Gets the number of bytes remaining in the current sample transfer.
@@ -230,6 +268,8 @@ namespace lsn {
         uint8_t									m_ui8ShiftRegister = 0;										/**< The shift register. */
         uint8_t									m_ui8BitsRemaining = 8;										/**< The number of bits left to decode. */
 		uint8_t									m_ui8StartDelay = 0;										/**< CPU cycles until a load DMA halts the CPU (4 after a $4015 write on a get cycle, 3 after one on a put cycle). */
+		uint8_t									m_ui8EnableDelay = 0;										/**< CPU cycles until m_bEnabled takes the value written to $4015. */
+		uint64_t								m_ui64FetchCycle = 0;										/**< The CPU cycle of the last DMA fetch.  The output unit cannot request a DMA on the cycle after a fetch. */
 
         uint16_t								m_ui16Timer = 0;											/**< The rate timer. */
         uint16_t								m_ui16TimerPeriod = 0;										/**< The timer period. */
@@ -239,6 +279,11 @@ namespace lsn {
         bool									m_bIrqAsserted = false;										/**< Tracks the state of the IRQ assertion. */
         bool									m_bBufferEmpty = true;										/**< Determines if the buffer is empty or not. */
         bool									m_bSilent = true;											/**< If true, the no samples are being processed. */
+		bool									m_bEnabled = false;											/**< The DMC enable seen by the DMA.  A pending DMC DMA halts the CPU only while this is set. */
+		bool									m_bEnableWritten = false;									/**< The DMC enable last written to $4015. */
+		bool									m_bSetImplicitAbort = false;								/**< The next output-unit reload performs a 1-cycle DMA. */
+		bool									m_bImplicitAbort = false;									/**< A 1-cycle DMA may halt the CPU on this cycle. */
+		bool									m_bClocked = false;											/**< The rate timer clocked the output unit on this cycle. */
 
 		static const uint16_t					m_ui16Periods[LSN_PM_CONSOLE_TOTAL][16];					/**< Rate periods for each console type. */
 

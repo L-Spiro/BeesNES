@@ -40,6 +40,8 @@ namespace lsn {
         m_ui8ShiftRegister = 0;
         m_ui8BitsRemaining = 8;
 		m_ui8StartDelay = 0;
+		m_ui8EnableDelay = 0;
+		m_ui64FetchCycle = 0;
 
         m_ui16Timer = 0;
         m_ui16TimerPeriod = 0;
@@ -49,6 +51,8 @@ namespace lsn {
         m_bIrqAsserted = false;
         m_bBufferEmpty = true;
         m_bSilent = true;
+		m_bEnabled = m_bEnableWritten = false;
+		m_bSetImplicitAbort = m_bImplicitAbort = m_bClocked = false;
 	}
 
 

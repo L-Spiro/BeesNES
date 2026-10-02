@@ -103,59 +103,22 @@ namespace lsn {
 	 * \param _ui8Val The value written to 0x4014.
 	 */
 	void CCpu6502::BeginOamDma( uint8_t _ui8Val ) {
-		m_pfTickFunc = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false>;
-
-		m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true>;
-		m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true>;
-
 		m_ui16DmaAddress = uint16_t( _ui8Val ) << 8;
-		m_bDmaGo = false;
+		m_ui8DmaPos = 0;
+		m_bOamDmaFirst = true;
+		m_bOamDmaHalt = m_bOamDmaAligned = false;
 		m_bRdyLow = true;		// The key to actually stopping the CPU.
-		// Leave m_pfTickFuncCopy as-is to return to it after the transfer.
 	}
 
 	/**
-	 * Begins a DMC DMA transfer.
-	 * 
+	 * Begins a DMC DMA transfer.  A request made while one is already pending is ignored.
+	 *
 	 * \param _bIsRestart true if this is fetching the next byte of an ongoing sample, false if it's the first byte of a new sample transfer.
 	 */
-	void CCpu6502::BeginDmcDma( bool _bIsRestart ) {
-		m_bDmcGo = m_bRdyLow;
-
-		//if ( !m_bDmcGo ) {
-			if ( !_bIsRestart ) { // Is start of a new sample?
-				m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-
-				m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>;
-				m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>;
-			}
-			else {
-				// Reload.
-				m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-
-				m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>;
-				m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>;
-			}
-		//}
-		//else {
-		//	// m_bRdyLow, which means OAM DMA has already halted the CPU.  Skip IDLE and go to DUMMY.
-
-		//	if ( !_bIsRestart ) { // Is start of a new sample?
-		//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>;
-
-		//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>;
-		//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false>;
-		//	}
-		//	else {
-		//		// Reload.
-		//		m_pfTickFunc = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>;
-
-		//		m_pfDmcDmaFuncs[0] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>;
-		//		m_pfDmcDmaFuncs[1] = &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true>;
-		//	}
-		//}
-		
-		m_bDmcDma = true;		// The key to actually stopping the CPU.
+	void CCpu6502::BeginDmcDma( bool /*_bIsRestart*/ ) {
+		if ( !m_bDmcDma ) {
+			m_bDmcDma = m_bDmcDmaHalt = true;
+		}
 	}
 
 	/**

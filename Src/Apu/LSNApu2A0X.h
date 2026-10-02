@@ -748,6 +748,15 @@ namespace lsn {
 		}
 
 		/**
+		 * Determines whether a pending DMC DMA may halt the CPU.
+		 *
+		 * \return Returns true if the DMC allows its DMA to halt the CPU.
+		 */
+		inline bool										DmcDmaAllowed() const {
+			return m_dDmc.DmaAllowed();
+		}
+
+		/**
 		 * The add-metadata function.  Fetches the current registers from a ring buffer (because the associated samples may be out-of-date).
 		 * 
 		 * \param _pvParm A pointer to an object of this class.
@@ -1660,7 +1669,7 @@ namespace lsn {
 				_ui8Ret |= 0b1000;
 			}
 
-			if ( paApu->m_dDmc.GetBytesRemaining() > 0 ) {
+			if ( paApu->m_dDmc.IsActive() ) {
 				_ui8Ret |= 0b00010000;
 			}
 

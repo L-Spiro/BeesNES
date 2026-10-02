@@ -31,15 +31,14 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( _pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma ) { _pcCpu->BackupState(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( (_pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma) && _pcCpu->DmaWantsCycle() ) { _pcCpu->BackupState(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
-#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			RESULT = _pcCpu->m_pbBus->Read( uint16_t( ADDR ) );																						\
-															if LSN_UNLIKELY( _pcCpu->m_fsStateBackup.bCopiedState/*_pcCpu->m_bRdyLow*/ ) { _pcCpu->m_ui16DmaCpuAddress = uint16_t( ADDR );			\
-																_pcCpu->m_bDmaGo = _pcCpu->m_bRdyLow;																								\
-																_pcCpu->m_bDmcGo = _pcCpu->m_bDmcDma;																								\
-																_pcCpu->RestoreState();																														\
-																/*static int64_t Cnt = 0; if ( ++Cnt >= 1000 ) { __debugbreak(); }*/																\
-																return; }
+#define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			if LSN_UNLIKELY( _pcCpu->m_fsStateBackup.bCopiedState ) { _pcCpu->m_ui16DmaCpuAddress = uint16_t( ADDR );								\
+																_pcCpu->RestoreState();																										\
+																_pcCpu->DmaCycle();																											\
+																_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>;																			\
+																return; }																													\
+															RESULT = _pcCpu->m_pbBus->Read( uint16_t( ADDR ) )
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				_pcCpu->m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 
@@ -116,14 +115,6 @@ namespace lsn {
 			LSN_V_IRQ_BRK									= 0xFFFE,																		/**< The address of execution during an IRQ or BRK interrupt. */
 		};
 
-		/** DMA states. */
-		enum LSN_DMA_STATES {
-			LSN_DS_IDLE,																													/**< Waiting for a read cycle. */
-			LSN_DS_DUMMY,																													/**< DMC dummy cycle. */
-			LSN_DS_READ_WRITE,																												/**< Reading and writing. */
-			//LSN_DS_END,																														/**< Emulates repeating of the last-attempted read cycle by issuing a dummy Phi1 and then reading the DMA CPU address during Phi2, then sets the tick pointers back to normal operation. */
-		};
-
 
 		// == Types.
 		/** The processor registers. */
@@ -180,7 +171,6 @@ namespace lsn {
 			m_ui64PortReadCycle[0] = m_ui64PortReadCycle[1] = ~0ULL;
 			m_ui8PortReadValue[0] = m_ui8PortReadValue[1] = 0;
 
-			m_ui16DmaCounter = 0;
 			m_ui16DmaAddress = 0;
 
 			m_ui8DmaPos = m_ui8DmaValue = 0;
@@ -207,6 +197,8 @@ namespace lsn {
 			m_fsState.ui8SModify = 0;
 			m_fsState.ui16OpCode = 0;
 			m_fsStateBackup.bCopiedState = false;
+			m_bRdyLow = m_bDmcDma = false;
+			m_bOamDmaFirst = m_bOamDmaHalt = m_bOamDmaAligned = m_bDmcDmaHalt = false;
 			
 #ifdef LSN_CPU_VERIFY
 			m_fsState.bAllowWritingToPc = true;
@@ -373,8 +365,6 @@ namespace lsn {
 		// == Members.
 		PfTicks												m_pfTickFunc = nullptr;																/**< The current tick function (called by Tick()). */
 		PfTicks												m_pfTickFuncCopy = nullptr;															/**< A copy of the current tick, used to restore the intended original tick when control flow is changed by DMA transfers. */
-		PfTicks												m_pfOamDmaFuncs[2]{};																/**< OAM DMA function backups when DMC DMA is detected. */
-		PfTicks												m_pfDmcDmaFuncs[2]{};																/**< DMC DMA function backups. */
 		CInputPoller *										m_pipPoller = nullptr;																/**< The input poller. */
 		CMapperBase *										m_pmbMapper = nullptr;																/**< The mapper, which gets ticked on each CPU cycle. */
 		CSystemBase *										m_psbSystem = nullptr;																/**< Pointer to the system.  Allows access to the APU
@@ -384,7 +374,6 @@ namespace lsn {
 		LSN_FULL_STATE										m_fsState;																			/**< Everything a standard instruction-cycle function can modify.  Backed up at the start of the first DMA read cycle and restored at the end after the read address for that cycle has been calculated. */
 		LSN_FULL_STATE										m_fsStateBackup;																	/**< The backup of the state for the cycle that first gets interrupted by DMA and is then executed at the end of DMA. */
 
-		uint16_t											m_ui16DmaCounter = 0;																/**< DMA counter. */
 		uint16_t											m_ui16DmaAddress = 0;																/**< The DMA address from which to start copying. */
 		uint16_t											m_ui16DmaCpuAddress = 0;															/**< The last CPU read address when DMA starts. */
 
@@ -409,12 +398,11 @@ namespace lsn {
 		bool												m_bBrkIsReset = true;																/**< Shadows m_bIsReset, but m_bIsReset gets unset in the middle of BRK, while this lasts the whole BRK. */
 		
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
-		bool												m_bDmcDma = false;																	/**< Halts the CPU for DMC DMA. */
-		bool												m_bDmaGo = false;																	/**< Signals DMA to begin.  Set on the next read cycle after RDY goes low. */
-		bool												m_bDmcGo = false;																	/**> Signals DMC DMA to begin.  Set on the next read cycle after m_bDmcDma is set to true. */
-		bool												m_bDmaRead = false;																	/**< Is DMA on a read cycle? */
-		bool												m_bDmcRead = false;																	/**< Is DMC on a read cycle? */
-		bool												m_bDmcBusAccess = false;															/**< Did the DMC access the bus on this cycle? */
+		bool												m_bDmcDma = false;																	/**< A DMC DMA is pending.  It halts the CPU only while the DMC allows it. */
+		bool												m_bDmcDmaHalt = false;																/**< The DMC DMA is still in its halt cycles, which last through the next get cycle. */
+		bool												m_bOamDmaFirst = false;																/**< The next DMA cycle is the first cycle of the OAM DMA. */
+		bool												m_bOamDmaHalt = false;																/**< The OAM DMA began on a get cycle, which is spent as a halt cycle. */
+		bool												m_bOamDmaAligned = false;															/**< The OAM DMA has read a byte to write on the next put cycle. */
 		
 		static LSN_INSTR									m_iInstructionSet[256];																/**< The instruction set. */
 		
@@ -485,256 +473,98 @@ namespace lsn {
 		static inline void									Tick_InstructionCycleStd( CCpu6502 * _pcCpu );
 
 		/**
-		 * Converts an OAM DMA function pointer to an index.
-		 * 
-		 * \param _pfFunc The function pointer to convert.
-		 * \return Returns an index representing the OAM DMA function pointer.
+		 * Determines whether a DMA takes the current cycle.  OAM DMA always does, and DMC DMA does while the DMC allows it.
+		 *
+		 * \return Returns true if the CPU is halted for DMA on this cycle.
 		 **/
-		inline uint8_t										OamDmaFuncToIdx( PfCycle _pfFunc );
-
-		/**
-		 * Converts a DMC DMA function pointer to an index.
-		 * 
-		 * \param _pfFunc The function pointer to convert.
-		 * \return Returns an index representing the DMC DMA function pointer.
-		 **/
-		inline uint8_t										DmcDmaFuncToIdx( PfCycle _pfFunc );
-
-		/**
-		 * Converts an index to an OAM DMA function pointer.
-		 * 
-		 * \param _u8Idx The index to convert.
-		 * \return Returns the associated function pointer or nullptr.
-		 **/
-		inline PfCycle										IdxToOamFunc( uint8_t _u8Idx );
-
-		/**
-		 * Converts an index to a DMC DMA function pointer.
-		 * 
-		 * \param _u8Idx The index to convert.
-		 * \return Returns the associated function pointer or nullptr.
-		 **/
-		inline PfCycle										IdxToDmcFunc( uint8_t _u8Idx );
-
-		/** 
-		 * The OAM DMA cycles.
-		 * 
-		 * \param _pcCpu The pointer to the CPU object.
-		 */
-		template <unsigned _uState, bool _bPhi2, bool _bCalledFromDmc = false>
-		static void											Tick_OamDma( CCpu6502 * _pcCpu ) {
-#define LSN_GET												1
-#define LSN_PUT												(LSN_GET ^ 1)
-#define LSN_SET_PTRS( STATE )															\
-	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_OamDma<STATE, !_bPhi2, _bCalledFromDmc>;				\
-	_pcCpu->m_pfOamDmaFuncs[false] = &CCpu6502::Tick_OamDma<STATE, false, _bCalledFromDmc>;		\
-	_pcCpu->m_pfOamDmaFuncs[true] = &CCpu6502::Tick_OamDma<STATE, true, _bCalledFromDmc>
-			// _uState == LSN_DMA_STATES
-			//
-			// Triggered by Phi2 read, so can never happen between Phi1 nd Phi2.  Always begins on a Phi1.
-			// Idle function doesn't need to track Phi1 or Phi2. m_bDmaGo is only set on Phi2, so the Phi can be determined then.
-			//
-			// (m_ui64CycleCount & 0x1) == LSN_GET is a "get" cycle.
-			// (m_ui64CycleCount & 0x1) == LSN_PUT is a "put" cycle.
-			//	When neither a get nor a put can happen, dummy read the address that allowed halting of the CPU for DMA.
-			if constexpr ( !_bCalledFromDmc ) {
-				if LSN_UNLIKELY( _pcCpu->m_pfDmcDmaFuncs[0] ) {
-					_pcCpu->m_pfOamDmaFuncs[0] = &CCpu6502::Tick_OamDma<_uState, false, true>;
-					_pcCpu->m_pfOamDmaFuncs[1] = &CCpu6502::Tick_OamDma<_uState, true, true>;
-
-					// Call the DMC DMA function.
-					(_pcCpu->m_pfDmcDmaFuncs[_bPhi2])( _pcCpu );
-					return;
-				}
-			}
-
-			if constexpr ( _uState == LSN_DS_IDLE ) {
-				(_pcCpu->m_pfTickFuncCopy)( _pcCpu );
-
-				if ( _pcCpu->m_bDmaGo ) {
-					// _bPhi2 will always be true here since the CPU only performs reads on Phi2.
-					// Although we move to the LSN_DS_READ_WRITE with a hard-coded Phi1, proper operations can be ensured via debugging.
-					// The CPU is now stalled.  Begin the transfer.
-					_pcCpu->m_ui16DmaCounter = 256;
-					_pcCpu->m_ui8DmaPos = 0;
-					_pcCpu->m_bDmaRead = true;
-
-					LSN_SET_PTRS( LSN_DS_READ_WRITE );
-
-					// This is the halt cycle.
-				}
-				else {
-					LSN_SET_PTRS( LSN_DS_IDLE );
-				}
-			}
-			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
-				// If m_bDmcBusAccess, that means this is being called from the DMC DMA routine, and the DMC DMA routine performed a memory access,
-				//	consuming the single available read/write for this cycle.  We have to skip our read/write, re-align, and try again.
-				bool bAccessBus;
-				if constexpr ( !_bPhi2 ) {
-					bAccessBus = false;
-				}
-				else {
-					bAccessBus = !_pcCpu->m_bDmcBusAccess;
-				}
-				if LSN_LIKELY( bAccessBus ) {
-					if ( _pcCpu->m_bDmaRead ) {
-						if ( (_pcCpu->m_ui64CycleCount & 0x1) == LSN_GET ) {
-							// Read (get).
-							_pcCpu->m_ui8DmaValue = _pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaAddress + _pcCpu->m_ui8DmaPos ) );
-							_pcCpu->m_bDmaRead = false;
-						}
-						else {
-							// Have to wait for alignment.  Perform the dummy read.
-							_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
-						}
-						LSN_SET_PTRS( LSN_DS_READ_WRITE );
-					}
-					else {
-						if ( (_pcCpu->m_ui64CycleCount & 0x1) == LSN_PUT ) {
-							// Write (put).
-							_pcCpu->m_pbBus->Write( LSN_PR_OAMDATA, _pcCpu->m_ui8DmaValue );
-							if ( --_pcCpu->m_ui16DmaCounter == 0 ) {
-								// Done with the copy.  Move to the end state, which will "virtually" replay the halting cycle.
-								_pcCpu->m_bRdyLow = false;
-								_pcCpu->m_bDmaGo = false;
-								if ( _pcCpu->m_pfDmcDmaFuncs[0] ) {		// Still DMC DMA going?
-									_pcCpu->m_pfTickFunc = _pcCpu->m_pfDmcDmaFuncs[!_bPhi2];
-								}
-								else {
-									_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
-								}
-
-								_pcCpu->m_pfOamDmaFuncs[0] = nullptr;
-								_pcCpu->m_pfOamDmaFuncs[1] = nullptr;
-							}
-							else {
-								++_pcCpu->m_ui8DmaPos;
-								_pcCpu->m_bDmaRead = true;
-								LSN_SET_PTRS( LSN_DS_READ_WRITE );
-							}
-						}
-						else {
-							// Have to wait for alignment.  Perform the dummy read.
-							_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
-							LSN_SET_PTRS( LSN_DS_READ_WRITE );
-						}
-					}
-				}
-				else {
-					LSN_SET_PTRS( LSN_DS_READ_WRITE );
-				}
-			}
-
-#undef LSN_SET_PTRS
-#undef LSN_PUT
-#undef LSN_GET
+		inline bool											DmaWantsCycle() const {
+			return m_bRdyLow || (m_bDmcDma && m_psbSystem->DmcDmaAllowed());
 		}
 
 		/**
-		 * The DMC DMA cycles.
-		 * 
+		 * The DMA cycles.  The CPU stays halted on its read cycle until no DMA wants the bus, then that read cycle is executed again.
+		 *
+		 * \tparam _bPhi2 True for the second half of the cycle, where the DMA accesses the bus.
 		 * \param _pcCpu The pointer to the CPU object.
 		 */
-		template <unsigned _uState, bool _bPhi2, bool _bIsReload>
-		static void											Tick_DmcDma( CCpu6502 * _pcCpu ) {
-#define LSN_GET												1
-#define LSN_PUT												(LSN_GET ^ 1)
-#define LSN_SET_PTRS( STATE )															\
-	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_DmcDma<STATE, !_bPhi2, _bIsReload>;					\
-	_pcCpu->m_pfDmcDmaFuncs[false] = &CCpu6502::Tick_DmcDma<STATE, false, _bIsReload>;			\
-	_pcCpu->m_pfDmcDmaFuncs[true] = &CCpu6502::Tick_DmcDma<STATE, true, _bIsReload>
-			
-			_pcCpu->m_bDmcBusAccess = false;
-			if constexpr ( _uState == LSN_DS_IDLE ) {
-				if ( _pcCpu->m_pfOamDmaFuncs[0] ) {
-					(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
+		template <bool _bPhi2>
+		static void											Tick_Dma( CCpu6502 * _pcCpu ) {
+			if constexpr ( _bPhi2 ) {
+				_pcCpu->DmaCycle();
+				_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>;
+			}
+			else {
+				if ( _pcCpu->DmaWantsCycle() ) {
+					_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<true>;
 				}
 				else {
-					(_pcCpu->m_pfTickFuncCopy)( _pcCpu );
-				}
-				if ( _pcCpu->m_bDmcGo ) {
-					if constexpr ( _bPhi2 ) {
-						LSN_SET_PTRS( LSN_DS_DUMMY );
-					}
-					else {
-						LSN_SET_PTRS( LSN_DS_IDLE );
-					}
-				}
-				else {
-					LSN_SET_PTRS( LSN_DS_IDLE );
+					_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
+					_pcCpu->m_pfTickFunc( _pcCpu );
 				}
 			}
-			if constexpr ( _uState == LSN_DS_DUMMY ) {
-				if constexpr ( _bPhi2 ) {
-					_pcCpu->m_pbBus->Read( uint16_t( _pcCpu->m_ui16DmaCpuAddress ) );
-					if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
-						_pcCpu->m_bDmcBusAccess = true;
-						(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
-						_pcCpu->m_bDmcBusAccess = false;
-					}
-				}
-				else if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
-					(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
-				}
+		}
 
-				if constexpr ( _bPhi2 ) {
-					// Finished the cycle.  Move to the copy state.
-					LSN_SET_PTRS( LSN_DS_READ_WRITE );
-
-					// We are trying to read.
-					_pcCpu->m_bDmcRead = true;
+		/**
+		 * Performs the bus access of a DMA cycle.  The DMC DMA gets get cycles before the OAM DMA, the OAM DMA writes on put cycles, and every other
+		 *	DMA cycle (halt, dummy, and alignment cycles) repeats the halted CPU read.  The DMC DMA's get costs the OAM DMA its alignment.  A DMC DMA
+		 *	the DMC does not currently allow stays pending, even while an OAM DMA holds the CPU.
+		 **/
+		inline void											DmaCycle() {
+			const bool bGet = (m_ui64CycleCount & 1) != 0;
+			const bool bDmc = m_bDmcDma && m_psbSystem->DmcDmaAllowed();
+			if ( m_bOamDmaFirst ) {
+				m_bOamDmaFirst = false;
+				m_bOamDmaHalt = bGet;
+			}
+			if ( bGet ) {
+				if ( bDmc && !m_bDmcDmaHalt ) {
+					uint8_t ui8Val = DmaRead( m_psbSystem->DmcDmaAddress(), true );
+					m_bDmcDma = false;
+					m_bOamDmaAligned = false;
+					m_psbSystem->ReceiveDmcSample( ui8Val );
+				}
+				else if ( m_bRdyLow && !m_bOamDmaHalt ) {
+					m_ui8DmaValue = DmaRead( uint16_t( m_ui16DmaAddress | m_ui8DmaPos ), false );
+					m_bOamDmaAligned = true;
 				}
 				else {
-					LSN_SET_PTRS( LSN_DS_DUMMY );
+					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
+				if ( bDmc ) { m_bDmcDmaHalt = false; }
+				m_bOamDmaHalt = false;
 			}
-			if constexpr ( _uState == LSN_DS_READ_WRITE ) {
-				if constexpr ( _bPhi2 ) {
-					if ( _pcCpu->m_bDmcRead && (_pcCpu->m_ui64CycleCount & 0x1) == LSN_GET ) {
-						_pcCpu->m_bDmcBusAccess = true;
-						uint16_t ui16DmcAddr = _pcCpu->m_psbSystem->DmcDmaAddress();
-						auto ui8DmcValue = _pcCpu->m_pbBus->Read( ui16DmcAddr );
-						
-						_pcCpu->m_pfDmcDmaFuncs[0] = nullptr;
-						_pcCpu->m_pfDmcDmaFuncs[1] = nullptr;
-
-						_pcCpu->m_bDmcGo = false;
-						_pcCpu->m_bDmcDma = false;
-						_pcCpu->m_bDmcRead = false;
-
-						if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
-							(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );	// It will set the next function pointer.
-						}
-						else {
-							_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
-						}
-
-						_pcCpu->m_psbSystem->ReceiveDmcSample( ui8DmcValue );
-						_pcCpu->m_bDmcBusAccess = false;
+			else {
+				if ( m_bRdyLow && !m_bOamDmaHalt && m_bOamDmaAligned ) {
+					m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
+					if ( ++m_ui8DmaPos == 0 ) {
+						m_bRdyLow = m_bOamDmaAligned = false;
 					}
-					else {
-						// Not a GET cycle.
-						if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
-							(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );	// It will set the next function pointer.
-						}
-						LSN_SET_PTRS( LSN_DS_READ_WRITE );
-					}
-
-					
 				}
 				else {
-					// Nothing for us to do.
-					if ( _pcCpu->m_pfOamDmaFuncs[_bPhi2] ) {
-						(_pcCpu->m_pfOamDmaFuncs[_bPhi2])( _pcCpu );
-					}
-					LSN_SET_PTRS( LSN_DS_READ_WRITE );
+					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
 			}
+		}
 
-#undef LSN_SET_PTRS
-#undef LSN_PUT
-#undef LSN_GET
+		/**
+		 * Performs a DMA read.  The 2A03's registers respond only while the halted CPU's address is in $4000-$401F, in which case the register
+		 *	selected by the low 5 bits of the DMA address is read alongside it (a bus conflict).  Otherwise DMA reads of $4000-$401F see open bus.
+		 *
+		 * \param _ui16Addr The address read by the DMA.
+		 * \param _bDmc If true, the read is for the DMC, which keeps the byte from memory.
+		 * \return Returns the value received by the DMA.
+		 **/
+		inline uint8_t										DmaRead( uint16_t _ui16Addr, bool _bDmc ) {
+			const bool bRegs = (m_ui16DmaCpuAddress & 0xFFE0) == 0x4000;
+			if ( (_ui16Addr & 0xFFE0) == 0x4000 ) {
+				return bRegs ? m_pbBus->Read( _ui16Addr ) : m_pbBus->GetFloat();
+			}
+			uint8_t ui8Ret = m_pbBus->Read( _ui16Addr );
+			if ( bRegs ) {
+				uint8_t ui8Reg = m_pbBus->Read( uint16_t( 0x4000 | (_ui16Addr & 0x1F) ) );
+				if ( !_bDmc ) { ui8Ret = ui8Reg; }
+			}
+			return ui8Ret;
 		}
 
 		/**
@@ -1727,150 +1557,6 @@ namespace lsn {
 	inline void CCpu6502::Tick_InstructionCycleStd( CCpu6502 * _pcCpu ) {
 		//(*CCpu6502::m_iInstructionSet[(*_pcCpu).m_fsState.ui16OpCode].pfHandler[(*_pcCpu).m_fsState.ui8FuncIndex])( _pcCpu );
 		(*(*_pcCpu).m_fsState.pfCurInstruction[(*_pcCpu).m_fsState.ui8FuncIndex])( _pcCpu );
-	}
-
-	/**
-	 * Converts an OAM DMA function pointer to an index.
-	 * 
-	 * \param _pfFunc The function pointer to convert.
-	 * \return Returns an index representing the OAM DMA function pointer.
-	 **/
-	inline uint8_t CCpu6502::OamDmaFuncToIdx( PfCycle _pfFunc ) {
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, false> ) { return 0; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true> ) { return 1; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, false> ) { return 2; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true> ) { return 3; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, false> ) { return 4; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true> ) { return 5; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, false> ) { return 6; }
-		if ( _pfFunc == &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true> ) { return 7; }
-		return uint8_t( -1 );
-
-		// Generated via:
-		//OamStates = { "LSN_DS_IDLE", /*"LSN_DS_DUMMY", */"LSN_DS_READ_WRITE", };
-		//FalseTrue = { "false", "true" };
-		//PrintFunc = "\tinline uint8_t CCpu6502::OamDmaFuncToIdx( PfCycle _pfFunc ) {\r\n";
-		//Idx = 0;
-		//for ( S = 0; S < OamStates.size(); ++S ) {
-		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
-		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
-		//			PrintFunc += "\t\tif ( _pfFunc == &CCpu6502::Tick_OamDma<{}, {}, {}> ) {{ return {}; }}\r\n".format(
-		//				OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc], Idx++ );
-		//		}
-		//	}
-		//}
-		//PrintFunc += "\t\treturn uint8_t( -1 );\r\n";
-		//PrintFunc += "\t}";
-	}
-
-	/**
-	 * Converts a DMC DMA function pointer to an index.
-	 * 
-	 * \param _pfFunc The function pointer to convert.
-	 * \return Returns an index representing the DMC DMA function pointer.
-	 **/
-	inline uint8_t CCpu6502::DmcDmaFuncToIdx( PfCycle _pfFunc ) {
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false> ) { return 0; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true> ) { return 1; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false> ) { return 2; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true> ) { return 3; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false> ) { return 4; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true> ) { return 5; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false> ) { return 6; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true> ) { return 7; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, false> ) { return 8; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, true> ) { return 9; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, false> ) { return 10; }
-		if ( _pfFunc == &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, true> ) { return 11; }
-		return uint8_t( -1 );
-
-		// Generated via:
-		//OamStates = { "LSN_DS_IDLE", "LSN_DS_DUMMY", "LSN_DS_READ_WRITE", };
-		//FalseTrue = { "false", "true" };
-		//PrintFunc = "\tinline uint8_t CCpu6502::DmcDmaFuncToIdx( PfCycle _pfFunc ) {\r\n";
-		//Idx = 0;
-		//for ( S = 0; S < OamStates.size(); ++S ) {
-		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
-		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
-		//			PrintFunc += "\t\tif ( _pfFunc == &CCpu6502::Tick_DmcDma<{}, {}, {}> ) {{ return {}; }}\r\n".format(
-		//				OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc], Idx++ );
-		//		}
-		//	}
-		//}
-		//PrintFunc += "\t\treturn uint8_t( -1 );\r\n";
-		//PrintFunc += "\t}";
-	}
-
-	/**
-	 * Converts an index to an OAM DMA function pointer.
-	 * 
-	 * \param _u8Idx The index to convert.
-	 * \return Returns the associated function pointer or nullptr.
-	 **/
-	inline CCpu6502::PfCycle CCpu6502::IdxToOamFunc( uint8_t _u8Idx ) {
-		if ( 0 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, false>; }
-		if ( 1 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, false, true>; }
-		if ( 2 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, false>; }
-		if ( 3 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_IDLE, true, true>; }
-		if ( 4 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, false>; }
-		if ( 5 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, false, true>; }
-		if ( 6 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, false>; }
-		if ( 7 == _u8Idx ) { return &CCpu6502::Tick_OamDma<LSN_DS_READ_WRITE, true, true>; }
-		return nullptr;
-
-		// Generated via:
-		//OamStates = { "LSN_DS_IDLE", /*"LSN_DS_DUMMY", */"LSN_DS_READ_WRITE", };
-		//FalseTrue = { "false", "true" };
-		//PrintFunc = "\tinline CCpu6502::PfCycle CCpu6502::IdxToOamFunc( uint8_t _u8Idx ) {\r\n";
-		//Idx = 0;
-		//for ( S = 0; S < OamStates.size(); ++S ) {
-		//	for ( Phi2 = 0; Phi2 < FalseTrue.size(); ++Phi2 ) {
-		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
-		//			PrintFunc += "\t\tif ( {} == _u8Idx ) {{ return &CCpu6502::Tick_OamDma<{}, {}, {}>; }}\r\n".format(
-		//				Idx++, OamStates[S], FalseTrue[Phi2], FalseTrue[FromDmc] );
-		//		}
-		//	}
-		//}
-		//PrintFunc += "\t\treturn nullptr;\r\n";
-		//PrintFunc += "\t}";
-	}
-
-	/**
-	 * Converts an index to a DMC DMA function pointer.
-	 * 
-	 * \param _u8Idx The index to convert.
-	 * \return Returns the associated function pointer or nullptr.
-	 **/
-	inline CCpu6502::PfCycle CCpu6502::IdxToDmcFunc( uint8_t _u8Idx ) {
-		if ( 0 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, false>; }
-		if ( 1 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, false, true>; }
-		if ( 2 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, false>; }
-		if ( 3 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_IDLE, true, true>; }
-		if ( 4 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, false>; }
-		if ( 5 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, false, true>; }
-		if ( 6 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, false>; }
-		if ( 7 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_DUMMY, true, true>; }
-		if ( 8 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, false>; }
-		if ( 9 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, false, true>; }
-		if ( 10 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, false>; }
-		if ( 11 == _u8Idx ) { return &CCpu6502::Tick_DmcDma<LSN_DS_READ_WRITE, true, true>; }
-		return nullptr;
-
-		// Generated via:
-		//OamStates = { "LSN_DS_IDLE", "LSN_DS_DUMMY", "LSN_DS_READ_WRITE", };
-		//FalseTrue = { "false", "true" };
-		//PrintFunc = "\tinline CCpu6502::PfCycle CCpu6502::IdxToDmcFunc( uint8_t _u8Idx ) {\r\n";
-		//Idx = 0;
-		//for ( S in OamStates ) {
-		//	for ( Phi2 : FalseTrue ) {
-		//		for ( FromDmc = 0; FromDmc < FalseTrue.size(); ++FromDmc ) {
-		//			PrintFunc += "\t\tif ( {} == _u8Idx ) {{ return &CCpu6502::Tick_DmcDma<{}, {}, {}>; }}\r\n".format(
-		//				Idx++, S, Phi2, FalseTrue[FromDmc] );
-		//		}
-		//	}
-		//}
-		//PrintFunc += "\t\treturn nullptr;\r\n";
-		//PrintFunc += "\t}";
 	}
 
 	/**

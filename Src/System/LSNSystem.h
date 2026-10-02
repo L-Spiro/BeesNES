@@ -852,6 +852,13 @@ namespace lsn {
 		virtual uint16_t								DmcDmaAddress() const override { return m_aApu.GetDmcDmaAddress(); }
 
 		/**
+		 * Determines whether a pending DMC DMA may halt the CPU.
+		 *
+		 * \return Returns true if the DMC allows its DMA to halt the CPU.
+		 **/
+		virtual bool									DmcDmaAllowed() const override { return m_aApu.DmcDmaAllowed(); }
+
+		/**
 		 * Hands the DMC DMA value off to the APU.
 		 * 
 		 * \param _ui8Value The value to hand off to the APU.
