@@ -10,6 +10,10 @@ namespace lsn {
 	 * \return Returns the desired read value.
 	 **/
 	uint8_t CStdController::Read() {
+		if ( m_bStrobe ) {
+			Write( 0b00000001 );	// The held strobe keeps reloading the buttons.
+			return (m_ui8Status & 0x80) != 0;
+		}
 		uint8_t ui8Ret = ((m_ui8Status & 0x80) != 0);	// Upper 3 bits will be forced to open bus.
 		m_ui8Status = uint8_t( (m_ui8Status << 1) | 1 );	// Reads after the 8th return 1.
 		return ui8Ret;
@@ -21,8 +25,9 @@ namespace lsn {
 	 * \param _ui8Val The value being written.
 	 **/
 	void CStdController::Write( uint8_t _ui8Val ) {
+		m_bStrobe = (_ui8Val & 0b00000001) != 0;
 		// Poll for all 8 buttons.
-		if ( _ui8Val & 0b00000001 ) {
+		if ( m_bStrobe ) {
 			m_ui8Status = 0;
 
 			{
@@ -93,6 +98,7 @@ namespace lsn {
 	 **/
 	void CStdController::Reset() {
 		m_ui8Status = 0;
+		m_bStrobe = false;
 		std::memset( m_ui8PrevStatus, 0, sizeof( m_ui8PrevStatus ) );
 
 		for ( size_t B = 0; B < LSN_B_TOTAL; ++B ) {

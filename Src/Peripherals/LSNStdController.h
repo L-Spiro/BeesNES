@@ -135,6 +135,8 @@ namespace lsn {
 		uint8_t											m_ui8Status = 0;
 		/** Disallow left/right and up/down being pressed at the same time. */
 		bool											m_bDisallowInvalidDpad = true;
+		/** The strobe (bit 0 of the last $4016 write).  While it is set, the buttons keep reloading and every read returns A. */
+		bool											m_bStrobe = false;
 
 
 		// == Functions.

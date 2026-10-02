@@ -170,6 +170,8 @@ namespace lsn {
 			m_fsState.ui8Operand = 0;
 			m_ui64PortReadCycle[0] = m_ui64PortReadCycle[1] = ~0ULL;
 			m_ui8PortReadValue[0] = m_ui8PortReadValue[1] = 0;
+			m_ui8OutLatch = 0;
+			m_bOutPending = false;
 
 			m_ui16DmaAddress = 0;
 
@@ -382,6 +384,7 @@ namespace lsn {
 
 		uint64_t											m_ui64PortReadCycle[2] = { ~0ULL, ~0ULL };											/**< The CPU cycle of the last read of $4016/$4017. */
 		uint8_t												m_ui8PortReadValue[2] = {};															/**< The value returned by the last read of $4016/$4017. */
+		uint8_t												m_ui8OutLatch = 0;																	/**< The last value written to $4016. */
 
 		uint8_t												m_ui8RdyOffCnt = 0;																	/**< Keeps track of on which cycle the RDY flag goes low, relative to the start of an instruction. */
 		
@@ -399,6 +402,7 @@ namespace lsn {
 		
 		bool												m_bRdyLow = false;																	/**< When RDY is pulled low, reads inside opcodes abort the CPU cycle. */
 		bool												m_bDmcDma = false;																	/**< A DMC DMA is pending.  It halts the CPU only while the DMC allows it. */
+		bool												m_bOutPending = false;																/**< m_ui8OutLatch has not reached the controller ports yet. */
 		bool												m_bDmcDmaHalt = false;																/**< The DMC DMA is still in its halt cycles, which last through the next get cycle. */
 		bool												m_bOamDmaFirst = false;																/**< The next DMA cycle is the first cycle of the OAM DMA. */
 		bool												m_bOamDmaHalt = false;																/**< The OAM DMA began on a get cycle, which is spent as a halt cycle. */
@@ -627,7 +631,8 @@ namespace lsn {
 		}
 
 		/**
-		 * Writing to 0x4016 puts bits on the controller-1 port.
+		 * Writing to 0x4016 puts bits on the controller-1 port.  The port's output pins only take the written value as the APU leaves a get cycle,
+		 *	so the controllers see it at the end of the next odd cycle, and a value overwritten before then never reaches them.
 		 *
 		 * \param _pvParm0 A data value assigned to this address.
 		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
@@ -636,9 +641,8 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL							Write4016( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CCpu6502 * pcThis = reinterpret_cast<CCpu6502 *>(_pvParm0);
-			if LSN_LIKELY( pcThis->m_pipPoller ) {
-				pcThis->m_pipPoller->PollPort( _ui8Val );
-			}
+			pcThis->m_ui8OutLatch = _ui8Val;
+			pcThis->m_bOutPending = true;
 		}
 
 		/**

@@ -62,6 +62,13 @@ namespace lsn {
 
 		m_pfTickFunc( this );
 
+		if LSN_UNLIKELY( m_bOutPending && (m_ui64CycleCount & 1) ) {
+			m_bOutPending = false;
+			if LSN_LIKELY( m_pipPoller ) {
+				m_pipPoller->PollPort( m_ui8OutLatch );
+			}
+		}
+
 		m_bDetectedNmi |= (!m_bLastNmiStatusLine && m_bNmiStatusLine);
 		m_bLastNmiStatusLine = m_bNmiStatusLine;
 

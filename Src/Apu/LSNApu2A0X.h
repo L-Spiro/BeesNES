@@ -60,16 +60,15 @@
 															if ( m_bModeSwitch ) {																							\
 																m_bModeSwitch = false;																						\
 																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {													\
-																	 m_ui64StepCycles = _tM1S4_1 - 2;																		\
-																	Tick_Mode1_Step4<_bEven, true>();																		\
-																	m_pftTick = &CApu2A0X::Tick_Mode1_Step0<!_bEven, true>;													\
-																	m_ui64StepCycles = 1;																					\
+																	m_ui64StepCycles = 0;																					\
+																	Tick_Mode1_Step0<_bEven, true>();																		\
 																}																											\
 																else {																										\
 																	m_ui64StepCycles = 0;																					\
 																	Tick_Mode0_Step0<_bEven, false>();																		\
 																}																											\
 																if ( (m_dvRegisters3_4017.Value() & 0b01000000) != 0 ) {													\
+																	m_bFrameIrqFlag = false;																				\
 																	m_piIrqTarget->ClearIrq( LSN_IS_APU );																	\
 																}																											\
 																return;																										\
@@ -507,6 +506,7 @@ namespace lsn {
 			m_ui64StepCycles = 0;
 			m_ui64RawExportStartCycle = 0;
 			m_ui64FrameIrqClearCycle = 0;
+			m_bFrameIrqFlag = false;
 			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
@@ -1017,6 +1017,8 @@ namespace lsn {
 														m_vRegBuffersRaw;
 		/** Set to true upon a write to $4017. */
 		bool											m_bModeSwitch;
+		/** The frame interrupt flag (bit 6 of $4015).  It is set for two cycles even while frame IRQs are inhibited, but then it does not raise an IRQ. */
+		bool											m_bFrameIrqFlag = false;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled = true;
 		/** Register was written this cycle. */
@@ -1051,6 +1053,26 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Clocks everything the frame counter drives: the envelopes, the triangle's linear counter, the length counters, and the sweeps.  Writing $4017
+		 *	with bit 7 set does this on the write itself, ahead of the 3- or 4-cycle delay before the sequence restarts.
+		 **/
+		void											ClockFrameUnits() {
+			m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
+
+			m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+			m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+			m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+			m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
+
+			m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+			m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+			m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+
+			m_pPulse1.TickSweeper<1>();
+			m_pPulse2.TickSweeper<0>();
+		}
+
 		/** Mode-0 step-0 tick function. */
 		template <bool _bEven, bool _bMode>
 		void											Tick_Mode0_Step0() {
@@ -1124,8 +1146,14 @@ namespace lsn {
 		void											Tick_Mode0_Step3() {
 			m_i64TicksToLenCntr = static_cast<int64_t>((_tM0S3_2 - 1) - m_ui64StepCycles - 1);
 			LSN_APU_UPDATE;
-			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) && (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
-				m_piIrqTarget->Irq( LSN_IS_APU );
+			if ( m_ui64StepCycles >= (_tM0S3_2 - 3) ) {
+				if ( (m_dvRegisters3_4017.Value() & 0b01000000) == 0 ) {
+					m_bFrameIrqFlag = true;
+					m_piIrqTarget->Irq( LSN_IS_APU );
+				}
+				else {
+					m_bFrameIrqFlag = m_ui64StepCycles < (_tM0S3_2 - 1);
+				}
 			}
 
 			if ( (m_ui64StepCycles + 1) == (_tM0S3_2 - 1) ) {
@@ -1674,9 +1702,10 @@ namespace lsn {
 			}
 
 			uint64_t ui64Cycle = paApu->m_pcbCpu->GetCycleCount();
-			if ( paApu->m_piIrqTarget->GetIrqStatus( LSN_IS_APU ) ) {
+			if ( paApu->m_bFrameIrqFlag ) {
 				_ui8Ret |= 0b01000000;
 				// TODO: If an interrupt flag was set at the same moment as the read, it will read back as 1 but it will not be cleared.
+				paApu->m_bFrameIrqFlag = false;
 				paApu->m_piIrqTarget->ClearIrq( LSN_IS_APU );
 				paApu->m_ui64FrameIrqClearCycle = ui64Cycle + ((ui64Cycle & 1) ? 2 : 1);
 			}
@@ -1744,6 +1773,9 @@ namespace lsn {
 			paApu->m_ui8Registers[0x17] = _ui8Val;
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
 			paApu->m_ui8Last4017 = _ui8Val;
+			if ( _ui8Val & 0b10000000 ) {
+				paApu->ClockFrameUnits();
+			}
 			paApu->m_bRegModified = true;
 		}
 
