@@ -1741,8 +1741,9 @@ namespace lsn {
 			else {
 				dFps = 60.098477556112263192919547153838;
 			}
-			// 1.2018085317207474194134420031332410871982574462890625 = Duration in NTSF frames of a single PAL frame.
-			const double dNtscFramesToDecay = 1.2018085317207474194134420031332410871982574462890625;		// Total frames, in NTSC time, to decay.
+			// Retention varies by console and temperature.  blargg's oam_stress and sprdma_and_dmc_dma (verified on hardware) leave OAM untouched with
+			//	rendering off for up to ~123 ms and ~37 ms, so OAM holds its data at least that long:  8 NTSC frames (~133 ms).
+			const double dNtscFramesToDecay = 8.0;																// Total frames, in NTSC time, to decay.
 			return uint64_t(
 				dFps * (_tDotWidth * _tDotHeight) /															// How many cycles in 1 second.
 				(60.098813897440515529533511098629 / dNtscFramesToDecay) );									// Normalized to NTSC.
