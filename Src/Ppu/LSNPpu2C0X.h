@@ -67,7 +67,6 @@ namespace lsn {
 			m_ui16ShiftPatternHi( 0 ),
 			m_ui16ShiftAttribLo( 0 ),
 			m_ui16ShiftAttribHi( 0 ),
-			m_ui8ThisLineSpriteCount( 0 ),
 			m_ui8NtAtBuffer( 0 ),
 			m_ui8NextTileId( 0 ),
 			m_ui8NextTileAttribute( 0 ),
@@ -77,8 +76,7 @@ namespace lsn {
 			m_ui8StatusPreClear( 0 ),
 			m_ui8OamAddr( 0 ),
 			m_ui8OamLatch( 0 ),
-			m_ui8Oam2ClearIdx( 0 ),
-			m_ui8Oam2WriteIdx( 0 ),
+			m_ui8Oam2Addr( 0 ),
 			m_ui8Oam2SpriteCpyCnt( 0 ),
 			//m_dvLeftShowRedGreenDelay( MaskCallback, this ),
 			//m_dvLeftShowRedGreenDelay( nullptr, this ),
@@ -88,7 +86,9 @@ namespace lsn {
 			m_bShowBg( false ),
 			m_bShowSprites( false ),
 			m_bAddresLatch( false ),
-			m_bSkipDot( false ) {
+			m_bSkipDot( false ),
+			m_bOam2Overflow( false ),
+			m_bOam2Reset( false ) {
 
 #ifdef LSN_INT_OAM_DECAY
 			for ( auto I = std::size( m_ui64OamDecay ); I--; ) {
@@ -245,6 +245,7 @@ namespace lsn {
 
 			m_stCurCycle = 0;
 			m_ui16CurX = m_ui16CurY = 0;
+			std::memset( &m_asActiveSprites, 0, sizeof( m_asActiveSprites ) );
 		}
 
 		/**
@@ -275,8 +276,8 @@ namespace lsn {
 
 			m_ui8OamAddr = 0;
 			m_ui8OamLatch = 0;
-			m_ui8Oam2ClearIdx = 0;
-			m_ui8Oam2WriteIdx = m_ui8Oam2SpriteCpyCnt = 0;
+			m_ui8Oam2Addr = m_ui8Oam2SpriteCpyCnt = 0;
+			m_bOam2Overflow = m_bOam2Reset = false;
 
 			m_ui16VAddrCopy = 0;
 			m_ui8VAddrUpdateCounter = 0xFF;
@@ -516,15 +517,103 @@ namespace lsn {
 		const LSN_PALETTE &								Palette() const { return m_pPalette; }
 
 		/**
+		 * Advances the secondary OAM address.  Wrapping past 31 sets the overflow flag, which freezes the address at 0 until it is reset.
+		 */
+		inline void										IncOam2Addr() {
+			if ( !m_bOam2Overflow ) {
+				if ( ++m_ui8Oam2Addr == sizeof( m_soSecondaryOam.ui8Bytes ) ) {
+					m_ui8Oam2Addr = 0;
+					m_bOam2Overflow = true;
+				}
+			}
+		}
+
+		/**
+		 * Handles the secondary OAM address reset.  If rendering is on during dot 63, 255, or 339, the address and the overflow flag are
+		 *	reset at the end of the following dot.
+		 */
+		template <bool _bArm>
+		inline void LSN_FASTCALL						Pixel_Reset_Oam2() {
+			if constexpr ( _bArm ) {
+				if ( Oam2Rendering() ) { m_bOam2Reset = true; }
+			}
+			else if ( m_bOam2Reset ) {
+				m_bOam2Reset = false;
+				m_ui8Oam2Addr = 0;
+				m_bOam2Overflow = false;
+			}
+		}
+
+		/**
+		 * Determines whether rendering is on as far as secondary OAM is concerned (its clear, the sprite fetches, and the address reset).
+		 *	These see $2001 changes 1 dot before the rest of the PPU does.
+		 *
+		 * \return Returns true if background or sprite rendering is enabled for secondary OAM.
+		 */
+		inline bool										Oam2Rendering() const {
+			const LSN_PPUMASK & pmMask = m_dvPpuMaskDelay.ValueWithDelay<3>();
+			return (pmMask.s.ui8ShowBackground | pmMask.s.ui8ShowSprites) != 0;
+		}
+
+		/**
+		 * Determines whether the sprite being fetched (its Y is in m_ui8SpriteN) is in range of the current scanline.  The pre-render scanline
+		 *	is checked as its scanline number & 0xFF (5 on NTSC).
+		 *
+		 * \return Returns true if the sprite's pattern goes into its shifters, false if they are cleared instead.
+		 */
+		inline bool										SpriteFetchInRange() const {
+			const int32_t i32Row = int32_t( m_ui16CurY & 0xFF ) - int32_t( m_ui8SpriteN );
+			return i32Row >= 0 && i32Row < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8);
+		}
+
+		/**
+		 * Handles clearing secondary OAM during cycles 1-64.  Odd dots read $FF (the pre-render scanline reads secondary OAM instead) and even
+		 *	dots write it to secondary OAM (except on the pre-render scanline) and advance the secondary OAM address.
+		 */
+		template <bool _bIsFirst, bool _bIsOdd>
+		inline void LSN_FASTCALL						Pixel_Clear_Sprite() {
+			if ( !Oam2Rendering() ) { return; }
+			const bool bPreRender = m_ui16CurY == (_tDotHeight - 1);
+			if constexpr ( _bIsOdd ) {
+				const uint8_t ui8Oam = ReadOam( m_ui8OamAddr );
+				m_ui8OamLatch = bPreRender ? m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr] : ui8Oam;
+				if constexpr ( _bIsFirst ) { m_ui8Oam2Addr = 0; }
+			}
+			else {
+				if ( !bPreRender ) { m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr] = m_ui8OamLatch; }
+				IncOam2Addr();
+			}
+		}
+
+		/**
+		 * Advances the sprite X counters and shifters on dots 2-257 (after the pixel of the previous dot).  Each counter counts down every dot,
+		 *	even with rendering off.  Once a counter is 0 its sprite is drawn, and its shifters shift, but only while rendering.  After the
+		 *	skipped dot of an odd frame, every shifter shifts and no counter moves.
+		 */
+		template <bool _bAfterSkip>
+		inline void LSN_FASTCALL						Pixel_Shift_Sprite() {
+			constexpr uint64_t ui64High = 0x8080808080808080ULL;
+			uint64_t ui64Drawn = ~uint64_t( 0 );																	// 0xFF in each byte whose sprite is being drawn.
+			if ( !_bAfterSkip || !m_bSkipDot ) {
+				const uint64_t ui64X = m_asActiveSprites.ui64X;
+				const uint64_t ui64Counting = (((ui64X & ~ui64High) + ~ui64High) | ui64X) & ui64High;				// The high bit of each nonzero counter.
+				m_asActiveSprites.ui64X = ui64X - (ui64Counting >> 7);
+				ui64Drawn = ((ui64Counting ^ ui64High) >> 7) * 0xFF;
+			}
+			if ( m_bRendering ) {
+				constexpr uint64_t ui64NoCarry = 0xFEFEFEFEFEFEFEFEULL;
+				m_asActiveSprites.ui64ShiftLo = (m_asActiveSprites.ui64ShiftLo & ~ui64Drawn) | ((m_asActiveSprites.ui64ShiftLo << 1) & ui64NoCarry & ui64Drawn);
+				m_asActiveSprites.ui64ShiftHi = (m_asActiveSprites.ui64ShiftHi & ~ui64Drawn) | ((m_asActiveSprites.ui64ShiftHi << 1) & ui64NoCarry & ui64Drawn);
+			}
+		}
+
+		/**
 		 * Handles populating the secondary OAM buffer during cycles 65-256.
 		 */
 		template <bool _bIsFirst, bool _bIsOdd>
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 			if constexpr ( _bIsFirst ) {
-				m_ui8SpriteCount = 0;
 				m_sesStage = LSN_SES_CHECK_NEXT;
-				m_bSprite0IsInSecondary = false;
-				m_ui8Oam2WriteIdx = 0;
 				m_ui8Oam2SpriteCpyCnt = 0;
 			}
 			if ( !m_bRendering ) { return; }
@@ -533,14 +622,19 @@ namespace lsn {
 #define LSN_RESTORE_OAM										m_ui8OamAddr = LSN_CUROAM
 #define LSN_INC_M( BY, CARRY )								m_ui8SpriteM += (BY); if constexpr ( CARRY ) { m_ui8SpriteN += m_ui8SpriteM >> 2; } m_ui8SpriteM &= 0b11; LSN_RESTORE_OAM
 #define LSN_INC_N( BY )										m_ui8SpriteN += (BY); LSN_RESTORE_OAM
-#define LSN_WRITE_OAM2( VAL )								m_soSecondaryOam.ui8Bytes[m_ui8Oam2WriteIdx] = (VAL)
-#define LSN_READ_OAM2										m_soSecondaryOam.ui8Bytes[m_ui8Oam2WriteIdx&0b00011111]
+#define LSN_WRITE_OAM2( VAL )								m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr] = (VAL)
+#define LSN_READ_OAM2										m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr]
 
 
 			if constexpr ( _bIsOdd ) {
 				m_ui8OamLatch = ReadOam( m_ui8OamAddr );	// Sprite's Y.  Hopefully.
 			}
 			else {
+				if ( m_ui16CurY == (_tDotHeight - 1) ) {
+					// The pre-render scanline only reads OAM:  nothing is in range and neither OAMADDR nor secondary OAM changes.
+					if ( m_ui16CurX == 66 ) { m_bSprite0IsInSecondary = false; }
+					return;
+				}
 				m_ui8SpriteN = m_ui8OamAddr >> 2;
 				m_ui8SpriteM = m_ui8OamAddr & 0b11;
 
@@ -549,7 +643,7 @@ namespace lsn {
 				switch ( m_sesStage ) {
 					case LSN_SES_CHECK_NEXT : {
 						/** On even cycles, data is written to secondary OAM (unless secondary OAM is full, in which case it will read the value in secondary OAM instead). */
-						if ( m_ui8SpriteCount < 8 ) {
+						if ( !m_bOam2Overflow ) {
 							/** 1. Starting at n = 0, read a sprite's Y-coordinate (OAM[n][0], copying it to the next open slot in secondary OAM (unless 8 sprites have been found, in which case the write is ignored). */
 							LSN_WRITE_OAM2( m_ui8OamLatch );
 							/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
@@ -564,12 +658,13 @@ namespace lsn {
 								// Move to the copy stage.
 								m_sesStage = LSN_SES_ADD_SPRITE;
 								m_ui8Oam2SpriteCpyCnt = 3;	// Copy 3 bytes.
-								++m_ui8Oam2WriteIdx;		// Starting at the next index.
+								IncOam2Addr();				// Starting at the next index.
 								LSN_INC_M( 1, true );
 								break;
 							}
 							else {
 								// Sprite is of no interest.
+								if ( m_ui16CurX == 66 ) { m_bSprite0IsInSecondary = false; }
 								/** 2. Increment n. */
 								LSN_INC_N( 1 );
 
@@ -601,11 +696,12 @@ namespace lsn {
 								
 								// Move to the fake copy stage.
 								m_sesStage = LSN_SES_OF_SEARCH_ADD_SPRITE;
-								m_ui8Oam2SpriteCpyCnt = 3;	// Copy 3 bytes.  m_ui8Oam2WriteIdx doesn't matter anymore; not a real copy.
+								m_ui8Oam2SpriteCpyCnt = 3;	// Copy 3 bytes.  Not a real copy; the secondary OAM address is frozen.
 								LSN_INC_M( 1, true );
 								break;
 							}
 							else {
+								if ( m_ui16CurX == 66 ) { m_bSprite0IsInSecondary = false; }
 								/** 3b. If the value is not in range, increment n and m (without carry). If n overflows to 0, go to 4; otherwise go to 3. */
 								LSN_INC_M( 1, false );
 								LSN_INC_N( 1 );
@@ -623,7 +719,7 @@ namespace lsn {
 					case LSN_SES_ADD_SPRITE : {
 						/** 1a. If Y-coordinate is in range, copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
 						LSN_WRITE_OAM2( m_ui8OamLatch );
-						++m_ui8Oam2WriteIdx;
+						IncOam2Addr();
 						// TEST.
 						//if ( --m_ui8Oam2SpriteCpyCnt == 0 ) {
 						//	// Copied the desired amount.
@@ -631,10 +727,6 @@ namespace lsn {
 						//	m_sesStage = LSN_SES_CHECK_NEXT;
 						//}
 						bool bDone = (--m_ui8Oam2SpriteCpyCnt == 0);
-						if ( bDone ) {
-							// Copied the desired amount.
-							++m_ui8SpriteCount;
-						}
 
 						LSN_INC_M( 1, true );
 
@@ -695,32 +787,26 @@ namespace lsn {
 		 */
 		template <unsigned _uSpriteIdx, unsigned _uStage>
 		inline void LSN_FASTCALL						Pixel_Fetch_Sprite() {
-			if ( !m_bRendering ) { return; }
+			if constexpr ( _uSpriteIdx == 0 && _uStage == 0 ) {
+				m_bSprite0IsInSecondaryThisLine = m_bSprite0IsInSecondary;
+			}
+			if ( !Oam2Rendering() ) { return; }
+			// Secondary OAM is read through a 1-dot buffer, so each dot works on the byte read on the previous dot.  The address advances on the
+			//	first 3 dots and the last dot of each 8-dot slot; while it is frozen (overflowed), every byte comes from the same address.
+			const uint8_t ui8Buffer = m_ui8OamLatch;
+			m_ui8OamLatch = m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr];
 			// 1-4: Read the Y-coordinate, tile number, attributes, and X-coordinate of the selected sprite from secondary OAM
-			// ========================
-			// Garbage NT fetch 0.
-			// ========================
-			if constexpr ( _uStage == 0 ) {
-				if constexpr ( _uSpriteIdx == 0 ) {
-					m_ui8ThisLineSpriteCount = m_ui8SpriteCount;
-					m_ui8SpriteCount = 0;
-					m_bSprite0IsInSecondaryThisLine = m_bSprite0IsInSecondary;
-				}
-				m_ui8SpriteN = m_ui8OamLatch = m_soSecondaryOam.s[_uSpriteIdx].ui8Y;
-			}
 			if constexpr ( _uStage == 1 ) {
-				m_ui8SpriteM = m_ui8OamLatch = m_soSecondaryOam.s[_uSpriteIdx].ui8Id;
+				m_ui8SpriteN = ui8Buffer;
 			}
-
-			// ========================
-			// Garbage NT fetch 1.
-			// ========================
 			if constexpr ( _uStage == 2 ) {
-				m_ui8SpriteAttrib = m_ui8OamLatch = m_soSecondaryOam.s[_uSpriteIdx].ui8Flags;
+				m_ui8SpriteM = ui8Buffer;
 			}
-			
 			if constexpr ( _uStage == 3 ) {
-				m_ui8SpriteX = m_ui8OamLatch = m_soSecondaryOam.s[_uSpriteIdx].ui8X;
+				m_ui8SpriteAttrib = m_asActiveSprites.ui8Latch[_uSpriteIdx] = ui8Buffer;
+			}
+			if constexpr ( _uStage <= 2 || _uStage == 7 ) {
+				IncOam2Addr();
 			}
 
 
@@ -737,6 +823,7 @@ namespace lsn {
 			};
 			// 5-8: Read the X-coordinate of the selected sprite from secondary OAM 4 times (while the PPU fetches the sprite tile data)
 			if constexpr ( _uStage == 4 ) {
+				m_asActiveSprites.ui8X[_uSpriteIdx] = ui8Buffer;
 				m_ui16SpritePatternTmp = 0;
 
 				uint16_t ui16ScanLine = uint16_t( m_ui16CurY );
@@ -792,7 +879,7 @@ namespace lsn {
 					}
 				}
 				uint8_t ui8Bits = Read( m_ui16SpritePatternTmp );
-				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
+				if ( SpriteFetchInRange() ) {
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -802,9 +889,6 @@ namespace lsn {
 					m_asActiveSprites.ui8ShiftLo[_uSpriteIdx] = 0;
 				}
 			}
-			if constexpr ( _uStage == 5 ) {
-				m_asActiveSprites.ui8Latch[_uSpriteIdx] = m_ui8SpriteAttrib;
-			}
 
 
 			// ========================
@@ -812,7 +896,7 @@ namespace lsn {
 			// ========================
 			if constexpr ( _uStage == 6 ) {
 				uint8_t ui8Bits = Read( (m_ui16SpritePatternTmp + 8) );			// Empty slots are fetched too (see above).
-				if ( _uSpriteIdx < m_ui8ThisLineSpriteCount ) {
+				if ( SpriteFetchInRange() ) {
 					if ( m_ui8SpriteAttrib & 0x40 ) {
 						ui8Bits = FlipBits( ui8Bits );
 					}
@@ -822,8 +906,14 @@ namespace lsn {
 					m_asActiveSprites.ui8ShiftHi[_uSpriteIdx] = 0;
 				}
 			}
-			if constexpr ( _uStage == 7 ) {
-				m_asActiveSprites.ui8X[_uSpriteIdx] = m_ui8SpriteX;
+		}
+
+		/**
+		 * Handles dots 321-340, where the secondary OAM buffer keeps reading at the secondary OAM address.
+		 */
+		inline void LSN_FASTCALL						Pixel_Idle_Sprite() {
+			if ( Oam2Rendering() ) {
+				m_ui8OamLatch = m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr];
 			}
 		}
 
@@ -1015,7 +1105,10 @@ namespace lsn {
 #define LSN_RIGHT				(_tRenderW + LSN_LEFT)		// 257.
 #define LSN_NEXT_TWO			(LSN_RIGHT + 8 * 8)			// 321.
 				//int16_t i16AdjustedX = ppPpu->m_ui16CurX;
-				if ( i16AdjustedX >= LSN_NEXT_TWO || i16AdjustedX == 0 ) {
+				if ( i16AdjustedX >= LSN_NEXT_TWO ) {
+					ppPpu->SetIoBus( ppPpu->m_soSecondaryOam.ui8Bytes[ppPpu->m_ui8Oam2Addr] );
+				}
+				else if ( i16AdjustedX == 0 ) {
 					ppPpu->SetIoBus( ppPpu->m_soSecondaryOam.ui8Bytes[0] );
 				}
 				else {
@@ -1296,10 +1389,19 @@ namespace lsn {
 
 		/** Sprites loaded to be rendered on the current scanline. */
 		struct LSN_ACTIVE_SPRITE {
-			uint8_t										ui8ShiftLo[8];									/**< The first of a pair of shift registers for sprite attributes/patterns. */
-			uint8_t										ui8ShiftHi[8];									/**< The second of a pair of shift registers for sprite attributes/patterns. */
+			union {
+				uint8_t									ui8ShiftLo[8];									/**< The first of a pair of shift registers for sprite attributes/patterns. */
+				uint64_t								ui64ShiftLo;									/**< All 8 low shift registers at once. */
+			};
+			union {
+				uint8_t									ui8ShiftHi[8];									/**< The second of a pair of shift registers for sprite attributes/patterns. */
+				uint64_t								ui64ShiftHi;									/**< All 8 high shift registers at once. */
+			};
 			uint8_t										ui8Latch[8];									/**< Attribute bytes for the sprite. */
-			uint8_t										ui8X[8];										/**< The X position of the sprite. */
+			union {
+				uint8_t									ui8X[8];										/**< The X counters.  Each counts down once per dot and its sprite is drawn once it reaches 0. */
+				uint64_t								ui64X;											/**< All 8 X counters at once. */
+			};
 		};
 
 
@@ -1368,21 +1470,17 @@ namespace lsn {
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
 		uint8_t											m_ui8OamAddr;									/**< OAM address. */
 		uint8_t											m_ui8OamLatch;									/**< Holds temporary OAM data. */
-		uint8_t											m_ui8Oam2ClearIdx;								/**< The index of the byte being cleared during the secondary OAM clear. */
-		uint8_t											m_ui8Oam2WriteIdx;								/**< The index into which OAM is copied into OAM2 during sprite evaluation. */
+		uint8_t											m_ui8Oam2Addr;									/**< The secondary OAM address used by the secondary OAM clear, sprite evaluation, and sprite fetches. */
 		uint8_t											m_ui8Oam2SpriteCpyCnt;							/**< When copying in-range sprites from OAM to OAM2, this counts down to ensure the desired number of bytes are copied. */
 
 		uint8_t											m_ui8SpriteN;									/**< The N index during sprite evaluation and the sprite Y during fetches. */
 		uint8_t											m_ui8SpriteM;									/**< The M index during sprite evaluation and the sprite tile number during fetches. */
 		uint8_t											m_ui8SpriteAttrib;								/**< The sprite attributes during fetches. */
-		uint8_t											m_ui8SpriteX;									/**< The sprite X during fetches. */
-		uint8_t											m_ui8SpriteCount;								/**< The number of sprites transferred to the secondary OAM array. */
 
 		uint8_t											m_ui8NextTileId;								/**< The queued background tile ID during rendering. */
 		uint8_t											m_ui8NextTileAttribute;							/**< The queued background tile attribute during rendering. */
 		uint8_t											m_ui8NextTileLsb;								/**< The queued background tile LSB. */
 		uint8_t											m_ui8NextTileMsb;								/**< The queued background tile MSB. */
-		uint8_t											m_ui8ThisLineSpriteCount;						/**< The number of sprites in the current scanline. */
 
 		uint8_t											m_ui8VAddrUpdateCounter;						/**< The T -> V copy counter. */
 		bool											m_bVAddrPending;								/**< There is a copy from T to V pending a 3-cycle delay. */
@@ -1398,6 +1496,8 @@ namespace lsn {
 		bool											m_bSuppressNmi;									/**< If true, NMI can't be generated. */
 		bool											m_bUpdateVramAddr;								/**< If true, the VRAM address is updated at the end of the cycle. */
 		bool											m_bSkipDot;										/**< If true, dot 0 of odd frames is skipped.  Set on dot 339. */
+		bool											m_bOam2Overflow;								/**< The secondary OAM address wrapped past 31.  Until it is reset, the address no longer increments. */
+		bool											m_bOam2Reset;									/**< Rendering was on during dot 63, 255, or 339, so the secondary OAM address and overflow flag reset at the end of the next dot. */
 
 		//bool g_bDoDebugPrint									= false;
 
@@ -1817,7 +1917,7 @@ namespace lsn {
 				ui32Row = ui32Dot >> 1;
 			}
 			else if ( ui32Dot <= 256 ) {
-				ui32Row = (m_ui8Oam2WriteIdx + 3U) & ~3U;
+				ui32Row = (m_ui8Oam2Addr + 3U) & ~3U;
 			}
 			else if ( ui32Dot <= 320 ) {
 				ui32Dot -= 256;
@@ -1925,7 +2025,10 @@ namespace lsn {
 
 		/**
 		 * Renders a pixel based on the current state of the PPU.
+		 *
+		 * \tparam _bFirstDot True for dot 1 of scanline 0, where every sprite is drawn if the dot before it was skipped (odd frames).
 		 */
+		template <bool _bFirstDot = false>
 		inline void										RenderPixel() {
 			uint16_t ui16ThisX = uint16_t( m_ui16CurX ), ui16ThisY = uint16_t( m_ui16CurY );
 			uint16_t ui16X, ui16Y;
@@ -1948,9 +2051,11 @@ namespace lsn {
 					uint8_t ui8ForegroundPalette = 0;
 					uint8_t ui8ForegroundPriority = 0;
 					bool bIsRenderingSprite0 = false;
-					if ( m_bShowSprites && (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftSprites || ui16X >= 8) ) {
-						for ( uint8_t I = 0; I < m_ui8ThisLineSpriteCount; ++I ) {
-							if ( m_asActiveSprites.ui8X[I] == 0 ) {
+					if ( m_bShowSprites && (m_dvPpuMaskDelay.ValueWithDelay<2>().s.ui8LeftSprites || ui16X >= 8) &&
+						((m_asActiveSprites.ui64ShiftLo | m_asActiveSprites.ui64ShiftHi) & 0x8080808080808080ULL) ) {
+						const bool bAll = _bFirstDot && m_bSkipDot;
+						for ( uint8_t I = 0; I < 8; ++I ) {
+							if ( m_asActiveSprites.ui8X[I] == 0 || bAll ) {
 								ui8ForegroundPixel = (((m_asActiveSprites.ui8ShiftHi[I] & 0x80) > 0) << 1) |
 									((m_asActiveSprites.ui8ShiftLo[I] & 0x80) > 0);
 								ui8ForegroundPalette = (m_asActiveSprites.ui8Latch[I] & 0x03) + 4;
@@ -2167,15 +2272,12 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) ) {
 				// Sprite secondary OAM clear.
 				if ( (_uX >= LSN_LEFT && _uX < LSN_SPR_EVAL_START) ) {
-					if ( (_uX - LSN_LEFT) % 2 == 0 ) {
-						sRet += "\r\n"
-						"	m_ui8OamLatch = ReadOam( m_ui8OamAddr );\r\n";
-					}
-					if ( (_uX - LSN_LEFT) % 2 == 1 ) {
-						sRet += "\r\n"
-						"	m_soSecondaryOam.ui8Bytes[m_ui8Oam2ClearIdx++] = m_ui8OamLatch;"
-						"	m_ui8Oam2ClearIdx %= sizeof( m_soSecondaryOam.ui8Bytes );\r\n";
-					}
+					sRet += "\r\n"
+					"	Pixel_Clear_Sprite<";
+					sRet += _uX == LSN_LEFT ? "true" : "false";
+					sRet += ", ";
+					sRet += (_uX & 1) ? "true" : "false";
+					sRet += ">();\r\n";
 				}
 				// Sprite evaluation.
 				
@@ -2192,25 +2294,32 @@ namespace lsn {
 					sRet += "\r\n"
 					"	Pixel_Fetch_Sprite<" + std::to_string( (_uX - LSN_RIGHT) / 8 ) + ", " + std::to_string( (_uX - LSN_RIGHT) % 8 ) + ">();	// Sprite fetches (257-320).\r\n";
 				}
-
-				if ( (_uX >= (LSN_LEFT + 1) && _uX < LSN_RIGHT) ) {
+				if ( _uX >= LSN_NEXT_TWO ) {
 					sRet += "\r\n"
-					"	if ( m_bRendering ) {\r\n"
-					"		for ( uint8_t I = m_ui8ThisLineSpriteCount; I--; ) {\r\n"
-					"			if ( m_asActiveSprites.ui8X[I] ) {\r\n"
-					"				--m_asActiveSprites.ui8X[I];\r\n"
-					"			}\r\n"
-					"			else {\r\n"
-					"				m_asActiveSprites.ui8ShiftLo[I] <<= 1;\r\n"
-					"				m_asActiveSprites.ui8ShiftHi[I] <<= 1;\r\n"
-					"			}\r\n"
-					"		}\r\n"
-					"	}\r\n";
+					"	Pixel_Idle_Sprite();\r\n";
 				}
-			}
-			if ( _uY == ui61RenderHeight && _uX == 0 ) {
-				sRet += "\r\n"
-				"	m_ui8ThisLineSpriteCount = 0;\r\n";
+
+				// Secondary OAM address reset (armed on dots 63, 255, and 339, done at the end of the next dot).
+				if ( _uX == LSN_SPR_EVAL_START - 2 || _uX == LSN_RIGHT - 2 || _uX == _tDotWidth - 2 ) {
+					sRet += "\r\n"
+					"	Pixel_Reset_Oam2<true>();\r\n";
+				}
+				if ( _uX == LSN_SPR_EVAL_START - 1 || _uX == LSN_RIGHT - 1 || _uX == _tDotWidth - 1 ) {
+					sRet += "\r\n"
+					"	Pixel_Reset_Oam2<false>();\r\n";
+				}
+				// Unless rendering is on during dot 339, the sprite counters stay stopped, so every sprite is drawn as soon as rendering resumes.
+				if ( _uX == _tDotWidth - 2 ) {
+					sRet += "\r\n"
+					"	if ( !m_bRendering ) { m_asActiveSprites.ui64X = 0; }\r\n";
+				}
+
+				if ( (_uX >= (LSN_LEFT + 1) && _uX <= LSN_RIGHT) ) {
+					sRet += "\r\n"
+					"	Pixel_Shift_Sprite<";
+					sRet += (_uX == LSN_LEFT + 1 && _uY == 0) ? "true" : "false";
+					sRet += ">();\r\n";
+				}
 			}
 
 
@@ -2336,11 +2445,12 @@ namespace lsn {
 			if ( ((_uY >= 0 && _uY < ui61RenderHeight) || (_uY == _tDotHeight - 1)) &&
 				((_uX >= LSN_LEFT && _uX < LSN_RIGHT) || (_uX >= LSN_NEXT_TWO && _uX < LSN_DUMMY_BEGIN)) ) {
 	
+				// The pattern shifters shift in 0 (low) and 1 (high), and the attribute shifters shift in their attribute latch (bit 0).
 				sRet += "\r\n	if ( m_bRendering ) {\r\n"
 				"		m_ui16ShiftPatternLo <<= 1;\r\n"
-				"		m_ui16ShiftPatternHi <<= 1;\r\n"
-				"		m_ui16ShiftAttribLo <<= 1;\r\n"
-				"		m_ui16ShiftAttribHi <<= 1;\r\n";
+				"		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi << 1) | 1;\r\n"
+				"		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo << 1) | (m_ui16ShiftAttribLo & 1);\r\n"
+				"		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi << 1) | (m_ui16ShiftAttribHi & 1);\r\n";
 	
 				// Reload on dots 9, 17, 25...
 				if ( (_uX - LSN_LEFT) % 8 == 0 ) {
@@ -2361,8 +2471,8 @@ namespace lsn {
 			{
 				uint16_t ui16X, ui16Y;
 				if ( CycleToRenderTarget( _uX, _uY, ui16X, ui16Y ) ) {
-					sRet += "\r\n"
-					"	RenderPixel();\r\n";
+					sRet += "\r\n";
+					sRet += (_uX == LSN_LEFT && _uY == 0) ? "	RenderPixel<true>();\r\n" : "	RenderPixel();\r\n";
 				}
 			}			
 
@@ -2640,7 +2750,7 @@ namespace lsn {
 	 * An NTSC PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 128, 105>													CNtscPpu;
-	// 292.57142857142857142857142857143×240
+	// 292.57142857142857142857142857143ï¿½240
 
 	/**
 	 * A PAL PPU.
@@ -2650,7 +2760,7 @@ namespace lsn {
 	// (59.0 * 125000.0) / (165.0 * (64489.0 / 2.0))
 	// 14750000.0 / 10640685.0
 	// 1.3861889530608226819983863820797
-	// 354.8643719835706065915869138124×240
+	// 354.8643719835706065915869138124ï¿½240
 	// 354.8643719835706065915869138124 / 240 = 1.478601549931544194131612140885
 	// 9440000.0 / 6384411.0 = 1.478601549931544194131612140885
 
@@ -2659,21 +2769,21 @@ namespace lsn {
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( DENDY ), false, 9440000, 6384411>
 																											CDendyPpu;
-	// 354.86437198357060651687788777053356170654296875×240
+	// 354.86437198357060651687788777053356170654296875ï¿½240
 
 	/**
 	 * A PAL-M PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( PALM ), false, 128, 105>
 																											CPalMPpu;
-	// 292.57142857142857142857142857143×240
+	// 292.57142857142857142857142857143ï¿½240
 
 	/**
 	 * A PAL-N PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( PALN ), true, 9440000, 6384411>
 																											CPalNPpu;
-	// 354.86437198357060651687788777053356170654296875×240
+	// 354.86437198357060651687788777053356170654296875ï¿½240
 
 #undef LSN_PPU_TYPE
 
