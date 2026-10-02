@@ -11,7 +11,7 @@ namespace lsn {
 	 **/
 	uint8_t CStdController::Read() {
 		if ( m_bStrobe ) {
-			Write( 0b00000001 );	// The held strobe keeps reloading the buttons.
+			Write( 0b00000001, m_bPoll );	// The held strobe keeps reloading the buttons.
 			return (m_ui8Status & 0x80) != 0;
 		}
 		uint8_t ui8Ret = ((m_ui8Status & 0x80) != 0);	// Upper 3 bits will be forced to open bus.
@@ -23,12 +23,15 @@ namespace lsn {
 	 * Handles the write to $4016.
 	 * 
 	 * \param _ui8Val The value being written.
+	 * \param _bPoll If false, the inputs are not read and nothing reads as pressed.
 	 **/
-	void CStdController::Write( uint8_t _ui8Val ) {
+	void CStdController::Write( uint8_t _ui8Val, bool _bPoll ) {
 		m_bStrobe = (_ui8Val & 0b00000001) != 0;
+		m_bPoll = _bPoll;
 		// Poll for all 8 buttons.
 		if ( m_bStrobe ) {
 			m_ui8Status = 0;
+			if ( !m_bPoll ) { return; }
 
 			{
 				// Get Left and Right controls together.

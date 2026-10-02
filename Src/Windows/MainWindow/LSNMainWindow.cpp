@@ -2015,6 +2015,11 @@ namespace lsn {
 			return ui8Ret;
 #endif
 		}
+		else {
+			// Without focus the controllers still see every strobe, but nothing reads as pressed.
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csControllerCrit );
+			m_bnEmulator.Write4016( _ui8Value, false );
+		}
 	}
 
 	/**

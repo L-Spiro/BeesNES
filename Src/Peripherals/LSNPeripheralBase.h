@@ -128,8 +128,9 @@ namespace lsn {
 		 * Handles the write to $4016.
 		 * 
 		 * \param _ui8Val The value being written.
+		 * \param _bPoll If false, the inputs are not read and nothing reads as pressed.
 		 **/
-		virtual void									Write( uint8_t /*_ui8Val*/ ) = 0;
+		virtual void									Write( uint8_t /*_ui8Val*/, bool /*_bPoll*/ ) = 0;
 
 		/**
 		 * Called when the console is reset and at start-up.

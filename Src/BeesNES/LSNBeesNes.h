@@ -465,8 +465,9 @@ namespace lsn {
 		 * Handles writes to $4016.
 		 * 
 		 * \param _ui8Value The value being written.  If it is 1, inputs are polled.
+		 * \param _bPoll If false, the inputs are not read and the peripherals report that nothing is pressed.
 		 **/
-		void									Write4016( uint8_t _ui8Value );
+		void									Write4016( uint8_t _ui8Value, bool _bPoll = true );
 
 		 /**
 		  * Handles reads from $4016. Passes off to peripherals to get the return value.

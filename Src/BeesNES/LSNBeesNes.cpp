@@ -1119,13 +1119,14 @@ namespace lsn {
 	 * Handles writes to $4016.
 	 * 
 	 * \param _ui8Value The value being written.  If it is 1, inputs are polled.
+	 * \param _bPoll If false, the inputs are not read and the peripherals report that nothing is pressed.
 	 **/
-	void CBeesNes::Write4016( uint8_t _ui8Value ) {
+	void CBeesNes::Write4016( uint8_t _ui8Value, bool _bPoll ) {
 		if LSN_LIKELY( m_vPeripherals[0].get() ) {
-			m_vPeripherals[0]->Write( _ui8Value );
+			m_vPeripherals[0]->Write( _ui8Value, _bPoll );
 		}
 		if ( m_vPeripherals[1].get() ) {
-			m_vPeripherals[1]->Write( _ui8Value );
+			m_vPeripherals[1]->Write( _ui8Value, _bPoll );
 		}
 	}
 

@@ -34,8 +34,9 @@ namespace lsn {
 		 * Handles the write to $4016.
 		 * 
 		 * \param _ui8Val The value being written.
+		 * \param _bPoll If false, the inputs are not read and nothing reads as pressed.
 		 **/
-		virtual void									Write( uint8_t _ui8Val );
+		virtual void									Write( uint8_t _ui8Val, bool _bPoll );
 
 		/**
 		 * Called when the console is reset and at start-up.
@@ -137,6 +138,8 @@ namespace lsn {
 		bool											m_bDisallowInvalidDpad = true;
 		/** The strobe (bit 0 of the last $4016 write).  While it is set, the buttons keep reloading and every read returns A. */
 		bool											m_bStrobe = false;
+		/** The inputs may be read (the _bPoll value of the last $4016 write).  While it is false, nothing reads as pressed. */
+		bool											m_bPoll = true;
 
 
 		// == Functions.
