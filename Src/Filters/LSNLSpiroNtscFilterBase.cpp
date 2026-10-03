@@ -383,10 +383,19 @@ namespace lsn {
 #ifdef __AVX512F__
 			if ( CUtilities::IsAvx512FSupported() ) {
 				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
-				while ( i16End - J >= 16 ) {
-					// Can do 16 at a time.
-					Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
-					J += 16;
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					while ( i16End - J >= 16 ) {
+						// Can do 16 at a time.
+						Convolution16_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 16;
+					}
+				}
+				else {
+					while ( i16End - J >= 16 ) {
+						// Can do 16 at a time.
+						Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 16;
+					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
 				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
@@ -396,10 +405,19 @@ namespace lsn {
 #ifdef __AVX__
 			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
 				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
-				while ( i16End - J >= 8 ) {
-					// Can do 8 at a time.
-					Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
-					J += 8;
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					while ( i16End - J >= 8 ) {
+						// Can do 8 at a time.
+						Convolution8_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 8;
+					}
+				}
+				else {
+					while ( i16End - J >= 8 ) {
+						// Can do 8 at a time.
+						Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 8;
+					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
 				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );

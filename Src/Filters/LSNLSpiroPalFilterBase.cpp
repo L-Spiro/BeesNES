@@ -394,18 +394,35 @@ namespace lsn {
 #ifdef __AVX512F__
 			if ( CUtilities::IsAvx512FSupported() ) {
 				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
-				while ( i16End - J >= 16 ) {
-					uint16_t ui16CosIdx;
-					/*if ( (_sRowIdx & 1) == 0 ) {
-						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					while ( i16End - J >= 16 ) {
+						uint16_t ui16CosIdx;
+						/*if ( (_sRowIdx & 1) == 0 ) {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+						}
+						else {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						}*/
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
+						// Can do 16 at a time.
+						Convolution16_Fma( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 16;
 					}
-					else {
-						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}*/
-					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
-					// Can do 16 at a time.
-					Convolution16( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
-					J += 16;
+				}
+				else {
+					while ( i16End - J >= 16 ) {
+						uint16_t ui16CosIdx;
+						/*if ( (_sRowIdx & 1) == 0 ) {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+						}
+						else {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						}*/
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
+						// Can do 16 at a time.
+						Convolution16( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 16;
+					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
 				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
@@ -415,18 +432,35 @@ namespace lsn {
 #ifdef __AVX__
 			if ( CUtilities::IsAvxSupported() ) {
 				__m256 mSin = _mm256_set1_ps( 0.0f ), mCos = _mm256_set1_ps( 0.0f ), mSig = _mm256_set1_ps( 0.0f );
-				while ( i16End - J >= 8 ) {
-					uint16_t ui16CosIdx;
-					/*if ( (_sRowIdx & 1) == 0 ) {
-						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					while ( i16End - J >= 8 ) {
+						uint16_t ui16CosIdx;
+						/*if ( (_sRowIdx & 1) == 0 ) {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+						}
+						else {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						}*/
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
+						// Can do 8 at a time.
+						Convolution8_Fma( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 8;
 					}
-					else {
-						ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					}*/
-					ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
-					// Can do 8 at a time.
-					Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
-					J += 8;
+				}
+				else {
+					while ( i16End - J >= 8 ) {
+						uint16_t ui16CosIdx;
+						/*if ( (_sRowIdx & 1) == 0 ) {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J + 6) % 12;
+						}
+						else {
+							ui16CosIdx = (_ui16Cycle + (12 * 4) + J) % 12;
+						}*/
+						ui16CosIdx = (_ui16Cycle + (12 * 4) + J + (6 * ((_sRowIdx & 1) == 0))) % 12;
+						// Can do 8 at a time.
+						Convolution8( &pfSignalStart[J], J - i16Start, ui16CosIdx, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						J += 8;
+					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
 				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
