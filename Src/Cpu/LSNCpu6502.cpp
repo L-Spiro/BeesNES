@@ -2886,6 +2886,8 @@ namespace lsn {
 	/**
 	 * Illegal. Stores A & X & (high-byte of address + 1) at either m_fsState.ui16Pointer or m_fsState.ui16Address.
 	 *
+	 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+	 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 */
 	template <bool _bToAddr, unsigned _uRdyCnt>
@@ -2956,10 +2958,15 @@ namespace lsn {
 		}
 
 		/* Stores A AND X AND (high-byte of addr. + 1) at addr.
-		
-		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
 
-		A AND X AND (H+1) -> M
+		Known behaviors.  They differ between CPUs, and AccuracyCoin tells them apart.  H is the high byte of the base address + 1.
+		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented.  The documented behavior.)
+		2:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & X.
+		3:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & (X | MAGIC2).  (MAGIC2 is a different constant.)
+		4:	Val = A & H;				on a page crossing, the high byte of the address is H & (A | X).
+		MAGIC differs between chips ($00, $F5, $F9, $FA, and $FF have been seen).
+		In all of them, if a DMA halts the CPU on the dummy read before the write (RDY low 2 cycles before the write), "& H" is dropped
+		from Val.  The high byte of the address is still ANDed on a page crossing.
 		*/
 
 		LSN_FINISH_INST( true );
@@ -2970,50 +2977,91 @@ namespace lsn {
 	/**
 	 * Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address.
 	 *
+	 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+	 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 */
-	template <bool _bToAddr>
+	template <bool _bToAddr, unsigned _uRdyCnt>
 	void CCpu6502::Shs_Phi2( CCpu6502 * _pcCpu ) {
 		(*_pcCpu).m_fsState.rRegs.ui8S = (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
 
 		if constexpr ( _bToAddr ) {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Address[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Address[1] & (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Address[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Address, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Address[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "\tIf BoundaryCrossed, Val = u8(Address.H & A & X).\r\n\t\t"
-				"Otherwise Val = u8((Address.H + 1) & A & X).\r\n\t"
-				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
-				"Otherwise write to Address\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "S = A & X.\r\n\t\t"
+				"AddrHigh = Address.H.\r\n\t\t"
+				"ValueReg = A & X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Pointer[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Pointer[1] & (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Pointer[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8A & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Pointer, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Pointer[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "If BoundaryCrossed, Val = u8(Pointer.H & A & X).\r\n\t\t"
-				"Otherwise Val = u8((Pointer.H + 1) & A & X).\r\n\t"
-				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
-				"Otherwise write to Pointer\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "S = A & X.\r\n\t\t"
+				"AddrHigh = Pointer.H.\r\n\t\t"
+				"ValueReg = A & X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
-		/* Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.
+		/* Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.  S = A & X in every behavior below.
 
-		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
-
-		A AND X -> SP, A AND X AND (H+1) -> M
+		Known behaviors.  They differ between CPUs, and AccuracyCoin tells them apart.  H is the high byte of the base address + 1.
+		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented.  The documented behavior.)
+		2:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & X.
+		3:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & (X | MAGIC2).  (MAGIC2 is a different constant.)
+		4:	Val = A & H;				on a page crossing, the high byte of the address is H & (A | X).
+		MAGIC differs between chips ($00, $F5, $F9, $FA, and $FF have been seen).
+		In all of them, if a DMA halts the CPU on the dummy read before the write (RDY low 2 cycles before the write), "& H" is dropped
+		from Val.  The high byte of the address is still ANDed on a page crossing.
 		*/
 
 		LSN_FINISH_INST( true );
@@ -3024,48 +3072,81 @@ namespace lsn {
 	/**
 	 * Illegal. Stores X & (high-byte of address + 1) at the address.
 	 *
+	 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+	 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 */
-	template <bool _bToAddr>
+	template <bool _bToAddr, unsigned _uRdyCnt>
 	void CCpu6502::Shx_Phi2( CCpu6502 * _pcCpu ) {
 		if constexpr ( _bToAddr ) {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Address[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8X;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Address[1] & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Address[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Address, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Address[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Address.H & X).\r\n\t\t"
-				"Otherwise Val = u8((Address.H + 1) & X).\r\n\t"
-				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
-				"Otherwise write to Address\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+				"ValueReg = X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Pointer[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8X;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Pointer[1] & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Pointer[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8X;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Pointer, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Pointer[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Pointer.H & X).\r\n\t\t"
-				"Otherwise Val = u8((Pointer.H + 1) & X).\r\n\t"
-				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
-				"Otherwise write to Pointer\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+				"ValueReg = X.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
-		/* Stores X AND (high-byte of addr. + 1) at addr.
-
-		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
-
-		X AND (H+1) -> M
+		/* Stores X AND (high-byte of addr. + 1) at addr.  H is the high byte of the base address + 1.
+		Val = X & H; on a page crossing, the high byte of the address is H & X.  No other behaviors are known.
+		If a DMA halts the CPU on the dummy read before the write (RDY low 2 cycles before the write), "& H" is dropped from Val (SHX
+		becomes STX).  The high byte of the address is still ANDed on a page crossing.
 		*/
 
 		LSN_FINISH_INST( true );
@@ -3076,48 +3157,81 @@ namespace lsn {
 	/**
 	 * Illegal. Stores Y & (high-byte of address + 1) at the address.
 	 *
+	 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+	 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 */
-	template <bool _bToAddr>
+	template <bool _bToAddr, unsigned _uRdyCnt>
 	void CCpu6502::Shy_Phi2( CCpu6502 * _pcCpu ) {
 		if constexpr ( _bToAddr ) {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Address[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8Y;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Address[1] & (*_pcCpu).m_fsState.rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Address[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Address, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Address[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Address.H & Y).\r\n\t\t"
-				"Otherwise Val = u8((Address.H + 1) & Y).\r\n\t"
-				"If BoundaryCrossed, write to (Address.L | (Val << 8))\r\n\t"
-				"Otherwise write to Address\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+				"ValueReg = Y.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 		else {
+			uint16_t ui16AddrHigh = (*_pcCpu).m_fsState.ui8Pointer[1];
+
+			uint16_t ui16ValueReg = (*_pcCpu).m_fsState.rRegs.ui8Y;
+
 			if ( (*_pcCpu).m_fsState.bBoundaryCrossed ) {
-				uint16_t ui16Val = (*_pcCpu).m_fsState.ui8Pointer[1] & (*_pcCpu).m_fsState.rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | ui16Val << 8, ui16Val );
+				ui16AddrHigh &= ui16ValueReg;
+			}
+
+			uint16_t ui16Value;
+			if ( (*_pcCpu).m_ui8RdyOffCnt == _uRdyCnt + 1 ) {
+				ui16Value = ui16ValueReg;
 			}
 			else {
-				uint16_t ui16Val = ((*_pcCpu).m_fsState.ui8Pointer[1] + 1) & (*_pcCpu).m_fsState.rRegs.ui8Y;
-				LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui16Pointer, ui16Val );
+				uint16_t ui16BaseHighPlus1 = (*_pcCpu).m_fsState.ui8Pointer[1];
+				if ( !(*_pcCpu).m_fsState.bBoundaryCrossed ) {
+					++ui16BaseHighPlus1;
+				}
+				ui16Value = ui16ValueReg & ui16BaseHighPlus1;
 			}
+
+			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
-			lsn::DebugA( "\tIf BoundaryCrossed, Val = (Pointer.H & Y).\r\n\t\t"
-				"Otherwise Val = u8((Pointer.H + 1) & Y).\r\n\t"
-				"If BoundaryCrossed, write to (Pointer.L | (Val << 8))\r\n\t"
-				"Otherwise write to Pointer\tWrite Val." );
+			lsn::DebugA( "\t" );
+			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+				"ValueReg = Y.\r\n\t\t"
+				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"If RDY went low: Val = ValueReg.\r\n\t\t"
+				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
-		/* Stores Y AND (high-byte of addr. + 1) at addr.
-
-		unstable: sometimes 'AND (H+1)' is dropped, page boundary crossings may not work (with the high-byte of the value used as the high-byte of the address)
-
-		Y AND (H+1) -> M
+		/* Stores Y AND (high-byte of addr. + 1) at addr.  H is the high byte of the base address + 1.
+		Val = Y & H; on a page crossing, the high byte of the address is H & Y.  No other behaviors are known.
+		If a DMA halts the CPU on the dummy read before the write (RDY low 2 cycles before the write), "& H" is dropped from Val (SHY
+		becomes STY).  The high byte of the address is still ANDed on a page crossing.
 		*/
 
 		LSN_FINISH_INST( true );

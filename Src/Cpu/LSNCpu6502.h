@@ -64,7 +64,7 @@
 #define LSN_FROM_P											false
 
 #ifdef LSN_CPU_VERIFY
-//#define LSN_CYCLES_DOC										1
+#define LSN_CYCLES_DOC										1
 #endif	// #ifdef LSN_CPU_VERIFY
 #ifdef LSN_CYCLES_DOC
 #define LSN_PRINT_STACK																																			\
@@ -1388,6 +1388,8 @@ namespace lsn {
 		/**
 		 * Illegal. Stores A & X & (high-byte of address + 1) at either m_ui16Pointer or m_ui16Address.
 		 *
+		 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+		 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
 		template <bool _bToAddr, unsigned _uRdyCnt>
@@ -1396,25 +1398,31 @@ namespace lsn {
 		/**
 		 * Illegal. Puts A & X into SP; stores A & X & (high-byte of address + 1) at the address.
 		 *
+		 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+		 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
-		template <bool _bToAddr>
+		template <bool _bToAddr, unsigned _uRdyCnt>
 		static void											Shs_Phi2( CCpu6502 * _pcCpu );
 
 		/**
 		 * Illegal. Stores X & (high-byte of address + 1) at the address.
 		 *
+		 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+		 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
-		template <bool _bToAddr>
+		template <bool _bToAddr, unsigned _uRdyCnt>
 		static void											Shx_Phi2( CCpu6502 * _pcCpu );
 
 		/**
 		 * Illegal. Stores Y & (high-byte of address + 1) at the address.
 		 *
+		 * \tparam _bToAddr If true, the target is m_fsState.ui16Address, otherwise m_fsState.ui16Pointer.
+		 * \tparam _uRdyCnt The value m_ui8RdyOffCnt has on the write cycle when no DMA interrupted the instruction.
 		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
-		template <bool _bToAddr>
+		template <bool _bToAddr, unsigned _uRdyCnt>
 		static void											Shy_Phi2( CCpu6502 * _pcCpu );
 
 		/**

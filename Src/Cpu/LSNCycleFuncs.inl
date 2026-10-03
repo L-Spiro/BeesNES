@@ -767,10 +767,14 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		2, LSN_AM_IMPLIED, 1, LSN_I_TXS, "Implied"
 	},
 	{	// 9B
-		LSN_ABSOLUTE_Y_W( SHS, Shs_Phi2<LSN_TO_A> )
+#define LSN_SHS	LSN_TO_A, 4
+		LSN_ABSOLUTE_Y_W( SHS, Shs_Phi2<LSN_SHS> )
+#undef LSN_SHS
 	},
 	{	// 9C
-		LSN_ABSOLUTE_X_W( SHY, Shy_Phi2<LSN_TO_A> )
+#define LSN_SHY	LSN_TO_A, 4
+		LSN_ABSOLUTE_X_W( SHY, Shy_Phi2<LSN_SHY> )
+#undef LSN_SHY
 
 		//{
 		//	/* BeginInst() */															&CCpu6502::Fetch_Opcode_IncPc_Phi2,
@@ -784,7 +788,9 @@ CCpu6502::LSN_INSTR CCpu6502::m_iInstructionSet[256] = {								/**< The instruc
 		LSN_ABSOLUTE_X_W( STA, Write_A_To_AddrOrPtr_Phi2<LSN_TO_A> )
 	},
 	{	// 9E
-		LSN_ABSOLUTE_Y_W( SHX, Shx_Phi2<LSN_TO_A> )
+#define LSN_SHX	LSN_TO_A, 4
+		LSN_ABSOLUTE_Y_W( SHX, Shx_Phi2<LSN_SHX> )
+#undef LSN_SHX
 	},
 	{	// 9F
 #define LSN_SHA	LSN_TO_A, 4
