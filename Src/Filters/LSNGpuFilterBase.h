@@ -134,7 +134,7 @@ namespace lsn {
 		 *
 		 * \param _fTime The decay period in seconds.
 		 */
-		void												SetPhosphorDecayPeriod( float _fTime = DefaultPhophorDecayDuration() ) {
+		void												SetPhosphorDecayPeriod( float _fTime = DefaultPhosphorDecayDuration() ) {
 			m_fPhosphorDecayTime = _fTime;
 			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
@@ -158,7 +158,7 @@ namespace lsn {
 		 *
 		 * \param _fLevel The decay scalar.
 		 */
-		void												SetPhosphorDecayLevel( float _fLevel = DefaultPhophorDecayIntensity() ) {
+		void												SetPhosphorDecayLevel( float _fLevel = DefaultPhosphorDecayIntensity() ) {
 			m_fInitPhosphorDecay = _fLevel;
 			m_fPhosphorDecayRateGreen = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime, m_fFps ));
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
@@ -170,14 +170,14 @@ namespace lsn {
 		 *
 		 * \return Returns a good default value for phosphor-decay intensity.
 		 */
-		static inline float consteval						DefaultPhophorDecayIntensity() { return 0.0508760847151279449462890625f * 2.0f; }
+		static inline float constexpr						DefaultPhosphorDecayIntensity() { return 0.0508760847151279449462890625f * 2.0f; }
 
 		/**
 		 * Gets the default phosphor decay duration.
 		 *
 		 * \return Returns a good default value for phosphor-decay duration.
 		 */
-		static inline float consteval						DefaultPhophorDecayDuration() { return 1.79113161563873291015625f / 7.0f; }
+		static inline float constexpr						DefaultPhosphorDecayDuration() { return 1.79113161563873291015625f / 7.0f; }
 
 	protected :
 		// == Members.
