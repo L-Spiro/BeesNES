@@ -111,8 +111,8 @@ namespace lsn {
 			CUsbControllerBase *						pucbController = nullptr;					/**< The controller from which to read, if any. */
 			lsn::LSN_INPUT_EVENT						ieEvent;									/**< Holds information for polling. */
 			/** The bit pattern for turbo controls. */
-			uint64_t									ui64TurboBits = 0b1111000011110000111100001111000011110000111100001111000011110000;
-			uint64_t									ui64OriginalTurboBits = 0b1111000011110000111100001111000011110000111100001111000011110000;
+			uint64_t									ui64TurboBits = 0b1100110011001100110011001100110011001100110011001100110011001100;
+			uint64_t									ui64OriginalTurboBits = 0b1100110011001100110011001100110011001100110011001100110011001100;
 		};
 
 		/** A poll function. */

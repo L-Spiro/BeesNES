@@ -85,7 +85,7 @@ namespace lsn {
 
 			static const CWinUtilities::LSN_COMBO_ENTRY ceEntries[] = {
 				//pwcName																					lpParm
-				{ L"Std: 1111000011110000111100001111000011110000111100001111000011110000",					-1,		},
+				{ L"Std: 1100110011001100110011001100110011001100110011001100110011001100",					-1,		},
 			};
 			CWinUtilities::FillComboBox( vTurboCombos[I], ceEntries, std::size( ceEntries ), -1 );
 		}
