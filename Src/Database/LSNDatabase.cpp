@@ -806,6 +806,19 @@ namespace lsn {
 			// ========
 			// MAPPERS
 			// ========
+			// Akumajou Special - Boku Dracula-kun (Japan)
+			{ .ui32Crc = 0x93794634, .ui16Mapper = 23, .ui16SubMapper = 2 },
+			// Contra (Japan) (Sample)
+			{ .ui32Crc = 0x18F4E9AA, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Contra (Japan)
+			{ .ui32Crc = 0x919AC0FE, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Crisis Force (Japan) (En) (Sample)
+			{ .ui32Crc = 0x90BD41BF, .ui16Mapper = 23, .ui16SubMapper = 1 },
+			// Crisis Force (Japan) (En)
+			//{ .ui32Crc = 0x99580334, .ui16Mapper = 23, .ui16SubMapper = 2 },
+			// Crisis Force (Japan)
+			{ .ui32Crc = 0x99580334, .ui16Mapper = 23, .ui16SubMapper = 2 },
+
 			// Deadly Towers (U)
 			{ .ui32Crc = 0xC2730C30, .ui16Mapper = 34 },
 
@@ -816,20 +829,50 @@ namespace lsn {
 			{ .ui32Crc = 0x8B781D39, .ui16Mapper = 79 },
 			// Don Doko Don 2 (Japan)
 			{ .ui32Crc = 0x49C84B4E, .ui16Mapper = 48 },
+
+			// Dragon Scroll - Yomigaerishi Maryuu (Japan)
+			{ .ui32Crc = 0xF60F6667, .ui16Mapper = 23, .ui16SubMapper = 3 },
+
 			// Fantastic Adventures of Dizzy, The (Aladdin) (UE)	// Duplicated as Quattro Adventure (Aladdin) (U)?
 			//{ .ui32Crc = 0x6C040686, .ui16Mapper = 71 },			
 			// Fantasy Zone (U)
 			{ .ui32Crc = 0x3D96A1D8, .ui16Mapper = 206 },
 			// Family Jockey (Japan)
 			{ .ui32Crc = 0xAC75F8CD, .ui16Mapper = 206, .ui16SubMapper = 1 },
+
+			// Ganbare Goemon 2 (Japan) (Wii U Virtual Console)
+			{ .ui32Crc = 0x7298E248, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Ganbare Goemon 2 (Japan) (Wii Virtual Console)
+			{ .ui32Crc = 0x63AB7B1B, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Ganbare Goemon 2 (Japan)
+			{ .ui32Crc = 0x112140A4, .ui16Mapper = 23, .ui16SubMapper = 3 },
+
 			// Gauntlet (U)
 			{ .ui32Crc = 0x834D1924, .ui16Mapper = 206 },
+			
+			// Getsu Fuuma Den (Japan) (Beta)
+			{ .ui32Crc = 0x831F8959, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Getsu Fuuma Den (Japan) (Steam)
+			{ .ui32Crc = 0xE7FAA078, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Getsu Fuuma Den (Japan) (Virtual Console)
+			{ .ui32Crc = 0xD57C4190, .ui16Mapper = 23, .ui16SubMapper = 3 },
+			// Getsu Fuuma Den (Japan)
+			{ .ui32Crc = 0xC8859038, .ui16Mapper = 23, .ui16SubMapper = 3 },
+
 			// Indiana Jones and the Temple of Doom (Tengen) (U)
 			{ .ui32Crc = 0x651700A5, .ui16Mapper = 206 },
 			// Indiana Jones and the Temple of Doom (U)
 			{ .ui32Crc = 0x5CEB1256, .ui16Mapper = 206 },
+			
+			// Jarinko Chie - Bakudan Musume no Shiawase Sagashi (Japan)
+			{ .ui32Crc = 0x5A3EC21C, .ui16Mapper = 23, .ui16SubMapper = 3 },
+
 			// Karnov (U)
 			{ .ui32Crc = 0xA37B0EE3, .ui16Mapper = 206 },
+			
+			// Konami Wai Wai World (Japan)
+			{ .ui32Crc = 0x64818FC5, .ui16Mapper = 23, .ui16SubMapper = 3 },
+
 			// Krazy Kreatures (USA) (Unl)
 			{ .ui32Crc = 0x1D873633, .ui16Mapper = 79 },
 			// Metro-Cross (Japan)
@@ -842,6 +885,10 @@ namespace lsn {
 			{ .ui32Crc = 0x24BA12DD, .cChip = LSN_C_BF9093, .ui16Mapper = 71, .ui16SubMapper = 1 },
 			// Momotarou Dentetsu (Japan)
 			{ .ui32Crc = 0x1027C432, .cChip = LSN_C_UOROM, .ui16Mapper = 2, },
+
+			// Parodius Da! (Japan)
+			{ .ui32Crc = 0xE4CEEAD1, .ui16Mapper = 23, .ui16SubMapper = 2 },
+
 			// Pipe Dream (U)
 			{ .ui32Crc = 0xDB70A67C, .pmRegion = LSN_PM_NTSC, .ui16Mapper = 3, },
 			// Quattro Adventure (Aladdin) (U)
@@ -864,6 +911,10 @@ namespace lsn {
 			{ .ui32Crc = 0xD5883D6B, .ui16Mapper = 206 },
 			// Teenage Mutant Ninja Turtles (Japan)
 			{ .ui32Crc = 0xEA74C587, .ui16Mapper = 25, .ui16SubMapper = 2, },
+
+			// Tiny Toon Adventures (Japan)
+			{ .ui32Crc = 0x7FCC340A, .ui16Mapper = 23, .ui16SubMapper = 2 },
+
 			// Toobin (U)
 			{ .ui32Crc = 0x05D70600, .ui16Mapper = 206 },
 			// Toobin (U) [a1]
