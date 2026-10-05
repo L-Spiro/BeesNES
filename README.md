@@ -6,7 +6,7 @@ A sub–cycle-accurate Nintendo Entertainment System emulator.
 A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goal of being as authentic of an experience as possible.  It should look, sound, and _feel_ like real hardware, with convincing visuals, clean and accurate audio, and real-time input response.  No visual or audible delays.  BeesNES also represents the under-served regions with support for a wide range of console variants, currently including NTSC, PAL, PAL “Dendy” Famiclone, PAL-M Brazilian Famiclone, and PAL-N Argentinian Famiclone.
 
 ## Visual Samples
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/4e4c5789-3dd0-4add-a10f-fabebea12526" /><br>AccuracyCoin results.<br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/74c2a421-b4a4-41d7-a572-7c8d1a2f530a" /><br>AccuracyCoin results.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ab107073-3271-4715-99d3-525b107349f7" /><br>General NTSC filter.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/08bc0c44-e2fd-403f-ab29-3c952161e35a" /><br>Gamma-aware resampling.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5efff799-1a2d-4aaf-833e-4e1e75e372b7" /><br>Measured CRT gamma adjusted for display on sRGB (etc.) monitors.<br>
