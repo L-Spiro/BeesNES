@@ -14,7 +14,7 @@ void LSN_FASTCALL								Cycle_2__1x291() {
 
 
 void LSN_FASTCALL								Cycle_2__64x0_64x1_64x2_64x3_64x4_64x5_64x6_64x7_64x8_64x9_X() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Reset_Oam2<false>();
 
@@ -45,7 +45,7 @@ void LSN_FASTCALL								Cycle_2__64x0_64x1_64x2_64x3_64x4_64x5_64x6_64x7_64x8_6
 
 
 void LSN_FASTCALL								Cycle_2__64x311() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Reset_Oam2<false>();
 
@@ -74,7 +74,7 @@ void LSN_FASTCALL								Cycle_2__64x311() {
 
 
 void LSN_FASTCALL								Cycle_2__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x1_X() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -98,7 +98,7 @@ void LSN_FASTCALL								Cycle_2__4x0_12x0_20x0_28x0_36x0_44x0_52x0_60x0_4x1_12x
 
 
 void LSN_FASTCALL								Cycle_2__4x311_12x311_20x311_28x311_36x311_44x311_52x311_60x311() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -120,7 +120,7 @@ void LSN_FASTCALL								Cycle_2__4x311_12x311_20x311_28x311_36x311_44x311_52x31
 
 
 void LSN_FASTCALL								Cycle_2__10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x1_18x1_X() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -144,7 +144,7 @@ void LSN_FASTCALL								Cycle_2__10x0_18x0_26x0_34x0_42x0_50x0_58x0_2x1_10x1_18
 
 
 void LSN_FASTCALL								Cycle_2__2x311_10x311_18x311_26x311_34x311_42x311_50x311_58x311() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -166,7 +166,7 @@ void LSN_FASTCALL								Cycle_2__2x311_10x311_18x311_26x311_34x311_42x311_50x31
 
 
 void LSN_FASTCALL								Cycle_2__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x1_X() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -190,7 +190,7 @@ void LSN_FASTCALL								Cycle_2__6x0_14x0_22x0_30x0_38x0_46x0_54x0_62x0_6x1_14x
 
 
 void LSN_FASTCALL								Cycle_2__6x311_14x311_22x311_30x311_38x311_46x311_54x311_62x311() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -212,7 +212,7 @@ void LSN_FASTCALL								Cycle_2__6x311_14x311_22x311_30x311_38x311_46x311_54x31
 
 
 void LSN_FASTCALL								Cycle_2__8x0_16x0_24x0_32x0_40x0_48x0_56x0_8x1_16x1_24x1_X() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -241,7 +241,7 @@ void LSN_FASTCALL								Cycle_2__8x0_16x0_24x0_32x0_40x0_48x0_56x0_8x1_16x1_24x
 
 
 void LSN_FASTCALL								Cycle_2__8x311_16x311_24x311_32x311_40x311_48x311_56x311() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -268,7 +268,7 @@ void LSN_FASTCALL								Cycle_2__8x311_16x311_24x311_32x311_40x311_48x311_56x31
 
 
 void LSN_FASTCALL								Cycle_2__2x0() {
-	Pixel_Clear_Sprite<false, false>();
+	Pixel_Clear_Sprite<false>();
 
 	Pixel_Shift_Sprite<true>();
 
@@ -292,7 +292,7 @@ void LSN_FASTCALL								Cycle_2__2x0() {
 
 
 void LSN_FASTCALL								Cycle_2__63x0_63x1_63x2_63x3_63x4_63x5_63x6_63x7_63x8_63x9_X() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Reset_Oam2<true>();
 
@@ -322,7 +322,7 @@ void LSN_FASTCALL								Cycle_2__63x0_63x1_63x2_63x3_63x4_63x5_63x6_63x7_63x8_6
 
 
 void LSN_FASTCALL								Cycle_2__63x311() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Reset_Oam2<true>();
 
@@ -350,7 +350,7 @@ void LSN_FASTCALL								Cycle_2__63x311() {
 
 
 void LSN_FASTCALL								Cycle_2__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x1_X() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -382,7 +382,7 @@ void LSN_FASTCALL								Cycle_2__3x0_11x0_19x0_27x0_35x0_43x0_51x0_59x0_3x1_11x
 
 
 void LSN_FASTCALL								Cycle_2__3x311_11x311_19x311_27x311_35x311_43x311_51x311_59x311() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -412,7 +412,7 @@ void LSN_FASTCALL								Cycle_2__3x311_11x311_19x311_27x311_35x311_43x311_51x31
 
 
 void LSN_FASTCALL								Cycle_2__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x1_X() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -443,7 +443,7 @@ void LSN_FASTCALL								Cycle_2__9x0_17x0_25x0_33x0_41x0_49x0_57x0_9x1_17x1_25x
 
 
 void LSN_FASTCALL								Cycle_2__9x311_17x311_25x311_33x311_41x311_49x311_57x311() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -472,7 +472,7 @@ void LSN_FASTCALL								Cycle_2__9x311_17x311_25x311_33x311_41x311_49x311_57x31
 
 
 void LSN_FASTCALL								Cycle_2__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x1_X() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -500,7 +500,7 @@ void LSN_FASTCALL								Cycle_2__5x0_13x0_21x0_29x0_37x0_45x0_53x0_61x0_5x1_13x
 
 
 void LSN_FASTCALL								Cycle_2__5x311_13x311_21x311_29x311_37x311_45x311_53x311_61x311() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -526,7 +526,7 @@ void LSN_FASTCALL								Cycle_2__5x311_13x311_21x311_29x311_37x311_45x311_53x31
 
 
 void LSN_FASTCALL								Cycle_2__7x0_15x0_23x0_31x0_39x0_47x0_55x0_7x1_15x1_23x1_X() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -554,7 +554,7 @@ void LSN_FASTCALL								Cycle_2__7x0_15x0_23x0_31x0_39x0_47x0_55x0_7x1_15x1_23x
 
 
 void LSN_FASTCALL								Cycle_2__7x311_15x311_23x311_31x311_39x311_47x311_55x311() {
-	Pixel_Clear_Sprite<false, true>();
+	Pixel_Clear_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -580,7 +580,7 @@ void LSN_FASTCALL								Cycle_2__7x311_15x311_23x311_31x311_39x311_47x311_55x31
 
 
 void LSN_FASTCALL								Cycle_2__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
-	Pixel_Clear_Sprite<true, true>();
+	Pixel_Clear_Sprite<true>();
 
 	if ( m_bRendering ) {
 
@@ -609,7 +609,7 @@ void LSN_FASTCALL								Cycle_2__1x1_1x2_1x3_1x4_1x5_1x6_1x7_1x8_1x9_1x10_X() {
 
 
 void LSN_FASTCALL								Cycle_2__1x0() {
-	Pixel_Clear_Sprite<true, true>();
+	Pixel_Clear_Sprite<true>();
 
 	if ( m_bRendering ) {
 
@@ -640,7 +640,7 @@ void LSN_FASTCALL								Cycle_2__1x0() {
 
 
 void LSN_FASTCALL								Cycle_2__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x7_256x8_256x9_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Reset_Oam2<false>();
 
@@ -674,7 +674,7 @@ void LSN_FASTCALL								Cycle_2__256x0_256x1_256x2_256x3_256x4_256x5_256x6_256x
 
 
 void LSN_FASTCALL								Cycle_2__256x311() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Reset_Oam2<false>();
 
@@ -706,7 +706,7 @@ void LSN_FASTCALL								Cycle_2__256x311() {
 
 
 void LSN_FASTCALL								Cycle_2__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_132x0_140x0_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -730,7 +730,7 @@ void LSN_FASTCALL								Cycle_2__68x0_76x0_84x0_92x0_100x0_108x0_116x0_124x0_13
 
 
 void LSN_FASTCALL								Cycle_2__68x311_76x311_84x311_92x311_100x311_108x311_116x311_124x311_132x311_140x311_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -752,7 +752,7 @@ void LSN_FASTCALL								Cycle_2__68x311_76x311_84x311_92x311_100x311_108x311_11
 
 
 void LSN_FASTCALL								Cycle_2__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130x0_138x0_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -776,7 +776,7 @@ void LSN_FASTCALL								Cycle_2__66x0_74x0_82x0_90x0_98x0_106x0_114x0_122x0_130
 
 
 void LSN_FASTCALL								Cycle_2__66x311_74x311_82x311_90x311_98x311_106x311_114x311_122x311_130x311_138x311_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -798,7 +798,7 @@ void LSN_FASTCALL								Cycle_2__66x311_74x311_82x311_90x311_98x311_106x311_114
 
 
 void LSN_FASTCALL								Cycle_2__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_134x0_142x0_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -822,7 +822,7 @@ void LSN_FASTCALL								Cycle_2__70x0_78x0_86x0_94x0_102x0_110x0_118x0_126x0_13
 
 
 void LSN_FASTCALL								Cycle_2__70x311_78x311_86x311_94x311_102x311_110x311_118x311_126x311_134x311_142x311_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -844,7 +844,7 @@ void LSN_FASTCALL								Cycle_2__70x311_78x311_86x311_94x311_102x311_110x311_11
 
 
 void LSN_FASTCALL								Cycle_2__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_136x0_144x0_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -873,7 +873,7 @@ void LSN_FASTCALL								Cycle_2__72x0_80x0_88x0_96x0_104x0_112x0_120x0_128x0_13
 
 
 void LSN_FASTCALL								Cycle_2__72x311_80x311_88x311_96x311_104x311_112x311_120x311_128x311_136x311_144x311_X() {
-	Pixel_Evaluation_Sprite<false, false>();
+	Pixel_Evaluation_Sprite<false>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -900,7 +900,7 @@ void LSN_FASTCALL								Cycle_2__72x311_80x311_88x311_96x311_104x311_112x311_12
 
 
 void LSN_FASTCALL								Cycle_2__255x0_255x1_255x2_255x3_255x4_255x5_255x6_255x7_255x8_255x9_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Reset_Oam2<true>();
 
@@ -930,7 +930,7 @@ void LSN_FASTCALL								Cycle_2__255x0_255x1_255x2_255x3_255x4_255x5_255x6_255x
 
 
 void LSN_FASTCALL								Cycle_2__255x311() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Reset_Oam2<true>();
 
@@ -958,7 +958,7 @@ void LSN_FASTCALL								Cycle_2__255x311() {
 
 
 void LSN_FASTCALL								Cycle_2__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131x0_139x0_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -990,7 +990,7 @@ void LSN_FASTCALL								Cycle_2__67x0_75x0_83x0_91x0_99x0_107x0_115x0_123x0_131
 
 
 void LSN_FASTCALL								Cycle_2__67x311_75x311_83x311_91x311_99x311_107x311_115x311_123x311_131x311_139x311_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1019,8 +1019,8 @@ void LSN_FASTCALL								Cycle_2__67x311_75x311_83x311_91x311_99x311_107x311_115
 }
 
 
-void LSN_FASTCALL								Cycle_2__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_137x0_145x0_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+void LSN_FASTCALL								Cycle_2__65x0_73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_137x0_X() {
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1050,8 +1050,8 @@ void LSN_FASTCALL								Cycle_2__73x0_81x0_89x0_97x0_105x0_113x0_121x0_129x0_13
 }
 
 
-void LSN_FASTCALL								Cycle_2__73x311_81x311_89x311_97x311_105x311_113x311_121x311_129x311_137x311_145x311_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+void LSN_FASTCALL								Cycle_2__65x311_73x311_81x311_89x311_97x311_105x311_113x311_121x311_129x311_137x311_X() {
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1080,7 +1080,7 @@ void LSN_FASTCALL								Cycle_2__73x311_81x311_89x311_97x311_105x311_113x311_12
 
 
 void LSN_FASTCALL								Cycle_2__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_133x0_141x0_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1108,7 +1108,7 @@ void LSN_FASTCALL								Cycle_2__69x0_77x0_85x0_93x0_101x0_109x0_117x0_125x0_13
 
 
 void LSN_FASTCALL								Cycle_2__69x311_77x311_85x311_93x311_101x311_109x311_117x311_125x311_133x311_141x311_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1134,7 +1134,7 @@ void LSN_FASTCALL								Cycle_2__69x311_77x311_85x311_93x311_101x311_109x311_11
 
 
 void LSN_FASTCALL								Cycle_2__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_135x0_143x0_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1162,7 +1162,7 @@ void LSN_FASTCALL								Cycle_2__71x0_79x0_87x0_95x0_103x0_111x0_119x0_127x0_13
 
 
 void LSN_FASTCALL								Cycle_2__71x311_79x311_87x311_95x311_103x311_111x311_119x311_127x311_135x311_143x311_X() {
-	Pixel_Evaluation_Sprite<false, true>();
+	Pixel_Evaluation_Sprite<true>();
 
 	Pixel_Shift_Sprite<false>();
 
@@ -1180,66 +1180,6 @@ void LSN_FASTCALL								Cycle_2__71x311_79x311_87x311_95x311_103x311_111x311_11
 		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi << 1) | 1;
 		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo << 1) | (m_ui16ShiftAttribLo & 1);
 		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi << 1) | (m_ui16ShiftAttribHi & 1);
-	}
-
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_2__65x0_65x1_65x2_65x3_65x4_65x5_65x6_65x7_65x8_65x9_X() {
-	Pixel_Evaluation_Sprite<true, true>();
-
-	Pixel_Shift_Sprite<false>();
-
-	if ( m_bRendering ) {
-
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-	}
-
-	if ( m_bRendering ) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi << 1) | 1;
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo << 1) | (m_ui16ShiftAttribLo & 1);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi << 1) | (m_ui16ShiftAttribHi & 1);
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
-	}
-
-	RenderPixel();
-
-
-	++m_stCurCycle;
-}
-
-
-void LSN_FASTCALL								Cycle_2__65x311() {
-	Pixel_Evaluation_Sprite<true, true>();
-
-	Pixel_Shift_Sprite<false>();
-
-	if ( m_bRendering ) {
-
-		// LSN_PPU_NAMETABLES = 0x2000.
-		m_ui8NtAtBuffer = Read( LSN_PPU_NAMETABLES | (m_paPpuAddrV.ui16Addr & 0x0FFF) );
-	}
-
-	if ( m_bRendering ) {
-		m_ui16ShiftPatternLo <<= 1;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi << 1) | 1;
-		m_ui16ShiftAttribLo = (m_ui16ShiftAttribLo << 1) | (m_ui16ShiftAttribLo & 1);
-		m_ui16ShiftAttribHi = (m_ui16ShiftAttribHi << 1) | (m_ui16ShiftAttribHi & 1);
-
-		m_ui16ShiftPatternLo = (m_ui16ShiftPatternLo & 0xFF00) | m_ui8NextTileLsb;
-		m_ui16ShiftPatternHi = (m_ui16ShiftPatternHi & 0xFF00) | m_ui8NextTileMsb;
-
-		m_ui16ShiftAttribLo  = (m_ui16ShiftAttribLo & 0xFF00) | ((m_ui8NextTileAttribute & 0b01) ? 0xFF : 0x00);
-		m_ui16ShiftAttribHi  = (m_ui16ShiftAttribHi & 0xFF00) | ((m_ui8NextTileAttribute & 0b10) ? 0xFF : 0x00);
 	}
 
 
@@ -2846,7 +2786,7 @@ void LSN_FASTCALL								Cycle_2__1x311() {
 	m_pnNmiTarget->ClearNmi();
 	PreRenderOamGlitches();
 
-	Pixel_Clear_Sprite<true, true>();
+	Pixel_Clear_Sprite<true>();
 
 	if ( m_bRendering ) {
 

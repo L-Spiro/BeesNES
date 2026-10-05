@@ -25,6 +25,9 @@ namespace lsn {
 		CMapper000() {
 		}
 		virtual ~CMapper000() {
+			if ( m_prRom->i32SaveRamSize ) {
+				SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
+			}
 		}
 
 
@@ -51,11 +54,58 @@ namespace lsn {
 				_pbCpuBus->SetReadFunc( uint16_t( I ), &CMapperBase::StdMapperCpuRead, this, uint16_t( (I - 0x8000) % m_prRom->vPrgRom.size() ) );
 				_pbCpuBus->SetWriteFunc( uint16_t( I ), &CCpuBus::NoWrite, nullptr, uint16_t( I ) );
 			}
+
+			if ( m_prRom->i32SaveRamSize ) {
+				LoadBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
+				for ( uint32_t I = 0x6000; I < 0x8000; ++I ) {
+					_pbCpuBus->SetReadFunc( uint16_t( I ), &Mapper000PgmRamRead, this, uint16_t( (I - 0x6000) % m_prRom->i32SaveRamSize ) );
+					_pbCpuBus->SetWriteFunc( uint16_t( I ), &Mapper000PgmRamWrite, this, uint16_t( (I - 0x6000) % m_prRom->i32SaveRamSize ) );
+				}
+			}
+		}
+
+		/**
+		 * Called to inform the mapper of a reset.
+		 **/
+		virtual void									Reset() override {
+			if ( m_prRom->i32SaveRamSize ) {
+				SaveBatteryRam( m_ui8PgmRam, sizeof( m_ui8PgmRam ) );
+			}
 		}
 
 
 	protected :
 		// == Members.
+		/** The rarely used work RAM. */
+		uint8_t											m_ui8PgmRam[4*1024];
+
+
+		// == Functions.
+		/**
+		 * Reads from the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to read from _pui8Data.  It is not constant because sometimes reads do modify status registers etc.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 */
+		static void LSN_FASTCALL						Mapper000PgmRamRead( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t &_ui8Ret ) {
+			CMapper000 * pmThis = reinterpret_cast<CMapper000 *>(_pvParm0);
+			_ui8Ret = pmThis->m_ui8PgmRam[_ui16Parm1];
+		}
+
+		/**
+		 * Writes to the PGM RAM.
+		 *
+		 * \param _pvParm0 A data value assigned to this address.
+		 * \param _ui16Parm1 A 16-bit parameter assigned to this address.  Typically this will be the address to write to _pui8Data.
+		 * \param _pui8Data The buffer to which to write.
+		 * \param _ui8Val The value to write.
+		 */
+		static void LSN_FASTCALL						Mapper000PgmRamWrite( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
+			CMapper000 * pmThis = reinterpret_cast<CMapper000 *>(_pvParm0);
+			pmThis->m_ui8PgmRam[_ui16Parm1] = _ui8Val;
+		}
 	};
 
 }	// namespace lsn
