@@ -57,6 +57,7 @@
 
 // _bEven is false on 0 2 4 6 8, etc.  It goes by cycle count rather than cycle index.
 #define LSN_APU_UPDATE									if constexpr ( !_bEven ) {																							\
+															m_bApuCycle = true;																								\
 															if ( m_bModeSwitch ) {																							\
 																m_bModeSwitch = false;																						\
 																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {													\
@@ -119,6 +120,12 @@ namespace lsn {
 		LSN_AT_PAL_MODE_1_STEP_3						= uint32_t( 16626.5 * 2.0 ),		/**< 33253. */
 		LSN_AT_PAL_MODE_1_STEP_4_0						= uint32_t( 20782.5 * 2.0 ),		/**< 41565. */
 		LSN_AT_PAL_MODE_1_STEP_4_1						= uint32_t( 20783 * 2.0 ),			/**< 41566. */
+	};
+
+	/** Frame-counter clock flags. */
+	enum LSN_FRAME_CLOCKS : uint8_t {
+		LSN_FC_QUARTER									= (1 << 0),							/**< Quarter-frame clock:  envelopes and the triangle's linear counter. */
+		LSN_FC_HALF										= (1 << 1),							/**< Half-frame clock:  length counters and sweeps. */
 	};
 
 	/** Register flags. */
@@ -380,7 +387,17 @@ namespace lsn {
 			m_dvTriangleLengthCounterHalt.Tick();
 			m_dvNoiseLengthCounterHalt.Tick();
 
+			m_bApuCycle = false;
+			m_ui8FrameClocks = 0;
 			(this->*m_pftTick)();
+			if ( m_bFrameClockPending && (m_ui8FrameClockWait == 0 || --m_ui8FrameClockWait == 0) && m_bApuCycle ) {
+				// A $4017 write with bit 7 set clocks the frame units 2 or 3 cycles after the write (the first APU cycle at least 2 cycles later).
+				//	A step clock on that same cycle merges with it.
+				m_bFrameClockPending = false;
+				if ( m_ui8Registers[0x17] & 0b10000000 ) {
+					ClockFrameUnits( uint8_t( ~m_ui8FrameClocks ) );
+				}
+			}
 			m_pPulse1.UpdateSweeperState<1>();
 			m_pPulse2.UpdateSweeperState<0>();
 			
@@ -510,6 +527,7 @@ namespace lsn {
 			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
+			m_bFrameClockPending = false;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
 			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
@@ -1019,6 +1037,14 @@ namespace lsn {
 		bool											m_bModeSwitch;
 		/** The frame interrupt flag (bit 6 of $4015).  It is set for two cycles even while frame IRQs are inhibited, but then it does not raise an IRQ. */
 		bool											m_bFrameIrqFlag = false;
+		/** A $4017 write is waiting to generate its quarter- and half-frame clocks (if bit 7 is set) 2 or 3 cycles after the write. */
+		bool											m_bFrameClockPending = false;
+		/** Set when the current tick is an APU cycle (the tick on which the sequencers and the frame-counter reset run). */
+		bool											m_bApuCycle = false;
+		/** The LSN_FRAME_CLOCKS the frame-counter steps generated on the current tick. */
+		uint8_t											m_ui8FrameClocks = 0;
+		/** The cycles left before a pending $4017 write can generate its quarter- and half-frame clocks. */
+		uint8_t											m_ui8FrameClockWait = 0;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled = true;
 		/** Register was written this cycle. */
@@ -1054,23 +1080,32 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Clocks everything the frame counter drives: the envelopes, the triangle's linear counter, the length counters, and the sweeps.  Writing $4017
-		 *	with bit 7 set does this on the write itself, ahead of the 3- or 4-cycle delay before the sequence restarts.
+		 * Clocks what the frame counter drives for a $4017 write with bit 7 set:  the envelopes and the triangle's linear counter (quarter frame),
+		 *	and the length counters and sweeps (half frame).  The hardware does this 2 or 3 cycles after the write, together with its sequence reset
+		 *	(m_ui64StepCycles restarts 2 cycles later because the step thresholds are measured from there).  The quarter- and half-frame signals are
+		 *	ORed with the step signals, so a step on that same APU cycle does not clock its units a second time.
+		 *
+		 * \param _ui8Which The LSN_FRAME_CLOCKS to generate.
 		 **/
-		void											ClockFrameUnits() {
-			m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
-
-			m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
-			m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
-			m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
-			m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
-
-			m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
-			m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
-			m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
-
-			m_pPulse1.TickSweeper<1>();
-			m_pPulse2.TickSweeper<0>();
+		void											ClockFrameUnits( uint8_t _ui8Which ) {
+			if ( _ui8Which & LSN_FC_QUARTER ) {
+				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
+			}
+			if ( _ui8Which & LSN_FC_HALF ) {
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
+			}
+			if ( _ui8Which & LSN_FC_QUARTER ) {
+				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
+				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
+				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
+			}
+			if ( _ui8Which & LSN_FC_HALF ) {
+				m_pPulse1.TickSweeper<1>();
+				m_pPulse2.TickSweeper<0>();
+			}
 		}
 
 		/** Mode-0 step-0 tick function. */
@@ -1080,6 +1115,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S0 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
@@ -1100,6 +1136,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S1 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER | LSN_FC_HALF;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
@@ -1128,6 +1165,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM0S2 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
@@ -1157,6 +1195,7 @@ namespace lsn {
 			}
 
 			if ( (m_ui64StepCycles + 1) == (_tM0S3_2 - 1) ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER | LSN_FC_HALF;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
@@ -1189,6 +1228,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S0 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
@@ -1209,6 +1249,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S1 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER | LSN_FC_HALF;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
@@ -1237,6 +1278,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( ++m_ui64StepCycles == _tM1S2 ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 				
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
@@ -1271,6 +1313,7 @@ namespace lsn {
 			LSN_APU_UPDATE;
 
 			if ( (m_ui64StepCycles + 1) == (_tM1S4_1 - 1) ) {
+				m_ui8FrameClocks |= LSN_FC_QUARTER | LSN_FC_HALF;
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
 
 				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
@@ -1773,8 +1816,10 @@ namespace lsn {
 			paApu->m_ui8Registers[0x17] = _ui8Val;
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
 			paApu->m_ui8Last4017 = _ui8Val;
-			if ( _ui8Val & 0b10000000 ) {
-				paApu->ClockFrameUnits();
+			if ( !paApu->m_bFrameClockPending ) {
+				// The first write starts the wait, so the second write of a read-modify-write does not delay the clocks.
+				paApu->m_bFrameClockPending = true;
+				paApu->m_ui8FrameClockWait = 2;
 			}
 			paApu->m_bRegModified = true;
 		}
