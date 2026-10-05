@@ -790,6 +790,13 @@ namespace lsn {
 
 						// TEST.
 						if ( bDone ) {
+							// The X goes through the same in-range check as a Y.  If it is out of range, m is cleared, so a misaligned OAMADDR
+							//	re-aligns (+1 & $FC).
+							const int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
+							if ( !(i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8)) ) {
+								m_ui8SpriteM = 0;
+								LSN_RESTORE_OAM;
+							}
 							// Check for overflow before returning to the search loop.
 							if ( (m_ui8SpriteN & ~0b11000000) == 0 ) {
 								m_sesStage = LSN_SES_FINISHED_OAM_LIST;
