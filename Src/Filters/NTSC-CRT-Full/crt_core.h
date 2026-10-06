@@ -94,6 +94,9 @@ extern "C" {
  */
 #define CRT_SIG_SHIFT   4
 
+/* number of scan lines whose filters run side-by-side (one per SIMD lane) */
+#define CRT_EQ_LANES    8
+
 struct CRT {
     short analog[CRT_INPUT_SIZE];
     short inp[CRT_INPUT_SIZE]; /* CRT input, can be noisy */
@@ -109,7 +112,10 @@ struct CRT {
     unsigned v_fac; /* factor to stretch img vertically onto the output img */
 
     /* internal data */
-    int ccf[4][4]; /* faster color carrier convergence */
+    int ccf[4][CRT_CB_FREQ]; /* faster color carrier convergence */
+    int yiq[(AV_LEN + 1) * 3 * CRT_EQ_LANES]; /* decoded Y, I, Q of CRT_EQ_LANES lines: [sample][Y/I/Q][line] */
+    int pix_x[AV_LEN * (12 / CRT_CB_FREQ)]; /* the source pixel under each of the 12 phases per carrier cycle of the active video */
+    int pix_w; /* pix_x[] is valid for this source width */
     int cc_period; /* vertically */
     int hsync, vsync; /* keep track of sync over frames */
     int rn; /* seed for the 'random' noise */

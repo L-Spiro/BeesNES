@@ -118,7 +118,7 @@ namespace lsn {
 		m_nsSettings.h = int( m_ui32OutputHeight );
 
 		::pal_modulate( &m_nnCrtPal, &m_nsSettings );
-		::pal_demodulate( &m_nnCrtPal, 0 );
+		::pal_demodulate( &m_nnCrtPal, 8 );
 
 		// Reset command list for upload and rendering execution
 		m_caAllocator->Get()->Reset();

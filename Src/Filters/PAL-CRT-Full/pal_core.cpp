@@ -331,7 +331,7 @@ found_field:
         rn = (214019 * rn + 140327895);
 
         /* signal + noise */
-        s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> (8 - PAL_SIG_SHIFT));
+        s = c->analog[i] + ((((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8) * (1 << PAL_SIG_SHIFT));
         if LSN_UNLIKELY(s >  (127 << PAL_SIG_SHIFT)) { s =  (127 << PAL_SIG_SHIFT); }
         if LSN_UNLIKELY(s < -(127 << PAL_SIG_SHIFT)) { s = -(127 << PAL_SIG_SHIFT); }
         c->inp[i] = (short)s;
@@ -407,7 +407,7 @@ vsync_found:
         s = 0;
         for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
             s += sig[SYNC_BEG + i];
-            if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT))) {
+            if LSN_UNLIKELY(s <= ((7 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT)) / 2)) {
                 break;
             }
         }

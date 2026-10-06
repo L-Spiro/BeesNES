@@ -121,7 +121,7 @@ namespace lsn {
 		m_nsSettings.dot_crawl_offset = _ui64RenderStartCycle % 3;
 
 		::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
-		::crt_demodulate_full( &m_nnCrtNtsc, 0 );
+		::crt_demodulate_full( &m_nnCrtNtsc, 8 );
 
 		// Reset command list for upload and rendering execution.
 		m_caAllocator->Get()->Reset();

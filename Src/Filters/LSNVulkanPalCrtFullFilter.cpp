@@ -128,7 +128,7 @@ namespace lsn {
 			{
 				CScopedNoSubnormals snsScope;
 				::pal_modulate( &m_nnCrtPal, &m_nsSettings );
-				::pal_demodulate( &m_nnCrtPal, 0 );
+				::pal_demodulate( &m_nnCrtPal, 8 );
 			}
 
 			if ( m_bValidState && UploadTexture() ) {

@@ -40,7 +40,13 @@ extern "C" {
 #endif
 
 /* NOTE, in general, increasing CRT_CB_FREQ reduces blur and bleed */
-#define CRT_CB_FREQ     4 /* carrier frequency relative to sample rate */
+/* decoder samples per color carrier cycle (4 or 12).
+ * The signal itself is always built at the NES's own 12 phases per carrier cycle (8 per pixel) and band-limited before it is
+ * sampled, so pixel edges are not snapped to the sample grid at either rate.  12 runs the decoder at that full rate (about 2.5x
+ * slower), but its equalizers were designed for 4, where they also notch out the carrier from luma; at 12 that notch is gone and
+ * flat colors show a fine dot pattern.
+ */
+#define CRT_CB_FREQ     4
 
 /* https://www.nesdev.org/wiki/NTSC_video#Scanline_Timing */
 #define CRT_HRES        (CRT_CC_LINE * CRT_CB_FREQ / 10) /* horizontal res */
@@ -105,7 +111,7 @@ extern "C" {
 #define CB_CYCLES   10
 
 /* line frequency */
-#define L_FREQ           1431818 /* full line */
+#define L_FREQ           (3579545 * CRT_CB_FREQ / 10) /* full line (the sample rate / 10) */
 
 /* IRE units (100 = 1.0V, -40 = 0.0V) */
 /* https://www.nesdev.org/wiki/NTSC_video#Terminated_measurement */

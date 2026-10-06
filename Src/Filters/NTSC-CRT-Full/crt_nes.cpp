@@ -134,6 +134,52 @@ BandLimitedSample( int _iP, int _iPhase )
 	return table.tsample[_iP&0x1FF][_iPhase%12];
 }
 
+/**
+ * The NES's signal at its own resolution (12 phases per carrier cycle, 8 per pixel), band-limited and taken at the decoder's
+ *	sample rate.
+ *
+ * Each pixel lasts 8 of the 12 color phases, so at 4 samples per carrier cycle pixel edges fall at 2.67-sample steps.  Taking one sample
+ *	per 3 phases from the raw signal snapped every edge to the sample grid, so an object's shape changed as it moved by a pixel (bright
+ *	highlights shimmered as things scrolled).  Instead, the signal is built per phase and low-pass filtered before it is sampled, so
+ *	an edge between two samples is carried in their levels and the decoded image just shifts as the object moves.
+ *
+ * The filter is the 4-phase box that each sample summed before, followed by a 25-tap low-pass (taps -12..12) that passes DC and the
+ *	carrier exactly and removes 2-6 times the carrier, so flat areas decode exactly as the band-limited table above, and everything
+ *	that would alias at the decoder's rate (above 6.3 MHz) is gone.
+ **/
+struct LSN_NES_AA_FILTER {
+	LSN_NES_AA_FILTER() {
+		/* half of the symmetric low-pass, scaled by 4096 (taps 0..12) */
+		static const int iHalf[13] = { 918, 846, 622, 342, 83, -96, -171, -154, -83, 0, 61, 86, 53 };
+		int iLow[25];
+		for ( int I = 0; I < 25; ++I ) { iLow[I] = iHalf[(I < 12) ? (12 - I) : (I - 12)]; }
+		for ( int I = 0; I < LSN_TAPS; ++I ) {
+			iTaps[I] = 0;
+			for ( int J = 0; J < 4; ++J ) {
+				if ( I - J >= 0 && I - J < 25 ) { iTaps[I] += iLow[I-J]; }
+			}
+		}
+		for ( int P = 0; P < 512; ++P ) {
+			for ( int I = 0; I < 12; ++I ) {
+				/* the 12-phase signal is kept with 3 fewer bits so that the filter fits in 32 bits */
+				iPhase[P][I] = (square_sample( P, I ) + 4) >> 3;
+			}
+		}
+	}
+
+
+	// == Enumerations.
+	enum {
+		LSN_TAPS														= 28,												/**< The number of taps: the box (4) convolved with the low-pass (25). */
+		LSN_FIRST														= -12,												/**< The phase offset of the first tap. */
+	};
+
+
+	// == Members.
+	int																	iTaps[LSN_TAPS];									/**< The filter, scaled by 4096 * 4 (the box sums 4 phases). */
+	int																	iPhase[512][12];									/**< The signal of each pixel at each phase, divided by 8. */
+};
+
 #define NES_OPTIMIZED 1
 /* toggle drawing of NES border
  * (normally not in visible region, but it depends on your emulator)
@@ -184,8 +230,8 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     int destw = AV_LEN;
     int desth = CRT_LINES;
     int n, phase;
-    int iccf[3][4];
-    int ccburst[3][4]; /* color phase for burst */
+    int iccf[3][CRT_CB_FREQ];
+    int ccburst[3][CRT_CB_FREQ]; /* color phase for burst */
     int sn, cs;
     static int phasetab[4] = { 0, 4, 8 };
         
@@ -196,8 +242,8 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
 
     for (y = 0; y < 3; y++) {
         xo = (y + s->dot_crawl_offset) * 120;
-        for (x = 0; x < 4; x++) {
-            n = (s->hue + x * 90 + xo + 33) % 360;
+        for (x = 0; x < CRT_CB_FREQ; x++) {
+            n = (s->hue + x * (360 / CRT_CB_FREQ) + xo + 33) % 360;
             crt_sincos14_full(&sn, &cs, n * 8192 / 180);
             ccburst[y][x] = sn;
         }
@@ -206,7 +252,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     yo = CRT_TOP;
          
     /* align signal */
-    xo = (xo & ~3);
+    xo -= (xo % CRT_CB_FREQ);
     
 #if NES_BORDER
     for (n = CRT_TOP; n <= (CRT_BOT + 2); n++) {
@@ -225,7 +271,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             ire += BandLimitedSample(p, phase);
             ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
             line[t++] = ire;
-            phase += 3;
+            phase += 12 / CRT_CB_FREQ;
         }
     }
 #endif
@@ -237,34 +283,59 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         short *line = &v->analog[n * CRT_HRES];
         int t, cb;
         for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-            cb = ccburst[n % 3][t & 3];
+            cb = ccburst[n % 3][t % CRT_CB_FREQ];
             line[t] = (short)(((BLANK_LEVEL << 15) + (cb * BURST_LEVEL) + (1 << (14 - CRT_SIG_SHIFT))) >> (15 - CRT_SIG_SHIFT));
-            iccf[n % 3][t & 3] = line[t];
+            iccf[n % 3][t % CRT_CB_FREQ] = line[t];
         }
     }
-    for (y = 0; y < desth; y++) {
-        int sy = (y * s->h) / desth;
+    {
+        constexpr int iDecim = 12 / CRT_CB_FREQ;                 /* phases per sample */
+        constexpr int iPhases = AV_LEN * iDecim;                  /* phases of active video */
+        constexpr int iPre = -LSN_NES_AA_FILTER::LSN_FIRST;       /* phases before the active video that the filter reads */
+        constexpr int iPost = LSN_NES_AA_FILTER::LSN_TAPS + LSN_NES_AA_FILTER::LSN_FIRST; /* and after it */
+        static const LSN_NES_AA_FILTER nafFilter;
+        int iStream[iPre + iPhases + iPost];
+        const int iBlack = BLACK_LEVEL + v->black_point;
         
-        if LSN_UNLIKELY(sy >= s->h) sy = s->h;
-        if LSN_UNLIKELY(sy < 0) sy = 0;
- 
-        sy *= s->w;
-        phase = phasetab[(y + yo + s->dot_crawl_offset) % 3];
-        for (x = 0; x < destw; x++) {
-            int ire, p;
+        if (v->pix_w != s->w) {
+            for (x = 0; x < iPhases; x++) {
+                v->pix_x[x] = (x * s->w) / iPhases;
+            }
+            v->pix_w = s->w;
+        }
+        /* outside of the active video the signal is blank */
+        for (x = 0; x < iPre; x++) { iStream[x] = 0; }
+        for (x = 0; x < iPost; x++) { iStream[iPre + iPhases + x] = 0; }
+        for (y = 0; y < desth; y++) {
+            int sy = (y * s->h) / desth;
+            short *dst = &v->analog[xo + (y + yo) * CRT_HRES];
+            int *stream = iStream + iPre;
             
-            p = s->data[((x * s->w) / destw) + sy];
-            ire = BLACK_LEVEL + v->black_point;
-            ire += BandLimitedSample(p, phase);
-            ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
-            v->analog[(x + xo) + (y + yo) * CRT_HRES] = (short)(ire);
-            phase += 3;
+            if LSN_UNLIKELY(sy >= s->h) sy = s->h;
+            if LSN_UNLIKELY(sy < 0) sy = 0;
+ 
+            sy *= s->w;
+            phase = phasetab[(y + yo + s->dot_crawl_offset) % 3] % 12;
+            for (x = 0; x < iPhases; x++) {
+                stream[x] = nafFilter.iPhase[s->data[v->pix_x[x] + sy] & 0x1FF][phase];
+                if (++phase == 12) { phase = 0; }
+            }
+            for (x = 0; x < destw; x++) {
+                const int *src = stream + x * iDecim + LSN_NES_AA_FILTER::LSN_FIRST;
+                int sum = 0, ire;
+                for (int k = 0; k < LSN_NES_AA_FILTER::LSN_TAPS; k++) {
+                    sum += nafFilter.iTaps[k] * src[k];
+                }
+                /* sum is the 4-phase sum of the signal, scaled by 4096 / 8 */
+                ire = iBlack + ((sum + (1 << 8)) >> 9);
+                dst[x] = (short)(((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT));
+            }
         }
     }
     
-    for (x = 0; x < 4; x++) {
+    for (x = 0; x < CRT_CB_FREQ; x++) {
         for (n = 0; n < 3; n++) {
-            v->ccf[n][x] = iccf[n][x & 3] << 7;
+            v->ccf[n][x] = iccf[n][x] << 7;
         }
     }
     v->cc_period = 3;
@@ -278,15 +349,15 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     int destw = AV_LEN;
     int desth = CRT_LINES;
     int n, phase;
-    int iccf[3][4];
-    int ccburst[3][4]; /* color phase for burst */
+    int iccf[3][CRT_CB_FREQ];
+    int ccburst[3][CRT_CB_FREQ]; /* color phase for burst */
     int sn, cs;
     static int phasetab[4] = { 0, 4, 8 };
 
     for (y = 0; y < 3; y++) {
         xo = (y + s->dot_crawl_offset) * 120;
-        for (x = 0; x < 4; x++) {
-            n = (s->hue + x * 90 + xo + 33) % 360;
+        for (x = 0; x < CRT_CB_FREQ; x++) {
+            n = (s->hue + x * (360 / CRT_CB_FREQ) + xo + 33) % 360;
             crt_sincos14_full(&sn, &cs, n * 8192 / 180);
             ccburst[y][x] = sn;
         }
@@ -295,7 +366,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     yo = CRT_TOP;
          
     /* align signal */
-    xo = (xo & ~3);
+    xo -= (xo % CRT_CB_FREQ);
     
     for (n = 0; n < CRT_VRES; n++) {
         int t; /* time */
@@ -316,9 +387,9 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             while (t < CB_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* BW + CB + BP */
             /* CB_CYCLES of color burst at 3.579545 Mhz */
             for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-                cb = ccburst[n % 3][t & 3];
+                cb = ccburst[n % 3][t % CRT_CB_FREQ];
                 line[t] = (short)(((BLANK_LEVEL << 15) + (cb * BURST_LEVEL) + (1 << (14 - CRT_SIG_SHIFT))) >> (15 - CRT_SIG_SHIFT));
-                iccf[n % 3][t & 3] = line[t];
+                iccf[n % 3][t % CRT_CB_FREQ] = line[t];
             }
             while (t < LAV_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT);
 #if NES_BORDER
@@ -332,7 +403,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
                     ire += BandLimitedSample(p, phase);
                     ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
                     line[t++] = ire;
-                    phase += 3;
+                    phase += 12 / CRT_CB_FREQ;
                 }
             } else {
 #endif
@@ -358,13 +429,13 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             ire += BandLimitedSample(p, phase);
             ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
             v->analog[(x + xo) + (y + yo) * CRT_HRES] = ire;
-            phase += 3;
+            phase += 12 / CRT_CB_FREQ;
         }
     }
     
-    for (x = 0; x < 4; x++) {
+    for (x = 0; x < CRT_CB_FREQ; x++) {
         for (n = 0; n < 3; n++) {
-            v->ccf[n][x] = iccf[n][x & 3] << 7;
+            v->ccf[n][x] = iccf[n][x] << 7;
         }
     }
     v->cc_period = 3;
