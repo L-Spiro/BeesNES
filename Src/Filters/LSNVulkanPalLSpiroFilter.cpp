@@ -239,12 +239,32 @@ namespace lsn {
 			return;
 		}
 
+		if LSN_LIKELY( !CombFilterEnabled() ) {
+			RunJob( LSN_RP_FULL, _pui8Pixels, _ui64RenderStartCycle );
+		}
+		else {
+			// Combing reads the neighboring scanlines, so every scanline is decoded before any is combed and converted.
+			RunJob( LSN_RP_YUV, _pui8Pixels, _ui64RenderStartCycle );
+			RunJob( LSN_RP_RGB, _pui8Pixels, _ui64RenderStartCycle );
+		}
+	}
+
+	/**
+	 * Runs one phase of a frame render on the calling thread and the worker threads, returning when all of them have finished.
+	 * 
+	 * \param _rpPhase The part of the render to perform.
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
+	 **/
+	void CVulkanPalLSpiroFilter::RunJob( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
+		const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
 		const size_t stThreads = m_vThreads.size() + 1;
 		{
 			std::lock_guard<std::mutex> lgLock( m_mThreadMutex );
 			m_jJob.pui8Pixels = _pui8Pixels;
 			m_jJob.ui64RenderStartCycle = _ui64RenderStartCycle;
 			m_jJob.stThreads = stThreads;
+			m_jJob.rpPhase = _rpPhase;
 			++m_ui64JobId;
 			m_ui32WorkersRemaining.store( uint32_t( m_vThreads.size() ) );
 		}
@@ -253,7 +273,7 @@ namespace lsn {
 		const uint16_t ui16Lines = m_ui16Height;
 		const uint16_t ui16Start = 0;
 		const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * 1U) / uint32_t( stThreads ) );
-		RenderScanlineRange<false, false>( _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
+		RenderScanlinePhase<false, false>( _rpPhase, _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
 
 		std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
 		m_cvDone.wait( ulLock, [&]() { return m_ui32WorkersRemaining.load() == 0; } );
@@ -462,7 +482,7 @@ namespace lsn {
 			
 			if ( ui16End > ui16Start ) {
 				const uint32_t ui32Pitch = m_ui16ScaledWidth * 4 * sizeof( float );
-				RenderScanlineRange<false, false>( jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
+				RenderScanlinePhase<false, false>( jJob.rpPhase, jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), ui32Pitch );
 			}
 
 			if ( m_ui32WorkersRemaining.fetch_sub( 1 ) == 1 ) {

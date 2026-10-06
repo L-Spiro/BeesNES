@@ -43,6 +43,21 @@ namespace lsn {
 			LSN_SRGB_RES									= 512,
 		};
 
+		/** Vertical (line) comb filters applied to the decoded chroma.  Each is non-recursive:  only decoded (not combed) lines are combined. */
+		enum LSN_COMB_FILTER : uint8_t {
+			LSN_CF_NONE										= 0,												/**< No comb filter.  Each line's chroma is used as decoded (PAL-S, "simple PAL"). */
+			LSN_CF_DELAY_LINE,																					/**< 1H chroma delay line (PAL-D, standard PAL):  each line's chroma is averaged with the line above. */
+			LSN_CF_3_LINE,																						/**< 2H (3-line) chroma comb:  each line's chroma is averaged with the lines above and below. */
+			LSN_CF_TOTAL																						/**< The number of comb filters. */
+		};
+
+		/** The parts of a frame render that can be split across a barrier. */
+		enum LSN_RENDER_PHASE : uint8_t {
+			LSN_RP_FULL										= 0,												/**< Decode and convert each scanline (a comb filter needs the range to cover the whole frame). */
+			LSN_RP_YUV,																							/**< Decode scanlines to Y/U/V only. */
+			LSN_RP_RGB,																							/**< Comb (if enabled) and convert decoded scanlines to the output. */
+		};
+
 
 		// == Types.
 		/**
@@ -93,6 +108,43 @@ namespace lsn {
 		 * \return Returns the size of the chroma filter kernel.
 		 **/
 		inline uint32_t										GetKernelSizeChroma() const { return m_ui32FilterKernelSize; }
+
+		/**
+		 * Sets the vertical comb filter.
+		 * 
+		 * \param _cfFilter The comb filter to use.  LSN_CF_NONE disables comb filtering.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetCombFilter( LSN_COMB_FILTER _cfFilter );
+
+		/**
+		 * Gets the vertical comb filter.
+		 * 
+		 * \return Returns the comb filter in use.
+		 **/
+		inline LSN_COMB_FILTER								GetCombFilter() const { return m_cfCombFilter; }
+
+		/**
+		 * Determines whether a vertical comb filter is in use.
+		 * 
+		 * \return Returns true if a comb filter is in use.
+		 **/
+		inline bool											CombFilterEnabled() const { return m_cfCombFilter != LSN_CF_NONE; }
+
+		/**
+		 * Sets the comb filter's weight:  the share of each output line's chroma that comes from the neighboring line(s).  0.5 is an ideal delay
+		 *	line (1/2 + 1/2) or 3-line comb (1/4 + 1/2 + 1/4).  Lower values model a delay line with less gain on its delayed path.
+		 * 
+		 * \param _fWeight The weight, clamped to [0,1].
+		 **/
+		void												SetCombWeight( float _fWeight ) { m_fCombWeight = std::clamp( _fWeight, 0.0f, 1.0f ); }
+
+		/**
+		 * Gets the comb filter's weight.
+		 * 
+		 * \return Returns the share of each output line's chroma that comes from the neighboring line(s).
+		 **/
+		inline float										GetCombWeight() const { return m_fCombWeight; }
 
 		/**
 		 * Sets the width of the input.
@@ -283,6 +335,10 @@ namespace lsn {
 		std::vector<simd_4>									m_vI;												/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;												/**< The YIQ Q buffer. */
 		std::vector<float, CAlignmentAllocator<float>>		m_vBlendBuffer;										/**< The blend buffer. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vICombed;											/**< The comb-filtered I (V) buffer. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vQCombed;											/**< The comb-filtered Q (U) buffer. */
+		LSN_COMB_FILTER										m_cfCombFilter = LSN_CF_NONE;						/**< The vertical comb filter. */
+		float												m_fCombWeight = 0.5f;								/**< The share of each output line's chroma that comes from the neighboring line(s). */
 		//std::vector<uint8_t>								m_vRgbBuffer;										/**< The output created by calling FilterFrame(). */
 		uint16_t											m_ui16ScaledWidth = 0;								/**< Output width. */
 		uint16_t											m_ui16PixelToSignal = 10;							/**< How many signals each pixel generates. */
@@ -347,7 +403,8 @@ namespace lsn {
 		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx );
 
 		/**
-		 * Renders a range of scanlines.
+		 * Renders a range of scanlines.  When the comb filter is enabled, the range must be the whole frame, since combing reads the scanlines
+		 *	above and below.
 		 * 
 		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 		 * \param _ui16Start Index of the first scanline to render.
@@ -358,6 +415,39 @@ namespace lsn {
 		 **/
 		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Renders one phase of a range of scanlines.  With a comb filter, every scanline must finish LSN_RP_YUV before any scanline starts
+		 *	LSN_RP_RGB, because combing reads the neighboring scanlines.
+		 * 
+		 * \param _rpPhase The phase to render.
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End Index of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
+		void												RenderScanlinePhase( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Decodes a range of scanlines to Y/U/V without converting them.
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to decode.
+		 * \param _ui16End Index of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 **/
+		void												DecodeScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle );
+
+		/**
+		 * Applies the vertical comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+		 *	(uncombed) scanlines are read.  Missing neighbors (above the first or below the last scanline) are taken as the scanline itself.
+		 * 
+		 * \param _sScanline The scanline to comb.
+		 **/
+		void												CombScanline( size_t _sScanline );
 
 		/**
 		 * Generates the phase sin/cos tables.
@@ -507,13 +597,14 @@ namespace lsn {
 #endif	// #ifdef __SSE4_1__
 
 		/**
-		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
+		 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ (or m_vY/m_vICombed/m_vQCombed) to BGRA values in the same scanline of m_vRgbBuffer.
 		 * 
+		 * \tparam _bCombed If true, the chroma is read from m_vICombed/m_vQCombed.
 		 * \param _sScanline The scanline to convert.
 		 * \param _pui8Dst Pointers to the start of the destination buffer.
 		 * \param _sPitch The pitch of the rows in the scanline buffer.
 		 **/
-		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
+		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true, bool _bCombed = false>
 		void												ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch );
 	};
 	
@@ -573,7 +664,8 @@ namespace lsn {
 	}
 
 	/**
-	 * Renders a range of scanlines.
+	 * Renders a range of scanlines.  When the comb filter is enabled, the range must be the whole frame, since combing reads the scanlines
+	 *	above and below.
 	 * 
 	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
 	 * \param _ui16Start Index of the first scanline to render.
@@ -584,6 +676,12 @@ namespace lsn {
 	 **/
 	template <bool _bStoreToInt, bool _bPhosphorDecay>
 	void CLSpiroPalFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		if LSN_UNLIKELY( CombFilterEnabled() ) {
+			// Combing reads the neighboring scanlines, so the whole range is decoded first.
+			RenderScanlinePhase<_bStoreToInt, _bPhosphorDecay>( LSN_RP_YUV, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			RenderScanlinePhase<_bStoreToInt, _bPhosphorDecay>( LSN_RP_RGB, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			return;
+		}
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -598,6 +696,45 @@ namespace lsn {
 			pfY += sYiqStride;
 			pfI += sYiqStride;
 			pfQ += sYiqStride;
+		}
+	}
+
+	/**
+	 * Renders one phase of a range of scanlines.  With a comb filter, every scanline must finish LSN_RP_YUV before any scanline starts
+	 *	LSN_RP_RGB, because combing reads the neighboring scanlines.
+	 * 
+	 * \param _rpPhase The phase to render.
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End Index of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	template <bool _bStoreToInt, bool _bPhosphorDecay>
+	void CLSpiroPalFilterBase::RenderScanlinePhase( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		switch ( _rpPhase ) {
+			case LSN_RP_YUV : {
+				DecodeScanlineRange( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle );
+				break;
+			}
+			case LSN_RP_RGB : {
+				if LSN_LIKELY( CombFilterEnabled() ) {
+					for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+						CombScanline( H );
+						ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay, true>( H, _pui8Dst, _sPitch );
+					}
+				}
+				else {
+					for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+						ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay>( H, _pui8Dst, _sPitch );
+					}
+				}
+				break;
+			}
+			default : {
+				RenderScanlineRange<_bStoreToInt, _bPhosphorDecay>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			}
 		}
 	}
 
@@ -838,13 +975,14 @@ namespace lsn {
 #endif	// #ifdef __SSE4_1__
 
 	/**
-	 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ to BGRA values in the same scanline of m_vRgbBuffer.
+	 * Converts a single scanline of YIQ values in m_vY/m_vI/m_vQ (or m_vY/m_vICombed/m_vQCombed) to BGRA values in the same scanline of m_vRgbBuffer.
 	 * 
+	 * \tparam _bCombed If true, the chroma is read from m_vICombed/m_vQCombed.
 	 * \param _sScanline The scanline to convert.
 	 * \param _pui8Dst Pointers to the start of the destination buffer.
 	 * \param _sPitch The pitch of the rows in the scanline buffer.
 	 **/
-	template <bool _bStoreToInt, bool _bPhosphorDecay>
+	template <bool _bStoreToInt, bool _bPhosphorDecay, bool _bCombed>
 	void CLSpiroPalFilterBase::ConvertYiqToBgra( size_t _sScanline, uint8_t * _pui8Dst, size_t _sPitch ) {
 		uint8_t * pui8Bgra = _pui8Dst + _sPitch * _sScanline;
 		float * pfBlendBuffer = m_vBlendBuffer.data() + m_ui16ScaledWidth * 3 * _sScanline;
@@ -854,8 +992,8 @@ namespace lsn {
 		
 		size_t sYiqStride = m_ui16ScaledWidth * _sScanline;
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
-		float * pfI = reinterpret_cast<float *>(m_vI.data());
-		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
+		float * pfI = _bCombed ? m_vICombed.data() : reinterpret_cast<float *>(m_vI.data());
+		float * pfQ = _bCombed ? m_vQCombed.data() : reinterpret_cast<float *>(m_vQ.data());
 		pfY += sYiqStride;
 		pfI += sYiqStride;
 		pfQ += sYiqStride;

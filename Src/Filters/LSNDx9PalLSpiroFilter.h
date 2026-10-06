@@ -144,6 +144,7 @@ namespace lsn {
 			const uint8_t *									pui8Pixels = nullptr;								/**< The input 9-bit pixel array. */
 			uint64_t										ui64RenderStartCycle = 0;							/**< The render cycle at the start of the frame. */
 			size_t											stThreads = 1;										/**< Total number of threads for the job, including the calling thread. */
+			LSN_RENDER_PHASE								rpPhase = LSN_RP_FULL;								/**< The part of the render to perform. */
 		};
 
 
@@ -179,6 +180,15 @@ namespace lsn {
 		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
 		 **/
 		void												FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
+
+		/**
+		 * Runs one phase of a frame render on the calling thread and the worker threads, returning when all of them have finished.
+		 * 
+		 * \param _rpPhase The part of the render to perform.
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the block being rendered.
+		 **/
+		void												RunJob( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle );
 		
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.

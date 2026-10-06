@@ -101,6 +101,11 @@ namespace lsn {
 			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
 #endif	// #ifdef LSN_VULKAN1
 		};
+		m_nbfLSpiroPalFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_nbfLSpiroDendyFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+		//m_nbfLSpiroPalMFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_nbfLSpiroPalNFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
 		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
 		m_nbfLSpiroPalMFilter.SetGamma( 1.0f / 0.45f );
@@ -117,6 +122,11 @@ namespace lsn {
 		m_d9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_d9plsfDx9LSpiroPalN.CDx9FilterBase::SetFps( 50.502710495150011279043537108053f );
+
+		m_d9plsfDx9LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d9plsfDx9LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+		//m_d9plsfDx9LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d9plsfDx9LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_d9ncfDx9EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
@@ -168,6 +178,11 @@ namespace lsn {
 		m_d12plsfDx12LSpiroPalM.CDx12FilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_d12plsfDx12LSpiroPalN.CDx12FilterBase::SetFps( 50.502710495150011279043537108053f );
 
+		m_d12plsfDx12LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d12plsfDx12LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+		//m_d12plsfDx12LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d12plsfDx12LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+
 		m_d12ncfDx12EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
 		m_d12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
@@ -218,6 +233,11 @@ namespace lsn {
 		m_vplsfVulkanLSpiroDendy.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_vplsfVulkanLSpiroPalM.CVulkanFilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_vplsfVulkanLSpiroPalN.CVulkanFilterBase::SetFps( 50.502710495150011279043537108053f );
+
+		m_vplsfVulkanLSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_vplsfVulkanLSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
+		//m_vplsfVulkanLSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_vplsfVulkanLSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_vncfVulkanEmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 

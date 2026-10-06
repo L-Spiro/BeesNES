@@ -226,6 +226,23 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the vertical comb filter.
+	 * 
+	 * \param _cfFilter The comb filter to use.  LSN_CF_NONE disables comb filtering.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CLSpiroPalFilterBase::SetCombFilter( LSN_COMB_FILTER _cfFilter ) {
+		if ( _cfFilter >= LSN_CF_TOTAL ) { _cfFilter = LSN_CF_NONE; }
+		LSN_COMB_FILTER cfBackup = m_cfCombFilter;
+		m_cfCombFilter = _cfFilter;
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) {
+			m_cfCombFilter = cfBackup;
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Sets the number of signals per pixel.  10 for PAL, 8 for Dendy.
 	 * 
 	 * \param _ui16Value The value to set.
@@ -571,6 +588,95 @@ namespace lsn {
 	}
 
 	/**
+	 * Decodes a range of scanlines to Y/U/V without converting them.
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to decode.
+	 * \param _ui16End Index of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 **/
+	void CLSpiroPalFilterBase::DecodeScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle ) {
+		size_t sYiqStride = m_ui16ScaledWidth;
+		float * pfY = reinterpret_cast<float *>(m_vY.data()) + sYiqStride * _ui16Start;
+		float * pfI = reinterpret_cast<float *>(m_vI.data()) + sYiqStride * _ui16Start;
+		float * pfQ = reinterpret_cast<float *>(m_vQ.data()) + sYiqStride * _ui16Start;
+		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_PAL_DOTS_X * H) * 8) % 12 ), H );
+			pfY += sYiqStride;
+			pfI += sYiqStride;
+			pfQ += sYiqStride;
+		}
+	}
+
+	/**
+	 * Applies the vertical comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+	 *	(uncombed) scanlines are read.  Missing neighbors (above the first or below the last scanline) are taken as the scanline itself.
+	 * 
+	 * \param _sScanline The scanline to comb.
+	 **/
+	void CLSpiroPalFilterBase::CombScanline( size_t _sScanline ) {
+		const size_t sStride = m_ui16ScaledWidth;
+		const size_t sAbove = _sScanline ? (_sScanline - 1) : _sScanline;
+		const size_t sBelow = (_sScanline + 1 < m_ui16Height) ? (_sScanline + 1) : _sScanline;
+		const float * pfSrc[2] = { reinterpret_cast<const float *>(m_vI.data()), reinterpret_cast<const float *>(m_vQ.data()) };
+		float * pfDst[2] = { m_vICombed.data() + sStride * _sScanline, m_vQCombed.data() + sStride * _sScanline };
+
+		// Weights for the line above, this line, and the line below.
+		float fAbove, fThis, fBelow;
+		if ( m_cfCombFilter == LSN_CF_3_LINE ) {
+			fAbove = fBelow = m_fCombWeight * 0.5f;
+			fThis = 1.0f - m_fCombWeight;
+		}
+		else {
+			fAbove = m_fCombWeight;
+			fThis = 1.0f - m_fCombWeight;
+			fBelow = 0.0f;
+		}
+
+		for ( size_t C = 0; C < 2; ++C ) {
+			const float * pfA = pfSrc[C] + sStride * sAbove;
+			const float * pfT = pfSrc[C] + sStride * _sScanline;
+			const float * pfB = pfSrc[C] + sStride * sBelow;
+			float * pfD = pfDst[C];
+			size_t I = 0;
+#ifdef __AVX512F__
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+				const __m512 mAbove = _mm512_set1_ps( fAbove ), mThis = _mm512_set1_ps( fThis ), mBelow = _mm512_set1_ps( fBelow );
+				for ( ; I + 16 <= sStride; I += 16 ) {
+					__m512 mSum = _mm512_add_ps( _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ), _mm512_mul_ps( _mm512_loadu_ps( pfA + I ), mAbove ) );
+					mSum = _mm512_add_ps( mSum, _mm512_mul_ps( _mm512_loadu_ps( pfB + I ), mBelow ) );
+					_mm512_storeu_ps( pfD + I, mSum );
+				}
+			}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+				const __m256 mAbove = _mm256_set1_ps( fAbove ), mThis = _mm256_set1_ps( fThis ), mBelow = _mm256_set1_ps( fBelow );
+				for ( ; I + 8 <= sStride; I += 8 ) {
+					__m256 mSum = _mm256_add_ps( _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ), _mm256_mul_ps( _mm256_loadu_ps( pfA + I ), mAbove ) );
+					mSum = _mm256_add_ps( mSum, _mm256_mul_ps( _mm256_loadu_ps( pfB + I ), mBelow ) );
+					_mm256_storeu_ps( pfD + I, mSum );
+				}
+			}
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+			if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+				const __m128 mAbove = _mm_set1_ps( fAbove ), mThis = _mm_set1_ps( fThis ), mBelow = _mm_set1_ps( fBelow );
+				for ( ; I + 4 <= sStride; I += 4 ) {
+					__m128 mSum = _mm_add_ps( _mm_mul_ps( _mm_loadu_ps( pfT + I ), mThis ), _mm_mul_ps( _mm_loadu_ps( pfA + I ), mAbove ) );
+					mSum = _mm_add_ps( mSum, _mm_mul_ps( _mm_loadu_ps( pfB + I ), mBelow ) );
+					_mm_storeu_ps( pfD + I, mSum );
+				}
+			}
+#endif	// #ifdef __SSE4_1__
+			for ( ; I < sStride; ++I ) {
+				pfD[I] = (pfT[I] * fThis + pfA[I] * fAbove) + pfB[I] * fBelow;
+			}
+		}
+	}
+
+	/**
 	 * Generates the phase sin/cos tables.
 	 * 
 	 * \param _fHue The hue offset.
@@ -727,6 +833,10 @@ namespace lsn {
 
 			//m_vRgbBuffer.resize( sSize * 4 );
 			m_vBlendBuffer.resize( sSize * 3 );
+			if ( CombFilterEnabled() ) {
+				m_vICombed.resize( sSize );
+				m_vQCombed.resize( sSize );
+			}
 			return true;
 		}
 		catch ( ... ) { return false; }
