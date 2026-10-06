@@ -154,7 +154,7 @@ namespace lsn {
 			}
 		}
 
-		::crt_demodulate_full( &m_nnCrtNtsc, 3 );
+		::crt_demodulate_full( &m_nnCrtNtsc, 0 );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;

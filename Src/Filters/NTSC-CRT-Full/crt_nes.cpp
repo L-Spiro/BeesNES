@@ -16,6 +16,7 @@
 #if (CRT_SYSTEM == CRT_SYSTEM_NES)
 #include <stdlib.h>
 #include <string.h>
+#include <cmath>
 
 
 /* amplified IRE = ((mV / 7.143) - 312 / 7.143) * 1024 */
@@ -85,6 +86,54 @@ square_sample(int p, int phase)
 #endif
 }
 
+/**
+ * The table of band-limited signal samples, indexed by [9-bit pixel][phase % 12].
+ * 
+ * Each sample sums 4 of the 12 square-wave phases, but samples are only 3 phases apart and the line-to-line phase offsets (0, 4, 8) are not
+ *	multiples of 3, so sampling the raw square wave aliases its upper harmonics onto the color carrier differently on each of the 3 line phases.
+ *	That gave the same color a different hue and saturation on every 3rd line (visible as horizontal lines across flat areas).  Keeping only
+ *	the DC and fundamental (all that a TV passes in the chroma band anyway) makes every line phase decode to the same color.
+ **/
+struct LSN_NES_SIGNAL_TABLE {
+	LSN_NES_SIGNAL_TABLE() {
+		constexpr double pi = 3.14159265358979323846;
+		for ( int p = 0; p < 512; ++p ) {
+			double box[12];
+			double dc = 0.0, re = 0.0, im = 0.0;
+			for ( int I = 0; I < 12; ++I ) {
+				box[I] = double( square_sample( p, I + 0 ) + square_sample( p, I + 1 ) + square_sample( p, I + 2 ) + square_sample( p, I + 3 ) );
+				dc += box[I];
+				re += box[I] * std::cos( 2.0 * pi * I / 12.0 );
+				im += box[I] * std::sin( 2.0 * pi * I / 12.0 );
+			}
+			dc /= 12.0;
+			re *= 2.0 / 12.0;
+			im *= 2.0 / 12.0;
+			for ( int I = 0; I < 12; ++I ) {
+				tsample[p][I] = int( std::lround( dc + re * std::cos( 2.0 * pi * I / 12.0 ) + im * std::sin( 2.0 * pi * I / 12.0 ) ) );
+			}
+		}
+	}
+
+
+	// == Members.
+	int																	tsample[512][12];									/**< The band-limited sum of 4 square-wave phases for each pixel and starting phase. */
+};
+
+/**
+ * Gets the band-limited sum of 4 square-wave phases for a given pixel and starting phase.
+ * 
+ * \param _iP The 9-bit pixel.
+ * \param _iPhase The starting phase.
+ * \return Returns the band-limited sum of square_sample( _iP, _iPhase + 0 ) through square_sample( _iP, _iPhase + 3 ).
+ **/
+static inline int
+BandLimitedSample( int _iP, int _iPhase )
+{
+	static const LSN_NES_SIGNAL_TABLE table;
+	return table.tsample[_iP&0x1FF][_iPhase%12];
+}
+
 #define NES_OPTIMIZED 1
 /* toggle drawing of NES border
  * (normally not in visible region, but it depends on your emulator)
@@ -110,20 +159,20 @@ setup_field(struct CRT *v)
  
     for (n = 0; n < CRT_VRES; n++) {
         int t; /* time */
-        signed char *line = &v->analog[n * CRT_HRES];
+        short *line = &v->analog[n * CRT_HRES];
  
         t = LINE_BEG;
  
         /* vertical sync scanlines */
         if LSN_UNLIKELY(n >= 259 && n <= CRT_VRES) {
-           while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
-           while (t < PPUpx2pos(327)) line[t++] = SYNC_LEVEL; /* sync separator */
-           while (t < CRT_HRES) line[t++] = BLANK_LEVEL; /* blank */
+           while (t < SYNC_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* FP */
+           while (t < PPUpx2pos(327)) line[t++] = SYNC_LEVEL * (1 << CRT_SIG_SHIFT); /* sync separator */
+           while (t < CRT_HRES) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* blank */
         } else {
             /* prerender/postrender/video scanlines */
-            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
-            while (t < BW_BEG) line[t++] = SYNC_LEVEL;  /* SYNC */
-            while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
+            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* FP */
+            while (t < BW_BEG) line[t++] = SYNC_LEVEL * (1 << CRT_SIG_SHIFT);  /* SYNC */
+            while (t < CRT_HRES) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT);
         }
     }
 }
@@ -150,7 +199,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         for (x = 0; x < 4; x++) {
             n = (s->hue + x * 90 + xo + 33) % 360;
             crt_sincos14_full(&sn, &cs, n * 8192 / 180);
-            ccburst[y][x] = sn >> 10;
+            ccburst[y][x] = sn;
         }
     }
     xo = AV_BEG;
@@ -162,7 +211,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
 #if NES_BORDER
     for (n = CRT_TOP; n <= (CRT_BOT + 2); n++) {
         int t; /* time */
-        signed char *line = &v->analog[n * CRT_HRES];
+        short *line = &v->analog[n * CRT_HRES];
         
         t = LINE_BEG;
  
@@ -173,33 +222,32 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             p = s->border_color;
             if (t == LAV_BEG) p = 0xf0;
             ire = BLACK_LEVEL + v->black_point;
-            ire += square_sample(p, phase + 0);
-            ire += square_sample(p, phase + 1);
-            ire += square_sample(p, phase + 2);
-            ire += square_sample(p, phase + 3);
-            ire = (ire * v->white_point / 100) >> 12;
+            ire += BandLimitedSample(p, phase);
+            ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
             line[t++] = ire;
             phase += 3;
         }
     }
 #endif
-    for (y = 0; y < desth; y++) {
-        signed char *line;  
+    /* CB_CYCLES of color burst at 3.579545 Mhz on every line outside of vertical sync, not just the picture lines (the decoder
+     * also integrates the burst of the lines just above the picture, and a missing burst there made the top of the picture
+     * decode with less saturation)
+     */
+    for (n = 0; n < 259; n++) {
+        short *line = &v->analog[n * CRT_HRES];
         int t, cb;
+        for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
+            cb = ccburst[n % 3][t & 3];
+            line[t] = (short)(((BLANK_LEVEL << 15) + (cb * BURST_LEVEL) + (1 << (14 - CRT_SIG_SHIFT))) >> (15 - CRT_SIG_SHIFT));
+            iccf[n % 3][t & 3] = line[t];
+        }
+    }
+    for (y = 0; y < desth; y++) {
         int sy = (y * s->h) / desth;
         
         if LSN_UNLIKELY(sy >= s->h) sy = s->h;
         if LSN_UNLIKELY(sy < 0) sy = 0;
  
-        n = (y + yo);
-        line = &v->analog[n * CRT_HRES];
-        
-        /* CB_CYCLES of color burst at 3.579545 Mhz */
-        for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
-            cb = ccburst[n % 3][t & 3];
-            line[t] = (char)((BLANK_LEVEL + (cb * BURST_LEVEL)) >> 5);
-            iccf[n % 3][t & 3] = line[t];
-        }
         sy *= s->w;
         phase = phasetab[(y + yo + s->dot_crawl_offset) % 3];
         for (x = 0; x < destw; x++) {
@@ -207,12 +255,9 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             
             p = s->data[((x * s->w) / destw) + sy];
             ire = BLACK_LEVEL + v->black_point;
-            ire += square_sample(p, phase + 0);
-            ire += square_sample(p, phase + 1);
-            ire += square_sample(p, phase + 2);
-            ire += square_sample(p, phase + 3);
-            ire = ((ire * v->white_point / 100) >> 12);
-            v->analog[(x + xo) + (y + yo) * CRT_HRES] = (char)(ire);
+            ire += BandLimitedSample(p, phase);
+            ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
+            v->analog[(x + xo) + (y + yo) * CRT_HRES] = (short)(ire);
             phase += 3;
         }
     }
@@ -243,7 +288,7 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         for (x = 0; x < 4; x++) {
             n = (s->hue + x * 90 + xo + 33) % 360;
             crt_sincos14_full(&sn, &cs, n * 8192 / 180);
-            ccburst[y][x] = sn >> 10;
+            ccburst[y][x] = sn;
         }
     }
     xo = AV_BEG;
@@ -254,28 +299,28 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
     
     for (n = 0; n < CRT_VRES; n++) {
         int t; /* time */
-        signed char *line = &v->analog[n * CRT_HRES];
+        short *line = &v->analog[n * CRT_HRES];
         
         t = LINE_BEG;
 
         /* vertical sync scanlines */
         if (n >= 259 && n <= CRT_VRES) {
-           while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
-           while (t < PPUpx2pos(327)) line[t++] = SYNC_LEVEL; /* sync separator */
-           while (t < CRT_HRES) line[t++] = BLANK_LEVEL; /* blank */
+           while (t < SYNC_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* FP */
+           while (t < PPUpx2pos(327)) line[t++] = SYNC_LEVEL * (1 << CRT_SIG_SHIFT); /* sync separator */
+           while (t < CRT_HRES) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* blank */
         } else {
             int cb;
             /* prerender/postrender/video scanlines */
-            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL; /* FP */
-            while (t < BW_BEG) line[t++] = SYNC_LEVEL;  /* SYNC */
-            while (t < CB_BEG) line[t++] = BLANK_LEVEL; /* BW + CB + BP */
+            while (t < SYNC_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* FP */
+            while (t < BW_BEG) line[t++] = SYNC_LEVEL * (1 << CRT_SIG_SHIFT);  /* SYNC */
+            while (t < CB_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT); /* BW + CB + BP */
             /* CB_CYCLES of color burst at 3.579545 Mhz */
             for (t = CB_BEG; t < CB_BEG + (CB_CYCLES * CRT_CB_FREQ); t++) {
                 cb = ccburst[n % 3][t & 3];
-                line[t] = (BLANK_LEVEL + (cb * BURST_LEVEL)) >> 5;
+                line[t] = (short)(((BLANK_LEVEL << 15) + (cb * BURST_LEVEL) + (1 << (14 - CRT_SIG_SHIFT))) >> (15 - CRT_SIG_SHIFT));
                 iccf[n % 3][t & 3] = line[t];
             }
-            while (t < LAV_BEG) line[t++] = BLANK_LEVEL;
+            while (t < LAV_BEG) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT);
 #if NES_BORDER
             if (n >= CRT_TOP && n <= (CRT_BOT + 2)) {
                 phase = phasetab[(n + s->dot_crawl_offset) % 3] + 6;
@@ -284,17 +329,14 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
                     p = s->border_color;
                     if (t == LAV_BEG) p = 0xf0;
                     ire = BLACK_LEVEL + v->black_point;
-                    ire += square_sample(p, phase + 0);
-                    ire += square_sample(p, phase + 1);
-                    ire += square_sample(p, phase + 2);
-                    ire += square_sample(p, phase + 3);
-                    ire = (ire * v->white_point / 100) >> 12;
+                    ire += BandLimitedSample(p, phase);
+                    ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
                     line[t++] = ire;
                     phase += 3;
                 }
             } else {
 #endif
-                while (t < CRT_HRES) line[t++] = BLANK_LEVEL;
+                while (t < CRT_HRES) line[t++] = BLANK_LEVEL * (1 << CRT_SIG_SHIFT);
 #if NES_BORDER
             }
 #endif
@@ -313,18 +355,15 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
             
             p = s->data[((x * s->w) / destw) + sy];
             ire = BLACK_LEVEL + v->black_point;
-            ire += square_sample(p, phase + 0);
-            ire += square_sample(p, phase + 1);
-            ire += square_sample(p, phase + 2);
-            ire += square_sample(p, phase + 3);
-            ire = (ire * v->white_point / 100) >> 12;
+            ire += BandLimitedSample(p, phase);
+            ire = ((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT);
             v->analog[(x + xo) + (y + yo) * CRT_HRES] = ire;
             phase += 3;
         }
     }
     
     for (x = 0; x < 4; x++) {
-        for (n = 0; n < 4; n++) {
+        for (n = 0; n < 3; n++) {
             v->ccf[n][x] = iccf[n][x & 3] << 7;
         }
     }

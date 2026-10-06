@@ -89,9 +89,14 @@ extern "C" {
 //#define CRT_DO_VSYNC    1  /* look for VSYNC */
 //#define CRT_DO_HSYNC    1  /* look for HSYNC */
 
+/* Fractional bits of precision in the analog signal (an 8-bit signal quantizes the color burst and active video
+ * coarsely enough that each line phase decodes a slightly different hue/saturation/brightness)
+ */
+#define CRT_SIG_SHIFT   4
+
 struct CRT {
-    signed char analog[CRT_INPUT_SIZE];
-    signed char inp[CRT_INPUT_SIZE]; /* CRT input, can be noisy */
+    short analog[CRT_INPUT_SIZE];
+    short inp[CRT_INPUT_SIZE]; /* CRT input, can be noisy */
 
     int outw, outh; /* output width/height */
     int out_format; /* output pixel format (one of the CRT_PIX_FORMATs) */

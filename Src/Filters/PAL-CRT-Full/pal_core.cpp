@@ -287,7 +287,7 @@ pal_demodulate(struct PAL_CRT *c, int noise)
         int y, u, v;
     } outbuf[AV_LEN + 16], *out = outbuf + 8, *yuvA, *yuvB;
     int i, j, line, rn;
-    signed char *sig;
+    short *sig;
     int s = 0;
     int field, ratio;
     int *ccr; /* color carrier signal */
@@ -317,7 +317,7 @@ pal_demodulate(struct PAL_CRT *c, int noise)
         s = 0;
         for (j = 0; j < PAL_HRES; j++) {
             s += sig[j];
-            if (s <= (125 * SYNC_LEVEL)) {
+            if (s <= (125 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT))) {
                 goto found_field;
             }
         }
@@ -331,10 +331,10 @@ found_field:
         rn = (214019 * rn + 140327895);
 
         /* signal + noise */
-        s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
-        if LSN_UNLIKELY(s >  127) { s =  127; }
-        if LSN_UNLIKELY(s < -127) { s = -127; }
-        c->inp[i] = (char)s;
+        s = c->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> (8 - PAL_SIG_SHIFT));
+        if LSN_UNLIKELY(s >  (127 << PAL_SIG_SHIFT)) { s =  (127 << PAL_SIG_SHIFT); }
+        if LSN_UNLIKELY(s < -(127 << PAL_SIG_SHIFT)) { s = -(127 << PAL_SIG_SHIFT); }
+        c->inp[i] = (short)s;
     }
     c->rn = rn;
 #if PAL_DO_VSYNC
@@ -356,7 +356,7 @@ found_field:
             /* increase the multiplier to make the vsync
              * more stable when there is a lot of noise
              */
-            if LSN_UNLIKELY(s <= (125 * SYNC_LEVEL)) {
+            if LSN_UNLIKELY(s <= (125 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT))) {
                 goto vsync_found;
             }
         }
@@ -407,7 +407,7 @@ vsync_found:
         s = 0;
         for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
             s += sig[SYNC_BEG + i];
-            if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL)) {
+            if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT))) {
                 break;
             }
         }
@@ -426,7 +426,7 @@ vsync_found:
         s = 0;
         for (i = 0; i < 8; i++) {
             s += sig[BW_BEG + i];
-            if (s <= (4 * SYNC_LEVEL)) {
+            if (s <= (4 * SYNC_LEVEL * (1 << PAL_SIG_SHIFT))) {
                 odd = 1;
                 break;
             }
@@ -452,8 +452,8 @@ vsync_found:
         huecs >>= 7;
 
         /* amplitude of carrier = saturation, phase difference = hue */
-        dcu = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
-        dcv = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
+        dcu = (ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3]) >> PAL_SIG_SHIFT;
+        dcv = (ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3]) >> PAL_SIG_SHIFT;
 
         wave[0] = ((dcu * huecs - dcv * huesn) >> 8) * c->saturation;
         wave[1] = ((dcv * huecs + dcu * huesn) >> 8) * c->saturation;
@@ -491,8 +491,8 @@ vsync_found:
             int dmU, dmV;
             int ou, ov;
 
-            dmU = sig[i] * wave[(i + 0) & 3];
-            dmV = sig[i] * wave[(i + 3) & 3] * odd;
+            dmU = (int)(((long long)sig[i] * wave[(i + 0) & 3]) >> PAL_SIG_SHIFT);
+            dmV = (int)(((long long)sig[i] * wave[(i + 3) & 3]) >> PAL_SIG_SHIFT) * odd;
             if LSN_LIKELY(c->chroma_correction) {
                 static struct { int u, v; } delay_line[AV_LEN + 1];
                 ou = dmU;
@@ -502,7 +502,7 @@ vsync_found:
                 delay_line[i].u = ou;
                 delay_line[i].v = ov;
             }
-            out[i].y = eqf(&eqY, sig[i] + bright) << 4;
+            out[i].y = eqf(&eqY, sig[i] + (bright * (1 << PAL_SIG_SHIFT))) << (4 - PAL_SIG_SHIFT);
             out[i + c->chroma_lag].u = eqf(&eqU, dmU >> 9) >> 3;
             out[i + c->chroma_lag].v = eqf(&eqV, dmV >> 9) >> 3;
         }

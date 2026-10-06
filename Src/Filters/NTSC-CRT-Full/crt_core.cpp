@@ -286,7 +286,7 @@ crt_demodulate_full(struct CRT *v, int noise)
 		int y, i, q;
 	} out[AV_LEN + 1], *yiqA, *yiqB;
 	int i, j = 0, line = 0, rn;
-	signed char *sig;
+	short *sig;
 	int s = 0;
 	int field, ratio;
 	int *ccr; /* color carrier signal */
@@ -315,10 +315,10 @@ crt_demodulate_full(struct CRT *v, int noise)
 		rn = (214019 * rn + 140327895);
 
 		/* signal + noise */
-		s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> 8);
-		if LSN_UNLIKELY(s >  127) { s =  127; }
-		if LSN_UNLIKELY(s < -127) { s = -127; }
-		v->inp[i] = (signed char)s;
+		s = v->analog[i] + (((((rn >> 16) & 0xff) - 0x7f) * noise) >> (8 - CRT_SIG_SHIFT));
+		if LSN_UNLIKELY(s >  (127 << CRT_SIG_SHIFT)) { s =  (127 << CRT_SIG_SHIFT); }
+		if LSN_UNLIKELY(s < -(127 << CRT_SIG_SHIFT)) { s = -(127 << CRT_SIG_SHIFT); }
+		v->inp[i] = (short)s;
 	}
 	v->rn = rn;
 
@@ -340,7 +340,7 @@ crt_demodulate_full(struct CRT *v, int noise)
 			/* increase the multiplier to make the vsync
 				* more stable when there is a lot of noise
 				*/
-			if (s <= (94 * SYNC_LEVEL)) {
+			if (s <= (94 * SYNC_LEVEL * (1 << CRT_SIG_SHIFT))) {
 				goto vsync_found;
 			}
 		}
@@ -397,7 +397,7 @@ vsync_found:
 		s = 0;
 		for (i = -HSYNC_WINDOW; i < HSYNC_WINDOW; i++) {
 			s += sig[SYNC_BEG + i];
-			if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL)) {
+			if LSN_UNLIKELY(s <= (4 * SYNC_LEVEL * (1 << CRT_SIG_SHIFT))) {
 				break;
 			}
 		}
@@ -430,8 +430,8 @@ vsync_found:
 		phasealign = POSMOD(v->hsync, 4);
 
 		/* amplitude of carrier = saturation, phase difference = hue */
-		dci = ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3];
-		dcq = ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3];
+		dci = (ccr[(phasealign + 1) & 3] - ccr[(phasealign + 3) & 3]) >> CRT_SIG_SHIFT;
+		dcq = (ccr[(phasealign + 2) & 3] - ccr[(phasealign + 0) & 3]) >> CRT_SIG_SHIFT;
 
 		/* rotate them by the hue adjustment angle */
 		wave[0] = ((dci * huecs - dcq * huesn) >> 4) * v->saturation;
@@ -467,9 +467,9 @@ vsync_found:
 		reset_eq(&eqQ);
         
 		for (i = L; i < R; i++) {
-			out[i].y = eqf(&eqY, sig[i] + bright) << 4;
-			out[i].i = eqf(&eqI, sig[i] * wave[(i + 0) & 3] >> 9) >> 3;
-			out[i].q = eqf(&eqQ, sig[i] * wave[(i + 3) & 3] >> 9) >> 3;
+			out[i].y = eqf(&eqY, sig[i] + (bright * (1 << CRT_SIG_SHIFT))) << (4 - CRT_SIG_SHIFT);
+			out[i].i = eqf(&eqI, (int)((long long)sig[i] * wave[(i + 0) & 3] >> (9 + CRT_SIG_SHIFT))) >> 3;
+			out[i].q = eqf(&eqQ, (int)((long long)sig[i] * wave[(i + 3) & 3] >> (9 + CRT_SIG_SHIFT))) >> 3;
 		}
 
 		cL = v->out + (beg * pitch);
@@ -749,6 +749,9 @@ vsync_found:
 					r_vec = _mm256_min_epi32(r_vec, vMax255);
 					g_vec = _mm256_min_epi32(g_vec, vMax255);
 					b_vec = _mm256_min_epi32(b_vec, vMax255);
+					_mm256_store_si256(reinterpret_cast<__m256i*>(r_arr), r_vec);
+					_mm256_store_si256(reinterpret_cast<__m256i*>(g_arr), g_vec);
+					_mm256_store_si256(reinterpret_cast<__m256i*>(b_arr), b_vec);
 					// Write out 8 pixels in B, G, R order.
 					// (You may wish to unroll this inner loop or use a more advanced permutation
 					// if your destination data is 4-byte aligned.)

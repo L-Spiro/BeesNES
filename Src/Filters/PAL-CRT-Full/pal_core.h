@@ -93,9 +93,14 @@ extern "C" {
 #define PAL_DO_VSYNC    1  /* look for VSYNC */
 #define PAL_DO_HSYNC    1  /* look for HSYNC */
 
+/* fractional bits of precision in the analog signal (an 8-bit signal quantizes the color burst and active video
+ * coarsely enough that each line phase decodes a slightly different hue/saturation/brightness)
+ */
+#define PAL_SIG_SHIFT   4
+
 struct PAL_CRT {
-    signed char analog[PAL_INPUT_SIZE];
-    signed char inp[PAL_INPUT_SIZE]; /* CRT input, can be noisy */
+    short analog[PAL_INPUT_SIZE];
+    short inp[PAL_INPUT_SIZE]; /* CRT input, can be noisy */
 
     int outw, outh; /* output width/height */
     int out_format; /* output pixel format (one of the PAL_PIX_FORMATs) */

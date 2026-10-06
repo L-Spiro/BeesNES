@@ -120,7 +120,7 @@ namespace lsn {
 		m_nsSettings.h = int( m_ui32OutputHeight );
 
 		::pal_modulate( &m_nnCrtPal, &m_nsSettings );
-		::pal_demodulate( &m_nnCrtPal, 3 );
+		::pal_demodulate( &m_nnCrtPal, 0 );
 
 		m_tuUploader.UploadTexels( &Device(), m_vRgbBuffer.data(), m_ui32FinalWidth, m_ui32FinalHeight, ui32Pitch, D3DFMT_X8R8G8B8 );
 

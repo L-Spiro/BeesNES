@@ -131,7 +131,7 @@ namespace lsn {
 			{
 				CScopedNoSubnormals snsScope;
 				::crt_modulate_full( &m_nnCrtNtsc, &m_nsSettings );
-				::crt_demodulate_full( &m_nnCrtNtsc, 3 );
+				::crt_demodulate_full( &m_nnCrtNtsc, 0 );
 			}
 
 			if ( m_bValidState && UploadTexture() ) {
