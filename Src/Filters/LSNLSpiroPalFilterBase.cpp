@@ -610,29 +610,82 @@ namespace lsn {
 	}
 
 	/**
-	 * Applies the vertical comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+	 * Applies the 1H (delay-line) comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+	 *	(uncombed) scanlines are read.  The scanline above the first scanline is taken as the first scanline itself.
+	 * 
+	 * \param _sScanline The scanline to comb.
+	 **/
+	void CLSpiroPalFilterBase::CombScanline1H( size_t _sScanline ) {
+		const size_t sAbove = _sScanline ? (_sScanline - 1) : _sScanline;
+		const size_t sStride = m_ui16ScaledWidth;
+		const float * pfSrc[2] = { reinterpret_cast<const float *>(m_vI.data()), reinterpret_cast<const float *>(m_vQ.data()) };
+		float * pfDst[2] = { m_vICombed.data() + sStride * _sScanline, m_vQCombed.data() + sStride * _sScanline };
+		const float fAbove = m_fCombWeight;
+		const float fThis = 1.0f - m_fCombWeight;
+
+		for ( size_t C = 0; C < 2; ++C ) {
+			const float * pfA = pfSrc[C] + sStride * sAbove;
+			const float * pfT = pfSrc[C] + sStride * _sScanline;
+			float * pfD = pfDst[C];
+			size_t I = 0;
+#ifdef __AVX512F__
+			if LSN_LIKELY( CUtilities::IsAvx512FSupported() ) {
+				const __m512 mAbove = _mm512_set1_ps( fAbove ), mThis = _mm512_set1_ps( fThis );
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					for ( ; I + 16 <= sStride; I += 16 ) {
+						_mm512_storeu_ps( pfD + I, _mm512_fmadd_ps( _mm512_loadu_ps( pfA + I ), mAbove, _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+				else {
+					for ( ; I + 16 <= sStride; I += 16 ) {
+						_mm512_storeu_ps( pfD + I, _mm512_add_ps( _mm512_mul_ps( _mm512_loadu_ps( pfA + I ), mAbove ), _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+			}
+#endif	// #ifdef __AVX512F__
+#ifdef __AVX__
+			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
+				const __m256 mAbove = _mm256_set1_ps( fAbove ), mThis = _mm256_set1_ps( fThis );
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					for ( ; I + 8 <= sStride; I += 8 ) {
+						_mm256_storeu_ps( pfD + I, _mm256_fmadd_ps( _mm256_loadu_ps( pfA + I ), mAbove, _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+				else {
+					for ( ; I + 8 <= sStride; I += 8 ) {
+						_mm256_storeu_ps( pfD + I, _mm256_add_ps( _mm256_mul_ps( _mm256_loadu_ps( pfA + I ), mAbove ), _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+			}
+#endif	// #ifdef __AVX__
+#ifdef __SSE4_1__
+			if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
+				const __m128 mAbove = _mm_set1_ps( fAbove ), mThis = _mm_set1_ps( fThis );
+				for ( ; I + 4 <= sStride; I += 4 ) {
+					_mm_storeu_ps( pfD + I, _mm_add_ps( _mm_mul_ps( _mm_loadu_ps( pfA + I ), mAbove ), _mm_mul_ps( _mm_loadu_ps( pfT + I ), mThis ) ) );
+				}
+			}
+#endif	// #ifdef __SSE4_1__
+			for ( ; I < sStride; ++I ) {
+				pfD[I] = pfA[I] * fAbove + pfT[I] * fThis;
+			}
+		}
+	}
+
+	/**
+	 * Applies the 2H (3-line) comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
 	 *	(uncombed) scanlines are read.  Missing neighbors (above the first or below the last scanline) are taken as the scanline itself.
 	 * 
 	 * \param _sScanline The scanline to comb.
 	 **/
-	void CLSpiroPalFilterBase::CombScanline( size_t _sScanline ) {
-		const size_t sStride = m_ui16ScaledWidth;
+	void CLSpiroPalFilterBase::CombScanline2H( size_t _sScanline ) {
 		const size_t sAbove = _sScanline ? (_sScanline - 1) : _sScanline;
 		const size_t sBelow = (_sScanline + 1 < m_ui16Height) ? (_sScanline + 1) : _sScanline;
+		const size_t sStride = m_ui16ScaledWidth;
 		const float * pfSrc[2] = { reinterpret_cast<const float *>(m_vI.data()), reinterpret_cast<const float *>(m_vQ.data()) };
 		float * pfDst[2] = { m_vICombed.data() + sStride * _sScanline, m_vQCombed.data() + sStride * _sScanline };
-
-		// Weights for the line above, this line, and the line below.
-		float fAbove, fThis, fBelow;
-		if ( m_cfCombFilter == LSN_CF_3_LINE ) {
-			fAbove = fBelow = m_fCombWeight * 0.5f;
-			fThis = 1.0f - m_fCombWeight;
-		}
-		else {
-			fAbove = m_fCombWeight;
-			fThis = 1.0f - m_fCombWeight;
-			fBelow = 0.0f;
-		}
+		const float fSide = m_fCombWeight * 0.5f;
+		const float fThis = 1.0f - m_fCombWeight;
 
 		for ( size_t C = 0; C < 2; ++C ) {
 			const float * pfA = pfSrc[C] + sStride * sAbove;
@@ -641,37 +694,45 @@ namespace lsn {
 			float * pfD = pfDst[C];
 			size_t I = 0;
 #ifdef __AVX512F__
-			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
-				const __m512 mAbove = _mm512_set1_ps( fAbove ), mThis = _mm512_set1_ps( fThis ), mBelow = _mm512_set1_ps( fBelow );
-				for ( ; I + 16 <= sStride; I += 16 ) {
-					__m512 mSum = _mm512_add_ps( _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ), _mm512_mul_ps( _mm512_loadu_ps( pfA + I ), mAbove ) );
-					mSum = _mm512_add_ps( mSum, _mm512_mul_ps( _mm512_loadu_ps( pfB + I ), mBelow ) );
-					_mm512_storeu_ps( pfD + I, mSum );
+			if LSN_LIKELY( CUtilities::IsAvx512FSupported() ) {
+				const __m512 mSide = _mm512_set1_ps( fSide ), mThis = _mm512_set1_ps( fThis );
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					for ( ; I + 16 <= sStride; I += 16 ) {
+						_mm512_storeu_ps( pfD + I, _mm512_fmadd_ps( _mm512_add_ps( _mm512_loadu_ps( pfA + I ), _mm512_loadu_ps( pfB + I ) ), mSide, _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+				else {
+					for ( ; I + 16 <= sStride; I += 16 ) {
+						_mm512_storeu_ps( pfD + I, _mm512_add_ps( _mm512_mul_ps( _mm512_add_ps( _mm512_loadu_ps( pfA + I ), _mm512_loadu_ps( pfB + I ) ), mSide ), _mm512_mul_ps( _mm512_loadu_ps( pfT + I ), mThis ) ) );
+					}
 				}
 			}
 #endif	// #ifdef __AVX512F__
 #ifdef __AVX__
 			if LSN_LIKELY( CUtilities::IsAvxSupported() ) {
-				const __m256 mAbove = _mm256_set1_ps( fAbove ), mThis = _mm256_set1_ps( fThis ), mBelow = _mm256_set1_ps( fBelow );
-				for ( ; I + 8 <= sStride; I += 8 ) {
-					__m256 mSum = _mm256_add_ps( _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ), _mm256_mul_ps( _mm256_loadu_ps( pfA + I ), mAbove ) );
-					mSum = _mm256_add_ps( mSum, _mm256_mul_ps( _mm256_loadu_ps( pfB + I ), mBelow ) );
-					_mm256_storeu_ps( pfD + I, mSum );
+				const __m256 mSide = _mm256_set1_ps( fSide ), mThis = _mm256_set1_ps( fThis );
+				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
+					for ( ; I + 8 <= sStride; I += 8 ) {
+						_mm256_storeu_ps( pfD + I, _mm256_fmadd_ps( _mm256_add_ps( _mm256_loadu_ps( pfA + I ), _mm256_loadu_ps( pfB + I ) ), mSide, _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ) ) );
+					}
+				}
+				else {
+					for ( ; I + 8 <= sStride; I += 8 ) {
+						_mm256_storeu_ps( pfD + I, _mm256_add_ps( _mm256_mul_ps( _mm256_add_ps( _mm256_loadu_ps( pfA + I ), _mm256_loadu_ps( pfB + I ) ), mSide ), _mm256_mul_ps( _mm256_loadu_ps( pfT + I ), mThis ) ) );
+					}
 				}
 			}
 #endif	// #ifdef __AVX__
 #ifdef __SSE4_1__
 			if LSN_LIKELY( CUtilities::IsSse4Supported() ) {
-				const __m128 mAbove = _mm_set1_ps( fAbove ), mThis = _mm_set1_ps( fThis ), mBelow = _mm_set1_ps( fBelow );
+				const __m128 mSide = _mm_set1_ps( fSide ), mThis = _mm_set1_ps( fThis );
 				for ( ; I + 4 <= sStride; I += 4 ) {
-					__m128 mSum = _mm_add_ps( _mm_mul_ps( _mm_loadu_ps( pfT + I ), mThis ), _mm_mul_ps( _mm_loadu_ps( pfA + I ), mAbove ) );
-					mSum = _mm_add_ps( mSum, _mm_mul_ps( _mm_loadu_ps( pfB + I ), mBelow ) );
-					_mm_storeu_ps( pfD + I, mSum );
+					_mm_storeu_ps( pfD + I, _mm_add_ps( _mm_mul_ps( _mm_add_ps( _mm_loadu_ps( pfA + I ), _mm_loadu_ps( pfB + I ) ), mSide ), _mm_mul_ps( _mm_loadu_ps( pfT + I ), mThis ) ) );
 				}
 			}
 #endif	// #ifdef __SSE4_1__
 			for ( ; I < sStride; ++I ) {
-				pfD[I] = (pfT[I] * fThis + pfA[I] * fAbove) + pfB[I] * fBelow;
+				pfD[I] = (pfA[I] + pfB[I]) * fSide + pfT[I] * fThis;
 			}
 		}
 	}

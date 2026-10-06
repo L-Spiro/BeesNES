@@ -442,12 +442,20 @@ namespace lsn {
 		void												DecodeScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle );
 
 		/**
-		 * Applies the vertical comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+		 * Applies the 1H (delay-line) comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
+		 *	(uncombed) scanlines are read.  The scanline above the first scanline is taken as the first scanline itself.
+		 * 
+		 * \param _sScanline The scanline to comb.
+		 **/
+		void												CombScanline1H( size_t _sScanline );
+
+		/**
+		 * Applies the 2H (3-line) comb filter to the chroma of a decoded scanline, writing the result to m_vICombed/m_vQCombed.  Only decoded
 		 *	(uncombed) scanlines are read.  Missing neighbors (above the first or below the last scanline) are taken as the scanline itself.
 		 * 
 		 * \param _sScanline The scanline to comb.
 		 **/
-		void												CombScanline( size_t _sScanline );
+		void												CombScanline2H( size_t _sScanline );
 
 		/**
 		 * Generates the phase sin/cos tables.
@@ -719,9 +727,15 @@ namespace lsn {
 				break;
 			}
 			case LSN_RP_RGB : {
-				if LSN_LIKELY( CombFilterEnabled() ) {
+				if LSN_LIKELY( m_cfCombFilter == LSN_CF_DELAY_LINE ) {
 					for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
-						CombScanline( H );
+						CombScanline1H( H );
+						ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay, true>( H, _pui8Dst, _sPitch );
+					}
+				}
+				else if ( m_cfCombFilter == LSN_CF_3_LINE ) {
+					for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+						CombScanline2H( H );
 						ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay, true>( H, _pui8Dst, _sPitch );
 					}
 				}

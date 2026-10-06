@@ -103,7 +103,7 @@ namespace lsn {
 		};
 		m_nbfLSpiroPalFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_nbfLSpiroDendyFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		//m_nbfLSpiroPalMFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_nbfLSpiroPalMFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_nbfLSpiroPalNFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
@@ -125,7 +125,7 @@ namespace lsn {
 
 		m_d9plsfDx9LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_d9plsfDx9LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		//m_d9plsfDx9LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d9plsfDx9LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_d9plsfDx9LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_d9ncfDx9EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
@@ -180,7 +180,7 @@ namespace lsn {
 
 		m_d12plsfDx12LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_d12plsfDx12LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		//m_d12plsfDx12LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_d12plsfDx12LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_d12plsfDx12LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_d12ncfDx12EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
@@ -236,7 +236,7 @@ namespace lsn {
 
 		m_vplsfVulkanLSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_vplsfVulkanLSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		//m_vplsfVulkanLSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
+		m_vplsfVulkanLSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
 		m_vplsfVulkanLSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
 
 		m_vncfVulkanEmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
