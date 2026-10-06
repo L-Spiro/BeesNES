@@ -245,8 +245,12 @@ namespace lsn {
 			m_ui8IoBusLatch = 0;
 			m_ui16AddressBus = 0;
 
-			m_stCurCycle = 0;
-			m_ui16CurX = m_ui16CurY = 0;
+			// The PPU powers up at an arbitrary phase relative to the CPU.  11 dots into the frame puts test_apu_2's vertical-blank polls
+			//	on the phase its $4017 writes expect (it does not sync to the APU) and leaves the OAM corruption in
+			//	sprite_overflow_tests/5.Emulator on a harmless row.
+			m_stCurCycle = 11;
+			m_ui16CurX = 11;
+			m_ui16CurY = 0;
 			std::memset( &m_asActiveSprites, 0, sizeof( m_asActiveSprites ) );
 		}
 
@@ -663,7 +667,7 @@ namespace lsn {
 				m_asActiveSprites.ui64X = ui64X - (ui64Counting >> 7);
 				ui64Drawn = ((ui64Counting ^ ui64High) >> 7) * 0xFF;
 			}
-			if ( m_bRendering && m_ui16CurY != (_tDotHeight - 1) ) {
+			if LSN_LIKELY( m_bRendering && m_ui16CurY != (_tDotHeight - 1) ) {
 				constexpr uint64_t ui64NoCarry = 0xFEFEFEFEFEFEFEFEULL;
 				m_asActiveSprites.ui64ShiftLo = (m_asActiveSprites.ui64ShiftLo & ~ui64Drawn) | ((m_asActiveSprites.ui64ShiftLo << 1) & ui64NoCarry & ui64Drawn);
 				m_asActiveSprites.ui64ShiftHi = (m_asActiveSprites.ui64ShiftHi & ~ui64Drawn) | ((m_asActiveSprites.ui64ShiftHi << 1) & ui64NoCarry & ui64Drawn);
@@ -676,11 +680,11 @@ namespace lsn {
 		template <bool _bIsOdd>
 		void LSN_FASTCALL								Pixel_Evaluation_Sprite() {
 			if ( !m_bRendering ) { return; }
-			if ( m_ui16CurY == (_tDotHeight - 1) ) {
+			if LSN_UNLIKELY( m_ui16CurY == (_tDotHeight - 1) ) {
 				// The pre-render scanline addresses secondary OAM on every dot (its writes are reads), nothing is in range, and neither OAMADDR
 				//	nor the secondary OAM address changes.
 				m_ui8OamLatch = m_soSecondaryOam.ui8Bytes[m_ui8Oam2Addr];
-				if ( m_ui16CurX == 66 ) { m_bSprite0IsInSecondary = false; }
+				if LSN_UNLIKELY( m_ui16CurX == 66 ) { m_bSprite0IsInSecondary = false; }
 				return;
 			}
 
@@ -700,7 +704,7 @@ namespace lsn {
 				m_ui8SpriteM = m_ui8OamAddr & 0b11;
 
 				int16_t i16ScanLine = int16_t( m_ui16CurY );
-				if ( m_ui16CurX == 66 ) {
+				if LSN_UNLIKELY( m_ui16CurX == 66 ) {
 					// Sprite 0 is on the next scanline if the byte being evaluated is in range (never once the search has finished).
 					const int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
 					m_bSprite0IsInSecondary = m_sesStage != LSN_SES_FINISHED_OAM_LIST && i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8);
@@ -793,7 +797,7 @@ namespace lsn {
 							// The X goes through the same in-range check as a Y.  If it is out of range, m is cleared, so a misaligned OAMADDR
 							//	re-aligns (+1 & $FC).
 							const int16_t i16Diff = i16ScanLine - int16_t( m_ui8OamLatch );
-							if ( !(i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8)) ) {
+							if LSN_LIKELY( !(i16Diff >= 0 && i16Diff < (m_pcPpuCtrl.s.ui8SpriteSize ? 16 : 8)) ) {
 								m_ui8SpriteM = 0;
 								LSN_RESTORE_OAM;
 							}

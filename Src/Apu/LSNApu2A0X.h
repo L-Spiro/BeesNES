@@ -57,7 +57,6 @@
 
 // _bEven is false on 0 2 4 6 8, etc.  It goes by cycle count rather than cycle index.
 #define LSN_APU_UPDATE									if constexpr ( !_bEven ) {																							\
-															m_bApuCycle = true;																								\
 															if ( m_bModeSwitch ) {																							\
 																m_bModeSwitch = false;																						\
 																if ( (m_dvRegisters3_4017.Value() & 0b10000000) != 0 ) {													\
@@ -387,14 +386,12 @@ namespace lsn {
 			m_dvTriangleLengthCounterHalt.Tick();
 			m_dvNoiseLengthCounterHalt.Tick();
 
-			m_bApuCycle = false;
 			m_ui8FrameClocks = 0;
 			(this->*m_pftTick)();
-			if ( m_bFrameClockPending && (m_ui8FrameClockWait == 0 || --m_ui8FrameClockWait == 0) && m_bApuCycle ) {
-				// A $4017 write with bit 7 set clocks the frame units 2 or 3 cycles after the write (the first APU cycle at least 2 cycles later).
-				//	A step clock on that same cycle merges with it.
-				m_bFrameClockPending = false;
-				if ( m_ui8Registers[0x17] & 0b10000000 ) {
+			if LSN_UNLIKELY( m_ui8FrameClockWait ) {
+				// A $4017 write with bit 7 set clocks the frame units 2 or 3 cycles after the write (on the first APU cycle at least 2 cycles
+				//	later).  A step clock on that same cycle merges with it.
+				if ( --m_ui8FrameClockWait == 0 && (m_ui8Registers[0x17] & 0b10000000) ) {
 					ClockFrameUnits( uint8_t( ~m_ui8FrameClocks ) );
 				}
 			}
@@ -527,7 +524,7 @@ namespace lsn {
 			CAudio::BeginEmulation();
 			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
-			m_bFrameClockPending = false;
+			m_ui8FrameClockWait = 0;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
 			m_pPulse2.SetSeq( GetDuty( 0 ) );
 			m_pPulse1.SetEnvelopeVolume( LSN_PULSE1_ENV_DIVIDER( this ) );
@@ -1037,13 +1034,9 @@ namespace lsn {
 		bool											m_bModeSwitch;
 		/** The frame interrupt flag (bit 6 of $4015).  It is set for two cycles even while frame IRQs are inhibited, but then it does not raise an IRQ. */
 		bool											m_bFrameIrqFlag = false;
-		/** A $4017 write is waiting to generate its quarter- and half-frame clocks (if bit 7 is set) 2 or 3 cycles after the write. */
-		bool											m_bFrameClockPending = false;
-		/** Set when the current tick is an APU cycle (the tick on which the sequencers and the frame-counter reset run). */
-		bool											m_bApuCycle = false;
 		/** The LSN_FRAME_CLOCKS the frame-counter steps generated on the current tick. */
 		uint8_t											m_ui8FrameClocks = 0;
-		/** The cycles left before a pending $4017 write can generate its quarter- and half-frame clocks. */
+		/** The ticks left until a $4017 write generates its quarter- and half-frame clocks (if bit 7 is set).  0 when none is pending. */
 		uint8_t											m_ui8FrameClockWait = 0;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled = true;
@@ -1088,21 +1081,19 @@ namespace lsn {
 		 * \param _ui8Which The LSN_FRAME_CLOCKS to generate.
 		 **/
 		void											ClockFrameUnits( uint8_t _ui8Which ) {
-			if ( _ui8Which & LSN_FC_QUARTER ) {
+			if LSN_LIKELY( _ui8Which & LSN_FC_QUARTER ) {
 				m_tTriangle.TickLinearCounter( LSN_TRIANGLE_HALT );
-			}
-			if ( _ui8Which & LSN_FC_HALF ) {
-				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
-				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
-				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
-				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
-			}
-			if ( _ui8Which & LSN_FC_QUARTER ) {
+
 				m_pPulse1.TickEnvelope( LSN_PULSE1_USE_VOLUME, LSN_PULSE1_HALT );
 				m_pPulse2.TickEnvelope( LSN_PULSE2_USE_VOLUME, LSN_PULSE2_HALT );
 				m_nNoise.TickEnvelope( LSN_NOISE_USE_VOLUME, LSN_NOISE_HALT );
 			}
-			if ( _ui8Which & LSN_FC_HALF ) {
+			if LSN_LIKELY( _ui8Which & LSN_FC_HALF ) {
+				m_pPulse1.TickLengthCounter( LSN_PULSE1_ENABLED( this ), LSN_PULSE1_HALT );
+				m_pPulse2.TickLengthCounter( LSN_PULSE2_ENABLED( this ), LSN_PULSE2_HALT );
+				m_nNoise.TickLengthCounter( LSN_NOISE_ENABLED( this ), LSN_NOISE_HALT );
+				m_tTriangle.TickLengthCounter( LSN_TRIANGLE_ENABLED( this ), LSN_TRIANGLE_HALT );
+
 				m_pPulse1.TickSweeper<1>();
 				m_pPulse2.TickSweeper<0>();
 			}
@@ -1816,10 +1807,10 @@ namespace lsn {
 			paApu->m_ui8Registers[0x17] = _ui8Val;
 			paApu->m_dvRegisters3_4017.WriteWithDelay( _ui8Val );
 			paApu->m_ui8Last4017 = _ui8Val;
-			if ( !paApu->m_bFrameClockPending ) {
-				// The first write starts the wait, so the second write of a read-modify-write does not delay the clocks.
-				paApu->m_bFrameClockPending = true;
-				paApu->m_ui8FrameClockWait = 2;
+			if LSN_LIKELY( !paApu->m_ui8FrameClockWait ) {
+				// 2 ticks if the tick after next is an APU cycle (even m_ui64Cycles), otherwise 3.  The first write starts the wait, so the second
+				//	write of a read-modify-write does not delay the clocks.
+				paApu->m_ui8FrameClockWait = uint8_t( 3 - (paApu->m_ui64Cycles & 1) );
 			}
 			paApu->m_bRegModified = true;
 		}
