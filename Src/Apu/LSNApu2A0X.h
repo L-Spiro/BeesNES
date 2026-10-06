@@ -516,13 +516,13 @@ namespace lsn {
 		 */
 		void											ResetAnalog() {
 			m_ui8Registers[0x15] = 0x00;
-			m_ui64Cycles = 0;
+			m_ui64Cycles &= 1;
 			m_ui64StepCycles = 0;
 			m_ui64RawExportStartCycle = 0;
 			m_ui64FrameIrqClearCycle = 0;
 			m_bFrameIrqFlag = false;
 			CAudio::BeginEmulation();
-			m_pftTick = &CApu2A0X::Tick_Mode0_Step0<false, false>;
+			m_pftTick = (m_ui64Cycles & 1) ? &CApu2A0X::Tick_Mode0_Step0<true, false> : &CApu2A0X::Tick_Mode0_Step0<false, false>;
 			m_bModeSwitch = false;
 			m_ui8FrameClockWait = 0;
 			m_pPulse1.SetSeq( GetDuty( 0 ) );
@@ -568,6 +568,7 @@ namespace lsn {
 			m_pPulse2.ResetToKnown();
 			m_nNoise.ResetToKnown();
 			m_tTriangle.ResetToKnown();
+			m_ui64Cycles = 0;
 			ResetAnalog();
 			m_dDmc.ResetToKnown();
 			m_dvRegisters3_4017.SetValue( 0x00 );
@@ -628,6 +629,13 @@ namespace lsn {
 			m_pbBus->SetWriteFunc( 0x4015, Write4015, this, 0 );
 			m_pbBus->SetWriteFunc( 0x4017, Write4017, this, 0 );
 		}
+
+		/**
+		 * Gets the type of APU (LSN_AT_NTSC or LSN_AT_PAL).
+		 * 
+		 * \return Returns the type of APU.
+		 **/
+		static constexpr unsigned						ApuType() { return _tType; }
 
 		/**
 		 * Returns true if the current APU cycle is even.

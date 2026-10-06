@@ -60,6 +60,7 @@ namespace lsn {
 			m_cCpu( &m_bBus, this ),
 			m_pPpu( &m_bBus, &m_cCpu ),
 			m_aApu( &m_bBus, &m_cCpu, &m_cCpu ) {
+			m_cCpu.SetDmaKeepsHaltRead( _cApu::ApuType() == LSN_AT_PAL );
 			
 			InitComponentTable();
 
@@ -80,6 +81,7 @@ namespace lsn {
 		 */
 		virtual void									ResetState( bool _bAnalog ) override {
 			if ( _bAnalog ) {
+				FinishCpuCycle();
 				m_cCpu.ResetAnalog();
 				m_aApu.ResetAnalog();
 				m_pPpu.ResetAnalog();
@@ -765,6 +767,7 @@ namespace lsn {
 		 * Reset the ROM.
 		 **/
 		virtual void									ResetRom() override {
+			FinishCpuCycle();
 			m_cCpu.ResetAnalog();
 			m_pPpu.ResetAnalog();
 			m_aApu.ResetAnalog();
@@ -993,6 +996,22 @@ namespace lsn {
 			m_sSlotsToCheck[0] = LSN_CPU_SLOT;
 			m_sSlotsToCheck[1] = LSN_PPU_SLOT;
 			m_sSlotsToCheck[2] = LSN_APU_SLOT;
+		}
+
+		/**
+		 * Runs the components to the end of the current CPU cycle (up to the APU tick that starts the next one), so that a reset starts the CPU
+		 *	on its first half-cycle and leaves the APU's cycle alignment intact.
+		 **/
+		void											FinishCpuCycle() {
+			if LSN_UNLIKELY( m_vRuntimeSlots.empty() ) { return; }
+			LSN_HW_SLOTS * phsSlot = m_vRuntimeSlots[m_sTickIdx];
+			while ( phsSlot != &m_hsSlots[LSN_APU_SLOT] ) {
+				(phsSlot->ptHw->*phsSlot->pfTick)();
+				phsSlot->ui64Counter += phsSlot->ui64Inc;
+
+				m_sTickIdx = (m_sTickIdx + 1) % m_vRuntimeSlots.size();
+				phsSlot = m_vRuntimeSlots[m_sTickIdx];
+			}
 		}
 
 		/**

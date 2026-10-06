@@ -34,10 +34,14 @@
 #define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( (_pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma) && _pcCpu->DmaWantsCycle() ) { _pcCpu->BackupState(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			if LSN_UNLIKELY( _pcCpu->m_fsStateBackup.bCopiedState ) { _pcCpu->m_ui16DmaCpuAddress = uint16_t( ADDR );								\
-																_pcCpu->RestoreState();																										\
+																if LSN_LIKELY( !_pcCpu->m_bDmaKeepsHaltRead ) {																				\
+																	_pcCpu->RestoreState();																									\
+																	_pcCpu->DmaCycle();																										\
+																	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>;																		\
+																	return; }																												\
+																_pcCpu->m_fsStateBackup.bCopiedState = false;																			\
 																_pcCpu->DmaCycle();																											\
-																_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>;																			\
-																return; }																													\
+																_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>; }																		\
 															RESULT = _pcCpu->m_pbBus->Read( uint16_t( ADDR ) )
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				_pcCpu->m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
@@ -252,6 +256,15 @@ namespace lsn {
 		virtual void										BeginDmcDma( bool _bIsRestart );
 
 		/**
+		 * Sets whether the CPU keeps the read it makes on a DMA's halting cycle (the 2A07).  The 2A03 repeats that read after the DMA, and the
+		 *	reads it makes during the DMA can read registers alongside the DMA.  The 2A07 instead finishes the read on the halting cycle and stays
+		 *	off the bus until the DMA ends, so each DMA costs it 1 cycle less.
+		 *
+		 * \param _bKeep If true, the 2A07 behavior is used.
+		 */
+		inline void											SetDmaKeepsHaltRead( bool _bKeep ) { m_bDmaKeepsHaltRead = _bKeep; }
+
+		/**
 		 * Begins a DMC DMA transfer.
 		 */
 		//void												BeginDmcDma();
@@ -407,6 +420,7 @@ namespace lsn {
 		bool												m_bOamDmaFirst = false;																/**< The next DMA cycle is the first cycle of the OAM DMA. */
 		bool												m_bOamDmaHalt = false;																/**< The OAM DMA began on a get cycle, which is spent as a halt cycle. */
 		bool												m_bOamDmaAligned = false;															/**< The OAM DMA has read a byte to write on the next put cycle. */
+		bool												m_bDmaKeepsHaltRead = false;														/**< The CPU keeps its read on a DMA's halting cycle and stays off the bus during the DMA (2A07). */
 		
 		static LSN_INSTR									m_iInstructionSet[256];																/**< The instruction set. */
 		
@@ -486,7 +500,8 @@ namespace lsn {
 		}
 
 		/**
-		 * The DMA cycles.  The CPU stays halted on its read cycle until no DMA wants the bus, then that read cycle is executed again.
+		 * The DMA cycles.  The CPU stays halted on its read cycle until no DMA wants the bus, then that read cycle is executed again (on the 2A07,
+		 *	the CPU instead continues with the cycle after the read it made on the halting cycle).
 		 *
 		 * \tparam _bPhi2 True for the second half of the cycle, where the DMA accesses the bus.
 		 * \param _pcCpu The pointer to the CPU object.
@@ -510,8 +525,8 @@ namespace lsn {
 
 		/**
 		 * Performs the bus access of a DMA cycle.  The DMC DMA gets get cycles before the OAM DMA, the OAM DMA writes on put cycles, and every other
-		 *	DMA cycle (halt, dummy, and alignment cycles) repeats the halted CPU read.  The DMC DMA's get costs the OAM DMA its alignment.  A DMC DMA
-		 *	the DMC does not currently allow stays pending, even while an OAM DMA holds the CPU.
+		 *	DMA cycle (halt, dummy, and alignment cycles) repeats the halted CPU read (except on the 2A07, where the CPU stays off the bus).  The DMC
+		 *	DMA's get costs the OAM DMA its alignment.  A DMC DMA the DMC does not currently allow stays pending, even while an OAM DMA holds the CPU.
 		 **/
 		inline void											DmaCycle() {
 			const bool bGet = (m_ui64CycleCount & 1) != 0;
@@ -531,7 +546,7 @@ namespace lsn {
 					m_ui8DmaValue = DmaRead( uint16_t( m_ui16DmaAddress | m_ui8DmaPos ), false );
 					m_bOamDmaAligned = true;
 				}
-				else {
+				else if LSN_LIKELY( !m_bDmaKeepsHaltRead ) {
 					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
 				if ( bDmc ) { m_bDmcDmaHalt = false; }
@@ -544,7 +559,7 @@ namespace lsn {
 						m_bRdyLow = m_bOamDmaAligned = false;
 					}
 				}
-				else {
+				else if LSN_LIKELY( !m_bDmaKeepsHaltRead ) {
 					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
 			}
@@ -553,14 +568,15 @@ namespace lsn {
 		/**
 		 * Performs a DMA read.  The 2A03's registers respond only while the halted CPU's address is in $4000-$401F, in which case the register
 		 *	selected by the low 5 bits of the DMA address is read alongside it (a bus conflict).  Otherwise DMA reads of $4000-$401F see open bus.
-		 *	In a bus conflict, the byte from memory reaches only the external data bus; the register drives the internal one.
+		 *	In a bus conflict, the byte from memory reaches only the external data bus; the register drives the internal one.  The 2A07's CPU is
+		 *	off the bus during the DMA, so it has no bus conflicts.
 		 *
 		 * \param _ui16Addr The address read by the DMA.
 		 * \param _bDmc If true, the read is for the DMC, which keeps the byte from memory.
 		 * \return Returns the value received by the DMA.
 		 **/
 		inline uint8_t										DmaRead( uint16_t _ui16Addr, bool _bDmc ) {
-			const bool bRegs = (m_ui16DmaCpuAddress & 0xFFE0) == 0x4000;
+			const bool bRegs = !m_bDmaKeepsHaltRead && (m_ui16DmaCpuAddress & 0xFFE0) == 0x4000;
 			if ( (_ui16Addr & 0xFFE0) == 0x4000 ) {
 				return bRegs ? m_pbBus->Read( _ui16Addr ) : m_pbBus->GetFloat();
 			}
