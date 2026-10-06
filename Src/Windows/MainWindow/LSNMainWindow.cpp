@@ -1145,10 +1145,15 @@ namespace lsn {
 			m_bnEmulator.TogglePauseRom();
 		}
 		else if ( wVkCode == m_woWindowOptions.ukResetKey.bKeyCode && ((!m_woWindowOptions.ukResetKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukResetKey.bKeyModifier ) & 0x8000) ) {
+			// The emulation thread must not be running while the system is reset.
+			StopThread();
 			m_bnEmulator.ResetRom();
+			StartThread();
 		}
 		else if ( wVkCode == m_woWindowOptions.ukHardResetKey.bKeyCode && ((!m_woWindowOptions.ukHardResetKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukHardResetKey.bKeyModifier ) & 0x8000) ) {
+			StopThread();
 			m_bnEmulator.PowerCycle();
+			StartThread();
 		}
 		//::OutputDebugStringA( std::format( "{:X}, {:X}, {:X}\r\n", _uiKeyCode, _uiFlags, wVkCode ).c_str() );
 		return LSW_H_CONTINUE;

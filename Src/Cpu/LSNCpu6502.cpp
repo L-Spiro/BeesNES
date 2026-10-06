@@ -1509,9 +1509,9 @@ namespace lsn {
 	 *
 	 * \param _pcCpu A pointer to the CCpu6502 instance.
 	 */
-	template <bool _bFromAddr>
+	template <bool _bFromAddr, bool _bRead>
 	void CCpu6502::Fix_PtrOrAddr_To_AddrOrPtr_H( CCpu6502 * _pcCpu ) {
-		LSN_INSTR_START_PHI1( true );
+		LSN_INSTR_START_PHI1( _bRead );
 
 		if constexpr ( _bFromAddr ) {
 			(*_pcCpu).m_fsState.ui8Pointer[1] = (*_pcCpu).m_fsState.ui8Target[1];
@@ -2812,7 +2812,13 @@ namespace lsn {
 			LSN_UPDATE_S;
 		}
 		else {
-			LSN_INSTR_START_PHI1( false );
+			// A reset's pushes are reads.
+			if LSN_UNLIKELY( (*_pcCpu).m_bIsReset ) {
+				LSN_INSTR_START_PHI1( true );
+			}
+			else {
+				LSN_INSTR_START_PHI1( false );
+			}
 		}
 
 #ifdef LSN_CPU_VERIFY

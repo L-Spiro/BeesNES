@@ -46,12 +46,39 @@ namespace lsn {
 
 	// == Functions.
 	/**
-	 * Sets the filter kernel size.
+	 * Sets the filter kernel size for both Y and chroma.
 	 * 
 	 * \param _ui32Size The new size of the filter.
 	 * \return Returns true if the memory for the internal buffer(s) was allocated.
 	 **/
 	bool CLSpiroNtscFilterBase::SetKernelSize( uint32_t _ui32Size ) {
+		m_ui32FilterKernelSize = m_ui32FilterKernelSizeY = _ui32Size;
+		GenFilterKernel( m_ui32FilterKernelSize );
+		GenFilterKernelY( m_ui32FilterKernelSizeY );
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Sets the Y filter kernel size.
+	 * 
+	 * \param _ui32Size The new size of the Y filter.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CLSpiroNtscFilterBase::SetKernelSizeY( uint32_t _ui32Size ) {
+		m_ui32FilterKernelSizeY = _ui32Size;
+		GenFilterKernelY( m_ui32FilterKernelSizeY );
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Sets the chroma (I/Q) filter kernel size.
+	 * 
+	 * \param _ui32Size The new size of the chroma filter.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CLSpiroNtscFilterBase::SetKernelSizeChroma( uint32_t _ui32Size ) {
 		m_ui32FilterKernelSize = _ui32Size;
 		GenFilterKernel( m_ui32FilterKernelSize );
 		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) { return false; }
@@ -371,30 +398,47 @@ namespace lsn {
 		}
 
 		float fBrightness = LSN_FINAL_BRIGHT;
+		const int16_t i16HalfLeft = int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
+		const int16_t i16HalfRight = int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
+		const int16_t i16HalfLeftY = int16_t( std::floorf( m_ui32FilterKernelSizeY / 2.0f ) );
+		const int16_t i16HalfRightY = int16_t( std::ceilf( m_ui32FilterKernelSizeY / 2.0f ) );
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 			//float fIdx = (float( I ) / (m_ui16ScaledWidth - 1) * (256.0f * 8.0f - 1.0f));
 			//int16_t i16Center = int16_t( std::round( fIdx ) ) + 4;
 			int16_t i16Center = int16_t( I * 8 / m_ui16WidthScale ) + 4;
-			int16_t i16Start = i16Center - int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
-			int16_t i16End = i16Center + int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
+			// Chroma.
+			int16_t i16Start = i16Center - i16HalfLeft;
+			int16_t i16End = i16Center + i16HalfRight;
+			// Y.
+			int16_t i16StartY = i16Center - i16HalfLeftY;
+			int16_t i16EndY = i16Center + i16HalfRightY;
 
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
 			int16_t J = i16Start;
+			int16_t K = i16StartY;
 #ifdef __AVX512F__
 			if ( CUtilities::IsAvx512FSupported() ) {
 				__m512 mSin = _mm512_set1_ps( 0.0f ), mCos = _mm512_set1_ps( 0.0f ), mSig = _mm512_set1_ps( 0.0f );
 				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
 					while ( i16End - J >= 16 ) {
 						// Can do 16 at a time.
-						Convolution16_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						Convolution16_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
 						J += 16;
+					}
+					while ( i16EndY - K >= 16 ) {
+						Convolution16Y_Fma( &pfSignalStart[K], K - i16StartY, mSig );
+						K += 16;
 					}
 				}
 				else {
 					while ( i16End - J >= 16 ) {
 						// Can do 16 at a time.
-						Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
 						J += 16;
+					}
+					while ( i16EndY - K >= 16 ) {
+						Convolution16Y( &pfSignalStart[K], K - i16StartY, mSig );
+						K += 16;
 					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -408,15 +452,23 @@ namespace lsn {
 				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
 					while ( i16End - J >= 8 ) {
 						// Can do 8 at a time.
-						Convolution8_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						Convolution8_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
 						J += 8;
+					}
+					while ( i16EndY - K >= 8 ) {
+						Convolution8Y_Fma( &pfSignalStart[K], K - i16StartY, mSig );
+						K += 8;
 					}
 				}
 				else {
 					while ( i16End - J >= 8 ) {
 						// Can do 8 at a time.
-						Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+						Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
 						J += 8;
+					}
+					while ( i16EndY - K >= 8 ) {
+						Convolution8Y( &pfSignalStart[K], K - i16StartY, mSig );
+						K += 8;
 					}
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -429,8 +481,12 @@ namespace lsn {
 				__m128 mSin = _mm_set1_ps( 0.0f ), mCos = _mm_set1_ps( 0.0f ), mSig = _mm_set1_ps( 0.0f );
 				while ( i16End - J >= 4 ) {
 					// Can do 4 at a time.
-					Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin, mSig );
+					Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
 					J += 4;
+				}
+				while ( i16EndY - K >= 4 ) {
+					Convolution4Y( &pfSignalStart[K], K - i16StartY, mSig );
+					K += 4;
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
 				(*_pfDstQ) += CUtilities::HorizontalSum( mSin );
@@ -441,10 +497,13 @@ namespace lsn {
 				while ( i16End - J >= 1 ) {
 					size_t sIdx = (_ui16Cycle + (12 * 4) + J) % 12;
 					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
-					(*_pfDstY) += pfSignalStart[J] * m_fFilterY[J-i16Start];
 					(*_pfDstI) += m_fPhaseCosTable[sIdx] * fLevel;
 					(*_pfDstQ) += m_fPhaseSinTable[sIdx] * fLevel;
 					++J;
+				}
+				while ( i16EndY - K >= 1 ) {
+					(*_pfDstY) += pfSignalStart[K] * m_fFilterY[K-i16StartY];
+					++K;
 				}
 			}
 			(*_pfDstY++) *= fBrightness;
@@ -511,7 +570,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Generates the filter kernel.
+	 * Generates the chroma filter kernel.
 	 * 
 	 * \param _ui32Width The width of the kernel.
 	 **/
@@ -542,15 +601,21 @@ namespace lsn {
 			}
 		}
 #endif	// #ifdef __AVX512F__
+	}
 
-
-		//dSum = 0.0;
+	/**
+	 * Generates the Y filter kernel.
+	 * 
+	 * \param _ui32Width The width of the kernel.
+	 **/
+	void CLSpiroNtscFilterBase::GenFilterKernelY( uint32_t _ui32Width ) {
+		//double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilterY[I] = m_pfFilterFuncY( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
 			//dSum += m_fFilterY[I];
 		}
 		CUtilities::BakeBleedIntoKernel( m_fFilterY, _ui32Width, m_fBleed );
-		/*dNorm = 1.0 / dSum;
+		/*double dNorm = 1.0 / dSum;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
 			m_fFilterY[I] = float( m_fFilterY[I] * dNorm );
 		}*/
@@ -584,12 +649,13 @@ namespace lsn {
 	bool CLSpiroNtscFilterBase::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
 			// Buffer size:
-			// [m_ui32FilterKernelSize/2][m_ui16Width*8][m_ui32FilterKernelSize/2][Padding for Alignment to 64 Bytes]
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + m_ui32FilterKernelSize + 16;
+			// [ui32Kernel/2][m_ui16Width*8][ui32Kernel/2][Padding for Alignment to 64 Bytes]
+			const uint32_t ui32Kernel = std::max( m_ui32FilterKernelSize, m_ui32FilterKernelSizeY );
+			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + ui32Kernel + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
-				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + ((m_ui32FilterKernelSize >> 1) + (m_ui32FilterKernelSize & 1)) );
+				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + ((ui32Kernel >> 1) + (ui32Kernel & 1)) );
 				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
 			}

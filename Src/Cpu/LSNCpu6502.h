@@ -31,17 +31,17 @@
 #endif	// #ifdef LSN_CPU_VERIFY
 
 
-#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( (_pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma) && _pcCpu->DmaWantsCycle() ) { _pcCpu->BackupState(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
+#define LSN_INSTR_START_PHI1( ISREAD )						if constexpr ( ISREAD ) { if LSN_UNLIKELY( _pcCpu->m_bRdyLow || _pcCpu->m_bDmcDma || _pcCpu->m_bDmaHaltReadDone ) { _pcCpu->DmaReadCycleCheck(); } } else { if LSN_UNLIKELY( _pcCpu->m_bDmaHaltReadDone ) { _pcCpu->DmaWriteCycle(); } } if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
 #define LSN_INSTR_END_PHI1									
 #define LSN_INSTR_START_PHI2_READ( ADDR, RESULT )			if LSN_UNLIKELY( _pcCpu->m_fsStateBackup.bCopiedState ) { _pcCpu->m_ui16DmaCpuAddress = uint16_t( ADDR );								\
-																if LSN_LIKELY( !_pcCpu->m_bDmaKeepsHaltRead ) {																				\
+																if LSN_LIKELY( !_pcCpu->m_bDmaKeepsHaltRead || _pcCpu->m_bDmaHaltReadDone ) {														\
 																	_pcCpu->RestoreState();																									\
 																	_pcCpu->DmaCycle();																										\
 																	_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>;																		\
 																	return; }																												\
 																_pcCpu->m_fsStateBackup.bCopiedState = false;																			\
-																_pcCpu->DmaCycle();																											\
-																_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<false>; }																		\
+																_pcCpu->m_bDmaHaltReadDone = true;																							\
+																_pcCpu->DmaCycle<false>(); }																									\
 															RESULT = _pcCpu->m_pbBus->Read( uint16_t( ADDR ) )
 #define LSN_INSTR_START_PHI2_WRITE( ADDR, VAL )				_pcCpu->m_pbBus->Write( uint16_t( ADDR ), uint8_t( VAL ) )
 #define LSN_INSTR_END_PHI2									//if LSN_LIKELY( !_pcCpu->m_bRdyLow ) { ++_pcCpu->m_ui8RdyOffCnt; }
@@ -204,7 +204,7 @@ namespace lsn {
 			m_fsState.ui16OpCode = 0;
 			m_fsStateBackup.bCopiedState = false;
 			m_bRdyLow = m_bDmcDma = false;
-			m_bOamDmaFirst = m_bOamDmaHalt = m_bOamDmaAligned = m_bDmcDmaHalt = false;
+			m_bOamDmaFirst = m_bOamDmaHalt = m_bOamDmaAligned = m_bDmcDmaHalt = m_bDmaHaltReadDone = false;
 			
 #ifdef LSN_CPU_VERIFY
 			m_fsState.bAllowWritingToPc = true;
@@ -257,8 +257,8 @@ namespace lsn {
 
 		/**
 		 * Sets whether the CPU keeps the read it makes on a DMA's halting cycle (the 2A07).  The 2A03 repeats that read after the DMA, and the
-		 *	reads it makes during the DMA can read registers alongside the DMA.  The 2A07 instead finishes the read on the halting cycle and stays
-		 *	off the bus until the DMA ends, so each DMA costs it 1 cycle less.
+		 *	reads it makes during the DMA can read registers alongside the DMA.  The 2A07 instead finishes the read on the halting cycle, runs any
+		 *	write cycles that follow, and is halted (off the bus) on its next read cycle until the DMA ends, so each DMA costs it 1 cycle less.
 		 *
 		 * \param _bKeep If true, the 2A07 behavior is used.
 		 */
@@ -420,7 +420,8 @@ namespace lsn {
 		bool												m_bOamDmaFirst = false;																/**< The next DMA cycle is the first cycle of the OAM DMA. */
 		bool												m_bOamDmaHalt = false;																/**< The OAM DMA began on a get cycle, which is spent as a halt cycle. */
 		bool												m_bOamDmaAligned = false;															/**< The OAM DMA has read a byte to write on the next put cycle. */
-		bool												m_bDmaKeepsHaltRead = false;														/**< The CPU keeps its read on a DMA's halting cycle and stays off the bus during the DMA (2A07). */
+		bool												m_bDmaKeepsHaltRead = false;														/**< The CPU keeps its read on a DMA's halting cycle and is not on the bus while halted (2A07). */
+		bool												m_bDmaHaltReadDone = false;															/**< The CPU made its read on a 2A07 DMA's halting cycle; it is halted on its next read cycle while the DMA continues. */
 		
 		static LSN_INSTR									m_iInstructionSet[256];																/**< The instruction set. */
 		
@@ -500,8 +501,34 @@ namespace lsn {
 		}
 
 		/**
-		 * The DMA cycles.  The CPU stays halted on its read cycle until no DMA wants the bus, then that read cycle is executed again (on the 2A07,
-		 *	the CPU instead continues with the cycle after the read it made on the halting cycle).
+		 * Called on the first half of a read cycle while a DMA is pending or running.  If a DMA wants the cycle, the CPU state is backed up so that
+		 *	the second half can halt the CPU (or, on the 2A07, finish the read as the DMA's halting cycle).  Otherwise any 2A07 DMA has ended.
+		 **/
+		inline void											DmaReadCycleCheck() {
+			if ( DmaWantsCycle() ) {
+				BackupState();
+			}
+			else {
+				m_bDmaHaltReadDone = false;
+			}
+		}
+
+		/**
+		 * Called on the first half of a write cycle after a 2A07 DMA's halting cycle.  The CPU is not halted on write cycles, so the DMA spends the
+		 *	cycle without the bus.
+		 **/
+		inline void											DmaWriteCycle() {
+			if ( DmaWantsCycle() ) {
+				DmaCycle<false>();
+			}
+			else {
+				m_bDmaHaltReadDone = false;
+			}
+		}
+
+		/**
+		 * The DMA cycles.  The CPU stays halted on its read cycle until no DMA wants the bus, then that read cycle is executed (on the 2A03 it is
+		 *	executed again; on the 2A07 the halting cycle's read was already kept, so this is the CPU's next read).
 		 *
 		 * \tparam _bPhi2 True for the second half of the cycle, where the DMA accesses the bus.
 		 * \param _pcCpu The pointer to the CPU object.
@@ -517,6 +544,7 @@ namespace lsn {
 					_pcCpu->m_pfTickFunc = &CCpu6502::Tick_Dma<true>;
 				}
 				else {
+					_pcCpu->m_bDmaHaltReadDone = false;
 					_pcCpu->m_pfTickFunc = _pcCpu->m_pfTickFuncCopy;
 					_pcCpu->m_pfTickFunc( _pcCpu );
 				}
@@ -527,7 +555,10 @@ namespace lsn {
 		 * Performs the bus access of a DMA cycle.  The DMC DMA gets get cycles before the OAM DMA, the OAM DMA writes on put cycles, and every other
 		 *	DMA cycle (halt, dummy, and alignment cycles) repeats the halted CPU read (except on the 2A07, where the CPU stays off the bus).  The DMC
 		 *	DMA's get costs the OAM DMA its alignment.  A DMC DMA the DMC does not currently allow stays pending, even while an OAM DMA holds the CPU.
+		 *
+		 * \tparam _bBus If false, the CPU is using the bus on this cycle (2A07), so the DMA spends it as a halt, dummy, or alignment cycle.
 		 **/
+		template <bool _bBus = true>
 		inline void											DmaCycle() {
 			const bool bGet = (m_ui64CycleCount & 1) != 0;
 			const bool bDmc = m_bDmcDma && m_psbSystem->DmcDmaAllowed();
@@ -536,30 +567,30 @@ namespace lsn {
 				m_bOamDmaHalt = bGet;
 			}
 			if ( bGet ) {
-				if ( bDmc && !m_bDmcDmaHalt ) {
+				if ( _bBus && bDmc && !m_bDmcDmaHalt ) {
 					uint8_t ui8Val = DmaRead( m_psbSystem->DmcDmaAddress(), true );
 					m_bDmcDma = false;
 					m_bOamDmaAligned = false;
 					m_psbSystem->ReceiveDmcSample( ui8Val );
 				}
-				else if ( m_bRdyLow && !m_bOamDmaHalt ) {
+				else if ( _bBus && m_bRdyLow && !m_bOamDmaHalt ) {
 					m_ui8DmaValue = DmaRead( uint16_t( m_ui16DmaAddress | m_ui8DmaPos ), false );
 					m_bOamDmaAligned = true;
 				}
-				else if LSN_LIKELY( !m_bDmaKeepsHaltRead ) {
+				else if LSN_LIKELY( _bBus && !m_bDmaKeepsHaltRead ) {
 					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
 				if ( bDmc ) { m_bDmcDmaHalt = false; }
 				m_bOamDmaHalt = false;
 			}
 			else {
-				if ( m_bRdyLow && !m_bOamDmaHalt && m_bOamDmaAligned ) {
+				if ( _bBus && m_bRdyLow && !m_bOamDmaHalt && m_bOamDmaAligned ) {
 					m_pbBus->Write( LSN_PR_OAMDATA, m_ui8DmaValue );
 					if ( ++m_ui8DmaPos == 0 ) {
 						m_bRdyLow = m_bOamDmaAligned = false;
 					}
 				}
-				else if LSN_LIKELY( !m_bDmaKeepsHaltRead ) {
+				else if LSN_LIKELY( _bBus && !m_bDmaKeepsHaltRead ) {
 					m_pbBus->Read( m_ui16DmaCpuAddress );
 				}
 			}
@@ -1000,7 +1031,7 @@ namespace lsn {
 		 *
 		 * \param _pcCpu A pointer to the CCpu6502 instance.
 		 */
-		template <bool _bFromAddr>
+		template <bool _bFromAddr, bool _bRead = true>
 		static void											Fix_PtrOrAddr_To_AddrOrPtr_H( CCpu6502 * _pcCpu );
 
 		/**
