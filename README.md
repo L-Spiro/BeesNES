@@ -24,9 +24,9 @@ HDMI:<br>
 HDMI Mod:<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b967db94-73ce-41c3-a815-dce8171d17d3" /><br>
 
-PAL-D (RF Cables):<br>
+PAL-B (RF Cables):<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/57ccfd27-9b08-47c2-a8d6-e9441ed5445e" /><br>
-PAL-D (Composite):<br>
+PAL-B (Composite):<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cb036bf4-9bad-4b5f-a1f8-c6db6b97aa1f" /><br>
 PAL-D (“Dendy” Famiclone) (Composite):<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/76df84b7-e2c8-41e1-ad7b-eddb5a1ec998" /><br>
