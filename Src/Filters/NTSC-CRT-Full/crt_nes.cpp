@@ -14,6 +14,9 @@
 #include "crt_core.h"
 
 #if (CRT_SYSTEM == CRT_SYSTEM_NES)
+#include "../../Utilities/LSNUtilities.h"
+
+#include <immintrin.h>
 #include <stdlib.h>
 #include <string.h>
 #include <cmath>
@@ -150,19 +153,19 @@ BandLimitedSample( int _iP, int _iPhase )
 struct LSN_NES_AA_FILTER {
 	LSN_NES_AA_FILTER() {
 		/* half of the symmetric low-pass, scaled by 4096 (taps 0..12) */
-		static const int iHalf[13] = { 918, 846, 622, 342, 83, -96, -171, -154, -83, 0, 61, 86, 53 };
-		int iLow[25];
-		for ( int I = 0; I < 25; ++I ) { iLow[I] = iHalf[(I < 12) ? (12 - I) : (I - 12)]; }
+		static const int half[13] = { 918, 846, 622, 342, 83, -96, -171, -154, -83, 0, 61, 86, 53 };
+		int low[25];
+		for ( int I = 0; I < 25; ++I ) { low[I] = half[(I < 12) ? (12 - I) : (I - 12)]; }
 		for ( int I = 0; I < LSN_TAPS; ++I ) {
-			iTaps[I] = 0;
+			taps[I] = 0;
 			for ( int J = 0; J < 4; ++J ) {
-				if ( I - J >= 0 && I - J < 25 ) { iTaps[I] += iLow[I-J]; }
+				if ( I - J >= 0 && I - J < 25 ) { taps[I] += low[I-J]; }
 			}
 		}
 		for ( int P = 0; P < 512; ++P ) {
 			for ( int I = 0; I < 12; ++I ) {
 				/* the 12-phase signal is kept with 3 fewer bits so that the filter fits in 32 bits */
-				iPhase[P][I] = (square_sample( P, I ) + 4) >> 3;
+				tphase[P][I] = (square_sample( P, I ) + 4) >> 3;
 			}
 		}
 	}
@@ -176,8 +179,8 @@ struct LSN_NES_AA_FILTER {
 
 
 	// == Members.
-	int																	iTaps[LSN_TAPS];									/**< The filter, scaled by 4096 * 4 (the box sums 4 phases). */
-	int																	iPhase[512][12];									/**< The signal of each pixel at each phase, divided by 8. */
+	int																	taps[LSN_TAPS];									/**< The filter, scaled by 4096 * 4 (the box sums 4 phases). */
+	int																	tphase[512][12];									/**< The signal of each pixel at each phase, divided by 8. */
 };
 
 #define NES_OPTIMIZED 1
@@ -289,47 +292,82 @@ crt_modulate_full(struct CRT *v, struct NTSC_SETTINGS *s)
         }
     }
     {
-        constexpr int iDecim = 12 / CRT_CB_FREQ;                 /* phases per sample */
-        constexpr int iPhases = AV_LEN * iDecim;                  /* phases of active video */
-        constexpr int iPre = -LSN_NES_AA_FILTER::LSN_FIRST;       /* phases before the active video that the filter reads */
-        constexpr int iPost = LSN_NES_AA_FILTER::LSN_TAPS + LSN_NES_AA_FILTER::LSN_FIRST; /* and after it */
-        static const LSN_NES_AA_FILTER nafFilter;
-        int iStream[iPre + iPhases + iPost];
-        const int iBlack = BLACK_LEVEL + v->black_point;
+        constexpr int decim = 12 / CRT_CB_FREQ;                 /* phases per sample */
+        constexpr int phases = AV_LEN * decim;                  /* phases of active video */
+        constexpr int pre = -LSN_NES_AA_FILTER::LSN_FIRST;       /* phases before the active video that the filter reads */
+        constexpr int post = LSN_NES_AA_FILTER::LSN_TAPS + LSN_NES_AA_FILTER::LSN_FIRST; /* and after it */
+        static const LSN_NES_AA_FILTER aa_filter;
+        /* the phases are kept as decim planes (plane r holds phases decim * m + r, counted from pre phases before the active video),
+         * so that the filter for consecutive samples reads consecutive values */
+        constexpr int planelen = (pre + phases + post) / decim + 8;
+        static_assert((pre % decim) == 0, "The filter must start on a sample.");
+        int plane[decim][planelen];
+        const int black = BLACK_LEVEL + v->black_point;
         
         if (v->pix_w != s->w) {
-            for (x = 0; x < iPhases; x++) {
-                v->pix_x[x] = (x * s->w) / iPhases;
+            /* the first phase of each pixel (the phases of pixel P are those where (phase * w) / phases == P) */
+            for (x = 0; x <= s->w; x++) {
+                v->pix_start[x] = (x * phases + s->w - 1) / s->w;
             }
             v->pix_w = s->w;
         }
         /* outside of the active video the signal is blank */
-        for (x = 0; x < iPre; x++) { iStream[x] = 0; }
-        for (x = 0; x < iPost; x++) { iStream[iPre + iPhases + x] = 0; }
+        memset(plane, 0, sizeof(plane));
         for (y = 0; y < desth; y++) {
             int sy = (y * s->h) / desth;
             short *dst = &v->analog[xo + (y + yo) * CRT_HRES];
-            int *stream = iStream + iPre;
             
             if LSN_UNLIKELY(sy >= s->h) sy = s->h;
             if LSN_UNLIKELY(sy < 0) sy = 0;
  
             sy *= s->w;
             phase = phasetab[(y + yo + s->dot_crawl_offset) % 3] % 12;
-            for (x = 0; x < iPhases; x++) {
-                stream[x] = nafFilter.iPhase[s->data[v->pix_x[x] + sy] & 0x1FF][phase];
-                if (++phase == 12) { phase = 0; }
-            }
-            for (x = 0; x < destw; x++) {
-                const int *src = stream + x * iDecim + LSN_NES_AA_FILTER::LSN_FIRST;
-                int sum = 0, ire;
-                for (int k = 0; k < LSN_NES_AA_FILTER::LSN_TAPS; k++) {
-                    sum += nafFilter.iTaps[k] * src[k];
+            {
+                /* walk the phases a pixel at a time */
+                int r = 0, m = pre / decim;
+                for (x = 0; x < s->w; x++) {
+                    const int *row = aa_filter.tphase[s->data[x + sy] & 0x1FF];
+                    for (int u = v->pix_start[x]; u < v->pix_start[x + 1]; u++) {
+                        plane[r][m] = row[phase];
+                        if (++phase == 12) { phase = 0; }
+                        if (++r == decim) { r = 0; m++; }
+                    }
                 }
-                /* sum is the 4-phase sum of the signal, scaled by 4096 / 8 */
-                ire = iBlack + ((sum + (1 << 8)) >> 9);
-                dst[x] = (short)(((ire * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT));
             }
+            /* sum is the 4-phase sum of the signal, scaled by 4096 / 8 */
+#define LSN_NES_LEVEL(SUM) (short)((((black + (((SUM) + (1 << 8)) >> 9)) * v->white_point / 100) + (1 << (11 - CRT_SIG_SHIFT))) >> (12 - CRT_SIG_SHIFT))
+            x = 0;
+#if defined( __AVX2__ )
+            if LSN_LIKELY( lsn::CUtilities::IsAvx2Supported() ) {
+                __m256i mmtaps[LSN_NES_AA_FILTER::LSN_TAPS];
+                for (int k = 0; k < LSN_NES_AA_FILTER::LSN_TAPS; k++) { mmtaps[k] = _mm256_set1_epi32(aa_filter.taps[k]); }
+                for (; x + 16 <= destw; x += 16) {
+                    /* tap k reads plane k % decim at x + k / decim */
+                    __m256i sum0 = _mm256_setzero_si256(), sum1 = _mm256_setzero_si256();
+                    for (int r = 0; r < decim; r++) {
+                        const int *pl = &plane[r][x];
+                        for (int k = r; k < LSN_NES_AA_FILTER::LSN_TAPS; k += decim, pl++) {
+                            sum0 = _mm256_add_epi32(sum0, _mm256_mullo_epi32(mmtaps[k], _mm256_loadu_si256(reinterpret_cast<const __m256i *>(pl))));
+                            sum1 = _mm256_add_epi32(sum1, _mm256_mullo_epi32(mmtaps[k], _mm256_loadu_si256(reinterpret_cast<const __m256i *>(pl + 8))));
+                        }
+                    }
+                    LSN_ALN int sum[16];
+                    _mm256_store_si256(reinterpret_cast<__m256i *>(sum), sum0);
+                    _mm256_store_si256(reinterpret_cast<__m256i *>(sum + 8), sum1);
+                    for (int j = 0; j < 16; j++) {
+                        dst[x + j] = LSN_NES_LEVEL(sum[j]);
+                    }
+                }
+            }
+#endif	// #if defined( __AVX2__ )
+            for (; x < destw; x++) {
+                int sum = 0;
+                for (int k = 0; k < LSN_NES_AA_FILTER::LSN_TAPS; k++) {
+                    sum += aa_filter.taps[k] * plane[k % decim][x + k / decim];
+                }
+                dst[x] = LSN_NES_LEVEL(sum);
+            }
+#undef LSN_NES_LEVEL
         }
     }
     

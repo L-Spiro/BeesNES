@@ -119,6 +119,8 @@ struct PAL_CRT {
 
     /* internal data */
     int ccf[PAL_VRES][4]; /* faster color carrier convergence */
+    int pix_start[1024 + 1]; /* the first of the 12-per-carrier-cycle phases of the active video that each source pixel covers */
+    int pix_w; /* pix_x[] is valid for this source width */
     int cc_period; /* vertically */
     int hsync, vsync; /* keep track of sync over frames */
     int rn; /* seed for the 'random' noise */

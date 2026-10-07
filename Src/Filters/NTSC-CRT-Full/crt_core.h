@@ -114,7 +114,7 @@ struct CRT {
     /* internal data */
     int ccf[4][CRT_CB_FREQ]; /* faster color carrier convergence */
     int yiq[(AV_LEN + 1) * 3 * CRT_EQ_LANES]; /* decoded Y, I, Q of CRT_EQ_LANES lines: [sample][Y/I/Q][line] */
-    int pix_x[AV_LEN * (12 / CRT_CB_FREQ)]; /* the source pixel under each of the 12 phases per carrier cycle of the active video */
+    int pix_start[1024 + 1]; /* the first of the 12-per-carrier-cycle phases of the active video that each source pixel covers */
     int pix_w; /* pix_x[] is valid for this source width */
     int cc_period; /* vertically */
     int hsync, vsync; /* keep track of sync over frames */

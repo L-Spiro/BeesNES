@@ -13,6 +13,9 @@
 #include "pal_core.h"
 
 #if (PAL_SYSTEM == PAL_SYSTEM_NES)
+#include "../../Utilities/LSNUtilities.h"
+
+#include <immintrin.h>
 #include <stdlib.h>
 #include <string.h>
 #include <cmath>
@@ -186,6 +189,56 @@ BandLimitedSample( int _iP, int _iPhase, int _iAlter, int _iUa6538 )
 	return pnstTable.iSample[_iUa6538?1:0][_iAlter?1:0][_iP&0x1FF][_iPhase%12];
 }
 
+/**
+ * The NES's signal at its own resolution (12 phases per carrier cycle, 10 per pixel), band-limited and taken at 4 samples per
+ *	carrier cycle.
+ *
+ * Each pixel lasts 10 of the 12 color phases, so at 4 samples per carrier cycle pixel edges fall at 3.33-sample steps.  Taking one
+ *	sample per 3 phases from the raw signal snapped every edge to the sample grid, so an object's shape changed as it moved by a pixel
+ *	(bright highlights shimmered as things scrolled).  Instead, the signal is built per phase and low-pass filtered before it is
+ *	sampled, so an edge between two samples is carried in their levels and the decoded image just shifts as the object moves.
+ *
+ * The filter is the 6-phase box that each sample summed before, followed by a 25-tap low-pass (taps -12..12) that passes DC and the
+ *	carrier exactly and removes 2-6 times the carrier, so flat areas decode exactly as the band-limited table above, and everything
+ *	that would alias at 4 samples per carrier cycle is gone.
+ **/
+struct LSN_PAL_NES_AA_FILTER {
+	LSN_PAL_NES_AA_FILTER() {
+		/* half of the symmetric low-pass, scaled by 4096 (taps 0..12) */
+		static const int half[13] = { 918, 846, 622, 342, 83, -96, -171, -154, -83, 0, 61, 86, 53 };
+		int low[25];
+		for ( int i = 0; i < 25; ++i ) { low[i] = half[(i < 12) ? (12 - i) : (i - 12)]; }
+		for ( int i = 0; i < LSN_TAPS; ++i ) {
+			taps[i] = 0;
+			for ( int J = 0; J < 6; ++J ) {
+				if ( i - J >= 0 && i - J < 25 ) { taps[i] += low[i-J]; }
+			}
+		}
+		for ( int u = 0; u < 2; ++u ) {
+			for ( int a = 0; a < 2; ++a ) {
+				for ( int p = 0; p < 512; ++p ) {
+					for ( int i = 0; i < 12; ++i ) {
+						/* the 12-phase signal is kept with 3 fewer bits so that the filter fits in 32 bits */
+						tphase[u][a][p][i] = (square_sample( p, i, a, u ) + 4) >> 3;
+					}
+				}
+			}
+		}
+	}
+
+
+	// == Enumerations.
+	enum {
+		LSN_TAPS														= 30,												/**< The number of taps: the box (6) convolved with the low-pass (25). */
+		LSN_FIRST														= -12,												/**< The phase offset of the first tap. */
+	};
+
+
+	// == Members.
+	int																	taps[LSN_TAPS];									/**< The filter, scaled by 4096 * 6 (the box sums 6 phases). */
+	int																	tphase[2][2][512][12];								/**< The signal of each pixel at each phase ([UA6538][alternate line]), divided by 8. */
+};
+
 /* this function is an optimization
  * basically factoring out the field setup since as long as PAL_CRT->analog
  * does not get cleared, all of this should remain the same every update
@@ -283,32 +336,91 @@ pal_modulate(struct PAL_CRT *v, struct PAL_SETTINGS *s)
         }
     }
     /* no border on PAL according to https://www.nesdev.org/wiki/PAL_video */
+    constexpr int phases = AV_LEN * 3;                           /* phases of active video */
+    constexpr int pre = -LSN_PAL_NES_AA_FILTER::LSN_FIRST;       /* phases before the active video that the filter reads */
+    constexpr int post = LSN_PAL_NES_AA_FILTER::LSN_TAPS + LSN_PAL_NES_AA_FILTER::LSN_FIRST; /* and after it */
+    static const LSN_PAL_NES_AA_FILTER pnafFilter;
+    /* the phases are kept as 3 planes (plane r holds phases 3 * m + r, counted from pre phases before the active video), so that
+     * the filter for consecutive samples reads consecutive values */
+    constexpr int planelen = (pre + phases + post) / 3 + 8;
+    static_assert((pre % 3) == 0, "The filter must start on a sample.");
+    int plane[3][planelen];
+    const int black = BLACK_LEVEL + v->black_point;
+
+    if (v->pix_w != s->w) {
+        /* the first phase of each pixel (the phases of pixel P are those where (phase * w) / phases == P) */
+        for (x = 0; x <= s->w; x++) {
+            v->pix_start[x] = (x * phases + s->w - 1) / s->w;
+        }
+        v->pix_w = s->w;
+    }
+    /* outside of the active video the signal is blank */
+    memset(plane, 0, sizeof(plane));
     for (y = 0; y < desth; y++) {
         int nm6;
         int sy = (y * s->h) / desth;
+        short *dst;
 
         if (sy >= s->h) sy = s->h;
         if (sy < 0) sy = 0;
  
         n = (y + yo);
         nm6 = n % 6;
+        dst = &v->analog[xo + n * PAL_HRES];
 
         sy *= s->w;
 
         phase = nm6 * 2;
         alter = s->altline[nm6] == -1;
         phase += alter ? 0 : 6;
-		for (x = 0; x < destw; x++) {
-            int ire, p;
-
-            p = s->data[((x * s->w) / destw) + sy];
-            ire = BLACK_LEVEL + v->black_point;
-
-            ire += BandLimitedSample(p, phase, alter, s->ua6538);
-            ire = ((ire * v->white_point / (110 * 6)) + (1 << (9 - PAL_SIG_SHIFT))) >> (10 - PAL_SIG_SHIFT);
-            v->analog[(x + xo) + n * PAL_HRES] = (short)ire;
-            phase += 3;
+        phase %= 12;
+        {
+            const int (*phases)[12] = pnafFilter.tphase[s->ua6538 ? 1 : 0][alter ? 1 : 0];
+            /* walk the phases a pixel at a time */
+            int r = 0, m = pre / 3;
+            for (x = 0; x < s->w; x++) {
+                const int *row = phases[s->data[x + sy] & 0x1FF];
+                for (int u = v->pix_start[x]; u < v->pix_start[x + 1]; u++) {
+                    plane[r][m] = row[phase];
+                    if (++phase == 12) { phase = 0; }
+                    if (++r == 3) { r = 0; m++; }
+                }
+            }
         }
+        /* sum is the 6-phase sum of the signal, scaled by 4096 / 8 */
+#define LSN_PAL_LEVEL(SUM) (short)((((black + (((SUM) + (1 << 8)) >> 9)) * v->white_point / (110 * 6)) + (1 << (9 - PAL_SIG_SHIFT))) >> (10 - PAL_SIG_SHIFT))
+        x = 0;
+#if defined( __AVX2__ )
+        if LSN_LIKELY( lsn::CUtilities::IsAvx2Supported() ) {
+            __m256i vTaps[LSN_PAL_NES_AA_FILTER::LSN_TAPS];
+            for (int k = 0; k < LSN_PAL_NES_AA_FILTER::LSN_TAPS; k++) { vTaps[k] = _mm256_set1_epi32(pnafFilter.taps[k]); }
+            for (; x + 16 <= destw; x += 16) {
+                /* tap k reads plane k % 3 at x + k / 3 */
+                __m256i vSum0 = _mm256_setzero_si256(), vSum1 = _mm256_setzero_si256();
+                for (int r = 0; r < 3; r++) {
+                    const int *pl = &plane[r][x];
+                    for (int k = r; k < LSN_PAL_NES_AA_FILTER::LSN_TAPS; k += 3, pl++) {
+                        vSum0 = _mm256_add_epi32(vSum0, _mm256_mullo_epi32(vTaps[k], _mm256_loadu_si256(reinterpret_cast<const __m256i *>(pl))));
+                        vSum1 = _mm256_add_epi32(vSum1, _mm256_mullo_epi32(vTaps[k], _mm256_loadu_si256(reinterpret_cast<const __m256i *>(pl + 8))));
+                    }
+                }
+                LSN_ALN int sum[16];
+                _mm256_store_si256(reinterpret_cast<__m256i *>(sum), vSum0);
+                _mm256_store_si256(reinterpret_cast<__m256i *>(sum + 8), vSum1);
+                for (int j = 0; j < 16; j++) {
+                    dst[x + j] = LSN_PAL_LEVEL(sum[j]);
+                }
+            }
+        }
+#endif	// #if defined( __AVX2__ )
+        for (; x < destw; x++) {
+            int sum = 0;
+            for (int k = 0; k < LSN_PAL_NES_AA_FILTER::LSN_TAPS; k++) {
+                sum += pnafFilter.taps[k] * plane[k % 3][x + k / 3];
+            }
+            dst[x] = LSN_PAL_LEVEL(sum);
+        }
+#undef LSN_PAL_LEVEL
 
         /*for (x = 0; x < destw; x++) {
             int ire, p;
