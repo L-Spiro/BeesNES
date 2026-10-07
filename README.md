@@ -1,21 +1,21 @@
 # BeesNES
-A sub–cycle-accurate Nintendo Entertainment System emulator.
+A sub-cycle–accurate Nintendo Entertainment System emulator.
 <br>Shawn (L. Spiro) Wilcoxen  
 
 ## Description
-A “sub–cycle-accurate” Nintendo Entertainment System emulator with the goal of being as authentic of an experience as possible.  It should look, sound, and _feel_ like real hardware, with convincing visuals, clean and accurate audio, and real-time input response.  No visual or audible delays.  BeesNES also represents the under-served regions with support for a wide range of console variants, currently including NTSC, PAL, PAL “Dendy” Famiclone, PAL-M Brazilian Famiclone, and PAL-N Argentinian Famiclone.
+A “sub-cycle–accurate” Nintendo Entertainment System emulator with the goal of being as authentic of an experience as possible.  It should look, sound, and _feel_ like real hardware, with convincing visuals, clean and accurate audio, and real-time input response.  No visual or audible delays.  BeesNES also represents the under-served regions with support for a wide range of console variants, currently including NTSC, PAL, PAL “Dendy” Famiclone, PAL-M Brazilian Famiclone, and PAL-N Argentinian Famiclone.
 
 ## Visual Samples
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/74c2a421-b4a4-41d7-a572-7c8d1a2f530a" /><br>AccuracyCoin results.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ab107073-3271-4715-99d3-525b107349f7" /><br>General NTSC filter.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/08bc0c44-e2fd-403f-ab29-3c952161e35a" /><br>Gamma-aware resampling.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5efff799-1a2d-4aaf-833e-4e1e75e372b7" /><br>Measured CRT gamma adjusted for display on sRGB (etc.) monitors.<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e969cdc2-3fbe-4903-ad04-3939498b4b14" /><br>Signal noise physically accurate and can be based off your CPU’s actual temperature (Requires “Run as administrator”).<img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/94453b94-6827-4b2e-ac3f-6fa186b7a396" /><img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/476cc632-c193-4423-ae23-348990da87ff" /><img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/6b84b85d-1ae0-4ee6-a86b-2e966d33dd21" /><br>Image remains sharp at low resolutions—no blurry pixels—thanks to manual resampling via convolution.<br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e969cdc2-3fbe-4903-ad04-3939498b4b14" /><br>Signal noise physically accurate and can be based off your CPU’s actual temperature (Requires “Run as administrator”).<img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/94453b94-6827-4b2e-ac3f-6fa186b7a396" /><img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/476cc632-c193-4423-ae23-348990da87ff" /><img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/6b84b85d-1ae0-4ee6-a86b-2e966d33dd21" /><img width="295" height="292" alt="image" src="https://github.com/user-attachments/assets/7438be32-c709-44e5-8956-d358d011c7be" /><br>Image remains sharp at low resolutions—no blurry pixels—thanks to manual resampling via convolution.<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6a53aea2-0dc2-4669-b8cf-961d2b47b711" /><br>Authentic phosphor decay.
 
 
 RF Cables:<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c10572b4-611c-4083-8505-77c03f0252db" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a787e80f-6406-40c3-b717-bcca865413e6" /><br>
 Composite:<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/db6b2d09-d64d-46b1-990f-f7247b28a8ac" /><br>
 HDMI:<br>
@@ -23,14 +23,16 @@ HDMI:<br>
 HDMI Mod:<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b967db94-73ce-41c3-a815-dce8171d17d3" /><br>
 
-PAL (Composite:):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9840dc63-876d-4138-b255-ee68a58d480f" /><br>
-PAL-B (“Dendy” Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a806cfab-71fe-4450-9440-c8e4b0194eda" /><br>
+PAL-D (RF Cables):<br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/57ccfd27-9b08-47c2-a8d6-e9441ed5445e" /><br>
+PAL-D (Composite):<br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cb036bf4-9bad-4b5f-a1f8-c6db6b97aa1f" /><br>
+PAL-D (“Dendy” Famiclone) (Composite):<br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/76df84b7-e2c8-41e1-ad7b-eddb5a1ec998" /><br>
 PAL-M (Brazilian Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/71ec879c-e45a-4502-8d92-bece80f62b66" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b003fc22-3cdb-4e28-8421-79ce43449074" /><br>
 PAL-N (Argentinian Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/92c7b71d-a7ec-46be-a03d-e3891c7f1386" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7dde87fd-8f12-4530-9027-a9470ef4aabf" /><br>
 
 
 ## Audio Accuracy
