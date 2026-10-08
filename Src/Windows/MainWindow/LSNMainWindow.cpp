@@ -365,7 +365,7 @@ namespace lsn {
 					std::wstring szFileName;
 					szFileName.resize( 0xFFFF + 2 );
 
-#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_ ) LSN_LSTR( LSN_NES_FILES____NES____NES_ ) LSN_LSTR( LSN_ZIP_FILES____ZIP____ZIP_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0" //LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_ALL_SUPPORTED_FILES___NES____ZIP____NES___ZIP_ ) LSN_LSTR( LSN_NES_FILES____NES____NES_ ) LSN_LSTR( LSN_ZIP_FILES____ZIP____ZIP_ ) LSN_LSTR( LSN_NSF_FILES____NSF____NSF_ ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0" //LSN_ALL_SUPPORTED LSN_NES_FILES LSN_ZIP_FILES LSN_ALL_FILES L"\0"
 					std::wstring wsFilter = std::wstring( LSN_FILE_OPEN_FORMAT, std::size( LSN_FILE_OPEN_FORMAT ) - 1 );
 					ofnOpenFile.hwndOwner = Wnd();
 					ofnOpenFile.lpstrFilter = wsFilter.c_str();
@@ -387,6 +387,9 @@ namespace lsn {
 										for ( size_t I = 0; I < vFiles.size(); ++I ) {
 											std::u16string s16Ext = lsn::CUtilities::GetFileExtension( vFiles[I] );
 											if ( ::StrCmpIW( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"nes" ) == 0 ) {
+												vFinalFiles.push_back( vFiles[I] );
+											}
+											else if ( ::StrCmpIW( reinterpret_cast<const wchar_t *>(s16Ext.c_str()), L"nsf" ) == 0 ) {
 												vFinalFiles.push_back( vFiles[I] );
 											}
 										}
@@ -418,6 +421,8 @@ namespace lsn {
 									}
 								}
 								return LSW_H_CONTINUE;
+							}
+							else if ( ::StrCmpIW( lpstrExt, L"nsf" ) == 0 ) {
 							}
 							else {
 								lsn::CStdFile sfFile;

@@ -68,7 +68,7 @@
 #define LSN_FROM_P											false
 
 #ifdef LSN_CPU_VERIFY
-#define LSN_CYCLES_DOC										1
+//#define LSN_CYCLES_DOC										1
 #endif	// #ifdef LSN_CPU_VERIFY
 #ifdef LSN_CYCLES_DOC
 #define LSN_PRINT_STACK																																			\
