@@ -16,7 +16,7 @@ A “sub-cycle–accurate” Nintendo Entertainment System emulator with the goa
 
 
 RF Cables:<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a787e80f-6406-40c3-b717-bcca865413e6" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/afa9ef4f-7270-43fd-bbb3-88a2c7d95290" /><br>
 Composite:<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/db6b2d09-d64d-46b1-990f-f7247b28a8ac" /><br>
 HDMI:<br>
@@ -25,15 +25,15 @@ HDMI Mod:<br>
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b967db94-73ce-41c3-a815-dce8171d17d3" /><br>
 
 PAL-B (RF Cables):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/57ccfd27-9b08-47c2-a8d6-e9441ed5445e" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c7c41c83-1a47-48bd-8bc4-b3dd581f86c6" /><br>
 PAL-B (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cb036bf4-9bad-4b5f-a1f8-c6db6b97aa1f" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f649aad0-5b91-4008-8961-b85f4f58d1f6" /><br>
 PAL-D (“Dendy” Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/76df84b7-e2c8-41e1-ad7b-eddb5a1ec998" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/17082129-86a9-4540-81f1-a5c3b59afbb3" /><br>
 PAL-M (Brazilian Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b003fc22-3cdb-4e28-8421-79ce43449074" /><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9bccee78-3623-46fa-9f72-db02e77e9740" /><br>
 PAL-N (Argentinian Famiclone) (Composite):<br>
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7dde87fd-8f12-4530-9027-a9470ef4aabf" /><br><br><br>
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2b92dbcc-7ab3-40c3-b064-b689efe445a6" /><br><br><br>
 
 
 ## Audio Accuracy
