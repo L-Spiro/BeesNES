@@ -144,7 +144,8 @@ namespace lsn {
 				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
 				if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
 					m_pvkDevice->ResizeSwapChain();
-				} else if ( rRes == VK_SUCCESS ) {
+				}
+				else if ( rRes == VK_SUCCESS ) {
 					m_fRenderFence.ResetFence();
 
 					VkCommandBuffer cbCmd = m_cbCommandBuffer.Get();
