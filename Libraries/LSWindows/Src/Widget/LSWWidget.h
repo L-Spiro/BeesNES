@@ -703,7 +703,10 @@ namespace lsw {
 		 * \brief Sends a synthetic WM_SIZE to recompute layout and repaint.
 		 */
 		VOID								ForceSizeUpdate() {
-			::SetWindowPos( Wnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED );
+			//::SetWindowPos( Wnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED );
+			LSW_RECT rRect;
+			::GetClientRect( Wnd(), &rRect );
+			::SendMessageW( Wnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM( rRect.Width(), rRect.Height() ) );
 		}
 
 		/**

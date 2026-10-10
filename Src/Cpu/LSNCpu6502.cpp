@@ -2922,11 +2922,12 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Address.H.\r\n\t\t"
 				"ValueReg = A & X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
@@ -2954,19 +2955,20 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Pointer.H.\r\n\t\t"
 				"ValueReg = A & X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		/* Stores A AND X AND (high-byte of addr. + 1) at addr.
 
-		Known behaviors.  They differ between CPUs, and AccuracyCoin tells them apart.  H is the high byte of the base address + 1.
-		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented.  The documented behavior.)
+		Known behaviors.  H is the high byte of the base address + 1.
+		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented and documented.)
 		2:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & X.
 		3:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & (X | MAGIC2).  (MAGIC2 is a different constant.)
 		4:	Val = A & H;				on a page crossing, the high byte of the address is H & (A | X).
@@ -3016,11 +3018,12 @@ namespace lsn {
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "S = A & X.\r\n\t\t"
-				"AddrHigh = Address.H.\r\n\t\t"
+				"AddrHigh = BaseHigh = Address.H.\r\n\t\t"
 				"ValueReg = A & X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
@@ -3049,19 +3052,20 @@ namespace lsn {
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
 			lsn::DebugA( std::format( "S = A & X.\r\n\t\t"
-				"AddrHigh = Pointer.H.\r\n\t\t"
+				"AddrHigh = BaseHigh = Pointer.H.\r\n\t\t"
 				"ValueReg = A & X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
 
 		/* Puts A AND X in SP and stores A AND X AND (high-byte of addr. + 1) at addr.  S = A & X in every behavior below.
 
-		Known behaviors.  They differ between CPUs, and AccuracyCoin tells them apart.  H is the high byte of the base address + 1.
-		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented.  The documented behavior.)
+		Known behaviors.  H is the high byte of the base address + 1.
+		1:	Val = A & X & H;			on a page crossing, the high byte of the address is H & A & X.  (Implemented and documented.)
 		2:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & X.
 		3:	Val = A & (X | MAGIC) & H;	on a page crossing, the high byte of the address is H & (X | MAGIC2).  (MAGIC2 is a different constant.)
 		4:	Val = A & H;				on a page crossing, the high byte of the address is H & (A | X).
@@ -3108,11 +3112,12 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Address.H.\r\n\t\t"
 				"ValueReg = X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
@@ -3140,11 +3145,12 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Pointer.H.\r\n\t\t"
 				"ValueReg = X.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
@@ -3193,11 +3199,12 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Address[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Address.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Address.H.\r\n\t\t"
 				"ValueReg = Y.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Address.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
@@ -3225,11 +3232,12 @@ namespace lsn {
 			LSN_INSTR_START_PHI2_WRITE( (*_pcCpu).m_fsState.ui8Pointer[0] | (ui16AddrHigh << 8), ui16Value );
 #ifdef LSN_CYCLES_DOC
 			lsn::DebugA( "\t" );
-			lsn::DebugA( std::format( "AddrHigh = Pointer.H.\r\n\t\t"
+			lsn::DebugA( std::format( "AddrHigh = BaseHigh = Pointer.H.\r\n\t\t"
 				"ValueReg = Y.\r\n\t\t"
 				"If BoundaryCrossed: AddrHigh &= ValueReg.\r\n\t\t"
+				"Else: BaseHigh++.\r\n\t\t"
 				"If RDY went low: Val = ValueReg.\r\n\t\t"
-				"Else: Val = ValueReg & (BaseHigh + 1).\r\n\t\t"
+				"Else: Val = ValueReg & BaseHigh.\r\n\t\t"
 				"Write to (Pointer.L | (AddrHigh << 8))\tWrite Val." ).c_str() );
 #endif	// #ifdef LSN_CYCLES_DOC
 		}
