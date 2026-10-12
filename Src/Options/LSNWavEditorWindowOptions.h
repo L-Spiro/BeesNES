@@ -67,7 +67,7 @@ namespace lsn {
 			/** The last text in Characteristics/Volume. */
 			std::wstring											wsCharVolume = L"0.395";
 			/** The last text in Characteristics/LPF Hz. */
-			std::wstring											wsCharLpfHz = L"17000";
+			std::wstring											wsCharLpfHz = L"16894.902621155365";
 			/** The last text in Characteristics/HPF 1 Hz. */
 			std::wstring											wsCharHpf0Hz = L"285.170928955078125";
 			/** The last text in Characteristics/HPF 2 Hz. */

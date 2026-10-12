@@ -1151,6 +1151,7 @@ namespace lsw {
 						if ( (ptNode->Value().uiState & TVIS_EXPANDED) && ptNode->Size() ) {
 							ptNode->Value().uiState &= ~TVIS_EXPANDED;
 							UpdateListView();
+							EnsureHighlightedVisible();
 							return LSW_H_HANDLED;
 						}
 						else {
@@ -1162,6 +1163,7 @@ namespace lsw {
 									UnfocusAll();
 									ptNode->Parent()->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
 									UpdateListView();
+									EnsureHighlightedVisible();
 									return LSW_H_HANDLED;
 								}
 							}
@@ -1177,6 +1179,7 @@ namespace lsw {
 									}
 									ptNode->Parent()->Value().uiState |= (TVIS_SELECTED | LSW_TREELIST_HIGHLIGHTED);
 									UpdateListView();
+									EnsureHighlightedVisible();
 									return LSW_H_HANDLED;
 								}
 							}
@@ -1193,6 +1196,7 @@ namespace lsw {
 						if ( !(ptNode->Value().uiState & TVIS_EXPANDED) && ptNode->Size() ) {
 							ptNode->Value().uiState |= TVIS_EXPANDED;
 							UpdateListView();
+							EnsureHighlightedVisible();
 							return LSW_H_HANDLED;
 						}
 					}
@@ -1304,6 +1308,9 @@ namespace lsw {
 				}
 				else if ( !(_lplvParm->uOldState & LVIS_SELECTED) && (_lplvParm->uNewState & LVIS_SELECTED) ) {
 					// Single node selected.
+					// The list view unselects only the items it contains, so items hidden inside a collapsed parent keep their selection
+					//	unless they are unselected here.
+					if ( SelectionReplaces() ) { UnselectHidden(); }
 					ee::CTree<LSW_TREE_ROW> * ptNode = ItemByIndex_Cached( _lplvParm->iItem );
 					if ( ptNode ) {
 						ptNode->Value().uiState |= TVIS_SELECTED;
@@ -1352,6 +1359,10 @@ namespace lsw {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CTreeListView::Notify_OdStateChange( LPNMLVODSTATECHANGE _lposcParm ) {
+		if ( !(_lposcParm->uOldState & LVIS_SELECTED) && (_lposcParm->uNewState & LVIS_SELECTED) && SelectionReplaces() ) {
+			// As in Notify_ItemChanged().
+			UnselectHidden();
+		}
 		for ( int I = _lposcParm->iFrom; I <= _lposcParm->iTo; ++I ) {
 			if ( (_lposcParm->uOldState & LVIS_SELECTED) && !(_lposcParm->uNewState & LVIS_SELECTED) ) {
 				// Single node unselected.
@@ -1566,13 +1577,14 @@ namespace lsw {
 	}
 
 	/**
-	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).
+	 * Updates the list view (clears the cache, sets the size, and updates selections/hot).  It never scrolls the list view.
 	 */
 	void CTreeListView::UpdateListView() {
 		LSW_SETREDRAW srRedraw( this );
+		++m_iUpdatingListView;
 		ClearCache();
 		size_t stTotal = CountExpanded();
-		const_cast<CTreeListView *>(this)->SetItemCount( static_cast<INT>(stTotal) );
+		SetItemCountEx( static_cast<INT>(stTotal), LVSICF_NOSCROLL );
 
 		UnfocusCollapsed();
 		size_t stHighlighted = FindHighlighted();
@@ -1616,6 +1628,59 @@ namespace lsw {
 			else {
 				// It is selected.
 				CListView::SetItemSelection( static_cast<INT>(vSelection[I]), TRUE );
+			}
+		}
+		--m_iUpdatingListView;
+	}
+
+	/**
+	 * Scrolls the list view as little as possible to bring the highlighted (focused) item into view.  Nothing scrolls if it is already in view
+	 *	or if there is no highlighted item.
+	 */
+	void CTreeListView::EnsureHighlightedVisible() {
+		size_t stHighlighted = FindHighlighted();
+		if ( stHighlighted != size_t( -1 ) && stHighlighted < size_t( INT_MAX ) ) {
+			::SendMessageW( Wnd(), LVM_ENSUREVISIBLE, static_cast<WPARAM>(stHighlighted), FALSE );
+		}
+	}
+
+	/**
+	 * Determines whether an item that the list view is selecting replaces the previous selection rather than adding to it: neither Ctrl
+	 *	nor Shift is held, and the selection is not UpdateListView() copying the tree's own selection into the list view.
+	 *
+	 * \return Returns true if the selection being made replaces the previous selection.
+	 */
+	bool CTreeListView::SelectionReplaces() const {
+		if ( m_iUpdatingListView ) { return false; }
+		return (::GetKeyState( VK_CONTROL ) & 0x8000) == 0 && (::GetKeyState( VK_SHIFT ) & 0x8000) == 0;
+	}
+
+	/**
+	 * Unselects every item that is hidden inside a collapsed parent.  The list view cannot unselect these, because it does not contain them.
+	 */
+	void CTreeListView::UnselectHidden() {
+		ee::CTree<LSW_TREE_ROW> * ptNode = Next( nullptr );
+		while ( ptNode ) {
+			if ( (ptNode->Value().uiState & TVIS_SELECTED) && IsHidden( PointerToTreeItem( ptNode ) ) ) {
+				ptNode->Value().uiState &= ~TVIS_SELECTED;
+			}
+			ptNode = Next( ptNode );
+		}
+	}
+
+	/**
+	 * Repaints the list view and its header after the header changes a column, so that the whole control is drawn from its new state.
+	 *
+	 * \param _uiCode The header notification code, already handled by the list view.
+	 */
+	void CTreeListView::HeaderChanged( UINT _uiCode ) {
+		switch ( _uiCode ) {
+			case HDN_ITEMCHANGEDA : {}
+			case HDN_ITEMCHANGEDW : {}
+			case HDN_ENDTRACKA : {}
+			case HDN_ENDTRACKW : {
+				::RedrawWindow( Wnd(), nullptr, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN );
+				break;
 			}
 		}
 	}
@@ -1737,6 +1802,17 @@ namespace lsw {
 				break;
 			}
 			case WM_ERASEBKGND : {
+				break;
+			}
+			case WM_NOTIFY : {
+				// The header's notifications come here.  The list view handles them first.
+				const NMHDR * pnhHdr = reinterpret_cast<const NMHDR *>(_lParam);
+				if ( ptlThis && wpOrig && pnhHdr && pnhHdr->hwndFrom == ListView_GetHeader( _hWnd ) ) {
+					UINT uiCode = pnhHdr->code;
+					LRESULT lrRet = ::CallWindowProcW( wpOrig, _hWnd, _uMsg, _wParam, _lParam );
+					ptlThis->HeaderChanged( uiCode );
+					return lrRet;
+				}
 				break;
 			}
 
