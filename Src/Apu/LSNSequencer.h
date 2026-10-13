@@ -140,16 +140,18 @@ namespace lsn {
 	 **/
     inline uint8_t CSequencer::TickSequencer( bool _bEnabled ) {
 		if LSN_UNLIKELY( m_bRestartSeq ) {
+			// Restart the sequence (the output becomes its first step) without resetting the period divider.
 			m_bRestartSeq = false;
 			m_ui8SeqOff = 0;
-			m_ui16Timer = 0;
+			m_ui8Out = WeDoBeTicknTho();
 		}
-		if ( ShouldBeTicknTho( _bEnabled ) ) {
-			if ( --m_ui16Timer == 0xFFFF ) {
-				m_ui16Timer = m_ui16Reload;
+		// The timer always runs; ShouldBeTicknTho() only decides whether its clock steps the sequencer.
+		if ( --m_ui16Timer == 0xFFFF ) {
+			m_ui16Timer = m_ui16Reload;
+			if ( ShouldBeTicknTho( _bEnabled ) ) {
 				m_ui8Out = WeDoBeTicknTho();
 			}
-        }
+		}
         return m_ui8Out;
 
 	}

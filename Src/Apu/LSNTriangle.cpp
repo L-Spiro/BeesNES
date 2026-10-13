@@ -40,9 +40,8 @@ namespace lsn {
 	 * \return Returns an output value.
 	 **/
 	uint8_t CTriangle::WeDoBeTicknTho() {
-		uint8_t ui8Idx = m_ui8Triangle[m_ui8SeqOff++];
-		m_ui8SeqOff %= std::size( m_ui8Triangle );
-		return ui8Idx;
+		m_ui8SeqOff = uint8_t( (m_ui8SeqOff + 1) % std::size( m_ui8Triangle ) );
+		return m_ui8Triangle[m_ui8SeqOff];
 	}
 
 	/**
