@@ -1377,6 +1377,9 @@
     <ClInclude Include="Src\Utilities\LSNHotkeyManager.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Audio\LSNPoleZeroFilter.h">
+      <Filter>Header Files\Audio</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\LSNLSpiroNes.cpp">

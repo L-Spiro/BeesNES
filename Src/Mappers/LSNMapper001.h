@@ -71,10 +71,15 @@ namespace lsn {
 			m_prPgmBank.ui8PgmBank[1] = m_ui8PgmBanks[1];
 			m_crChrBanks[0].ui8ChrBank = m_ui8ChrBanks[0];
 			m_crChrBanks[1].ui8ChrBank = m_ui8ChrBanks[1];
-			m_crChrBanks[0].ui8PgmRomBank = GetPgmBank<256*1024>( m_crChrBanks[0].ui8PgmRomBank );
-			m_crChrBanks[1].ui8PgmRomBank = GetPgmBank<256*1024>( m_crChrBanks[1].ui8PgmRomBank );
+			for ( size_t I = 0; I < std::size( m_crChrBanks ); ++I ) {
+				m_crChrBanks[I].ui8PgmRamBank = 0;
+				m_crChrBanks[I].ui8PgmRomBank = 0;
+				m_crChrBanks[I].bPgmRamEnable = true;		// SNROM: 0 in the CHR register's bit 4 enables PRG RAM.
+			}
 			
 			m_prPgmBank.bBypassFixedBank = false;
+			m_prPgmBank.bPgmRamEnable = true;					// MMC1B and later power on with PRG RAM enabled.
+			m_ui8PgmReg = 0;
 
 			m_ui8Control = 0x1C;
 			m_ui8Load = 0;
@@ -108,8 +113,9 @@ namespace lsn {
 				m_crChrBanks[I].ui8PgmRamBank = GetBank( m_crChrBanks[I].ui8PgmRamBank, m_sPgmRamSize, PgmRamBankSize() );
 			}
 
-			// For types that have outer banks.
-			if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ||
+			// For types that have outer banks (any board with more than 256 KB of PRG ROM is SUROM or SXROM).
+			if ( m_prRom->vPrgRom.size() > 256 * 1024 ||
+				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ||
 				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SUROM ||
 				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ||
 				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
@@ -268,6 +274,8 @@ namespace lsn {
 		uint8_t											m_ui8Load;
 		/** The load count. */
 		uint8_t											m_ui8LoadCnt;
+		/** The last value written to the PRG bank register ($E000-$FFFF).  Control-register writes and reset writes re-apply it. */
+		uint8_t											m_ui8PgmReg = 0;
 		/** PGM RAM enabled. */
 		bool											m_bRamEnabled;
 		
@@ -326,23 +334,21 @@ namespace lsn {
 		 * \return Returns the status of RAM-enable.
 		 **/
 		bool											GetRamEnabled() {
-			if ( /*(m_prRom->riInfo.ui16Chip >= CDatabase::LSN_C_MMC1B1 && m_prRom->riInfo.ui16Chip < CDatabase::LSN_C_MMC1_END) ||*/
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ||
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SOROM ||
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SUROM ||
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SXROM ||
-				m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SZROM ) {
+			// MMC1A has no PRG-RAM disable ($E000 bit 4 bypasses the fixed-bank logic instead).
+			bool bEnabled = m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_MMC1A || m_prPgmBank.bPgmRamEnable;
+			if ( m_prRom->riInfo.ui16PcbClass == CDatabase::LSN_PC_SNROM ) {
 				/*
 				 *  In order to enable PRG RAM on SNROM...
 				 *	The bit in $E000 must be 0 (which the chip itself transforms into 5V)
 				 *	The bit in $A000 must be 0 (which the chip keeps as 0)
 				 *	The bit in $C000 must either be 0, or the bit in $8000 must specify 8k CHR banking
 				 */
-				return (m_prPgmBank.bPgmRamEnable) &&
+				return bEnabled &&
 					(m_crChrBanks[1].bPgmRamEnable || In8kMode_CHR()) &&
 					(m_crChrBanks[0].bPgmRamEnable);
 			}
-			else { return m_prPgmBank.bPgmRamEnable; }
+			// SOROM, SUROM, SXROM, and SZROM use bit 4 of the CHR registers to bank PRG ROM/RAM, not to disable PRG RAM.
+			return bEnabled;
 		}
 
 		// ================
@@ -577,6 +583,8 @@ namespace lsn {
 							break;
 						}
 					}
+					// The PRG bank mode may have changed.
+					pmThis->UpdatePgm();
 				}
 				else if ( _ui16Parm1 >= 0xA000 && _ui16Parm1 < 0xC000 ) {
 					switch ( pmThis->m_prRom->riInfo.ui16PcbClass ) {
@@ -640,6 +648,8 @@ namespace lsn {
 							 *	+++++- Select 4 KB or 8 KB CHR bank at PPU $0000 (low bit ignored in 8 KB mode)
 							 */
 							pmThis->m_crChrBanks[0].ui8ChrBank = GetBank( pmThis->m_ui8Load & 0b11111, pmThis->m_vChrRam.size(), ChrBankSize() );
+							// Without a database entry, a board with more than 256 KB of PRG ROM is SUROM/SXROM: bit 4 selects the 256 KB PRG-ROM bank.
+							pmThis->m_crChrBanks[0].ui8PgmRomBank = GetBank( (pmThis->m_ui8Load >> 4) & 0b0001, pmThis->m_sOuterPgmRomSize, 256 * 1024 );
 						}
 					}
 				}
@@ -705,6 +715,8 @@ namespace lsn {
 							 *	+++++- Select 4 KB CHR bank at PPU $1000 (ignored in 8 KB mode)
 							 */
 							pmThis->m_crChrBanks[1].ui8ChrBank = GetBank( pmThis->m_ui8Load & 0b11111, pmThis->m_vChrRam.size(), ChrBankSize() );
+							// Without a database entry, a board with more than 256 KB of PRG ROM is SUROM/SXROM: bit 4 selects the 256 KB PRG-ROM bank.
+							pmThis->m_crChrBanks[1].ui8PgmRomBank = GetBank( (pmThis->m_ui8Load >> 4) & 0b0001, pmThis->m_sOuterPgmRomSize, 256 * 1024 );
 						}
 					}
 				}
@@ -719,40 +731,10 @@ namespace lsn {
 					 *	+----- MMC1B and later: PRG RAM chip enable (0: enabled; 1: disabled; ignored on MMC1A)
 					 *		   MMC1A: Bit 3 bypasses fixed bank logic in 16K mode (0: affected; 1: bypassed)
 					 */
-					uint8_t ui8Val;
-					if ( pmThis->m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_MMC1A ) {
-						pmThis->m_prPgmBank.bBypassFixedBank = !(pmThis->m_ui8Load & 0b10000);
-						ui8Val = (pmThis->m_ui8Load & 0b00111);
-						//ui8Val = (pmThis->m_ui8Load & 0b01111);
-					}
-					else {
-						ui8Val = (pmThis->m_ui8Load & 0b01111);
-					}
+					pmThis->m_ui8PgmReg = pmThis->m_ui8Load;
 					pmThis->m_prPgmBank.bPgmRamEnable = !(pmThis->m_ui8Load & 0b10000);
 					pmThis->m_bRamEnabled = pmThis->GetRamEnabled();
-					
-
-					uint8_t ui8PgmMode = (pmThis->m_ui8Control >> 2) & 0b11;
-					switch ( ui8PgmMode ) {
-						// 0, 1: switch 32 KB at $8000, ignoring low bit of bank number;
-						case 1 : {} LSN_FALLTHROUGH
-						case 0 : {
-							pmThis->m_prPgmBank.ui8PgmBank[0] = GetBank( ui8Val, std::min<size_t>( 256 * 1024, pmThis->m_prRom->vPrgRom.size() ), PgmBankSize() );
-							break;
-						}
-						// 2: fix first bank at $8000 and switch 16 KB bank at $C000;
-						case 2 : {
-							pmThis->m_prPgmBank.ui8PgmBank[0] = 0;
-							pmThis->m_prPgmBank.ui8PgmBank[1] = GetBank( ui8Val, std::min<size_t>( 256 * 1024, pmThis->m_prRom->vPrgRom.size() ), PgmBankSize() );
-							break;
-						}
-						// 3: fix last bank at $C000 and switch 16 KB bank at $8000)
-						case 3 : {
-							pmThis->m_prPgmBank.ui8PgmBank[0] = GetBank( ui8Val, std::min<size_t>( 256 * 1024, pmThis->m_prRom->vPrgRom.size() ), PgmBankSize() );
-							pmThis->m_prPgmBank.ui8PgmBank[1] = GetBank( -1, std::min<size_t>( 256 * 1024, pmThis->m_prRom->vPrgRom.size() ), PgmBankSize() );
-							break;
-						}
-					}
+					pmThis->UpdatePgm();
 				}
 
 				pmThis->m_ui8Load = pmThis->m_ui8LoadCnt = 0;
@@ -760,17 +742,17 @@ namespace lsn {
 		}
 
 		/**
-		 * Updates the PGM bank based off the current load value.
+		 * Updates the PGM banks from the PRG bank register (m_ui8PgmReg) and the current PRG bank mode.
 		 **/
 		void											UpdatePgm() {
 			uint8_t ui8Val;
 			if ( m_prRom->riInfo.ui16Chip == CDatabase::LSN_C_MMC1A ) {
-				m_prPgmBank.bBypassFixedBank = !(m_ui8Load & 0b10000);
-				//ui8Val = (m_ui8Load & 0b00111);
-				ui8Val = (m_ui8Load & 0b01111);
+				m_prPgmBank.bBypassFixedBank = !(m_ui8PgmReg & 0b10000);
+				//ui8Val = (m_ui8PgmReg & 0b00111);
+				ui8Val = (m_ui8PgmReg & 0b01111);
 			}
 			else {
-				ui8Val = (m_ui8Load & 0b01111);
+				ui8Val = (m_ui8PgmReg & 0b01111);
 			}
 			uint8_t ui8PgmMode = (m_ui8Control >> 2) & 0b11;
 			switch ( ui8PgmMode ) {

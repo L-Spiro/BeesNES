@@ -1840,6 +1840,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Audio\LSNHpfFilter.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilter.h" />
     <ClInclude Include="Src\Audio\LSNPoleFilterLeaky.h" />
+    <ClInclude Include="Src\Audio\LSNPoleZeroFilter.h" />
     <ClInclude Include="Src\Audio\LSNRfWhiteNoiseGenerator.h" />
     <ClInclude Include="Src\Audio\LSNSampleBox.h" />
     <ClInclude Include="Src\Audio\LSNSincFilter.h" />
