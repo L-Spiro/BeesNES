@@ -47,6 +47,7 @@
 #define LSN_GAME_POWER_OFF													Power &Off
 // Options menu.
 #define LSN_VIDEO_SIZE														Video Si&ze
+#define LSN_FULL_SCREEN														Full &Screen
 #define LSN_VIDEO_FILTER													Video &Filter
 #define LSN_REGION															&Region
 #define LSN_INPUT															&Input

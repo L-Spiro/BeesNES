@@ -525,6 +525,11 @@ namespace lsn {
 		void									LeaveBorderless();
 
 		/**
+		 * Toggles borderless (full-screen) mode.  Used by both the borderless-exit key and the Full Screen menu item.
+		 **/
+		void									ToggleBorderless();
+
+		/**
 		 * Dispatches the WM_PAINT messages pending for this thread's windows.  Windows generates WM_PAINT only once no posted or input
 		 *	messages are waiting, so a steady stream of LSN_GPU_DRAW posts would otherwise defer the repaints of every window on this
 		 *	thread (dialogs included) for as long as the stream lasts.
@@ -550,4 +555,4 @@ namespace lsn {
 
 }
 
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_USE_WINDOWS

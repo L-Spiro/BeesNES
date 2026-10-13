@@ -486,6 +486,10 @@ namespace lsn {
 				m_bnEmulator.CloseRom();
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_FULL_SCREEN : {
+				ToggleBorderless();
+				break;
+			}
 			
 #define LSN_SET_SCALE( CASE, SCALE )																		\
 	case CMainWindowLayout::CASE : {																		\
@@ -1132,18 +1136,7 @@ namespace lsn {
 			}
 		}
 		if ( wVkCode == m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
-			if ( m_bMaximized ) {
-				if ( m_wpPlacement.bInBorderless ) {
-					CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
-					LeaveBorderless();
-				}
-			}
-			else {
-				if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
-					CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
-					EnterBorderless();
-				}
-			}
+			ToggleBorderless();
 		}
 
 		else if ( wVkCode == m_woWindowOptions.ukPauseKey.bKeyCode && ((!m_woWindowOptions.ukPauseKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukPauseKey.bKeyModifier ) & 0x8000) ) {
@@ -1488,6 +1481,25 @@ namespace lsn {
 					::EnableMenuItem(
 						_hMenu, uiId,
 						MF_BYCOMMAND | (m_bnEmulator.IsRomLoaded() ? MF_ENABLED : MF_GRAYED) );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_FULL_SCREEN : {
+					try {
+						std::wstring wStr = LSN_LSTR( LSN_FULL_SCREEN );
+
+						if ( m_woWindowOptions.ukBorderlessExitKey.bKeyCode ) {
+							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukBorderlessExitKey, false );
+						}
+
+						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
+						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					} catch ( ... ) {}
+
+					// Checked while in borderless mode; disabled whenever ToggleBorderless() would do nothing.
+					bool bCanToggle = m_bMaximized ? m_wpPlacement.bInBorderless : m_woWindowOptions.bGoBorderless;
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE,
+						.fState = UINT( (m_wpPlacement.bInBorderless ? MFS_CHECKED : MFS_UNCHECKED) | (bCanToggle ? MFS_ENABLED : MFS_GRAYED) ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
 
@@ -2487,6 +2499,24 @@ namespace lsn {
 		else {
 			m_bMaximized = bMaxCopy;
 			m_rStatusBarRect = rRectCopy;
+		}
+	}
+
+	/**
+	 * Toggles borderless (full-screen) mode.  Used by both the borderless-exit key and the Full Screen menu item.
+	 **/
+	void CMainWindow::ToggleBorderless() {
+		if ( m_bMaximized ) {
+			if ( m_wpPlacement.bInBorderless ) {
+				CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
+				LeaveBorderless();
+			}
+		}
+		else {
+			if ( m_woWindowOptions.bGoBorderless && !m_wpPlacement.bIsSizing ) {
+				CSystemBase::LSN_TEMP_PAUSE tpPauseMe( (*m_bnEmulator.GetSystem()) );
+				EnterBorderless();
+			}
 		}
 	}
 

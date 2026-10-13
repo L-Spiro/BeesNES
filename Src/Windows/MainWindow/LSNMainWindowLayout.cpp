@@ -103,6 +103,7 @@ namespace lsn {
 	LSW_MENU_ITEM CMainWindowLayout::m_miOptionsMenu[] = {
 		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled
 		{ FALSE,		LSN_MWMI_VIDEO_SIZE,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_SIZE ) },
+		{ FALSE,		LSN_MWMI_FULL_SCREEN,		TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_FULL_SCREEN ) },
 		{ FALSE,		LSN_MWMI_VIDEO_FILTER,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_VIDEO_FILTER ) },
 		{ FALSE,		LSN_MWMI_REGION,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION ) },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
@@ -413,4 +414,4 @@ namespace lsn {
 
 }	// namespace lsn
 
-#endif	// #ifdef LSN_USE_WINDOWS
+#endif	// #ifdef LSN_USE_WINDOWS
