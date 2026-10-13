@@ -70,6 +70,7 @@ namespace lsn {
 			LSN_C_WAVE													= 0x45564157,
 			LSN_C_FMT_													= 0x20746D66,
 			LSN_C_DATA													= 0x61746164,
+			LSN_C_FACT													= 0x74636166,
 			LSN_C_SMPL													= 0x6C706D73,
 			LSN_C_LIST													= 0x5453494C,
 			LSN_C_ID3_													= 0x20336469,
@@ -415,6 +416,11 @@ namespace lsn {
 			}
 			LSN_FMT_CHUNK fcChunk = CreateFmt( LSN_F_PCM, static_cast<uint16_t>(_vSamples.size()),
 				_psdSaveSettings );
+			// Non-PCM formats need cbSize (0) in the "fmt " chunk and a "fact" chunk holding the number of sample frames.
+			bool bFact = LSN_F_IEEE_FLOAT == fcChunk.uiAudioFormat;
+			if ( bFact ) {
+				fcChunk.chHeader.uiSize = 18;
+			}
 			std::vector<uint8_t> vLoops, vList;
 			if ( m_vLoops.size() ) {
 				vLoops = CreateSmpl();
@@ -425,14 +431,14 @@ namespace lsn {
 		
 
 			uint32_t uiFmtSize = fcChunk.chHeader.uiSize + 8;
+			uint32_t uiFactSize = bFact ? 12 : 0;
+			// The "data" chunk's size is the actual size of the samples.  An odd size is followed by a pad byte that is not part of the chunk.
 			uint32_t ui32DataSize = CalcSize( static_cast<LSN_FORMAT>(fcChunk.uiAudioFormat), static_cast<uint32_t>(_vSamples[0].size()), static_cast<uint16_t>(_vSamples.size()), fcChunk.uiBitsPerSample );
-			if ( ui32DataSize & 1 ) {
-				++ui32DataSize;
-			}
 
 			uint32_t ui32Size = 4 +							// "WAVE".
 				uiFmtSize +									// "fmt " chunk.
-				ui32DataSize + 8 +							// "data" chunk.
+				uiFactSize +								// "fact" chunk.
+				((ui32DataSize + 1) & ~1U) + 8 +			// "data" chunk.
 				static_cast<uint32_t>(vLoops.size()) +		// "smpl" chunk.
 				static_cast<uint32_t>(vList.size()) +		// "LIST" chunk.
 				0;
@@ -448,6 +454,13 @@ namespace lsn {
 			// Append the "fmt " chunk.
 			for ( size_t I = 0; I < uiFmtSize; ++I ) {
 				vRet.push_back( reinterpret_cast<const uint8_t *>(&fcChunk)[I] );
+			}
+
+			// Append the "fact" chunk.
+			if ( bFact ) {
+				LSN_PUSH32( LSN_C_FACT );
+				LSN_PUSH32( 4 );
+				LSN_PUSH32( static_cast<uint32_t>(_vSamples[0].size()) );
 			}
 
 			// Append the "data" chunk.
@@ -956,11 +969,11 @@ namespace lsn {
 			_vResult.reserve( sFinalSize );
 			uint32_t uiStride;
 			size_t sIdx = CalcOffsetsForSample( _uiChan, _ui32From, uiStride );
-			const int8_t * pi8Samples = reinterpret_cast<const int8_t *>(&m_vSamples.data()[sIdx]);
+			const uint8_t * pui8Samples = &m_vSamples.data()[sIdx];		// 8-bit PCM is unsigned (128 = silence).
 			while ( _ui32From < _ui32To ) {
-				_vResult.push_back( (static_cast<int32_t>((*pi8Samples)) - 128) / 128.0 );
+				_vResult.push_back( (static_cast<int32_t>((*pui8Samples)) - 128) / 128.0 );
 
-				pi8Samples += m_uiNumChannels;
+				pui8Samples += m_uiNumChannels;
 				++_ui32From;
 			}
 			return true;
@@ -1111,12 +1124,11 @@ namespace lsn {
 				auto stNumSamples = _vSrc[0].size();
 				auto stNumChannels = _vSrc.size();
 				auto aSize = _vDst.size();
-				_vDst.reserve( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
+				_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
 				int16_t * pi16Dst = reinterpret_cast<int16_t *>(_vDst.data() + aSize);
 
 #ifdef __AVX512BW__
 				if ( CUtilities::IsAvx512BWSupported() ) {
-					// Constants for AVX-512 operations
 					__m512d vdFactor = _mm512_set1_pd( dFactor );
 					__m512d vdMin = _mm512_set1_pd( -1.0 );
 					__m512d vdMax = _mm512_set1_pd( 1.0 );
@@ -1128,23 +1140,18 @@ namespace lsn {
 				
 					for ( auto C = stNumChannels; C--; ) {
 						lwaudio::size_type stIdx = 0;
-						while ( stIdx < stNumSamples - (8 - 1) ) {
-							__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
+						while ( stIdx + 8 <= stNumSamples ) {
+							__m512d vdSamples = _mm512_loadu_pd( &_vSrc[C][stIdx] );
 
-							// Clamp samples between -1.0 and 1.0.
+							// Clamp.
 							vdSamples = _mm512_max_pd( vdSamples, vdMin );
 							vdSamples = _mm512_min_pd( vdSamples, vdMax );
 
-							// Multiply by scaling factor.
 							vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
-
-							// Round to nearest integer and convert to int32_t
 							__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-
-							// Convert int32_t to int16_t with saturation
 							__m128i viInt16 = _mm256_cvtsepi32_epi16( viInt32 );
 
-							_mm_store_si128( reinterpret_cast<__m128i *>(&vSamples[C][stIdx]), viInt16 );
+							_mm_storeu_si128( reinterpret_cast<__m128i *>(&vSamples[C][stIdx]), viInt16 );
 
 
 							stIdx += sizeof( __m512d ) / sizeof( double );
@@ -1189,13 +1196,13 @@ namespace lsn {
 				auto stNumSamples = _vSrc[0].size();
 				auto stNumChannels = _vSrc.size();
 				auto aSize = _vDst.size();
-				_vDst.reserve( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
+				_vDst.resize( _vDst.size() + stNumSamples * stNumChannels * sizeof( int16_t ) );
 				int16_t * pi16Dst = reinterpret_cast<int16_t *>(_vDst.data() + aSize);
-				double dError = 0.0;
+				std::vector<double> vError( stNumChannels );		// Each channel diffuses its own error.
 
 				for ( size_t I = 0; I < _vSrc[0].size(); ++I ) {
 					for ( size_t J = 0; J < _vSrc.size(); ++J ) {
-						(*pi16Dst++) = CUtilities::SampleToI16_Dither( _vSrc[J][I], dError );
+						(*pi16Dst++) = CUtilities::SampleToI16_Dither( _vSrc[J][I], vError[J] );
 					}
 				}
 				return true;
@@ -1226,9 +1233,6 @@ namespace lsn {
 						(*pi8Dst++) = static_cast<uint8_t>(iSample);
 						(*pi8Dst++) = static_cast<uint8_t>(iSample >> 8);
 						(*pi8Dst++) = static_cast<uint8_t>(iSample >> 16);
-						/*_vDst.push_back( static_cast<uint8_t>(iSample) );
-						_vDst.push_back( static_cast<uint8_t>(iSample >> 8) );
-						_vDst.push_back( static_cast<uint8_t>(iSample >> 16) );*/
 					}
 				}
 				return true;
@@ -1255,7 +1259,6 @@ namespace lsn {
 
 #ifdef __AVX512BW__
 				if ( CUtilities::IsAvx512BWSupported() ) {
-					// Constants for AVX-512 operations
 					__m512d vdFactor = _mm512_set1_pd( dFactor );
 					__m512d vdMin = _mm512_set1_pd( -1.0 );
 					__m512d vdMax = _mm512_set1_pd( 1.0 );
@@ -1267,21 +1270,16 @@ namespace lsn {
 				
 					for ( auto C = stNumChannels; C--; ) {
 						lwaudio::size_type stIdx = 0;
-						while ( stIdx < stNumSamples - (8 - 1) ) {
-							__m512d vdSamples = _mm512_load_pd( &_vSrc[C][stIdx] );
+						while ( stIdx + 8 <= stNumSamples ) {
+							__m512d vdSamples = _mm512_loadu_pd( &_vSrc[C][stIdx] );
 
-							// Clamp samples between -1.0 and 1.0.
+							// Clamp.
 							vdSamples = _mm512_max_pd( vdSamples, vdMin );
 							vdSamples = _mm512_min_pd( vdSamples, vdMax );
 
-							// Multiply by scaling factor.
 							vdSamples = _mm512_mul_pd( vdSamples, vdFactor );
-
-							// Round to nearest integer and convert to int32_t
 							__m256i viInt32 = _mm512_cvt_roundpd_epi32( vdSamples, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC );
-
-							// Store the int32_t samples.
-							_mm256_store_si256( reinterpret_cast<__m256i*>(&vSamples[C][stIdx]), viInt32 );
+							_mm256_storeu_si256( reinterpret_cast<__m256i*>(&vSamples[C][stIdx]), viInt32 );
 
 
 							stIdx += sizeof( __m512d ) / sizeof( double );

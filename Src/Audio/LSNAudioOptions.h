@@ -68,10 +68,10 @@ namespace lsn {
 	/** Preset audio profiles. */
 	struct LSN_AUDIO_PROFILE {
 		std::wstring									wsName;
-		float											fLpf = 17059.622f;
-		float											fHpf0 = 285.17092929859564f;
-		float											fHpf1 = 85.509330674952423f;
-		float											fHpf2 = 7.3617262313390981f;
+		float											fLpf = 16684.292863243976f;
+		float											fHpf0 = 328.870177843698f;
+		float											fHpf1 = 62.786869865242f;
+		float											fHpf2 = 18.261572731048f;
 		float											fVolume = 0.404f;
 		float											fP1Volume = 0.975f;
 		float											fP2Volume = 0.975f;
