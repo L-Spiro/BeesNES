@@ -731,7 +731,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_SSE_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
-            __m128 mWeights = _mm_load_ps( _pfWeights );
+            __m128 mWeights = _mm_loadu_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
             _mSum = _mm_add_ps( _mSum, _mm_mul_ps( mWeights, mSamples ) );
         }
@@ -744,7 +744,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_SSE_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m128 &_mSum ) {
-            __m128 mWeights = _mm_load_ps( _pfWeights );
+            __m128 mWeights = _mm_loadu_ps( _pfWeights );
             __m128 mSamples = _mm_loadu_ps( _pfSamples );
             _mSum = _mm_fmadd_ps( mWeights, mSamples, _mSum );
         }
@@ -1114,7 +1114,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_AVX_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
-            __m256 mWeights = _mm256_load_ps( _pfWeights );
+            __m256 mWeights = _mm256_loadu_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
             _mSum = _mm256_add_ps( _mSum, _mm256_mul_ps( mWeights, mSamples ) );
         }
@@ -1127,7 +1127,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_AVX_FMA_Single( const float * _pfWeights, const float * _pfSamples, __m256 &_mSum ) {
-            __m256 mWeights = _mm256_load_ps( _pfWeights );
+            __m256 mWeights = _mm256_loadu_ps( _pfWeights );
             __m256 mSamples = _mm256_loadu_ps( _pfSamples );
             _mSum = _mm256_fmadd_ps( mWeights, mSamples, _mSum );
         }
@@ -1466,7 +1466,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_AVX512( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
-            __m512 mWeights = _mm512_load_ps( _pfWeights );
+            __m512 mWeights = _mm512_loadu_ps( _pfWeights );
             __m512 mSamples = _mm512_loadu_ps( _pfSamples );
             _mSum = _mm512_add_ps( _mSum, _mm512_mul_ps( mWeights, mSamples ) );
         }
@@ -1511,7 +1511,7 @@ namespace lsn {
          * \param _mSum Maintains the sum of convolution over many iterations.
          **/
         void												Convolve_AVX512_FMA( const float * _pfWeights, const float * _pfSamples, __m512 &_mSum ) {
-            __m512 mWeights = _mm512_load_ps( _pfWeights );
+            __m512 mWeights = _mm512_loadu_ps( _pfWeights );
             __m512 mSamples = _mm512_loadu_ps( _pfSamples );
 			_mSum = _mm512_fmadd_ps( mWeights, mSamples, _mSum );
         }
