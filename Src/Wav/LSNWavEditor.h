@@ -106,7 +106,8 @@ namespace lsn {
 			double														dTrailingSilence = 0.5;							/**< Trailing silence. */
 			double														dActualHz = 0.0;								/**< The actual HZ of the file. */
 			double														dVolume = 1.0;									/**< The characteristics volume. */
-			double														dLpf = 0.0;										/**< The characteristics LPF. */
+			double														dLpf = 0.0;										/**< The characteristics LPF (Pole). */
+			double														dZero = 0.0;									/**< The characteristics LPF (Zero). */
 			double														dHpf0 = 0.0;									/**< The characteristics HPF 1. */
 			double														dHpf1 = 0.0;									/**< The characteristics HPF 2. */
 			double														dHpf2 = 0.0;									/**< The characteristics HPF 3. */

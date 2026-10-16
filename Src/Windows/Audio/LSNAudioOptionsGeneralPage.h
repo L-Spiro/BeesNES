@@ -18,6 +18,7 @@
 #include <CheckButton/LSWCheckButton.h>
 #include <Tab/LSWTab.h>
 #include <TrackBar/LSWTrackBar.h>
+#include <Object/EEVector.h>
 #include <Widget/LSWWidget.h>
 
 #define LSN_SLIDER_PREC							1000
@@ -210,7 +211,14 @@ namespace lsn {
 
 
 			auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fLpf ).c_str() ); }
+			if ( aEdit ) {
+				if ( aoOptions.apCharacteristics.fZero != 0.0f ) {
+					aEdit->SetTextA( std::format( "{{{:.27},{:.27}}}", aoOptions.apCharacteristics.fLpf, aoOptions.apCharacteristics.fZero ).c_str() );
+				}
+				else {
+					aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fLpf ).c_str() );
+				}
+			}
 
 			aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 			if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", aoOptions.apCharacteristics.fHpf0 ).c_str() ); }
@@ -355,7 +363,15 @@ namespace lsn {
 							auto lpSel = pcbCombo->GetCurSelItemData();
 							if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
 								auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+								//if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+								if ( aEdit ) {
+									if ( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fZero != 0.0f ) {
+										aEdit->SetTextA( std::format( "{{{:.27},{:.27}}}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf, LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fZero ).c_str() );
+									}
+									else {
+										aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() );
+									}
+								}
 
 								aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 								if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
@@ -637,8 +653,7 @@ namespace lsn {
 											apProfile.bRp2A02 = pcbCheck->IsChecked();
 											auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
 											ee::CExpEvalContainer::EE_RESULT rRes;
-											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-												apProfile.fLpf = float( rRes.u.dVal );
+											if ( GetLpfAndZero( apProfile.fLpf, apProfile.fZero ) ) {
 												aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 												if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 													apProfile.fHpf0 = float( rRes.u.dVal );
@@ -676,6 +691,7 @@ namespace lsn {
 																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bNoise == apProfile.bNoise &&
 																							LSN_AUDIO_OPTIONS::s_apProfiles[I].bRp2A02 == apProfile.bRp2A02 &&
 																							(!apProfile.bLpfEnable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fLpf == apProfile.fLpf) &&
+																							(!apProfile.bLpfEnable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fZero == apProfile.fZero) &&
 																							(!apProfile.bHpf0Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf0 == apProfile.fHpf0) &&
 																							(!apProfile.bHpf1Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf1 == apProfile.fHpf1) &&
 																							(!apProfile.bHpf2Enable || LSN_AUDIO_OPTIONS::s_apProfiles[I].fHpf2 == apProfile.fHpf2) &&
@@ -802,14 +818,36 @@ namespace lsn {
 			}
 
 			
-			auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
-			if ( aEdit ) {
-				ee::CExpEvalContainer::EE_RESULT rRes;
-				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
-					aoOptions.apCharacteristics.fLpf = float( rRes.u.dVal );
-				}
-			}
-			aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
+			GetLpfAndZero( aoOptions.apCharacteristics.fLpf, aoOptions.apCharacteristics.fZero );
+			//auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
+			//if ( aEdit ) {
+			//	ee::CExpEvalContainer::EE_RESULT rRes;
+			//	if ( aEdit->GetTextAsExpression( rRes, 0 ) ) {
+			//		if ( rRes.ncType == ee::EE_NC_OBJECT ) {
+			//			if ( rRes.u.poObj ) {
+			//				if ( (rRes.u.poObj->Type() & ee::CObject::EE_BIT_VECTOR) != 0 ) {
+			//					auto pvVec = reinterpret_cast<ee::CVector *>(rRes.u.poObj);
+			//					std::vector<float> vPrimArray;
+			//					if ( pvVec->ToPrimitiveArray<std::vector<float>, ee::EE_NC_FLOATING>( vPrimArray ) ) {
+			//						if ( vPrimArray.size() == 2 ) {
+			//							aoOptions.apCharacteristics.fLpf = vPrimArray[0];
+			//							aoOptions.apCharacteristics.fZero = vPrimArray[1];
+			//						}
+			//					}
+			//				}
+			//			}
+			//		}
+			//		else {
+			//			auto rTmp = ee::CExpEvalContainer::ConvertResult( rRes, ee::EE_NC_FLOATING );
+			//			aoOptions.apCharacteristics.fLpf = float( rTmp.u.dVal );
+			//			aoOptions.apCharacteristics.fZero = 0.0f;
+			//		}
+			//	}
+			//	/*if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
+			//		aoOptions.apCharacteristics.fLpf = float( rRes.u.dVal );
+			//	}*/
+			//}
+			auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_HPF0_EDIT );
 			if ( aEdit ) {
 				ee::CExpEvalContainer::EE_RESULT rRes;
 				if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
@@ -866,6 +904,38 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Gets the LPF Pole and Zero.
+		 * 
+		 * \param _fPole Holds the returned Pole.
+		 * \param _fZero Holds the returned Zero.
+		 * \return Returns true if the edit control is valid and the values inside it are valid.
+		 **/
+		bool												GetLpfAndZero( float &_fPole, float &_fZero ) {
+			auto aEdit = FindChild( Layout::LSN_AOWI_PAGE_CHARACTERISTICS_LPF_EDIT );
+			if ( aEdit ) {
+				std::vector<float> vPrimArray;
+				ee::CExpEvalContainer::EE_RESULT rRes;
+				if ( aEdit->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
+					if ( vPrimArray.size() == 2 ) {
+						_fPole = vPrimArray[0];
+						_fZero = vPrimArray[1];
+						return true;
+					}
+					if ( vPrimArray.size() == 1 ) {
+						_fPole = vPrimArray[0];
+						_fZero = 0.0;
+						return true;
+					}
+				}
+				else if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
+					_fPole = float( rRes.u.dVal );
+					_fZero = 0.0f;
+					return true;
+				}
+			}
+			return false;
+		}
 		
 
 	private :

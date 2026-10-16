@@ -311,7 +311,15 @@ namespace lsn {
 						auto lpSel = pcbCombo->GetCurSelItemData();
 						if ( lpSel != -1 && size_t( lpSel ) < LSN_AUDIO_OPTIONS::PresetTotal() ) {
 							auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+							//if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() ); }
+							if ( aEdit ) {
+								if ( LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fZero != 0.0f ) {
+									aEdit->SetTextA( std::format( "{{{:.27},{:.27}}}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf, LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fZero ).c_str() );
+								}
+								else {
+									aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fLpf ).c_str() );
+								}
+							}
 
 							aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
 							if ( aEdit ) { aEdit->SetTextA( std::format( "{:.27}", LSN_AUDIO_OPTIONS::s_apProfiles[lpSel].fHpf0 ).c_str() ); }
@@ -444,11 +452,42 @@ namespace lsn {
 
 		LSN_CHECKED( LSN_WEWI_FSETS_CHAR_LPF_CHECK, bChecked );
 		if ( bChecked ) {
-			LSN_CHECK_EDIT( LSN_WEWI_FSETS_CHAR_LPF_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_BAD_HZ ) );
+			/*LSN_CHECK_EDIT( LSN_WEWI_FSETS_CHAR_LPF_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_BAD_HZ ) );
 			if ( eTest.u.dVal < 0.0 ) {
 				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
 				return pwWidget;
+			}*/
+			pwWidget = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+			while ( pwWidget ) {
+				std::vector<float> vPrimArray;
+				ee::CExpEvalContainer::EE_RESULT rRes;
+				if ( pwWidget->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
+					if ( vPrimArray.size() == 2 ) {
+						if ( vPrimArray[0] < 0.0 || vPrimArray[1] < 0.0 ) {
+							_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
+							return pwWidget;
+						}
+						break;
+					}
+					if ( vPrimArray.size() == 1 ) {
+						if ( vPrimArray[0] < 0.0 ) {
+							_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
+							return pwWidget;
+						}
+						break;
+					}
+				}
+				else if ( pwWidget->GetTextAsDoubleExpression( rRes ) ) {
+					if ( rRes.u.dVal < 0.0 ) {
+						_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
+						return pwWidget;
+					}
+					break;
+				}
+				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_BAD_HZ );
+				return pwWidget;
 			}
+
 			LSN_GET_COMBO( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, lpParam, -80 );
 			if ( lpParam == LPARAM( CWavEditor::LSN_F_SINC ) ) {
 				LSN_CHECK_EDIT( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_FALLOFF_BAD ) );
@@ -629,7 +668,27 @@ namespace lsn {
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF1_CHECK, _ppfOutput->bHpf1 );
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _ppfOutput->bHpf2 );
 			if ( _pfPerFileOptions.bLpf ) {
-				LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _ppfOutput->dLpf );
+				//LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _ppfOutput->dLpf );
+				pwWidget = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+				if ( pwWidget ) {
+					std::vector<float> vPrimArray;
+					ee::CExpEvalContainer::EE_RESULT rRes;
+					if ( pwWidget->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
+						if ( vPrimArray.size() == 2 ) {
+							_ppfOutput->dLpf = vPrimArray[0];
+							_ppfOutput->dZero = vPrimArray[1];
+						}
+						else if ( vPrimArray.size() == 1 ) {
+							_ppfOutput->dLpf = vPrimArray[0];
+							_ppfOutput->dZero = 0.0;
+						}
+					}
+					else if ( pwWidget->GetTextAsDoubleExpression( rRes ) ) {
+						_ppfOutput->dLpf = float( rRes.u.dVal );
+						_ppfOutput->dZero = 0.0f;
+					}
+				}
+
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _ppfOutput->fLpfType, CWavEditor::LSN_FILTER );
 				if ( _ppfOutput->fLpfType == CWavEditor::LSN_F_SINC ) {
 					LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, _ppfOutput->dFalloffLpf );
@@ -853,9 +912,11 @@ namespace lsn {
 									ee::CExpEvalContainer::EE_RESULT rRes;
 									if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 										apProfile.fVolume = float( rRes.u.dVal );
-										aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+
+										if ( GetLpfAndZero( apProfile.fLpf, apProfile.fZero ) ) {
+										/*aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
 										if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
-											apProfile.fLpf = float( rRes.u.dVal );
+											apProfile.fLpf = float( rRes.u.dVal );*/
 											aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
 											if ( aEdit && aEdit->GetTextAsDoubleExpression( rRes ) ) {
 												apProfile.fHpf0 = float( rRes.u.dVal );
@@ -876,6 +937,7 @@ namespace lsn {
 																aThis.bInvert == apProfile.bInvert &&
 																aThis.bSunsoft5b == apProfile.bSunsoft5b &&
 																(!apProfile.bLpfEnable || aThis.fLpf == apProfile.fLpf) &&
+																(!apProfile.bLpfEnable || aThis.fZero == apProfile.fZero) &&
 																(!apProfile.bHpf0Enable || aThis.fHpf0 == apProfile.fHpf0) &&
 																(!apProfile.bHpf1Enable || aThis.fHpf1 == apProfile.fHpf1) &&
 																(!apProfile.bHpf2Enable || aThis.fHpf2 == apProfile.fHpf2) &&

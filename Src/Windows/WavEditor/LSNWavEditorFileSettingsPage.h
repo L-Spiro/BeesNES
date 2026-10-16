@@ -135,6 +135,39 @@ namespace lsn {
 		 **/
 		void												InitialUpdate();
 
+		/**
+		 * Gets the LPF Pole and Zero.
+		 * 
+		 * \param _fPole Holds the returned Pole.
+		 * \param _fZero Holds the returned Zero.
+		 * \return Returns true if the edit control is valid and the values inside it are valid.
+		 **/
+		bool												GetLpfAndZero( float &_fPole, float &_fZero ) {
+			auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
+			if ( aEdit ) {
+				std::vector<float> vPrimArray;
+				ee::CExpEvalContainer::EE_RESULT rRes;
+				if ( aEdit->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
+					if ( vPrimArray.size() == 2 ) {
+						_fPole = vPrimArray[0];
+						_fZero = vPrimArray[1];
+						return true;
+					}
+					if ( vPrimArray.size() == 1 ) {
+						_fPole = vPrimArray[0];
+						_fZero = 0.0;
+						return true;
+					}
+				}
+				else if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
+					_fPole = float( rRes.u.dVal );
+					_fZero = 0.0f;
+					return true;
+				}
+			}
+			return false;
+		}
+
 	private :
 		typedef CWinUtilities								Layout;
 		typedef lsw::CWidget								Parent;

@@ -522,9 +522,8 @@ namespace lsn {
 				{
 					//size_t sM = ee::CExpEval::GetSincFilterM( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0, 1.505149978319905823553881418774835765361785888671875 ) / 2;
 					//size_t sM = ee::CExpEval::CalcIdealSincM( _pfFile.dActualHz, 200.0, 4.0 );
-					// Apply anti-aliasing.
-					size_t sM = 100;
-					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) / 2.0 * 1.0095, sM );
+					size_t sM = 200;
+					std::vector<double> vSincFilter = ee::CExpEval::SincFilterLpf( _pfFile.dActualHz, double( _oOutput.ui32Hz ) * 2.0, sM );
 					CUtilities::ApplySincFilterInPlace<large_vec, std::vector<double>>( vThis, vSincFilter, vThis[0], vThis[vThis.size()-1] );
 				}
 

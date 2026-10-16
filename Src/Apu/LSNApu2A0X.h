@@ -14,6 +14,7 @@
 #include "../Audio/LSNAudioOptions.h"
 #include "../Audio/LSNHpfFilter.h"
 #include "../Audio/LSNPoleFilter.h"
+#include "../Audio/LSNPoleZeroFilter.h"
 #include "../Bus/LSNBus.h"
 #include "../System/LSNInterruptable.h"
 #include "../System/LSNTickable.h"
@@ -672,11 +673,12 @@ namespace lsn {
 
 			float dMaxLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
 			m_fLpf = _aoOptions.apCharacteristics.bLpfEnable ? std::min( dMaxLpf, _aoOptions.apCharacteristics.fLpf ) : dMaxLpf;
+			m_fLpfZero = _aoOptions.apCharacteristics.bLpfEnable ? _aoOptions.apCharacteristics.fZero : 0.0f;
 			m_fHpf0 = _aoOptions.apCharacteristics.bHpf0Enable ? _aoOptions.apCharacteristics.fHpf0 : 20.0f;
 			m_fHpf1 = _aoOptions.apCharacteristics.fHpf1;
 			m_fHpf2 = _aoOptions.apCharacteristics.fHpf2;
 
-			m_pfLpf.CreateLpf( m_fLpf, HzAsFloat() );
+			m_pfLpf.CreatePoleZero( m_fLpf, m_fLpfZero, HzAsFloat() );
 			for ( auto I = std::size( m_pfOutputPole ); I--; ) {
 				//float fLpf = (std::min( CAudio::GetOutputFrequency() / 2.0f, 20000.0f ) + I * 10.0f);
 				float fLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
@@ -982,7 +984,7 @@ namespace lsn {
 		/** The 37-Hz pole filter. */
 		CPoleFilterHpf									m_pfPole37;
 		/** The 14-Hz pole filter. */
-		CPoleFilterLpf									m_pfLpf;
+		CPoleZeroFilter									m_pfLpf;
 		/** The output Hz filter. */
 		CPoleFilterLpf									m_pfOutputPole[1];
 		/** A sanitization HPF. */
@@ -993,6 +995,8 @@ namespace lsn {
 		float											m_fSampleBoxLpf = 0.0f;
 		/** The LPF frequency. */
 		float											m_fLpf = 0.0f;
+		/** the LPF zero frequency. */
+		float											m_fLpfZero = 0.0f;
 		/** The HPF0 frequency. */
 		float											m_fHpf0 = 0.0f;
 		/** The HPF1 frequency. */
