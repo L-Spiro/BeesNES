@@ -40,17 +40,17 @@ PAL-N (Argentinian Famiclone) (Composite):<br>
 <img width="547" height="744" alt="image" src="https://github.com/user-attachments/assets/321a5ee3-9695-4d9f-9cd5-08b70e9e9236" /><br>
 A wide array of options is available for tailoring the audio to specific hardware devices.
 
-<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/8d821097-dcfb-4c17-bfb6-29fc9fe57edc" /><br>
-Top: Hardware reference; Bottom: BeesNES.  Hardware is matched exactly, minus the noise.
+<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/cf94b79f-9382-41b5-9c89-cab3cf82e0f0" /><br>
+Top: Hardware reference; Bottom: BeesNES.  Hardware is matched exactly, minus the interference noise.
 
-<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/57a19978-56ac-4d2c-8d0f-47de269d1a1d" /><br>
+<img width="1920" height="1040" alt="image" src="https://github.com/user-attachments/assets/887c1c9f-6c3a-496e-842c-e827344e734b" /><br>
 Top: Hardware reference; Bottom: BeesNES.  Excluding mains-hum noise, the hardware reference is matched down to the tiniest details.
 
 ![image](https://github.com/user-attachments/assets/c03dde8d-0ed3-4247-9154-c88db2ca8a49)<br>
 Top: Hardware reference; Bottom: BeesNES.  The frequency response is matched exactly.
 
-![image](https://github.com/user-attachments/assets/1c526347-c891-44e3-8ffd-682966fab346)<br>
-MDFourier.  The dip at the end is the anti-aliasing filter.
+<img width="1800" height="900" alt="image" src="https://github.com/user-attachments/assets/4c54dcaa-3c81-4f27-a388-0ec77bc10873" /><br>
+MDFourier.
 
 [Listen to MDFourier Test Audio](https://www.dropbox.com/scl/fi/pjjrs6j3k7vabfww8xi9h/MDFourTest.wav?rlkey=dhspadervmhr2b4vl3jldpdlc&dl=0)
 
