@@ -67,18 +67,18 @@ This means that multi-byte writes are correctly partitioned across cycles and pa
 Additional options/features to facilitate accurate emulation:  
 * Start-Up: Start from known state or from random state.  Helps the random seed in some games.  
 * Hardware bugs will be emulated in both their buggy and fixed states (OAMADDR bugs (writing fewer than 8 bytes on the 2C02G) are examples of this).  
-* Unofficial opcodes used by games will be supported.  
-* The bus will be open and correctly maintain the last floating read/write.  
+* Unofficial opcodes are fully supported.  
+* The bus is open and correctly maintains the last floating read/write.  
 * Etc.  
 
 If behavior differes from the actual hardware result, it is considered a bug.  Hacks are to be avoided as much as possible.
 
-The CPU should be completely sub–cycle-accurate, as every individual cycle is documented there. The same should apply to the PPU (questions surround PAL differences at the cycle level) and the APU.
+The CPU and APU are completely sub–cycle-accurate.  PPU will follow soon.
 
 Timing is not based off audio or monitor refresh rates as is done in many emulators. We use a real clock (with at-minimum microsecond accuracy) and match real timings to real time units, which we can speed up and slow down as options.  The NTSC version’s CPU will need to pump out ~29,780.506887 cycles per frame at 60.098814 FPS, while the PAL will need to pump out ~33,247.485977 cycles at 50.006979 FPS.  This means there is no noticeable visual delay (rendered frames are presented essentially immediately, rather than waiting for a monitor refresh, doing a frame’s worth of work, and then providing the visible frame after a delay) and that input is polled with exactly the same timing as in a real console, eliminating all input lag.  It should both look and _feel_ like a real console, with responsive controls that feel identical to how they do on real machines.
 
 ## Performance
-There were initially some concerns that being sub–cycle-accurate would mean extra overhead—other emulators may skip useless redundant opcode fetches, but not here, and each fetch is accompanied by an entire CPU tick and all the work that goes into updating the CPU state, etc.  For this reason, most systems were implemented in an entirely branchless fashion—there are no “if”/“else” statements, “%” operations, “&” operations, “>=”/“<” checks, etc. when accessing memory; address mirroring, address mapping to registers, etc., is all handled entirely without branching, and most CPU, PPU, and APU cycles are branchless as well.  This more-than made up for the cycle-accuracy overhead. <br>
+There were initially some concerns that being sub–cycle-accurate would mean extra overhead—other emulators may skip useless redundant opcode fetches, but not here, and each fetch is accompanied by an entire CPU tick and all the work that goes into updating the CPU state, etc.  For this reason, most systems were implemented in an entirely branchless fashion—there are no “`if`”/“`else`” statements, “`%`” operations, “`&`” operations, “`>=`”/“`<`” checks, etc. when accessing memory; address mirroring, address mapping to registers, etc., is all handled entirely without branching, and most CPU, PPU, and APU cycles are branchless as well.  This more-than made up for the cycle-accuracy overhead. <br>
 My custom filters and custom image-resizing routines are AVX/SSE-enhanced, and AVX/SSE is also used to put heavy work into audio processing while remaining blazingly fast.  On my laptop, the authentic CRT filters with 100% clean audio can run at 90 FPS, while the L. Spiro filters can run at 120-144 FPS.  Even though max settings are still able to cleanly maintain 60.098… FPS, both audio and video can be reduced in quality to run even faster.  Low-power machines should have no problems running BeesNES, even if software filters must be used.
 GPU acceleration is provided for Microsoft® Direct3D® 9, Microsoft® Direct3D® 12, and Vulkan® 1.
 
