@@ -226,7 +226,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CWavEditorWindow::Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc ) {
 		switch ( _wId ) {
 			case Layout::LSN_WEWI_OK : {
-				if ( Verify( true ) ) {
+				if ( Verify( false ) ) {
 					// Save window settings and export.
 					if ( Save( m_wewoWindowOptions, &m_weEditor ) ) {
 						m_poOptions->wewoWavEditorWindow = m_wewoWindowOptions;
