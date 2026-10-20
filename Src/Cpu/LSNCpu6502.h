@@ -237,7 +237,7 @@ namespace lsn {
 		virtual void										TickPhi2();
 
 		/**
-		 * Applies the CPU's memory mapping t the bus.
+		 * Applies the CPU's memory mapping to the bus.
 		 */
 		void												ApplyMemoryMap();
 

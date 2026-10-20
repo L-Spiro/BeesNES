@@ -76,7 +76,7 @@ namespace lsn {
 	}
 
 	/**
-	 * Applies the CPU's memory mapping t the bus.
+	 * Applies the CPU's memory mapping to the bus.
 	 */
 	void CCpu6502::ApplyMemoryMap() {
 		// Apply the CPU memory map to the bus.
