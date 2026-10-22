@@ -27,16 +27,24 @@ namespace lsn {
 	 **/
 	bool CAudioOpenAl::InitializeAudio( uint32_t _ui32Device ) {
 		ShutdownAudio();
+		// Watch for devices being disconnected/connected, even if no device can be opened right now.
+		StartDeviceCheckThread();
 		if ( !Parent::InitializeAudio( _ui32Device ) ) { return false; }
 		m_eFormat = FormatToEnum( m_fNextFormat.sfFormat );
 
+		std::lock_guard<std::mutex> lgLock( m_mxDeviceCheckMutex );
+		m_bDeviceLost = false;
+		// After a full reinitialization nothing is queued.
+		m_ui64TotalLifetimeQueues = m_ui64TotalLifetimeUnqueueds = 0;
 		std::vector<std::string> vDevices;
 		// We need a dummy device to enumerate the audio devices.
 		COpenAlDevice oadDummy;
 		if ( !COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) ) { return false; }
+		m_vKnownDevices = vDevices;
 		if ( !vDevices.size() ) { return false; }
 		_ui32Device = std::min<uint32_t>( _ui32Device, uint32_t( vDevices.size() - 1 ) );
 		if ( !m_oadDevice.CreateDevice( vDevices[_ui32Device].c_str() ) ) { return false; }
+		m_sCurDeviceName = vDevices[_ui32Device];
 		if ( !m_oacContext.CreateContext( m_oadDevice, nullptr ) ) { return false; }
 		if ( !m_oacContext.MakeCurrent() ) { return false; }
 
@@ -60,8 +68,10 @@ namespace lsn {
 	bool CAudioOpenAl::ShutdownAudio( bool _bForReals ) {
 		if ( _bForReals ) {
 			// Shut down device-polling threads.
-
+			StopDeviceCheckThread();
 		}
+		// The device-polling thread must not use the device while it is being destroyed.
+		std::lock_guard<std::mutex> lgLock( m_mxDeviceCheckMutex );
 		if ( m_oasSource.GetState() == AL_PLAYING || m_oasSource.GetState() == AL_PAUSED ) {
 			m_oasSource.Stop();
 		}
@@ -135,6 +145,50 @@ namespace lsn {
 		}
 		catch ( ... ) {}
 		return vRet;
+	}
+
+	/**
+	 * Applies pending changes.  Called on the audio thread.  If the background thread has flagged a device change, switches to the default device first.
+	 **/
+	void CAudioOpenAl::UndirtyState() {
+		if LSN_UNLIKELY( m_bDeviceLost ) { SwitchToDefaultDevice(); }
+		Parent::UndirtyState();
+	}
+
+	/**
+	 * Switches to the system's default device.  Called on the audio thread after the background thread flags a lost device or a change in the set of devices.
+	 *	The existing device is reopened on the default device if possible (keeping the context, source, and buffers); otherwise audio is reinitialized.
+	 * 
+	 * \return Returns true if audio is playing on the default device.
+	 **/
+	bool CAudioOpenAl::SwitchToDefaultDevice() {
+		{
+			std::lock_guard<std::mutex> lgLock( m_mxDeviceCheckMutex );
+			// If this fails, the background thread flags it again on its next check (the device is still lost or the device list still differs).
+			m_bDeviceLost = false;
+			std::vector<std::string> vDevices;
+			// We need a dummy device to enumerate the audio devices.
+			COpenAlDevice oadDummy;
+			if ( !COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) ) { return false; }
+			m_vKnownDevices = vDevices;
+			if ( !vDevices.size() ) { return false; }
+
+			if ( m_oadDevice.Device() != nullptr ) {
+				// A device was connected/disconnected but the one in use is still the default and still connected.
+				if ( m_sCurDeviceName == vDevices[0] && COpenAl::CheckDeviceStatus( m_oadDevice.Device() ) ) { return true; }
+
+				// Move the device to the default device.  Sources and buffers survive; Flush() restarts playback if the disconnect stopped it.
+				if ( m_oadDevice.ReopenDevice( vDevices[0].c_str() ) ) {
+					::printf( "Audio switched to the default device: %s\n", vDevices[0].c_str() );
+					m_sCurDeviceName = vDevices[0];
+					m_ui32CurDevice = m_ui32Device = 0;
+					return true;
+				}
+			}
+		}
+		// Reopening is not supported or failed: rebuild everything on the default device.
+		m_ui32Device = 0;
+		return InitializeAudio( 0 );
 	}
 
 	/**

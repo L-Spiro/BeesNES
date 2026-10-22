@@ -56,6 +56,20 @@ namespace lsn {
 	}
 
 	/**
+	 * Moves the device to another output device without destroying it, so that its contexts, sources, and buffers remain valid.
+	 *	Requires ALC_SOFT_reopen_device.  Also reconnects a device that has been disconnected.
+	 * 
+	 * \param _pcDevice The device name or nullptr to use the default sound device.
+	 * \return Returns true if the device was moved to the given output device.
+	 **/
+	bool COpenAlDevice::ReopenDevice( const char * _pcDevice ) {
+		if ( !m_pdDevice || !::alcIsExtensionPresent( m_pdDevice, "ALC_SOFT_reopen_device" ) ) { return false; }
+		PfAlcReopenDeviceSoft pfReopen = reinterpret_cast<PfAlcReopenDeviceSoft>(::alcGetProcAddress( m_pdDevice, "alcReopenDeviceSOFT" ));
+		if ( !pfReopen ) { return false; }
+		return pfReopen( m_pdDevice, _pcDevice, nullptr ) == ALC_TRUE;
+	}
+
+	/**
 	 * Gathers the sound devices into a vector with the default sound device in index 0.
 	 * 
 	 * \param _vRet Holds the returned vector of audio devices by name.
@@ -86,7 +100,7 @@ namespace lsn {
 				}
 				pcPtr += sTmp.size() + 1;
 			}
-			while ( pcPtr[1] != '\0' );
+			while ( (*pcPtr) != '\0' );			// The list ends with an empty string.
 		}
 		catch ( ... ) { return false; }
 

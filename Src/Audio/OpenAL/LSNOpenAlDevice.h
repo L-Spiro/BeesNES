@@ -56,6 +56,15 @@ namespace lsn {
 		bool								Reset();
 
 		/**
+		 * Moves the device to another output device without destroying it, so that its contexts, sources, and buffers remain valid.
+		 *	Requires ALC_SOFT_reopen_device.  Also reconnects a device that has been disconnected.
+		 * 
+		 * \param _pcDevice The device name or nullptr to use the default sound device.
+		 * \return Returns true if the device was moved to the given output device.
+		 **/
+		bool								ReopenDevice( const char * _pcDevice );
+
+		/**
 		 * Gathers the sound devices into a vector with the default sound device in index 0.
 		 * 
 		 * \param _vRet Holds the returned vector of audio devices by name.
@@ -67,6 +76,11 @@ namespace lsn {
 
 
 	protected :
+		// == Types.
+		/** The alcReopenDeviceSOFT() function (ALC_SOFT_reopen_device). */
+		typedef ALCboolean (ALC_APIENTRY *	PfAlcReopenDeviceSoft)( ALCdevice * _pdDevice, const ALCchar * _pcDeviceName, const ALCint * _piAttribs );
+
+
 		// == Members.
 		/** The OpenAL device we wrap. */
 		ALCdevice *							m_pdDevice;

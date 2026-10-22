@@ -109,7 +109,11 @@ namespace lsn {
 		 */
 		void												StopDeviceCheckThread() {
 			if ( m_bRunDeviceCheckThread ) {
-				m_bRunDeviceCheckThread = false;
+				{
+					// Set under the mutex so that the wake-up cannot slip in between the thread's check and its wait.
+					std::lock_guard<std::mutex> lgLock( m_mxDeviceCheckMutex );
+					m_bRunDeviceCheckThread = false;
+				}
 				
 				m_cvDeviceCheckCv.notify_all();
 				
@@ -141,11 +145,28 @@ namespace lsn {
 		std::mutex											m_mxDeviceCheckMutex;
 		/** Condition variable used to sleep the thread and instantly wake it on shutdown. */
 		std::condition_variable								m_cvDeviceCheckCv;
-		/** Atomic flag set to true by the background thread when a disconnect is detected.  Consumed and reset by the main audio thread. */
-		std::atomic<bool>									m_bDeviceLost;
+		/** Atomic flag set to true by the background thread when the device is disconnected or the set of devices changes (a device is connected or disconnected, or the default device changes).  Consumed and reset by the audio thread, which then switches to the default device. */
+		std::atomic<bool>									m_bDeviceLost = false;
+		/** The devices (default first) as of the last time a device was opened.  Guarded by m_mxDeviceCheckMutex. */
+		std::vector<std::string>							m_vKnownDevices;
+		/** The name of the device in use.  Guarded by m_mxDeviceCheckMutex. */
+		std::string											m_sCurDeviceName;
 		
 
 		// == Functions.
+		/**
+		 * Applies pending changes.  Called on the audio thread.  If the background thread has flagged a device change, switches to the default device first.
+		 **/
+		virtual void										UndirtyState();
+
+		/**
+		 * Switches to the system's default device.  Called on the audio thread after the background thread flags a lost device or a change in the set of devices.
+		 *	The existing device is reopened on the default device if possible (keeping the context, source, and buffers); otherwise audio is reinitialized.
+		 * 
+		 * \return Returns true if audio is playing on the default device.
+		 **/
+		bool												SwitchToDefaultDevice();
+
 		/**
 		 * Undirties the format.  Called only when the new format differs from the old.
 		 * 
@@ -224,24 +245,33 @@ namespace lsn {
 
 		/**
 		 * The main loop of the background device checking thread.
-		 * Sleeps for 1000 milliseconds between checks. If a disconnect is detected, 
-		 * it sets the m_bDeviceLost flag for the audio thread to handle safely.
+		 * Sleeps for 1000 milliseconds between checks. If the device is disconnected, or a device is connected or disconnected, or the default
+		 *	device changes, it sets the m_bDeviceLost flag for the audio thread to handle safely (by switching to the default device).
 		 */
 		void												DeviceCheckLoop() {
 			std::unique_lock<std::mutex> ulLock( m_mxDeviceCheckMutex );
 			
 			while ( m_bRunDeviceCheckThread ) {
-				std::cv_status cvsStatus = m_cvDeviceCheckCv.wait_for( ulLock, std::chrono::milliseconds( 1000 ) );
+				if ( m_cvDeviceCheckCv.wait_for( ulLock, std::chrono::milliseconds( 1000 ), [this]{ return !m_bRunDeviceCheckThread; } ) ) {
+					break;
+				}
 				
-				if ( cvsStatus == std::cv_status::timeout && m_bRunDeviceCheckThread ) {
-					if ( !m_bDeviceLost && m_oadDevice.Device() != nullptr ) {
-						if ( !COpenAl::CheckDeviceStatus( m_oadDevice.Device() ) ) {
-							::printf( "Background Thread: Device lost. Flagging for reinitialization...\n" );
+				if ( !m_bDeviceLost ) {
+					if ( m_oadDevice.Device() != nullptr && !COpenAl::CheckDeviceStatus( m_oadDevice.Device() ) ) {
+						::printf( "Background Thread: Device lost. Flagging for reinitialization...\n" );
+						
+						m_bDeviceLost = true;
+					}
+					else {
+						std::vector<std::string> vDevices;
+						// We need a dummy device to enumerate the audio devices.
+						COpenAlDevice oadDummy;
+						if ( COpenAlDevice::GetAudioDevices( vDevices, oadDummy ) && vDevices != m_vKnownDevices ) {
+							::printf( "Background Thread: Audio devices changed. Flagging for a switch to the default device...\n" );
 							
 							m_bDeviceLost = true;
 						}
 					}
-					
 				}
 			}
 		}
