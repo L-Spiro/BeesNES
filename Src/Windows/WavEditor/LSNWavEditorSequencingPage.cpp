@@ -498,10 +498,17 @@ namespace lsn {
 		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStopTime.c_str() ); }
 
+		// In the metadata combo boxes each item's data is its index, so the item can be selected directly instead of searched for.
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( LPARAM( _pfPerFileOptions.i32StartSelection ) ); }
+		if ( aTmp ) {
+			auto pcbCombo = static_cast<CComboBox *>(aTmp);
+			pcbCombo->SetCurSel( (_pfPerFileOptions.i32StartSelection >= 0 && _pfPerFileOptions.i32StartSelection < pcbCombo->GetCount()) ? _pfPerFileOptions.i32StartSelection : -1 );
+		}
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( LPARAM( _pfPerFileOptions.i32EndSelection ) ); }
+		if ( aTmp ) {
+			auto pcbCombo = static_cast<CComboBox *>(aTmp);
+			pcbCombo->SetCurSel( (_pfPerFileOptions.i32EndSelection >= 0 && _pfPerFileOptions.i32EndSelection < pcbCombo->GetCount()) ? _pfPerFileOptions.i32EndSelection : -1 );
+		}
 
 		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
 		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStartTime.c_str() ); }
@@ -866,21 +873,103 @@ namespace lsn {
 		if ( !_vMetadata.size() ) { return false; }
 		try {
 			auto pcbCombo = static_cast<CComboBox *>(_pwCombo);
-			size_t sDigits = size_t( std::ceil( std::log10( _vMetadata.size() + 1 ) ) );
-			for ( size_t I = 0; I < _vMetadata.size(); ++I ) {
-				std::ostringstream ossTmp;
-				ossTmp << std::setw( sDigits ) << std::setfill( '0' ) << _vMetadata[I].ui32Idx;
+			HWND hWnd = pcbCombo->Wnd();
+			if ( !hWnd ) { return false; }
+			pcbCombo->ResetContent();
 
-				auto sTmp = std::format( "{}: {:.30g} {}", ossTmp.str(), _vMetadata[I].dTime, _vMetadata[I].sText );
-				INT iIdx = pcbCombo->AddString( sTmp.c_str() );
-				if ( iIdx != CB_ERR ) {
-					pcbCombo->SetItemData( iIdx, I );
-				}
+			// The combo box is owner-drawn without strings (CBS_OWNERDRAWFIXED, no CBS_HASSTRINGS): each item stores only its index into
+			//	_vMetadata as its item data, and DrawItem() builds the text of the few items that are actually drawn.
+			pcbCombo->InitStorage( _vMetadata.size(), 0 );
+			for ( size_t I = 0; I < _vMetadata.size(); ++I ) {
+				if ( ::SendMessageW( hWnd, CB_ADDSTRING, 0, LPARAM( I ) ) < 0 ) { return false; }	// CB_ERR or CB_ERRSPACE.
 			}
-			pcbCombo->AutoSetMinListWidth();
+
+			// Size the rows to the font (the fixed owner-draw height is otherwise based on the font the control had when it was created) and
+			//	widen the list to fit the entry with the longest text.
+			HDC hDc = ::GetDC( hWnd );
+			if ( hDc ) {
+				HFONT hFont = reinterpret_cast<HFONT>(::SendMessageW( hWnd, WM_GETFONT, 0, 0 ));
+				HGDIOBJ hOldFont = hFont ? ::SelectObject( hDc, hFont ) : NULL;
+				TEXTMETRICW tmMetrics;
+				if ( ::GetTextMetricsW( hDc, &tmMetrics ) ) {
+					::SendMessageW( hWnd, CB_SETITEMHEIGHT, 0, LPARAM( tmMetrics.tmHeight ) );
+				}
+
+				size_t sLongest = 0;
+				for ( size_t I = 1; I < _vMetadata.size(); ++I ) {
+					if ( _vMetadata[I].sText.size() > _vMetadata[sLongest].sText.size() ) { sLongest = I; }
+				}
+				std::string sText = MetadataText( _vMetadata, sLongest );
+				SIZE sExtent;
+				if ( ::GetTextExtentPoint32A( hDc, sText.c_str(), int( sText.size() ), &sExtent ) ) {
+					LONG lWidth = sExtent.cx + 4 + ::GetSystemMetrics( SM_CXEDGE ) * 2;
+					if ( pcbCombo->GetCount() > pcbCombo->GetMinVisible() ) {
+						lWidth += ::GetSystemMetrics( SM_CXVSCROLL );
+					}
+					::SendMessageW( hWnd, CB_SETDROPPEDWIDTH, WPARAM( lWidth ), 0 );
+				}
+
+				if ( hOldFont ) { ::SelectObject( hDc, hOldFont ); }
+				::ReleaseDC( hWnd, hDc );
+			}
 		}
 		catch ( ... ) { return false; }
 		return true;
+	}
+
+	/**
+	 * Handles WM_DRAWITEM.  Draws the items of the owner-drawn metadata combo boxes from the WAV set's metadata.
+	 *
+	 * \param _wControlId The control identifier (DRAWITEMSTRUCT::CtlID).
+	 * \param _disItem The DRAWITEMSTRUCT describing what to draw.
+	 * \return Returns LSW_H_HANDLED if the item was drawn.
+	 */
+	CWidget::LSW_HANDLED CWavEditorSequencingPage::DrawItem( WORD _wControlId, const DRAWITEMSTRUCT &_disItem ) {
+		if ( _disItem.CtlType != ODT_COMBOBOX ||
+			(_wControlId != Layout::LSN_WEWI_SEQ_START_COMBO && _wControlId != Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO) ) {
+			return Parent::DrawItem( _wControlId, _disItem );
+		}
+
+		HDC hDc = _disItem.hDC;
+		RECT rItem = _disItem.rcItem;
+		bool bSelected = (_disItem.itemState & ODS_SELECTED) != 0;
+		bool bDisabled = (_disItem.itemState & ODS_DISABLED) != 0;
+		::FillRect( hDc, &rItem, ::GetSysColorBrush( bSelected ? COLOR_HIGHLIGHT : (bDisabled ? COLOR_BTNFACE : COLOR_WINDOW) ) );
+
+		if ( _disItem.itemID != UINT( -1 ) && m_pweEditor ) {
+			auto pwfsSet = m_pweEditor->WavById( m_ui32Id );
+			size_t sIdx = size_t( _disItem.itemData );
+			if ( pwfsSet && sIdx < pwfsSet->vMetadata.size() ) {
+				try {
+					std::string sText = MetadataText( pwfsSet->vMetadata, sIdx );
+					COLORREF crOldColor = ::SetTextColor( hDc, ::GetSysColor( bDisabled ? COLOR_GRAYTEXT : (bSelected ? COLOR_HIGHLIGHTTEXT : COLOR_WINDOWTEXT) ) );
+					int iOldMode = ::SetBkMode( hDc, TRANSPARENT );
+					RECT rText = rItem;
+					rText.left += 2;
+					::DrawTextA( hDc, sText.c_str(), int( sText.size() ), &rText, DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_END_ELLIPSIS );
+					::SetBkMode( hDc, iOldMode );
+					::SetTextColor( hDc, crOldColor );
+				}
+				catch ( ... ) {}
+			}
+		}
+
+		if ( (_disItem.itemState & ODS_FOCUS) && !(_disItem.itemState & ODS_NOFOCUSRECT) ) {
+			::DrawFocusRect( hDc, &rItem );
+		}
+		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * Gets the text shown for a metadata entry in the metadata combo boxes.
+	 * 
+	 * \param _vMetadata The metadata.
+	 * \param _sIdx The index of the entry in _vMetadata.
+	 * \return Returns the text to show for the entry.
+	 **/
+	std::string CWavEditorSequencingPage::MetadataText( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx ) {
+		size_t sDigits = size_t( std::ceil( std::log10( _vMetadata.size() + 1 ) ) );
+		return std::format( "{:0{}}: {:.30g} {}", _vMetadata[_sIdx].ui32Idx, sDigits, _vMetadata[_sIdx].dTime, _vMetadata[_sIdx].sText );
 	}
 
 	/**

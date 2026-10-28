@@ -21,6 +21,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 
@@ -177,7 +178,7 @@ namespace lsn {
 		struct LSN_METADATA {
 			double														dTime;											/**< The time of the event. */
 			uint32_t													ui32Idx;										/**< Event ID. */
-			std::string													sText;											/**< Even text. */
+			std::string_view											sText;											/**< Event text.  Points into the owning LSN_WAV_FILE_SET::vMetaText. */
 
 
 			LSN_METADATA() = default;
@@ -242,6 +243,7 @@ namespace lsn {
 			std::vector<LSN_WAV_FILE>									vExtensions;									/**< Additional files to append to the main file. */
 			std::wstring												wsMetaPath;										/**< Path to the file's metadata. */
 			std::vector<LSN_METADATA>									vMetadata;										/**< Associated metadata. */
+			std::vector<char>											vMetaText;										/**< The loaded metadata file, which vMetadata's text refers to. */
 			uint64_t													ui64FullSampleCnt = 0;							/**< The total samples across all loaded files. */
 			uint32_t													ui32Id = 0;										/**< The unique ID assigned to this set. */
 
@@ -254,6 +256,7 @@ namespace lsn {
 				vExtensions = std::move( _wfsOther.vExtensions );
 				wsMetaPath = std::move( _wfsOther.wsMetaPath );
 				vMetadata = std::move( _wfsOther.vMetadata );
+				vMetaText = std::move( _wfsOther.vMetaText );
 				return (*this);
 			}
 		};
@@ -382,9 +385,10 @@ namespace lsn {
 		 * 
 		 * \param _wsPath The path to the metadata file.
 		 * \param _vResult Stores the result of the parsed metadata file.
+		 * \param _vText Stores the loaded file.  The text in _vResult points into it, so it must be kept (or moved, not copied) with _vResult.
 		 * \return Returns true if the file was successfully loaded and parsed.
 		 **/
-		bool															AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult );
+		bool															AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult, std::vector<char> &_vText );
 
 		/**
 		 * Creates a single file.

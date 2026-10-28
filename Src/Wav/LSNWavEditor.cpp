@@ -16,6 +16,7 @@
 
 #include <EEExpEval.h>
 
+#include <algorithm>
 #include <utility>
 
 
@@ -136,8 +137,9 @@ namespace lsn {
 			std::error_code ecErr;
 			if ( std::filesystem::exists( pMetaPath, ecErr ) ) {
 				wfsSet.wsMetaPath = pMetaPath.generic_wstring();
-				if ( !AddMetadata( wfsSet.wsMetaPath, wfsSet.vMetadata ) ) {
+				if ( !AddMetadata( wfsSet.wsMetaPath, wfsSet.vMetadata, wfsSet.vMetaText ) ) {
 					wfsSet.vMetadata.clear();
+					wfsSet.vMetaText.clear();
 					wfsSet.wsMetaPath.clear();
 				}
 			}
@@ -310,34 +312,45 @@ namespace lsn {
 	 * 
 	 * \param _wsPath The path to the metadata file.
 	 * \param _vResult Stores the result of the parsed metadata file.
+	 * \param _vText Stores the loaded file.  The text in _vResult points into it, so it must be kept (or moved, not copied) with _vResult.
 	 * \return Returns true if the file was successfully loaded and parsed.
 	 **/
-	bool CWavEditor::AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult ) {
+	bool CWavEditor::AddMetadata( const std::wstring &_wsPath, std::vector<LSN_METADATA> &_vResult, std::vector<char> &_vText ) {
 		try {
 			_vResult.clear();
+			_vText.clear();
 			CStdFile sfFile;
 			if ( !sfFile.Open( CUtilities::XStringToU16String( _wsPath.c_str(), _wsPath.size() ).c_str() ) ) { return false; }
 		
 			std::vector<uint8_t> vFile;
 			if ( !sfFile.LoadToMemory( vFile ) ) { return false; }
 
-			CStream sStream( vFile );
+			// Keep the file in memory, each line terminated in place, so that each entry's text can point into it instead of being copied.
+			_vText.assign( vFile.begin(), vFile.end() );
+			_vText.push_back( '\0' );
+			vFile = std::vector<uint8_t>();
+			_vResult.reserve( size_t( std::count( _vText.begin(), _vText.end(), '\n' ) ) + 1 );
 
-			std::string sTmp;
-			
+			char * pcLine = _vText.data();
+			char * pcEnd = pcLine + (_vText.size() - 1);
 			double dTime2;
-			while ( sStream.ReadLine( sTmp ) ) {
-				if ( sTmp.size() >= 511 ) { return false; }
+			while ( pcLine < pcEnd ) {
+				char * pcEol = pcLine;
+				while ( pcEol < pcEnd && (*pcEol) != '\n' ) { ++pcEol; }
+				char * pcNext = pcEol + 1;
+				(*pcEol) = '\0';
+				while ( pcEol > pcLine && pcEol[-1] == '\r' ) { (*--pcEol) = '\0'; }
+
 				LSN_METADATA mdMeta;
-				char szBuffer[512];
+				int iTextStart = -1, iTextEnd = -1;
 				auto iConveretd = std::sscanf(
-					sTmp.c_str(),
-					"%lf%*[\t ]%lf%*[\t ][%u: %[^]]",
-					&mdMeta.dTime, &dTime2, &mdMeta.ui32Idx, szBuffer );
-				if ( iConveretd != 4 ) { return false; }
-				szBuffer[511] = '\0';
-				mdMeta.sText = szBuffer;
+					pcLine,
+					"%lf%*[\t ]%lf%*[\t ][%u: %n%*[^]]%n",
+					&mdMeta.dTime, &dTime2, &mdMeta.ui32Idx, &iTextStart, &iTextEnd );
+				if ( iConveretd != 3 || iTextStart < 0 || iTextEnd <= iTextStart ) { return false; }
+				mdMeta.sText = std::string_view( pcLine + iTextStart, size_t( iTextEnd - iTextStart ) );
 				_vResult.push_back( std::move( mdMeta ) );
+				pcLine = pcNext;
 			}
 		}
 		catch ( ... ) { return false; }

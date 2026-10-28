@@ -1489,7 +1489,7 @@ namespace lsn {
 			LSN_SEQUE_RANGE_GROUP_T + LSN_GROUP_TOP,		// iTop
 			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_COMBO_HEIGHT,							// dwHeight
-			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLE_LIST_OWNERDRAW,					// dwStyle
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
@@ -1747,7 +1747,7 @@ namespace lsn {
 			LSN_SEQUE_LOOP_GROUP_T + LSN_GROUP_TOP + (LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT),																						// iTop
 			LSN_SEQUE_TIME_EDIT_0,							// dwWidth
 			LSN_DEF_COMBO_HEIGHT,							// dwHeight
-			LSN_COMBOSTYLE_LIST,							// dwStyle
+			LSN_COMBOSTYLE_LIST_OWNERDRAW,					// dwStyle
 			LSN_COMBOSTYLEEX_LIST,							// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen

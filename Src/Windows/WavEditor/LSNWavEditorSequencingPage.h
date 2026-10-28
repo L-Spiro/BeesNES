@@ -75,6 +75,15 @@ namespace lsn {
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		/**
+		 * Handles WM_DRAWITEM.  Draws the items of the owner-drawn metadata combo boxes from the WAV set's metadata.
+		 *
+		 * \param _wControlId The control identifier (DRAWITEMSTRUCT::CtlID).
+		 * \param _disItem The DRAWITEMSTRUCT describing what to draw.
+		 * \return Returns LSW_H_HANDLED if the item was drawn.
+		 */
+		virtual LSW_HANDLED									DrawItem( WORD _wControlId, const DRAWITEMSTRUCT &_disItem );
+
+		/**
 		 * Verifies the inputs.
 		 * 
 		 * \param _wsMsg The error message to display.
@@ -136,6 +145,15 @@ namespace lsn {
 		 * \return Returns true if _pwCombo is a valid pointer to a combo box and _vMetadata is not empty.
 		 **/
 		bool												FillComboWithMetadata( CWidget * _pwCombo, const std::vector<CWavEditor::LSN_METADATA> &_vMetadata );
+
+		/**
+		 * Gets the text shown for a metadata entry in the metadata combo boxes.
+		 * 
+		 * \param _vMetadata The metadata.
+		 * \param _sIdx The index of the entry in _vMetadata.
+		 * \return Returns the text to show for the entry.
+		 **/
+		static std::string									MetadataText( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx );
 
 		/**
 		 * Gets an array of pages to update on text-editing for the 0th page.
