@@ -57,14 +57,8 @@ namespace lsn {
 		}
 	}
 	CWavEditorWindow::~CWavEditorWindow() {
-		for ( auto J = m_vSequencePages.size(); J--; ) {
-			delete m_vSequencePages[J];
-			m_vSequencePages.erase( m_vSequencePages.begin() + J );
-		}
-		for ( auto J = m_vSettingsPages.size(); J--; ) {
-			delete m_vSettingsPages[J];
-			m_vSettingsPages.erase( m_vSettingsPages.begin() + J );
-		}
+		delete m_pwespSequencing;
+		delete m_pwefspSettings;
 		delete m_pwefFiles;
 		delete m_pweopOutput;
 	}
@@ -134,15 +128,16 @@ namespace lsn {
 		if ( !m_pwefFiles ) { return LSW_H_CONTINUE; }
 		m_pwefFiles->SetWavEditor( m_weEditor );
 
+		// There is only one sequencing page and one settings page.  They show the values of the selected track(s), which are stored in m_mTracks.
 		CWidget * pwSeqPage = CWavEditorWindowLayout::CreateSequencer( this, m_wewoWindowOptions );
 		if ( !pwSeqPage ) { return LSW_H_CONTINUE; }
-		m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
-		static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
+		m_pwespSequencing = static_cast<CWavEditorSequencingPage *>(pwSeqPage);
+		m_pwespSequencing->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
 		CWidget * pwSettingsPage = CWavEditorWindowLayout::CreateFileSettings( this, m_wewoWindowOptions );
 		if ( !pwSettingsPage ) { return LSW_H_CONTINUE; }
-		m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
-		static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
+		m_pwefspSettings = static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage);
+		m_pwefspSettings->SetWavEditorAndId( m_weEditor, 0, m_pwefFiles );
 
 		m_pweopOutput = static_cast<CWavEditorOutputPage *>(CWavEditorWindowLayout::CreateOutput( this, m_wewoWindowOptions ));
 		if ( !m_pweopOutput ) { return LSW_H_CONTINUE; }
@@ -192,9 +187,6 @@ namespace lsn {
 			::AdjustWindowRectEx( &aAdjusted, GetStyle(), FALSE, GetStyleEx() );
 
 			::MoveWindow( Wnd(), aWindowRect.left, aWindowRect.top, aAdjusted.Width() + aGroupRect.left * 2, aAdjusted.Height() + aGroupRect.left, TRUE );
-
-			m_rSeqRect = pwSeqPage->WindowRect().ScreenToClient( Wnd() );
-			m_rSetRect = pwSettingsPage->WindowRect().ScreenToClient( Wnd() );
 		}
 
 		UpdateRects();
@@ -294,24 +286,21 @@ namespace lsn {
 		auto ui32Id = _ui32Id == 0 ? m_weEditor.AddWavFileSet( _wsPath ) : _ui32Id;
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
 		if ( m_pwefFiles->AddToTree( ui32Id ) ) {
-			CWidget * pwSeqPage = CWavEditorWindowLayout::CreateSequencer( this, m_wewoWindowOptions );
-			if ( !pwSeqPage ) { return false; }
-			m_vSequencePages.push_back( static_cast<CWavEditorSequencingPage *>(pwSeqPage) );
-			static_cast<CWavEditorSequencingPage *>(pwSeqPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
-			//if ( m_vSequencePages.size() == 2 ) {
-				// Populate the 0th page.
-				m_vSequencePages[0]->Activate();
-			//}
+			if ( !m_pwespSequencing || !m_pwefspSettings ) { return false; }
+			// New tracks start with the last-used values.
+			LSN_TRACK tTrack;
+			LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE pfDefault;
+			const auto & pfLast = m_wewoWindowOptions.vPerFileOptions.size() ? m_wewoWindowOptions.vPerFileOptions[0] : pfDefault;
+			m_pwespSequencing->Load( pfLast, tTrack.tSequencing );
+			m_pwefspSettings->Load( pfLast, tTrack.tSettings );
+			m_pwespSequencing->InitTrack( ui32Id, tTrack.tSequencing );
+			m_pwefspSettings->InitTrack( ui32Id, tTrack.tSettings );
+			try {
+				m_mTracks[ui32Id] = std::move( tTrack );
+			}
+			catch ( ... ) { return false; }
 
-			CWidget * pwSettingsPage = CWavEditorWindowLayout::CreateFileSettings( this, m_wewoWindowOptions );
-			if ( !pwSettingsPage ) { return false; }
-			m_vSettingsPages.push_back( static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage) );
-			static_cast<CWavEditorFileSettingsPage *>(pwSettingsPage)->SetWavEditorAndId( m_weEditor, ui32Id, m_pwefFiles );
-			m_vSettingsPages[0]->Activate();
-
-			::MoveWindow( pwSeqPage->Wnd(), m_rSeqRect.left, m_rSeqRect.top, m_rSeqRect.Width(), m_rSeqRect.Height(), TRUE );
-			::MoveWindow( pwSettingsPage->Wnd(), m_rSetRect.left, m_rSetRect.top, m_rSetRect.Width(), m_rSetRect.Height(), TRUE );
-			Update();
+			Update( true );
 		}
 		return true;
 	}
@@ -326,21 +315,10 @@ namespace lsn {
 			m_weEditor.RemoveFile( uint32_t( _vIds[I] ) );
 			
 			if ( uint32_t( _vIds[I] ) ) {
-				for ( auto J = m_vSequencePages.size(); J--; ) {
-					if ( m_vSequencePages[J]->UniqueId() == uint32_t( _vIds[I] ) ) {
-						delete m_vSequencePages[J];
-						m_vSequencePages.erase( m_vSequencePages.begin() + J );
-					}
-				}
-				for ( auto J = m_vSettingsPages.size(); J--; ) {
-					if ( m_vSettingsPages[J]->UniqueId() == uint32_t( _vIds[I] ) ) {
-						delete m_vSettingsPages[J];
-						m_vSettingsPages.erase( m_vSettingsPages.begin() + J );
-					}
-				}
+				m_mTracks.erase( uint32_t( _vIds[I] ) );
 			}
 		}
-		Update();
+		Update( true );
 	}
 
 	/**
@@ -373,261 +351,227 @@ namespace lsn {
 	}
 
 	/**
-	 * Sets the texts of all sequencer edits of the given ID.
+	 * Sets the stored sequencer edit text of the given ID in each given track.
 	 * 
 	 * \param _wId The ID of the edits to update.
 	 * \param _wsText The text to apply.
-	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
 	 **/
 	void CWavEditorWindow::SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
-		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
-		for ( auto I = m_vSequencePages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
-			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					pwEdit->SetTextW( _wsText.c_str() );
-					m_vSequencePages[I]->Update();
-				}
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pwsText = ptTrack ? ptTrack->tSequencing.Text( _wId ) : nullptr;
+			if ( pwsText ) {
+				(*pwsText) = _wsText;
 			}
 		}
 	}
 
 	/**
-	 * Sets the check state of all sequencer checks/radio of the given ID.
+	 * Sets the stored sequencer check/radio state of the given ID in each given track.
 	 * 
-	 * \param _wId The ID of the edits to update.
+	 * \param _wId The ID of the checks/radios to update.
 	 * \param _bChecked to check or not.
-	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
 	 **/
 	void CWavEditorWindow::SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
-		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
-		for ( auto I = m_vSequencePages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
-			if ( m_vSequencePages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					pwEdit->SetCheck( _bChecked );
-					m_vSequencePages[I]->Update();
-				}
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pbCheck = ptTrack ? ptTrack->tSequencing.Check( _wId ) : nullptr;
+			if ( pbCheck ) {
+				(*pbCheck) = _bChecked;
 			}
 		}
 	}
 
 	/**
-	 * Sets the texts of all settings edits of the given ID.
+	 * Sets the stored sequencer combo-box selection of the given ID in each given track.
+	 * 
+	 * \param _wId The ID of the combos to update.
+	 * \param _i32Selection The index of the item to select within each combo box.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
+	 **/
+	void CWavEditorWindow::SetAllSeqComboSels( WORD _wId, int32_t _i32Selection, const std::vector<LPARAM> &_vUpdateMe ) {
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pi32Sel = ptTrack ? ptTrack->tSequencing.Selection( _wId ) : nullptr;
+			if ( pi32Sel ) {
+				(*pi32Sel) = _i32Selection;
+			}
+		}
+	}
+
+	/**
+	 * Sets the stored settings edit text of the given ID in each given track.
 	 * 
 	 * \param _wId The ID of the edits to update.
 	 * \param _wsText The text to apply.
-	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
 	 **/
 	void CWavEditorWindow::SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe ) {
-		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					pwEdit->SetTextW( _wsText.c_str() );
-					m_vSettingsPages[I]->Update();
-				}
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pwsText = ptTrack ? ptTrack->tSettings.Text( _wId ) : nullptr;
+			if ( pwsText ) {
+				(*pwsText) = _wsText;
 			}
 		}
 	}
 
 	/**
-	 * Sets the check state of all settings checks/radio of the given ID.
+	 * Sets the stored settings check state of the given ID in each given track.
 	 * 
-	 * \param _wId The ID of the edits to update.
+	 * \param _wId The ID of the checks to update.
 	 * \param _bChecked to check or not.
-	 * \param _vUpdateMe The unique ID's of the pages to modify.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
 	 **/
 	void CWavEditorWindow::SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe ) {
-		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					pwEdit->SetCheck( _bChecked );
-					m_vSettingsPages[I]->Update();
-				}
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pbCheck = ptTrack ? ptTrack->tSettings.Check( _wId ) : nullptr;
+			if ( pbCheck ) {
+				(*pbCheck) = _bChecked;
+				// RF 1 and RF 2 are mutually exclusive, with RF 1 taking priority (as in CWavEditorFileSettingsPage::Update()).
+				if ( ptTrack->tSettings.bRf1 ) { ptTrack->tSettings.bRf2 = false; }
 			}
 		}
 	}
 
 	/**
-	 * Sets the combo selections of all settings combos of the given ID.
+	 * Sets the stored settings combo-box selection of the given ID in each given track.
 	 * 
 	 * \param _wId The ID of the combos to update.
-	 * \param _lpSelection The data to select within each combo box.
-	 * \param _vUpdateMe The unique ID's of the pages to modify.
-	 * \param _lpBadSel In the case of conflicting data selections, this selection is returned.
+	 * \param _i32Selection The index of the item to select within each combo box.
+	 * \param _vUpdateMe The unique ID's of the tracks to modify.
 	 **/
-	void CWavEditorWindow::SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe ) {
-		auto sSet = std::set<LPARAM>( _vUpdateMe.begin(), _vUpdateMe.end() );
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( m_vSettingsPages[I] && std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwCombo = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwCombo ) {
-					pwCombo->SetCurSelByItemData( _lpSelection );
-					m_vSettingsPages[I]->Update();
-				}
+	void CWavEditorWindow::SetAllSettingsComboSels( WORD _wId, int32_t _i32Selection, const std::vector<LPARAM> &_vUpdateMe ) {
+		for ( auto I = _vUpdateMe.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vUpdateMe[I] ) );
+			auto pi32Sel = ptTrack ? ptTrack->tSettings.Selection( _wId ) : nullptr;
+			if ( pi32Sel ) {
+				(*pi32Sel) = _i32Selection;
 			}
 		}
 	}
 
 	/**
-	 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+	 * Gets the stored sequencer edit text of the given ID from each of the tracks specified by _vPages.  If the text values do not match exactly, the return string is empty.
 	 * 
-	 * \param _wId The ID of the edit controls to inspect on each page.
-	 * \param _vPages The pages to inspect for a string.
-	 * \return Returns the string to set based on the contents of each edit in each page.
+	 * \param _wId The ID of the edit control.
+	 * \param _vPages The tracks to inspect for a string.
+	 * \return Returns the string to set based on the stored text of each track.
 	 **/
 	std::wstring CWavEditorWindow::GetAllSeqEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages ) {
-		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
-		bool bFoundOne = false;
-		std::wstring wsOut;
-		for ( auto I = m_vSequencePages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
-			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSequencePages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					if ( !bFoundOne ) {
-						wsOut = pwEdit->GetTextW();
-						bFoundOne = true;
-					}
-					else {
-						auto wsTmp = pwEdit->GetTextW();
-						if ( wsTmp != wsOut ) { return std::wstring(); }
-					}
+		const std::wstring * pwsOut = nullptr;
+		for ( auto I = _vPages.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vPages[I] ) );
+			auto pwsText = ptTrack ? ptTrack->tSequencing.Text( _wId ) : nullptr;
+			if ( pwsText ) {
+				if ( !pwsOut ) {
+					pwsOut = pwsText;
 				}
+				else if ( (*pwsText) != (*pwsOut) ) { return std::wstring(); }
 			}
 		}
-		return wsOut;
+		return pwsOut ? (*pwsOut) : std::wstring();
 	}
 
 	/**
-	 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+	 * Gets the check state derived from the stored sequencer check/radio states of the given ID in each of the tracks specified by _vPages.  If any check/radio is checked, true is returned.
 	 * 
-	 * \param _wId The ID of the edit controls to inspect on each page.
-	 * \param _vPages The pages to inspect for a string.
-	 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+	 * \param _wId The ID of the check/radio.
+	 * \param _vPages The tracks to inspect.
+	 * \return Returns the check state to use based on the stored check states of all involved tracks.
 	 **/
 	bool CWavEditorWindow::GetAllSeqCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
-		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
-		for ( auto I = m_vSequencePages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSequencePages[I]->UniqueId() );
-			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwCheck = m_vSequencePages[I]->FindChild( _wId );
-				if ( pwCheck ) {
-					if ( pwCheck->IsChecked() ) { return true; }
-				}
-			}
+		for ( auto I = _vPages.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vPages[I] ) );
+			auto pbCheck = ptTrack ? ptTrack->tSequencing.Check( _wId ) : nullptr;
+			if ( pbCheck && (*pbCheck) ) { return true; }
 		}
 		return false;
 	}
 
 	/**
-	 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+	 * Gets the stored settings edit text of the given ID from each of the tracks specified by _vPages.  If the text values do not match exactly, the return string is empty.
 	 * 
-	 * \param _wId The ID of the edit controls to inspect on each page.
-	 * \param _vPages The pages to inspect for a string.
-	 * \return Returns the string to set based on the contents of each edit in each page.
+	 * \param _wId The ID of the edit control.
+	 * \param _vPages The tracks to inspect for a string.
+	 * \return Returns the string to set based on the stored text of each track.
 	 **/
 	std::wstring CWavEditorWindow::GetAllSettingsEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages ) {
-		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
-		bool bFoundOne = false;
-		std::wstring wsOut;
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwEdit = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwEdit ) {
-					if ( !bFoundOne ) {
-						wsOut = pwEdit->GetTextW();
-						bFoundOne = true;
-					}
-					else {
-						auto wsTmp = pwEdit->GetTextW();
-						if ( wsTmp != wsOut ) { return std::wstring(); }
-					}
+		const std::wstring * pwsOut = nullptr;
+		for ( auto I = _vPages.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vPages[I] ) );
+			auto pwsText = ptTrack ? ptTrack->tSettings.Text( _wId ) : nullptr;
+			if ( pwsText ) {
+				if ( !pwsOut ) {
+					pwsOut = pwsText;
 				}
+				else if ( (*pwsText) != (*pwsOut) ) { return std::wstring(); }
 			}
 		}
-		return wsOut;
+		return pwsOut ? (*pwsOut) : std::wstring();
 	}
 
 	/**
-	 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+	 * Gets the check state derived from the stored settings check states of the given ID in each of the tracks specified by _vPages.
 	 * 
-	 * \param _wId The ID of the edit controls to inspect on each page.
-	 * \param _vPages The pages to inspect for a string.
-	 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+	 * \param _wId The ID of the check.
+	 * \param _vPages The tracks to inspect.
+	 * \return Returns BST_CHECKED or BST_UNCHECKED if all tracks match, otherwise BST_INDETERMINATE.
 	 **/
 	int CWavEditorWindow::GetAllSettingsCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages ) {
-		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
 		bool bFoundOne = false;
 		int iValue = BST_INDETERMINATE;
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwCheck = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwCheck ) {
-					if ( !bFoundOne ) {
-						iValue = pwCheck->IsChecked() ? BST_CHECKED : BST_UNCHECKED;
-						bFoundOne = true;
-					}
-					else {
-						int iTmp = pwCheck->IsChecked() ? BST_CHECKED : BST_UNCHECKED;
-						if ( iValue != iTmp ) { return BST_INDETERMINATE; }
-					}
+		for ( auto I = _vPages.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vPages[I] ) );
+			auto pbCheck = ptTrack ? ptTrack->tSettings.Check( _wId ) : nullptr;
+			if ( pbCheck ) {
+				int iTmp = (*pbCheck) ? BST_CHECKED : BST_UNCHECKED;
+				if ( !bFoundOne ) {
+					iValue = iTmp;
+					bFoundOne = true;
 				}
+				else if ( iValue != iTmp ) { return BST_INDETERMINATE; }
 			}
 		}
 		return iValue;
 	}
 
 	/**
-	 * Gets the selected item of each combobox across all pages.  If they are the same, the value is returned, otherwise _lpBad is returned.
+	 * Gets the stored settings combo-box selection of the given ID in each of the tracks specified by _vPages.  If they are the same, the selection is returned, otherwise -1 is returned.
 	 * 
-	 * \param _wId The ID of the combobox controls to inspect on each page.
-	 * \param _vPages The pages to inspect for a string.
-	 * \param _lpBad The value to return upon inconsistent combobox selections.
-	 * \return Returns the combobox data selection if all combos match, otherwise _lpBad.
+	 * \param _wId The ID of the combo box.
+	 * \param _vPages The tracks to inspect.
+	 * \return Returns the index of the selection if all tracks match, otherwise -1.
 	 **/
-	LPARAM CWavEditorWindow::GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages, LPARAM _lpBad ) {
-		auto sSet = std::set<LPARAM>( _vPages.begin(), _vPages.end() );
+	int32_t CWavEditorWindow::GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages ) {
 		bool bFoundOne = false;
-		LPARAM lpValue = _lpBad;
-		for ( auto I = m_vSettingsPages.size(); I--; ) {
-			auto aFindMe = std::set<LPARAM>::value_type( m_vSettingsPages[I]->UniqueId() );
-			if ( std::find( sSet.begin(), sSet.end(), aFindMe ) != sSet.end() ) {
-				auto pwComboBox = m_vSettingsPages[I]->FindChild( _wId );
-				if ( pwComboBox ) {
-					if ( !bFoundOne ) {
-						lpValue = pwComboBox->GetCurSelItemData();
-						bFoundOne = true;
-					}
-					else {
-						if ( lpValue != pwComboBox->GetCurSelItemData() ) { return _lpBad; }
-					}
+		int32_t i32Value = -1;
+		for ( auto I = _vPages.size(); I--; ) {
+			auto ptTrack = TrackById( uint32_t( _vPages[I] ) );
+			auto pi32Sel = ptTrack ? ptTrack->tSettings.Selection( _wId ) : nullptr;
+			if ( pi32Sel ) {
+				if ( !bFoundOne ) {
+					i32Value = (*pi32Sel);
+					bFoundOne = true;
 				}
+				else if ( i32Value != (*pi32Sel) ) { return -1; }
 			}
 		}
-		return lpValue;
+		return i32Value;
 	}
 		
 	/**
 	 * Updates the window.
 	 * 
-	 * \param _bSelchanged If true, thew newly focused sequencer page will receive a notification to tell it that it has just become active, which it will use
-	 *	to gather the text from all the pages it affects to decide how to fill in its own edit texts.
+	 * \param _bSelchanged If true, the controls are refilled with the values of the selected track, or with the combined values of the tracks
+	 *	being edited together if there is not exactly 1 selected track.
 	 **/
 	void CWavEditorWindow::Update( bool _bSelchanged ) {
 		auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-		if ( ptlTree ) {
+		if ( ptlTree && m_pwespSequencing && m_pwefspSettings ) {
 			std::vector<LPARAM> vSelected;
 			ptlTree->GatherSelectedLParam( vSelected );
 			// Remove nested selections.
@@ -636,25 +580,21 @@ namespace lsn {
 					vSelected.erase( vSelected.begin() + I );
 				}
 			}
-			if ( vSelected.size() == 1 ) {
+			auto ptTrack = vSelected.size() == 1 ? TrackById( uint32_t( vSelected[0] ) ) : nullptr;
+			if ( ptTrack ) {
 				// Select a specific WAV file.
-				for ( auto I = m_vSequencePages.size(); I--; ) {
-					m_vSequencePages[I]->SetVisible( m_vSequencePages[I]->UniqueId() == uint32_t( vSelected[0] ) );
-				}
-				for ( auto I = m_vSettingsPages.size(); I--; ) {
-					m_vSettingsPages[I]->SetVisible( m_vSettingsPages[I]->UniqueId() == uint32_t( vSelected[0] ) );
+				if ( _bSelchanged || m_pwespSequencing->UniqueId() != uint32_t( vSelected[0] ) ) {
+					auto pwGroup = m_pwespSequencing->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+					if ( pwGroup ) { pwGroup->SetTextW( LSN_LSTR( LSN_WE_SEQUENCING ) ); }
+					pwGroup = m_pwefspSettings->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+					if ( pwGroup ) { pwGroup->SetTextW( LSN_LSTR( LSN_WE_FILE_SETTINGS ) ); }
+
+					m_pwespSequencing->LoadTrack( uint32_t( vSelected[0] ), ptTrack->tSequencing );
+					m_pwefspSettings->LoadTrack( uint32_t( vSelected[0] ), ptTrack->tSettings );
 				}
 			}
 			else {
-				// Select a specific WAV file.
-				for ( auto I = m_vSequencePages.size(); I--; ) {
-					m_vSequencePages[I]->SetVisible( I == 0 );
-				}
-				for ( auto I = m_vSettingsPages.size(); I--; ) {
-					m_vSettingsPages[I]->SetVisible( I == 0 );
-				}
-
-				auto pwGroup = m_vSequencePages[0]->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+				auto pwGroup = m_pwespSequencing->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
 				if ( pwGroup ) {
 					std::wstring wsGroupSeq;
 					if ( vSelected.size() ) {
@@ -683,7 +623,7 @@ namespace lsn {
 					pwGroup->SetTextW( wsGroupSeq.c_str() );
 				}
 
-				pwGroup = m_vSettingsPages[0]->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
+				pwGroup = m_pwefspSettings->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
 				if ( pwGroup ) {
 					std::wstring wsGroupSeq;
 					if ( vSelected.size() ) {
@@ -713,23 +653,13 @@ namespace lsn {
 				}
 
 
-				for ( auto I = m_vSequencePages.size(); I--; ) {
-					if ( m_vSequencePages[I]->Visible() ) {
-						if ( _bSelchanged && m_vSequencePages[I]->UniqueId() == 0 ) {
-							m_vSequencePages[I]->Activate();
-						}
-						m_vSequencePages[I]->Update();
-					}
-				}
-				for ( auto I = m_vSettingsPages.size(); I--; ) {
-					if ( m_vSettingsPages[I]->Visible() ) {
-						if ( _bSelchanged && m_vSettingsPages[I]->UniqueId() == 0 ) {
-							m_vSettingsPages[I]->Activate();
-						}
-						m_vSettingsPages[I]->Update();
-					}
+				if ( _bSelchanged || m_pwespSequencing->UniqueId() != 0 ) {
+					m_pwespSequencing->Activate();
+					m_pwefspSettings->Activate();
 				}
 			}
+			m_pwespSequencing->Update();
+			m_pwefspSettings->Update();
 		}
 
 		if ( m_pwefFiles ) {
@@ -920,20 +850,11 @@ namespace lsn {
 
 			
 
+			m_mTracks.clear();
 			if ( m_pwefFiles ) {
 				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 				ptlTree->DeleteAll();
 			}
-			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
-				delete m_vSequencePages[I];
-				m_vSequencePages[I] = nullptr;
-			}
-			m_vSequencePages.resize( 1 );
-			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
-				delete m_vSettingsPages[I];
-				m_vSettingsPages[I] = nullptr;
-			}
-			m_vSettingsPages.resize( 1 );
 
 			// AddWavFiles
 			if ( !wewoLoadMe.vPerFileOptions.size() ) { return; }
@@ -944,15 +865,10 @@ namespace lsn {
 				uint32_t ui32Id = pwfsSet->ui32Id;
 				if ( wewoLoadMe.vPerFileOptions[I].vWavPaths.size() ) {
 					AddWavFiles( wewoLoadMe.vPerFileOptions[I].vWavPaths[0], ui32Id );
-					auto pwespSeqPage = SequencePageById( ui32Id );
-					auto pwespSetPage = SettingsPageById( ui32Id );
-					if ( pwespSeqPage ) {
-						pwespSeqPage->Load( wewoLoadMe.vPerFileOptions[I] );
-						pwespSeqPage->Update();
-					}
-					if ( pwespSetPage ) {
-						pwespSetPage->Load( wewoLoadMe.vPerFileOptions[I] );
-						pwespSetPage->Update();
+					auto ptTrack = TrackById( ui32Id );
+					if ( ptTrack ) {
+						m_pwespSequencing->Load( wewoLoadMe.vPerFileOptions[I], ptTrack->tSequencing );
+						m_pwefspSettings->Load( wewoLoadMe.vPerFileOptions[I], ptTrack->tSettings );
 					}
 				}
 			}
@@ -1005,32 +921,24 @@ namespace lsn {
 				}
 				return false;
 			}
-			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
-				if ( (pwBaddy = m_vSequencePages[I]->Verify( wsError )) ) {
-					if ( !_bSilent ) {
-						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
-						auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
-						if ( ptlTree ) {
-							ptlTree->UnselectAll();
-							ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
-						}
-						Update();
-						pwBaddy->SetFocus();
-					}
-					return false;
+			for ( size_t I = 0; I < m_weEditor.Total(); ++I ) {
+				auto pwfsSet = m_weEditor.WavByIdx( I );
+				auto ptTrack = pwfsSet ? TrackById( pwfsSet->ui32Id ) : nullptr;
+				if ( !ptTrack ) { continue; }
+				pwBaddy = m_pwespSequencing->Verify( pwfsSet->ui32Id, ptTrack->tSequencing, wsError );
+				if ( !pwBaddy ) {
+					pwBaddy = m_pwefspSettings->Verify( ptTrack->tSettings, wsError );
 				}
-			}
-
-			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
-				if ( (pwBaddy = m_vSettingsPages[I]->Verify( wsError )) ) {
+				if ( pwBaddy ) {
 					if ( !_bSilent ) {
 						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_ERROR ) );
 						auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
 						if ( ptlTree ) {
 							ptlTree->UnselectAll();
-							ptlTree->SetCurSelByItemData( m_vSequencePages[I]->UniqueId() );
+							ptlTree->SetCurSelByItemData( pwfsSet->ui32Id );
 						}
-						Update();
+						// Show the bad track's values so the bad control can be fixed.
+						Update( true );
 						pwBaddy->SetFocus();
 					}
 					return false;
@@ -1080,34 +988,29 @@ namespace lsn {
 			}
 			std::vector<CWavEditor::LSN_PER_FILE> vPerFile;
 			CWavEditor::LSN_OUTPUT oOutput;
-			vPerFile.resize( std::max( m_vSequencePages.size(), m_vSettingsPages.size() ) );
+			vPerFile.resize( m_mTracks.size() );
 			//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
 			m_pweopOutput->Save( _wewoWindowState, _pweEditor ? &oOutput : nullptr );
-			for ( size_t I = 1; I < m_vSequencePages.size(); ++I ) {
-				vPerFile[I].ui32Id = m_vSequencePages[I]->UniqueId();
-				auto aTmp = _wewoWindowState.vPerFileOptions[0];
-				m_vSequencePages[I]->Save( (m_vSequencePages[I]->Visible() ? _wewoWindowState.vPerFileOptions[0] : aTmp), &vPerFile[I] );
+			size_t sIdx = 0;
+			for ( auto & aTrack : m_mTracks ) {
+				// The shown track's values are remembered for the next time.
+				LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE pfTmp;
+				bool bShown = aTrack.first == m_pwespSequencing->UniqueId() && _wewoWindowState.vPerFileOptions.size();
+				auto & pfPerFileOptions = bShown ? _wewoWindowState.vPerFileOptions[0] : pfTmp;
+				vPerFile[sIdx].ui32Id = aTrack.first;
+				m_pwespSequencing->Save( aTrack.second.tSequencing, pfPerFileOptions, &vPerFile[sIdx] );
+				m_pwefspSettings->Save( aTrack.first, aTrack.second.tSettings, pfPerFileOptions, &vPerFile[sIdx] );
+				++sIdx;
 			}
-			if ( m_vSequencePages.size() == 1 ) {
-				m_vSequencePages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
-			}
-
-			for ( size_t I = 1; I < m_vSettingsPages.size(); ++I ) {
-				CWavEditor::LSN_PER_FILE * pfPerFile = nullptr;
-				for ( auto J = vPerFile.size(); J--; ) {
-					if ( vPerFile[J].ui32Id == m_vSettingsPages[I]->UniqueId() ) {
-						pfPerFile = &vPerFile[J];
-						break;
-					}
-				}
-				auto aTmp = _wewoWindowState.vPerFileOptions[0];
-				m_vSettingsPages[I]->Save( (m_vSequencePages[I]->Visible() ? _wewoWindowState.vPerFileOptions[0] : aTmp), pfPerFile );
-			}
-			if ( m_vSettingsPages.size() == 1 ) {
-				m_vSettingsPages[0]->Save( _wewoWindowState.vPerFileOptions[0], nullptr );
+			if ( !m_mTracks.size() && _wewoWindowState.vPerFileOptions.size() ) {
+				// With no tracks, the values in the controls are remembered.
+				LSN_TRACK tTrack;
+				m_pwespSequencing->SaveTrack( tTrack.tSequencing );
+				m_pwefspSettings->SaveTrack( tTrack.tSettings );
+				m_pwespSequencing->Save( tTrack.tSequencing, _wewoWindowState.vPerFileOptions[0], nullptr );
+				m_pwefspSettings->Save( 0, tTrack.tSettings, _wewoWindowState.vPerFileOptions[0], nullptr );
 			}
 
-			vPerFile.erase( vPerFile.begin() );
 			if ( _pweEditor ) {
 				_pweEditor->SetParms( vPerFile, oOutput );
 				std::wstring wsError;
@@ -1158,12 +1061,11 @@ namespace lsn {
 			for ( size_t I = 0; I < _wewoWindowState.vPerFileOptions.size(); ++I ) {
 				auto ppfThis = m_weEditor.WavByIdx( I );
 				if ( !ppfThis ) { return false; }
-				auto pwespSeqPage = SequencePageById( ppfThis->ui32Id );
-				auto pwespSetPage = SettingsPageById( ppfThis->ui32Id );
-				if ( !pwespSeqPage || !pwespSetPage ) { return false; }
+				auto ptTrack = TrackById( ppfThis->ui32Id );
+				if ( !ptTrack ) { return false; }
 
-				pwespSeqPage->Save( _wewoWindowState.vPerFileOptions[I], nullptr );
-				pwespSetPage->Save( _wewoWindowState.vPerFileOptions[I], nullptr );
+				m_pwespSequencing->Save( ptTrack->tSequencing, _wewoWindowState.vPerFileOptions[I], nullptr );
+				m_pwefspSettings->Save( ppfThis->ui32Id, ptTrack->tSettings, _wewoWindowState.vPerFileOptions[I], nullptr );
 			}
 			//m_pwefFiles->Save( _wewoWindowState, _pweEditor );
 			m_pweopOutput->Save( _wewoWindowState, nullptr );

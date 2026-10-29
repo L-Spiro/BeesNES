@@ -373,6 +373,65 @@ namespace lsn {
 		return true;
 	}
 
+	/**
+	 * Evaluates text as an expression that results in a double, the same way an edit control evaluates its text.
+	 * 
+	 * \param _wsText The text to evaluate.
+	 * \param _eResult Holds the returned result.
+	 * \return Returns true if the text is a valid expression whose result can be converted to a double.
+	 **/
+	bool CWinUtilities::TextAsDoubleExpression( const std::wstring &_wsText, ee::CExpEvalContainer::EE_RESULT &_eResult ) {
+		try {
+			std::string sText = ee::CExpEval::WStringToString( _wsText );
+			if ( sText.size() == 0 ) { return false; }
+			lsw::CExpression eExp;
+			eExp.SetTreatsAsHex( false );
+			if ( !eExp.SetExpression( sText.c_str() ) ) { return false; }
+			if ( !eExp.GetContainer() ) { return false; }
+			if ( !eExp.GetContainer()->Resolve( _eResult ) ) { return false; }
+			if ( _eResult.ncType == ee::EE_NC_OBJECT ) {
+				_eResult.u.poObj = nullptr;
+				return false;
+			}
+			_eResult = ee::CExpEvalContainer::ConvertResult( _eResult, ee::EE_NC_FLOATING );
+			return _eResult.ncType == ee::EE_NC_FLOATING;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Evaluates text as an expression that results in an array of floats, the same way an edit control evaluates its text.  A single value
+	 *	results in an array with 1 element.
+	 * 
+	 * \param _wsText The text to evaluate.
+	 * \param _vResult Holds the returned values.
+	 * \return Returns true if the text is a valid expression whose result can be converted to an array of floats.
+	 **/
+	bool CWinUtilities::TextAsFloatVectorExpression( const std::wstring &_wsText, std::vector<float> &_vResult ) {
+		try {
+			std::string sText = ee::CExpEval::WStringToString( _wsText );
+			if ( sText.size() == 0 ) { return false; }
+			lsw::CExpression eExp;
+			eExp.SetTreatsAsHex( false );
+			if ( !eExp.SetExpression( sText.c_str() ) ) { return false; }
+			if ( !eExp.GetContainer() ) { return false; }
+			ee::CExpEvalContainer::EE_RESULT eResult;
+			if ( !eExp.GetContainer()->Resolve( eResult ) ) { return false; }
+			if ( eResult.ncType == ee::EE_NC_OBJECT ) {
+				ee::CObject * poObj = eResult.u.poObj;
+				if ( poObj && (poObj->Type() & ee::CObject::EE_BIT_VECTOR) ) {
+					return reinterpret_cast<ee::CVector *>(poObj)->ToPrimitiveArray<float, ee::EE_NC_FLOATING>( _vResult );
+				}
+				return false;
+			}
+			eResult = ee::CExpEvalContainer::ConvertResult( eResult, ee::EE_NC_FLOATING );
+			if ( eResult.ncType != ee::EE_NC_FLOATING ) { return false; }
+			_vResult.push_back( float( eResult.u.dVal ) );
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
 }	// namespace lsn
 
 #endif	// #ifdef LSN_USE_WINDOWS

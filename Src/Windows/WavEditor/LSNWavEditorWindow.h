@@ -22,6 +22,8 @@
 #include <Images/LSWBitmap.h>
 #include <MainWindow/LSWMainWindow.h>
 
+#include <map>
+
 using namespace lsw;
 
 namespace lsn {
@@ -45,6 +47,16 @@ namespace lsn {
 			LSN_I_DOWN_WAV,
 
 			LSN_I_TOTAL
+		};
+
+
+		// == Types.
+		/** The values of the sequencing and file-settings controls for a single track. */
+		struct LSN_TRACK {
+			/** The values of the sequencing controls. */
+			CWavEditorSequencingPage::LSN_TRACK				tSequencing;
+			/** The values of the file-settings controls. */
+			CWavEditorFileSettingsPage::LSN_TRACK			tSettings;
 		};
 
 
@@ -119,102 +131,109 @@ namespace lsn {
 		void												SelectionChanged( const std::vector<LPARAM> &_vIds );
 
 		/**
-		 * Sets the texts of all sequencer edits of the given ID.
+		 * Sets the stored sequencer edit text of the given ID in each given track.
 		 * 
 		 * \param _wId The ID of the edits to update.
 		 * \param _wsText The text to apply.
-		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
 		 **/
 		void												SetAllSeqEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Sets the check state of all sequencer checks/radio of the given ID.
+		 * Sets the stored sequencer check/radio state of the given ID in each given track.
 		 * 
-		 * \param _wId The ID of the edits to update.
+		 * \param _wId The ID of the checks/radios to update.
 		 * \param _bChecked to check or not.
-		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
 		 **/
 		void												SetAllSeqCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Sets the texts of all settings edits of the given ID.
+		 * Sets the stored sequencer combo-box selection of the given ID in each given track.
+		 * 
+		 * \param _wId The ID of the combos to update.
+		 * \param _i32Selection The index of the item to select within each combo box.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
+		 **/
+		void												SetAllSeqComboSels( WORD _wId, int32_t _i32Selection, const std::vector<LPARAM> &_vUpdateMe );
+
+		/**
+		 * Sets the stored settings edit text of the given ID in each given track.
 		 * 
 		 * \param _wId The ID of the edits to update.
 		 * \param _wsText The text to apply.
-		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
 		 **/
 		void												SetAllSettingsEditTexts( WORD _wId, const std::wstring &_wsText, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Sets the check state of all settings checks/radio of the given ID.
+		 * Sets the stored settings check state of the given ID in each given track.
 		 * 
-		 * \param _wId The ID of the edits to update.
+		 * \param _wId The ID of the checks to update.
 		 * \param _bChecked to check or not.
-		 * \param _vUpdateMe The unique ID's of the pages to modify.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
 		 **/
 		void												SetAllSettingsCheckStates( WORD _wId, bool _bChecked, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Sets the combo selections of all settings combos of the given ID.
+		 * Sets the stored settings combo-box selection of the given ID in each given track.
 		 * 
 		 * \param _wId The ID of the combos to update.
-		 * \param _lpSelection The data to select within each combo box.
-		 * \param _vUpdateMe The unique ID's of the pages to modify.
-		 * \param _lpBadSel In the case of conflicting data selections, this selection is returned.
+		 * \param _i32Selection The index of the item to select within each combo box.
+		 * \param _vUpdateMe The unique ID's of the tracks to modify.
 		 **/
-		void												SetAllSettingsComboSels( WORD _wId, LPARAM _lpSelection, const std::vector<LPARAM> &_vUpdateMe );
+		void												SetAllSettingsComboSels( WORD _wId, int32_t _i32Selection, const std::vector<LPARAM> &_vUpdateMe );
 
 		/**
-		 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+		 * Gets the stored sequencer edit text of the given ID from each of the tracks specified by _vPages.  If the text values do not match exactly, the return string is empty.
 		 * 
-		 * \param _wId The ID of the edit controls to inspect on each page.
-		 * \param _vPages The pages to inspect for a string.
-		 * \return Returns the string to set based on the contents of each edit in each page.
+		 * \param _wId The ID of the edit control.
+		 * \param _vPages The tracks to inspect for a string.
+		 * \return Returns the string to set based on the stored text of each track.
 		 **/
 		std::wstring										GetAllSeqEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages );
 
 		/**
-		 * Gets the check state derived from the check states of each check/radio across all pages.  If any check/radio is checked, true is returned.
+		 * Gets the check state derived from the stored sequencer check/radio states of the given ID in each of the tracks specified by _vPages.  If any check/radio is checked, true is returned.
 		 * 
-		 * \param _wId The ID of the edit controls to inspect on each page.
-		 * \param _vPages The pages to inspect for a string.
-		 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+		 * \param _wId The ID of the check/radio.
+		 * \param _vPages The tracks to inspect.
+		 * \return Returns the check state to use based on the stored check states of all involved tracks.
 		 **/
 		bool												GetAllSeqCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages );
 
 		/**
-		 * Gets the text from all edits with the given ID on each of the pages specified by _vPages.  If the text values do not match exactly, the return string is empty.
+		 * Gets the stored settings edit text of the given ID from each of the tracks specified by _vPages.  If the text values do not match exactly, the return string is empty.
 		 * 
-		 * \param _wId The ID of the edit controls to inspect on each page.
-		 * \param _vPages The pages to inspect for a string.
-		 * \return Returns the string to set based on the contents of each edit in each page.
+		 * \param _wId The ID of the edit control.
+		 * \param _vPages The tracks to inspect for a string.
+		 * \return Returns the string to set based on the stored text of each track.
 		 **/
 		std::wstring										GetAllSettingsEditTexts( WORD _wId, const std::vector<LPARAM> &_vPages );
 
 		/**
-		 * Gets the check state derived from the check states of each check/radio across all pages.
+		 * Gets the check state derived from the stored settings check states of the given ID in each of the tracks specified by _vPages.
 		 * 
-		 * \param _wId The ID of the edit controls to inspect on each page.
-		 * \param _vPages The pages to inspect for a string.
-		 * \return Returns the check state to use based on the check states of all involved checks/radios across each page.
+		 * \param _wId The ID of the check.
+		 * \param _vPages The tracks to inspect.
+		 * \return Returns BST_CHECKED or BST_UNCHECKED if all tracks match, otherwise BST_INDETERMINATE.
 		 **/
 		int													GetAllSettingsCheckStates( WORD _wId, const std::vector<LPARAM> &_vPages );
 
 		/**
-		 * Gets the selected item of each combobox across all pages.  If they are the same, the value is returned, otherwise _lpBad is returned.
+		 * Gets the stored settings combo-box selection of the given ID in each of the tracks specified by _vPages.  If they are the same, the selection is returned, otherwise -1 is returned.
 		 * 
-		 * \param _wId The ID of the combobox controls to inspect on each page.
-		 * \param _vPages The pages to inspect for a string.
-		 * \param _lpBad The value to return upon inconsistent combobox selections.
-		 * \return Returns the combobox data selection if all combos match, otherwise _lpBad.
+		 * \param _wId The ID of the combo box.
+		 * \param _vPages The tracks to inspect.
+		 * \return Returns the index of the selection if all tracks match, otherwise -1.
 		 **/
-		LPARAM												GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages, LPARAM _lpBad );
+		int32_t												GetAllSettingsComboSel( WORD _wId, const std::vector<LPARAM> &_vPages );
 
 		/**
 		 * Updates the window.
 		 * 
-		 * \param _bSelchanged If true, thew newly focused sequencer page will receive a notification to tell it that it has just become active, which it will use
-		 *	to gather the text from all the pages it affects to decide how to fill in its own edit texts.
+		 * \param _bSelchanged If true, the controls are refilled with the values of the selected track, or with the combined values of the tracks
+		 *	being edited together if there is not exactly 1 selected track.
 		 **/
 		void												Update( bool _bSelchanged = false );
 
@@ -246,10 +265,12 @@ namespace lsn {
 		// == Members.
 		/** The WAV Editor object. */
 		CWavEditor											m_weEditor;
-		/** The sequencing dialogs. */
-		std::vector<CWavEditorSequencingPage *>				m_vSequencePages;
-		/** The settings dialogs. */
-		std::vector<CWavEditorFileSettingsPage *>			m_vSettingsPages;
+		/** The sequencing dialog. */
+		CWavEditorSequencingPage *							m_pwespSequencing = nullptr;
+		/** The settings dialog. */
+		CWavEditorFileSettingsPage *						m_pwefspSettings = nullptr;
+		/** The values of the sequencing and settings controls for each track, by unique ID. */
+		std::map<uint32_t, LSN_TRACK>						m_mTracks;
 		/** The files page. */
 		CWavEditorFilesPage *								m_pwefFiles = nullptr;
 		/** The output page. */
@@ -260,10 +281,6 @@ namespace lsn {
 		LSN_OPTIONS *										m_poOptions;
 		/** Toggled when done initializing. */
 		bool												m_bInit = false;
-		/** The Sequencing rectangle. */
-		LSW_RECT											m_rSeqRect;
-		/** The settings rectangle. */
-		LSW_RECT											m_rSetRect;
 		/** the image list for the toolbar. */
 		CImageList											m_iImages;
 		/** Images for the toolbar. */
@@ -302,29 +319,14 @@ namespace lsn {
 		bool												SaveProject( LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoWindowState );
 
 		/**
-		 * Finds a sequencer page by unique ID.
+		 * Finds the stored control values of a track by unique ID.
 		 * 
-		 * \param _ui32Id The ID of the page to find.
-		 * \return Returns a pointer to the desired page or nullptr;
+		 * \param _ui32Id The ID of the track to find.
+		 * \return Returns a pointer to the desired track or nullptr;
 		 **/
-		CWavEditorSequencingPage *							SequencePageById( uint32_t _ui32Id ) const {
-			for ( auto I = m_vSequencePages.size(); I--; ) {
-				if ( m_vSequencePages[I]->UniqueId() == _ui32Id ) { return m_vSequencePages[I]; }
-			}
-			return nullptr;
-		}
-
-		/**
-		 * Finds a settings page by unique ID.
-		 * 
-		 * \param _ui32Id The ID of the page to find.
-		 * \return Returns a pointer to the desired page or nullptr;
-		 **/
-		CWavEditorFileSettingsPage *						SettingsPageById( uint32_t _ui32Id ) const {
-			for ( auto I = m_vSettingsPages.size(); I--; ) {
-				if ( m_vSettingsPages[I]->UniqueId() == _ui32Id ) { return m_vSettingsPages[I]; }
-			}
-			return nullptr;
+		LSN_TRACK *											TrackById( uint32_t _ui32Id ) {
+			auto aFound = m_mTracks.find( _ui32Id );
+			return aFound == m_mTracks.end() ? nullptr : &aFound->second;
 		}
 
 

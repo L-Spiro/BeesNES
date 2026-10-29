@@ -34,6 +34,126 @@ namespace lsn {
 		CWavEditorFileSettingsPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget = true, HMENU _hMenu = NULL, uint64_t _ui64Data = 0 );
 
 
+		// == Types.
+		/** The values of this page's controls for a single track. */
+		struct LSN_TRACK {
+			/** The Name text. */
+			std::wstring									wsTitle;
+			/** The File Name Prefix text. */
+			std::wstring									wsTitlePreFix;
+			/** The File Name Postfix text. */
+			std::wstring									wsTitlePostFix;
+			/** The Actual Hz text. */
+			std::wstring									wsActualHz;
+			/** The Characteristics/Volume text. */
+			std::wstring									wsCharVolume;
+			/** The Characteristics/LPF Hz text. */
+			std::wstring									wsCharLpfHz;
+			/** The Characteristics/HPF 1 Hz text. */
+			std::wstring									wsCharHpf0Hz;
+			/** The Characteristics/HPF 2 Hz text. */
+			std::wstring									wsCharHpf1Hz;
+			/** The Characteristics/HPF 3 Hz text. */
+			std::wstring									wsCharHpf2Hz;
+			/** The Characteristics/LPF Falloff text. */
+			std::wstring									wsCharLpfFall;
+			/** The Characteristics/HPF 1 Falloff text. */
+			std::wstring									wsCharHpf0Fall;
+			/** The Characteristics/HPF 2 Falloff text. */
+			std::wstring									wsCharHpf1Fall;
+			/** The Characteristics/HPF 3 Falloff text. */
+			std::wstring									wsCharHpf2Fall;
+			/** The Artist text. */
+			std::wstring									wsArtist;
+			/** The Album text. */
+			std::wstring									wsAlbum;
+			/** The Year text. */
+			std::wstring									wsYear;
+			/** The Comment text. */
+			std::wstring									wsComment;
+			/** The index of the selected item in the Actual Hz combo box. */
+			int32_t											i32ActualHzSelection = -1;
+			/** The index of the selected item in the Preset combo box. */
+			int32_t											i32CharPresetSelection = -1;
+			/** The index of the selected item in the LPF Type combo box. */
+			int32_t											i32LpfTypeSelection = 0;
+			/** The index of the selected item in the HPF 1 Type combo box. */
+			int32_t											i32Hpf0TypeSelection = 0;
+			/** The index of the selected item in the HPF 2 Type combo box. */
+			int32_t											i32Hpf1TypeSelection = 0;
+			/** The index of the selected item in the HPF 3 Type combo box. */
+			int32_t											i32Hpf2TypeSelection = 0;
+			/** The Lock Volume check. */
+			bool											bLockVol = false;
+			/** The Invert check. */
+			bool											bInvert = true;
+			/** The LPF check. */
+			bool											bLpf = true;
+			/** The HPF 1 check. */
+			bool											bHpf0 = true;
+			/** The HPF 2 check. */
+			bool											bHpf1 = true;
+			/** The HPF 3 check. */
+			bool											bHpf2 = true;
+			/** The RF 1 check. */
+			bool											bRf1 = false;
+			/** The RF 2 check. */
+			bool											bRf2 = false;
+			/** The Sunsoft 5B check. */
+			bool											bSunsoft5b = false;
+
+
+			// == Functions.
+			/**
+			 * Gets the stored text of an edit control.
+			 * 
+			 * \param _wId The ID of the edit control.
+			 * \return Returns a pointer to the stored text of the given edit control or nullptr if _wId is not an edit control on this page.
+			 **/
+			std::wstring *									Text( WORD _wId );
+
+			/**
+			 * Gets the stored text of an edit control.
+			 * 
+			 * \param _wId The ID of the edit control.
+			 * \return Returns a pointer to the stored text of the given edit control or nullptr if _wId is not an edit control on this page.
+			 **/
+			const std::wstring *							Text( WORD _wId ) const { return const_cast<LSN_TRACK *>(this)->Text( _wId ); }
+
+			/**
+			 * Gets the stored selection index of a combo box.
+			 * 
+			 * \param _wId The ID of the combo box.
+			 * \return Returns a pointer to the stored selection index of the given combo box or nullptr if _wId is not a combo box on this page.
+			 **/
+			int32_t *										Selection( WORD _wId );
+
+			/**
+			 * Gets the stored selection index of a combo box.
+			 * 
+			 * \param _wId The ID of the combo box.
+			 * \return Returns a pointer to the stored selection index of the given combo box or nullptr if _wId is not a combo box on this page.
+			 **/
+			const int32_t *									Selection( WORD _wId ) const { return const_cast<LSN_TRACK *>(this)->Selection( _wId ); }
+
+			/**
+			 * Gets the stored check state of a check box.
+			 * 
+			 * \param _wId The ID of the check box.
+			 * \return Returns a pointer to the stored check state of the given check box or nullptr if _wId is not a check box on this page.
+			 **/
+			bool *											Check( WORD _wId );
+
+			/**
+			 * Gets the stored check state of a check box.
+			 * 
+			 * \param _wId The ID of the check box.
+			 * \return Returns a pointer to the stored check state of the given check box or nullptr if _wId is not a check box on this page.
+			 **/
+			const bool *									Check( WORD _wId ) const { return const_cast<LSN_TRACK *>(this)->Check( _wId ); }
+		};
+
+
 		// == Functions.
 		/**
 		 * The WM_INITDIALOG handler.
@@ -53,7 +173,6 @@ namespace lsn {
 			m_pweEditor = &_weEditor;
 			m_ui32Id = _ui32Id;
 			m_pwefpFiles = _pwefpFiles;
-			InitialUpdate();
 		}
 
 		/**
@@ -74,27 +193,55 @@ namespace lsn {
 		virtual LSW_HANDLED									Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
 		/**
-		 * Verifies the inputs.
+		 * Verifies the values of a track.
 		 * 
+		 * \param _tTrack The values to verify.
 		 * \param _wsMsg The error message to display.
 		 * \return Returns the control that failed or nullptr.
 		 **/
-		CWidget *											Verify( std::wstring &_wsMsg );
+		CWidget *											Verify( const LSN_TRACK &_tTrack, std::wstring &_wsMsg );
 
 		/**
-		 * Saves the current input configuration and closes the dialog.
+		 * Saves the values of a track.
 		 * 
+		 * \param _ui32Id The unique ID of the track.
+		 * \param _tTrack The values to save.
 		 * \param _pfPerFileOptions The object to which to save the window state.
 		 * \param _ppfOutput The output object to which to transfer all the window settings.
 		 */
-		void												Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput );
+		void												Save( uint32_t _ui32Id, const LSN_TRACK &_tTrack, LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput );
 
 		/**
-		 * Fills out the page with saved values from a project.
+		 * Fills out the values of a track with saved values from a project.
 		 * 
 		 * \param _pfPerFileOptions The per-file settings to load.
+		 * \param _tTrack The track values to fill out.
 		 **/
-		void												Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions );
+		void												Load( const LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, LSN_TRACK &_tTrack );
+
+		/**
+		 * Sets the values of a newly added track that depend on its WAV file (its name and an initial Actual Hz value based off the Hz detected in the
+		 *	WAV file).
+		 * 
+		 * \param _ui32Id The unique ID of the track.
+		 * \param _tTrack The track values to fill out.
+		 **/
+		void												InitTrack( uint32_t _ui32Id, LSN_TRACK &_tTrack );
+
+		/**
+		 * Shows the values of a track in the controls.
+		 * 
+		 * \param _ui32Id The unique ID of the track.
+		 * \param _tTrack The values to show.
+		 **/
+		void												LoadTrack( uint32_t _ui32Id, const LSN_TRACK &_tTrack );
+
+		/**
+		 * Copies the values in the controls to a track structure.
+		 * 
+		 * \param _tTrack Holds the values from the controls.
+		 **/
+		void												SaveTrack( LSN_TRACK &_tTrack );
 
 		/**
 		 * Updates the dialog.
@@ -102,7 +249,7 @@ namespace lsn {
 		void												Update();
 
 		/**
-		 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+		 * Shows the combined values of all the tracks being edited together (the selected tracks, or all tracks if none are selected).
 		 **/
 		void												Activate();
 
@@ -111,7 +258,7 @@ namespace lsn {
 		// == Members.
 		/** The WAV Editor object. */
 		CWavEditor *										m_pweEditor = nullptr;
-		/** The ID of the WAV set associated with this page. */
+		/** The ID of the WAV set whose values are shown, or 0 if showing the combined values of multiple tracks. */
 		uint32_t											m_ui32Id = 0;
 		/** The options object. */
 		LSN_WAV_EDITOR_WINDOW_OPTIONS *						m_pwewoOptions;
@@ -119,21 +266,52 @@ namespace lsn {
 		CWavEditorFilesPage *								m_pwefpFiles = nullptr;
 		/** Settings edits and checks internally. */
 		bool												m_bInternalUpdate = false;
+		/** The edit controls whose texts are stored per track. */
+		static const WORD									m_wEditIds[];
+		/** The combo boxes whose selections are stored per track. */
+		static const WORD									m_wComboIds[];
+		/** The check boxes whose check states are stored per track. */
+		static const WORD									m_wCheckIds[];
 
 
 		// == Functions.
 		/**
-		 * Gets an array of pages to update on text-editing for the 0th page.
+		 * Gets the unique ID's of the tracks to which changes in the controls are applied.  This is the shown track or else the selected tracks (or
+		 *	all tracks if none are selected).
 		 * 
-		 * \param _vPages Holds the returned array of pages to update.
-		 * \param _bUpdateAll If true, all pages are updated.
+		 * \param _vPages Holds the returned array of track ID's to update.
+		 * \param _bUpdateAll If true, all tracks except the shown track are returned.
 		 **/
 		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages, bool _bUpdateAll = false );
 
 		/**
-		 * Selects an initial Actual Hz value based off the Hz detected in the WAV file assigned to us.
+		 * Gets the index of the item in a combo box with the given item data.
+		 * 
+		 * \param _wId The ID of the combo box.
+		 * \param _lpData The item data to find.
+		 * \return Returns the index of the item with the given data or -1.
 		 **/
-		void												InitialUpdate();
+		int32_t												ComboIndex( WORD _wId, LPARAM _lpData );
+
+		/**
+		 * Gets the item data of an item in a combo box.
+		 * 
+		 * \param _wId The ID of the combo box.
+		 * \param _i32Index The index of the item.
+		 * \param _lpBad The value to return if the combo box does not exist.
+		 * \return Returns the item data of the given item.
+		 **/
+		LPARAM												ComboData( WORD _wId, int32_t _i32Index, LPARAM _lpBad );
+
+		/**
+		 * Gets the LPF Pole and Zero from a string.
+		 * 
+		 * \param _wsText The text to evaluate.
+		 * \param _fPole Holds the returned Pole.
+		 * \param _fZero Holds the returned Zero.
+		 * \return Returns true if the text is a valid expression giving 1 or 2 values.
+		 **/
+		static bool											GetLpfAndZero( const std::wstring &_wsText, float &_fPole, float &_fZero );
 
 		/**
 		 * Gets the LPF Pole and Zero.
@@ -145,25 +323,7 @@ namespace lsn {
 		bool												GetLpfAndZero( float &_fPole, float &_fZero ) {
 			auto aEdit = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
 			if ( aEdit ) {
-				std::vector<float> vPrimArray;
-				ee::CExpEvalContainer::EE_RESULT rRes;
-				if ( aEdit->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
-					if ( vPrimArray.size() == 2 ) {
-						_fPole = vPrimArray[0];
-						_fZero = vPrimArray[1];
-						return true;
-					}
-					if ( vPrimArray.size() == 1 ) {
-						_fPole = vPrimArray[0];
-						_fZero = 0.0;
-						return true;
-					}
-				}
-				else if ( aEdit->GetTextAsDoubleExpression( rRes ) ) {
-					_fPole = float( rRes.u.dVal );
-					_fZero = 0.0f;
-					return true;
-				}
+				return GetLpfAndZero( aEdit->GetTextW(), _fPole, _fZero );
 			}
 			return false;
 		}

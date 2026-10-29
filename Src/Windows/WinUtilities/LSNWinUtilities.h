@@ -965,6 +965,25 @@ namespace lsn {
 		static bool												ReadUiKey( lsw::LSW_KEY &_kKey, lsn::CStream &_sStream );
 
 		/**
+		 * Evaluates text as an expression that results in a double, the same way an edit control evaluates its text.
+		 * 
+		 * \param _wsText The text to evaluate.
+		 * \param _eResult Holds the returned result.
+		 * \return Returns true if the text is a valid expression whose result can be converted to a double.
+		 **/
+		static bool												TextAsDoubleExpression( const std::wstring &_wsText, ee::CExpEvalContainer::EE_RESULT &_eResult );
+
+		/**
+		 * Evaluates text as an expression that results in an array of floats, the same way an edit control evaluates its text.  A single value
+		 *	results in an array with 1 element.
+		 * 
+		 * \param _wsText The text to evaluate.
+		 * \param _vResult Holds the returned values.
+		 * \return Returns true if the text is a valid expression whose result can be converted to an array of floats.
+		 **/
+		static bool												TextAsFloatVectorExpression( const std::wstring &_wsText, std::vector<float> &_vResult );
+
+		/**
 		 * Callback procedure for the folder browser dialog.
 		 *
 		 * \param _hWnd   The dialog window handle.

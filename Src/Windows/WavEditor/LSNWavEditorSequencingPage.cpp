@@ -27,12 +27,93 @@
 
 namespace lsn {
 
+	// == Members.
+	/** The edit controls whose texts are stored per track. */
+	const WORD CWavEditorSequencingPage::m_wEditIds[] = {
+		Layout::LSN_WEWI_SEQ_START_EDIT,
+		Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT,
+		Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT,
+		Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT,
+		Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT,
+		Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT,
+	};
+
+	/** The combo boxes whose selections are stored per track. */
+	const WORD CWavEditorSequencingPage::m_wComboIds[] = {
+		Layout::LSN_WEWI_SEQ_START_COMBO,
+		Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,
+	};
+
+	/** The check boxes and radio buttons whose check states are stored per track. */
+	const WORD CWavEditorSequencingPage::m_wCheckIds[] = {
+		Layout::LSN_WEWI_SEQ_START_EXACT_RADIO,
+		Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO,
+		Layout::LSN_WEWI_SEQ_START_SNAP_RADIO,
+		Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO,
+		Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO,
+		Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO,
+		Layout::LSN_WEWI_SEQ_LOOP_RADIO,
+		Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO,
+	};
+
 	CWavEditorSequencingPage::CWavEditorSequencingPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_pwewoOptions( reinterpret_cast<LSN_WAV_EDITOR_WINDOW_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
+	/**
+	 * Gets the stored text of an edit control.
+	 * 
+	 * \param _wId The ID of the edit control.
+	 * \return Returns a pointer to the stored text of the given edit control or nullptr if _wId is not an edit control on this page.
+	 **/
+	std::wstring * CWavEditorSequencingPage::LSN_TRACK::Text( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_SEQ_START_EDIT : { return &wsStartTime; }
+			case Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT : { return &wsStopTime; }
+			case Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT : { return &wsPreFadeDur; }
+			case Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT : { return &wsFadeDur; }
+			case Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT : { return &wsOpeningSilence; }
+			case Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT : { return &wsTrailingSilence; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Gets the stored selection index of a combo box.
+	 * 
+	 * \param _wId The ID of the combo box.
+	 * \return Returns a pointer to the stored selection index of the given combo box or nullptr if _wId is not a combo box on this page.
+	 **/
+	int32_t * CWavEditorSequencingPage::LSN_TRACK::Selection( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_SEQ_START_COMBO : { return &i32StartSelection; }
+			case Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO : { return &i32StopSelection; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Gets the stored check state of a check box or radio button.
+	 * 
+	 * \param _wId The ID of the check box or radio button.
+	 * \return Returns a pointer to the stored check state of the given control or nullptr if _wId is not a check box or radio button on this page.
+	 **/
+	bool * CWavEditorSequencingPage::LSN_TRACK::Check( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_SEQ_START_EXACT_RADIO : { return &bStartExact; }
+			case Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO : { return &bStartMinusOne; }
+			case Layout::LSN_WEWI_SEQ_START_SNAP_RADIO : { return &bStartSnap; }
+			case Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO : { return &bStopExact; }
+			case Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO : { return &bStopMinusOne; }
+			case Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO : { return &bStopSnap; }
+			case Layout::LSN_WEWI_SEQ_LOOP_RADIO : { return &bLoop; }
+			case Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO : { return &bOneShot; }
+		}
+		return nullptr;
+	}
+
 	/**
 	 * The WM_INITDIALOG handler.
 	 *
@@ -113,6 +194,11 @@ namespace lsn {
 					case CBN_SELCHANGE : {
 						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
 						if ( pcbCombo ) {
+							if ( !m_bInternalUpdate ) {
+								std::vector<LPARAM> vUpdateMe;
+								GetPagesToUpdate( vUpdateMe );
+								static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqComboSels( _wId, pcbCombo->GetCurSel(), vUpdateMe );
+							}
 							auto aSelected = pcbCombo->GetCurSelItemData();
 							if ( m_pweEditor ) {
 								auto pwsSet = m_pweEditor->WavById( UniqueId() );
@@ -157,6 +243,11 @@ namespace lsn {
 					case CBN_SELCHANGE : {
 						auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
 						if ( pcbCombo ) {
+							if ( !m_bInternalUpdate ) {
+								std::vector<LPARAM> vUpdateMe;
+								GetPagesToUpdate( vUpdateMe );
+								static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqComboSels( _wId, pcbCombo->GetCurSel(), vUpdateMe );
+							}
 							auto aSelected = pcbCombo->GetCurSelItemData();
 							if ( m_pweEditor ) {
 								auto pwsSet = m_pweEditor->WavById( UniqueId() );
@@ -182,7 +273,7 @@ namespace lsn {
 			case Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT : {}	LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						// Update all or update selected.
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
@@ -195,7 +286,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_START_EXACT_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -209,7 +300,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -223,7 +314,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_START_SNAP_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -238,7 +329,7 @@ namespace lsn {
 
 			case Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -252,7 +343,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -266,7 +357,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -281,7 +372,7 @@ namespace lsn {
 
 			case Layout::LSN_WEWI_SEQ_LOOP_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -294,7 +385,7 @@ namespace lsn {
 			}
 			case Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO : {
 				if ( _wCtrlCode == BN_CLICKED ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -312,20 +403,20 @@ namespace lsn {
 	}
 
 	/**
-	 * Verifies the inputs.
+	 * Verifies the values of a track.
 	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The values to verify.
 	 * \param _wsMsg The error message to display.
 	 * \return Returns the control that failed or nullptr.
 	 **/
-	CWidget * CWavEditorSequencingPage::Verify( std::wstring &_wsMsg ) {
-#define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
-	auto wCheckTmp = FindChild( Layout::ID );									\
-	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+	CWidget * CWavEditorSequencingPage::Verify( uint32_t _ui32Id, const LSN_TRACK &_tTrack, std::wstring &_wsMsg ) {
+#define LSN_CHECKED( ID, STORE )		{ STORE = (*_tTrack.Check( Layout::ID )); }
 
 		CWidget * pwWidget = nullptr;
 #define LSN_CHECK_EDIT( ID, MSG )		{										\
 	pwWidget = FindChild( Layout::ID );											\
-	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
+	if ( !CWinUtilities::TextAsDoubleExpression( (*_tTrack.Text( Layout::ID )), eTest ) ) {	\
 		_wsMsg = MSG;															\
 		return pwWidget ? pwWidget : this;										\
 	} }
@@ -376,7 +467,7 @@ namespace lsn {
 
 
 		if ( m_pweEditor ) {
-			auto pwfsSet = m_pweEditor->WavById( UniqueId() );
+			auto pwfsSet = m_pweEditor->WavById( _ui32Id );
 			if ( pwfsSet ) {
 				double dMaxDur = double( pwfsSet->ui64FullSampleCnt ) / pwfsSet->wfFile.fcFormat.uiSampleRate;
 				if ( dFinalDur - dMaxDur > DBL_EPSILON ) {
@@ -406,29 +497,23 @@ namespace lsn {
 	}
 
 	/**
-	 * Saves the current input configuration and closes the dialog.
+	 * Saves the values of a track.
 	 * 
+	 * \param _tTrack The values to save.
 	 * \param _pfPerFileOptions The object to which to save the window state.
 	 * \param _ppfOutput The output object to which to transfer all the window settings.
 	 */
-	void CWavEditorSequencingPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
-#define LSN_CHECKED( ID, STORE )			{ STORE = false;					\
-	auto wCheckTmp = FindChild( Layout::ID );									\
-	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+	void CWavEditorSequencingPage::Save( const LSN_TRACK &_tTrack, LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
+#define LSN_CHECKED( ID, STORE )			{ STORE = (*_tTrack.Check( Layout::ID )); }
 
-#define LSN_EDIT_TEXT( ID, STORE )			{									\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget ) { STORE = pwWidget->GetTextW(); } }
+#define LSN_EDIT_TEXT( ID, STORE )			{ STORE = (*_tTrack.Text( Layout::ID )); }
 
 #define LSN_EDIT_VAL( ID, STORE )			if ( _ppfOutput ) {					\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget && pwWidget->GetTextAsDoubleExpression( eTest ) ) { STORE = eTest.u.dVal; } }
+	if ( CWinUtilities::TextAsDoubleExpression( (*_tTrack.Text( Layout::ID )), eTest ) ) { STORE = eTest.u.dVal; } }
 
-#define LSN_COMBO_VAL( ID, STORE, TYPE )	{									\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget ) { STORE = static_cast<TYPE>(pwWidget->GetCurSelItemData()); } }
+		// The items in the metadata combo boxes are in index order, so the selection index is the same as the item data.
+#define LSN_COMBO_VAL( ID, STORE, TYPE )	{ STORE = static_cast<TYPE>((*_tTrack.Selection( Layout::ID ))); }
 
-		CWidget * pwWidget = nullptr;
 		ee::CExpEvalContainer::EE_RESULT eTest;
 		bool bChecked;
 		LSN_CHECKED( LSN_WEWI_SEQ_START_EXACT_RADIO, bChecked );
@@ -490,63 +575,103 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills out the page with saved values from a project.
+	 * Fills out the values of a track with saved values from a project.
 	 * 
 	 * \param _pfPerFileOptions The per-file settings to load.
+	 * \param _tTrack The track values to fill out.
 	 **/
-	void CWavEditorSequencingPage::Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions ) {
-		auto aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStopTime.c_str() ); }
+	void CWavEditorSequencingPage::Load( const LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, LSN_TRACK &_tTrack ) {
+		_tTrack.wsStartTime = _pfPerFileOptions.wsStartTime;
+		_tTrack.wsStopTime = _pfPerFileOptions.wsStopTime;
+		_tTrack.wsPreFadeDur = _pfPerFileOptions.wsPreFadeDur;
+		_tTrack.wsFadeDur = _pfPerFileOptions.wsFadeDur;
+		_tTrack.wsOpeningSilence = _pfPerFileOptions.wsOpeningSilence;
+		_tTrack.wsTrailingSilence = _pfPerFileOptions.wsTrailingSilence;
 
-		// In the metadata combo boxes each item's data is its index, so the item can be selected directly instead of searched for.
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_COMBO );
-		if ( aTmp ) {
-			auto pcbCombo = static_cast<CComboBox *>(aTmp);
-			pcbCombo->SetCurSel( (_pfPerFileOptions.i32StartSelection >= 0 && _pfPerFileOptions.i32StartSelection < pcbCombo->GetCount()) ? _pfPerFileOptions.i32StartSelection : -1 );
+		// In the metadata combo boxes each item's data is its index.
+		_tTrack.i32StartSelection = _pfPerFileOptions.i32StartSelection;
+		_tTrack.i32StopSelection = _pfPerFileOptions.i32EndSelection;
+
+		_tTrack.bStartExact = _pfPerFileOptions.i32StartMod == LSN_SST_EXACT;
+		_tTrack.bStartMinusOne = _pfPerFileOptions.i32StartMod == LSN_SST_MINUS_ONE;
+		_tTrack.bStartSnap = _pfPerFileOptions.i32StartMod == LSN_SST_SNAP;
+
+		_tTrack.bStopExact = _pfPerFileOptions.i32StopMod == LSN_SST_EXACT;
+		_tTrack.bStopMinusOne = _pfPerFileOptions.i32StopMod == LSN_SST_MINUS_ONE;
+		_tTrack.bStopSnap = _pfPerFileOptions.i32StopMod == LSN_SST_SNAP;
+
+		_tTrack.bLoop = _pfPerFileOptions.bLoop;
+		_tTrack.bOneShot = !_pfPerFileOptions.bLoop;
+	}
+
+	/**
+	 * Sets the values of a newly added track that depend on its WAV file (its start time comes from its metadata).
+	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The track values to fill out.
+	 **/
+	void CWavEditorSequencingPage::InitTrack( uint32_t _ui32Id, LSN_TRACK &_tTrack ) {
+		_tTrack.wsStartTime = L"0";
+		_tTrack.wsStopTime = L"";
+		_tTrack.i32StartSelection = -1;
+		_tTrack.i32StopSelection = -1;
+
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( _ui32Id ) : nullptr;
+		if ( pwfsSet && pwfsSet->wsMetaPath.size() && pwfsSet->vMetadata.size() ) {
+			_tTrack.i32StartSelection = 0;
+			_tTrack.wsStartTime = std::format( L"{:.35g}", pwfsSet->vMetadata[0].dTime );
 		}
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO );
-		if ( aTmp ) {
-			auto pcbCombo = static_cast<CComboBox *>(aTmp);
-			pcbCombo->SetCurSel( (_pfPerFileOptions.i32EndSelection >= 0 && _pfPerFileOptions.i32EndSelection < pcbCombo->GetCount()) ? _pfPerFileOptions.i32EndSelection : -1 );
+	}
+
+	/**
+	 * Shows the values of a track in the controls.
+	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The values to show.
+	 **/
+	void CWavEditorSequencingPage::LoadTrack( uint32_t _ui32Id, const LSN_TRACK &_tTrack ) {
+		m_ui32Id = _ui32Id;
+		m_bInternalUpdate = true;
+		FillCombos();
+
+		for ( auto I = std::size( m_wEditIds ); I--; ) {
+			auto pwThis = FindChild( m_wEditIds[I] );
+			if ( pwThis ) { pwThis->SetTextW( _tTrack.Text( m_wEditIds[I] )->c_str() ); }
+		}
+		for ( auto I = std::size( m_wComboIds ); I--; ) {
+			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( m_wComboIds[I] ));
+			if ( pcbCombo ) {
+				int32_t i32Sel = (*_tTrack.Selection( m_wComboIds[I] ));
+				pcbCombo->SetCurSel( (i32Sel >= 0 && i32Sel < pcbCombo->GetCount()) ? i32Sel : -1 );
+			}
+		}
+		for ( auto I = std::size( m_wCheckIds ); I--; ) {
+			auto pwThis = FindChild( m_wCheckIds[I] );
+			if ( pwThis ) { pwThis->SetCheck( (*_tTrack.Check( m_wCheckIds[I] )) ); }
 		}
 
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsStartTime.c_str() ); }
-		/*aTmp = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsEndTime.c_str() ); }*/
-
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsPreFadeDur.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsFadeDur.c_str() ); }
-
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_OPEN_SIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsOpeningSilence.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_SILENCE_TRAIL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTrailingSilence.c_str() ); }
-
-
-		// Last checks.
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_EXACT ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_MINUS_ONE ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StartMod == LSN_SST_SNAP ); }
-
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_EXACT ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_MINUS_ONE ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.i32StopMod == LSN_SST_SNAP ); }
-
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLoop ); }
-		aTmp = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
-		if ( aTmp ) { aTmp->SetCheck( !_pfPerFileOptions.bLoop ); }
-
+		m_bInternalUpdate = false;
 		Update();
+	}
+
+	/**
+	 * Copies the values in the controls to a track structure.
+	 * 
+	 * \param _tTrack Holds the values from the controls.
+	 **/
+	void CWavEditorSequencingPage::SaveTrack( LSN_TRACK &_tTrack ) {
+		for ( auto I = std::size( m_wEditIds ); I--; ) {
+			auto pwThis = FindChild( m_wEditIds[I] );
+			if ( pwThis ) { (*_tTrack.Text( m_wEditIds[I] )) = pwThis->GetTextW(); }
+		}
+		for ( auto I = std::size( m_wComboIds ); I--; ) {
+			auto pwThis = FindChild( m_wComboIds[I] );
+			if ( pwThis ) { (*_tTrack.Selection( m_wComboIds[I] )) = pwThis->GetCurSel(); }
+		}
+		for ( auto I = std::size( m_wCheckIds ); I--; ) {
+			auto pwThis = FindChild( m_wCheckIds[I] );
+			if ( pwThis ) { (*_tTrack.Check( m_wCheckIds[I] )) = pwThis->IsChecked(); }
+		}
 	}
 
 	/**
@@ -618,6 +743,11 @@ namespace lsn {
 		}
 
 
+		{
+			// Hidden unless the values below show that the track is too short.
+			auto pwWarning = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_WARNING_LABEL );
+			if ( pwWarning ) { pwWarning->SetVisible( false ); }
+		}
 		do {
 			auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DESC_LABEL );
 			if ( pwThis ) {
@@ -712,74 +842,34 @@ namespace lsn {
 	}
 
 	/**
-	 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+	 * Shows the combined values of all the tracks being edited together (the selected tracks, or all tracks if none are selected).
 	 **/
 	void CWavEditorSequencingPage::Activate() {
 		if ( !m_pweEditor ) { return; }
-		if ( UniqueId() != 0 ) { return; }
-		m_bInternalUpdate = true;
+		m_ui32Id = 0;
+		FillCombos();
+
 		std::vector<LPARAM> vAffected;
 		GetPagesToUpdate( vAffected );
-		auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_START_EDIT, vAffected ).c_str() );
+		// With no tracks the controls keep their values, which are saved as the defaults for new tracks.
+		if ( vAffected.size() ) {
+			m_bInternalUpdate = true;
+			auto pwewWindow = static_cast<CWavEditorWindow *>(m_pwParent);
+			for ( auto I = std::size( m_wEditIds ); I--; ) {
+				auto pwThis = FindChild( m_wEditIds[I] );
+				if ( pwThis ) {
+					pwThis->SetTextW( pwewWindow->GetAllSeqEditTexts( m_wEditIds[I], vAffected ).c_str() );
+				}
+			}
+			for ( auto I = std::size( m_wCheckIds ); I--; ) {
+				auto pwThis = FindChild( m_wCheckIds[I] );
+				if ( pwThis ) {
+					pwThis->SetCheck( pwewWindow->GetAllSeqCheckStates( m_wCheckIds[I], vAffected ) );
+				}
+			}
+			m_bInternalUpdate = false;
 		}
-		/*pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_END_EDIT, vAffected ).c_str() );
-		}*/
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_DELAY_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqEditTexts( Layout::LSN_WEWI_SEQ_LOOPS_FADE_EDIT, vAffected ).c_str() );
-		}
-
-
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_EXACT_RADIO, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_MINUS_ONE_RADIO, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_START_SNAP_RADIO, vAffected ) );
-		}
-
-
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_EXACT_RADIO, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_MINUS_ONE_RADIO, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_STOP_SNAP_RADIO, vAffected ) );
-		}
-
-
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_LOOP_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_LOOP_RADIO, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO );
-		if ( pwThis ) {
-			pwThis->SetCheck( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSeqCheckStates( Layout::LSN_WEWI_SEQ_ONE_SHOT_RADIO, vAffected ) );
-		}
-
-		m_bInternalUpdate = false;
+		Update();
 	}
 
 	/**
@@ -789,75 +879,27 @@ namespace lsn {
 		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
 		
 		if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 ) {
-			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_START_COMBO ));
-			if ( pcbCombo ) {
-				pcbCombo->ResetContent();
+			// Update() disables the combo boxes.  They keep their items in case the same track is shown again.
+			for ( auto I = std::size( m_wComboIds ); I--; ) {
+				auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( m_wComboIds[I] ));
+				if ( pcbCombo ) {
+					pcbCombo->SetCurSel( -1 );
+				}
 			}
-			/*pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_END_COMBO ));
-			if ( pcbCombo ) {
-				pcbCombo->ResetContent();
-			}*/
-			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ));
-			if ( pcbCombo ) {
-				pcbCombo->ResetContent();
-			}
+			return;
 		}
-		if ( pwfsSet ) {
-			auto pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
-			if ( pwThis ) {
-				pwThis->SetTextW( L"0" );
-			}
-			/*pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
-			if ( pwThis ) {
-				pwThis->SetTextW( std::format( L"{:.27g}", double( pwfsSet->wfFile.ui64Samples ) / pwfsSet->wfFile.fcFormat.uiSampleRate ).c_str() );
-			}*/
+		// Filling them is slow with large metadata files, so only do it when they hold a different track's metadata.
+		if ( m_ui32MetaId == m_ui32Id ) { return; }
 
-
-
-			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_START_COMBO ));
+		m_ui32MetaId = m_ui32Id;
+		for ( auto I = std::size( m_wComboIds ); I--; ) {
+			auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( m_wComboIds[I] ));
 			if ( pcbCombo ) {
 				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
 					pcbCombo->ResetContent();
-				}
-				else {
-					pcbCombo->SetCurSelByItemData( 0 );
-					auto aSelected = pcbCombo->GetCurSelItemData();
-					if ( aSelected != CB_ERR && size_t( aSelected ) < pwfsSet->vMetadata.size() ) {
-						auto sText = std::format( "{:.35g}", pwfsSet->vMetadata[aSelected].dTime );
-						pwThis = FindChild( Layout::LSN_WEWI_SEQ_START_EDIT );
-						if ( pwThis ) {
-							pwThis->SetTextA( sText.c_str() );
-						}
-					}
+					m_ui32MetaId = 0;
 				}
 			}
-			//pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_END_COMBO ));
-			//if ( pcbCombo ) {
-			//	if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
-			//		pcbCombo->ResetContent();
-			//	}
-			//	else {
-			//		pcbCombo->SetCurSelByItemData( pwfsSet->vMetadata.size() - 1 );
-			//		/*auto aSelected = pcbCombo->GetCurSelItemData();
-			//		if ( aSelected != CB_ERR && size_t( aSelected ) < pwfsSet->vMetadata.size() ) {
-			//			auto sText = std::format( "{:.35g}", pwfsSet->vMetadata[aSelected].dTime );
-			//			pwThis = FindChild( Layout::LSN_WEWI_SEQ_END_EDIT );
-			//			if ( pwThis ) {
-			//				pwThis->SetTextA( sText.c_str() );
-			//			}
-			//		}*/
-			//	}
-			//}
-			pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ));
-			if ( pcbCombo ) {
-				if ( !FillComboWithMetadata( pcbCombo, pwfsSet->vMetadata ) ) {
-					pcbCombo->ResetContent();
-				}
-			}
-
-
-
-			
 		}
 	}
 

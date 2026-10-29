@@ -26,12 +26,125 @@
 
 namespace lsn {
 
+	// == Members.
+	/** The edit controls whose texts are stored per track. */
+	const WORD CWavEditorFileSettingsPage::m_wEditIds[] = {
+		Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT,
+		Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT,
+		Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT,
+		Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT,
+		Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT,
+		Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT,
+		Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT,
+	};
+
+	/** The combo boxes whose selections are stored per track. */
+	const WORD CWavEditorFileSettingsPage::m_wComboIds[] = {
+		Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,
+	};
+
+	/** The check boxes whose check states are stored per track. */
+	const WORD CWavEditorFileSettingsPage::m_wCheckIds[] = {
+		Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,
+	};
+
 	CWavEditorFileSettingsPage::CWavEditorFileSettingsPage( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		Parent( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_pwewoOptions( reinterpret_cast<LSN_WAV_EDITOR_WINDOW_OPTIONS *>(_ui64Data) ) {
 	}
 
 	// == Functions.
+	/**
+	 * Gets the stored text of an edit control.
+	 * 
+	 * \param _wId The ID of the edit control.
+	 * \return Returns a pointer to the stored text of the given edit control or nullptr if _wId is not an edit control on this page.
+	 **/
+	std::wstring * CWavEditorFileSettingsPage::LSN_TRACK::Text( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT : { return &wsTitle; }
+			case Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT : { return &wsTitlePreFix; }
+			case Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT : { return &wsTitlePostFix; }
+			case Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT : { return &wsActualHz; }
+			case Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT : { return &wsCharVolume; }
+			case Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT : { return &wsCharLpfHz; }
+			case Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT : { return &wsCharLpfFall; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT : { return &wsCharHpf0Hz; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT : { return &wsCharHpf0Fall; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT : { return &wsCharHpf1Hz; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT : { return &wsCharHpf1Fall; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT : { return &wsCharHpf2Hz; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT : { return &wsCharHpf2Fall; }
+			case Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT : { return &wsArtist; }
+			case Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT : { return &wsAlbum; }
+			case Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT : { return &wsYear; }
+			case Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT : { return &wsComment; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Gets the stored selection index of a combo box.
+	 * 
+	 * \param _wId The ID of the combo box.
+	 * \return Returns a pointer to the stored selection index of the given combo box or nullptr if _wId is not a combo box on this page.
+	 **/
+	int32_t * CWavEditorFileSettingsPage::LSN_TRACK::Selection( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO : { return &i32ActualHzSelection; }
+			case Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO : { return &i32CharPresetSelection; }
+			case Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO : { return &i32LpfTypeSelection; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO : { return &i32Hpf0TypeSelection; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO : { return &i32Hpf1TypeSelection; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO : { return &i32Hpf2TypeSelection; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Gets the stored check state of a check box.
+	 * 
+	 * \param _wId The ID of the check box.
+	 * \return Returns a pointer to the stored check state of the given check box or nullptr if _wId is not a check box on this page.
+	 **/
+	bool * CWavEditorFileSettingsPage::LSN_TRACK::Check( WORD _wId ) {
+		switch ( _wId ) {
+			case Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK : { return &bLockVol; }
+			case Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK : { return &bInvert; }
+			case Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK : { return &bLpf; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK : { return &bHpf0; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK : { return &bHpf1; }
+			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK : { return &bHpf2; }
+			case Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK : { return &bRf1; }
+			case Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK : { return &bRf2; }
+			case Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK : { return &bSunsoft5b; }
+		}
+		return nullptr;
+	}
+
 	/**
 	 * The WM_INITDIALOG handler.
 	 *
@@ -167,7 +280,7 @@ namespace lsn {
 				for ( auto I = std::size( wComboIds ); I--; ) {
 					auto pwThis = FindChild( wComboIds[I] );
 					if ( pwThis ) {
-						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( wComboIds[I], pwThis->GetCurSelItemData(), vUpdateUs );
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( wComboIds[I], pwThis->GetCurSel(), vUpdateUs );
 					}
 				}
 
@@ -224,13 +337,13 @@ namespace lsn {
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO : {}		LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO : {
 				if ( _wCtrlCode == CBN_SELCHANGE ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						// Update all or update selected.
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
-						auto lpParm = pwThis ? pwThis->GetCurSelItemData() : -50;
-						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, lpParm, vUpdateMe );
+						auto iSel = pwThis ? pwThis->GetCurSel() : -1;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, iSel, vUpdateMe );
 					}
 				}
 				break;
@@ -253,7 +366,7 @@ namespace lsn {
 			case Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT : {}			LSN_FALLTHROUGH
 			case Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT : {
 				if ( _wCtrlCode == EN_CHANGE ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						// Update all or update selected.
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
@@ -282,7 +395,7 @@ namespace lsn {
 							}
 						}
 					}
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
@@ -296,13 +409,13 @@ namespace lsn {
 
 			case Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO : {
 				if ( _wCtrlCode == CBN_SELCHANGE ) {
-					if ( UniqueId() == 0 && !m_bInternalUpdate ) {
+					if ( !m_bInternalUpdate ) {
 						// Update all or update selected.
 						std::vector<LPARAM> vUpdateMe;
 						GetPagesToUpdate( vUpdateMe );
 						auto pwThis = FindChild( _wId );
-						auto lpParm = pwThis ? pwThis->GetCurSelItemData() : -50;
-						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, lpParm, vUpdateMe );
+						auto iSel = pwThis ? pwThis->GetCurSel() : -1;
+						static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSettingsComboSels( _wId, iSel, vUpdateMe );
 					}
 				}
 				else if ( _wCtrlCode == CBN_SELENDOK ) {
@@ -402,15 +515,14 @@ namespace lsn {
 	}
 
 	/**
-	 * Verifies the inputs.
+	 * Verifies the values of a track.
 	 * 
+	 * \param _tTrack The values to verify.
 	 * \param _wsMsg The error message to display.
 	 * \return Returns the control that failed or nullptr.
 	 **/
-	CWidget * CWavEditorFileSettingsPage::Verify( std::wstring &_wsMsg ) {
-#define LSN_CHECKED( ID, STORE )		{ STORE = false;						\
-	auto wCheckTmp = FindChild( Layout::ID );									\
-	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+	CWidget * CWavEditorFileSettingsPage::Verify( const LSN_TRACK &_tTrack, std::wstring &_wsMsg ) {
+#define LSN_CHECKED( ID, STORE )		{ STORE = (*_tTrack.Check( Layout::ID )); }
 
 		LPARAM lpParam = 0;
 		bool bChecked = false;
@@ -419,23 +531,19 @@ namespace lsn {
 
 #define LSN_CHECK_EDIT( ID, MSG )		{										\
 	pwWidget = FindChild( Layout::ID );											\
-	if ( !pwWidget || !pwWidget->GetTextAsDoubleExpression( eTest ) ) {			\
+	if ( !CWinUtilities::TextAsDoubleExpression( (*_tTrack.Text( Layout::ID )), eTest ) ) {	\
 		_wsMsg = MSG;															\
 		return pwWidget ? pwWidget : this;										\
 	} }
 #define LSN_CHECK_EDIT_EMPTY( ID, MSG )		{									\
 	pwWidget = FindChild( Layout::ID );											\
-	if ( !pwWidget || !pwWidget->GetTextW().size() ) {							\
+	if ( !_tTrack.Text( Layout::ID )->size() ) {								\
 		_wsMsg = MSG;															\
 		return pwWidget ? pwWidget : this;										\
 	} }
 
 		
-#define LSN_GET_COMBO( ID, STORE, BAD_ID ) { STORE = BAD_ID;					\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget ) {															\
-		STORE = pwWidget->GetCurSelItemData();									\
-	} }
+#define LSN_GET_COMBO( ID, STORE, BAD_ID ) { STORE = ComboData( Layout::ID, (*_tTrack.Selection( Layout::ID )), BAD_ID ); }
 
 		LSN_CHECK_EDIT_EMPTY( LSN_WEWI_FSETS_FDATA_NAME_EDIT, LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_NO_NAME ) );
 
@@ -458,34 +566,14 @@ namespace lsn {
 				return pwWidget;
 			}*/
 			pwWidget = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-			while ( pwWidget ) {
-				std::vector<float> vPrimArray;
-				ee::CExpEvalContainer::EE_RESULT rRes;
-				if ( pwWidget->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
-					if ( vPrimArray.size() == 2 ) {
-						if ( vPrimArray[0] < 0.0 || vPrimArray[1] < 0.0 ) {
-							_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
-							return pwWidget;
-						}
-						break;
-					}
-					if ( vPrimArray.size() == 1 ) {
-						if ( vPrimArray[0] < 0.0 ) {
-							_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
-							return pwWidget;
-						}
-						break;
-					}
-				}
-				else if ( pwWidget->GetTextAsDoubleExpression( rRes ) ) {
-					if ( rRes.u.dVal < 0.0 ) {
-						_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
-						return pwWidget;
-					}
-					break;
-				}
+			float fPole, fZero;
+			if ( !GetLpfAndZero( _tTrack.wsCharLpfHz, fPole, fZero ) ) {
 				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_BAD_HZ );
-				return pwWidget;
+				return pwWidget ? pwWidget : this;
+			}
+			if ( fPole < 0.0f || fZero < 0.0f ) {
+				_wsMsg = LSN_LSTR( LSN_WE_OUTPUT_ERR_SET_HZ_NEG );
+				return pwWidget ? pwWidget : this;
 			}
 
 			LSN_GET_COMBO( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, lpParam, -80 );
@@ -554,30 +642,23 @@ namespace lsn {
 	}
 
 	/**
-	 * Saves the current input configuration and closes the dialog.
+	 * Saves the values of a track.
 	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The values to save.
 	 * \param _pfPerFileOptions The object to which to save the window state.
 	 * \param _ppfOutput The output object to which to transfer all the window settings.
 	 */
-	void CWavEditorFileSettingsPage::Save( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
-#define LSN_CHECKED( ID, STORE )			{ STORE = false;					\
-	auto wCheckTmp = FindChild( Layout::ID );									\
-	if ( wCheckTmp ) { STORE = wCheckTmp->IsChecked(); } }
+	void CWavEditorFileSettingsPage::Save( uint32_t _ui32Id, const LSN_TRACK &_tTrack, LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, CWavEditor::LSN_PER_FILE * _ppfOutput ) {
+#define LSN_CHECKED( ID, STORE )			{ STORE = (*_tTrack.Check( Layout::ID )); }
 
-#define LSN_EDIT_TEXT( ID, STORE )			{									\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget ) { STORE = pwWidget->GetTextW(); } }
+#define LSN_EDIT_TEXT( ID, STORE )			{ STORE = (*_tTrack.Text( Layout::ID )); }
 
 #define LSN_EDIT_VAL( ID, STORE )			if ( _ppfOutput ) {					\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget && pwWidget->GetTextAsDoubleExpression( eTest ) ) { STORE = eTest.u.dVal; } }
+	if ( CWinUtilities::TextAsDoubleExpression( (*_tTrack.Text( Layout::ID )), eTest ) ) { STORE = eTest.u.dVal; } }
 
-#define LSN_COMBO_VAL( ID, STORE, TYPE )	{									\
-	pwWidget = FindChild( Layout::ID );											\
-	if ( pwWidget ) { STORE = static_cast<TYPE>(pwWidget->GetCurSelItemData()); } }
+#define LSN_COMBO_VAL( ID, STORE, TYPE )	{ STORE = static_cast<TYPE>(ComboData( Layout::ID, (*_tTrack.Selection( Layout::ID )), LPARAM( STORE ) )); }
 	
-		
-		CWidget * pwWidget = nullptr;
 		
 		ee::CExpEvalContainer::EE_RESULT eTest;
 		LSN_EDIT_TEXT( LSN_WEWI_FSETS_FDATA_NAME_EDIT, _pfPerFileOptions.wsTitle );
@@ -650,7 +731,7 @@ namespace lsn {
 					break;
 				}
 				case LPARAM( CWavEditor::LSN_AH_BY_FILE ) : {
-					auto wfsSet = m_pweEditor ? m_pweEditor->WavById( UniqueId() ) : nullptr;
+					auto wfsSet = m_pweEditor ? m_pweEditor->WavById( _ui32Id ) : nullptr;
 					if ( wfsSet ) { _ppfOutput->dActualHz = double( wfsSet->wfFile.fcFormat.uiSampleRate ); }
 					break;
 				}
@@ -669,24 +750,10 @@ namespace lsn {
 			LSN_CHECKED( LSN_WEWI_FSETS_CHAR_HPF2_CHECK, _ppfOutput->bHpf2 );
 			if ( _pfPerFileOptions.bLpf ) {
 				//LSN_EDIT_VAL( LSN_WEWI_FSETS_CHAR_LPF_EDIT, _ppfOutput->dLpf );
-				pwWidget = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-				if ( pwWidget ) {
-					std::vector<float> vPrimArray;
-					ee::CExpEvalContainer::EE_RESULT rRes;
-					if ( pwWidget->GetTextAsVectorExpression<float, ee::EE_NC_FLOATING>( rRes, vPrimArray ) ) {
-						if ( vPrimArray.size() == 2 ) {
-							_ppfOutput->dLpf = vPrimArray[0];
-							_ppfOutput->dZero = vPrimArray[1];
-						}
-						else if ( vPrimArray.size() == 1 ) {
-							_ppfOutput->dLpf = vPrimArray[0];
-							_ppfOutput->dZero = 0.0;
-						}
-					}
-					else if ( pwWidget->GetTextAsDoubleExpression( rRes ) ) {
-						_ppfOutput->dLpf = float( rRes.u.dVal );
-						_ppfOutput->dZero = 0.0f;
-					}
+				float fPole, fZero;
+				if ( GetLpfAndZero( _tTrack.wsCharLpfHz, fPole, fZero ) ) {
+					_ppfOutput->dLpf = fPole;
+					_ppfOutput->dZero = fZero;
 				}
 
 				LSN_COMBO_VAL( LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _ppfOutput->fLpfType, CWavEditor::LSN_FILTER );
@@ -733,85 +800,143 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills out the page with saved values from a project.
+	 * Fills out the values of a track with saved values from a project.
 	 * 
 	 * \param _pfPerFileOptions The per-file settings to load.
+	 * \param _tTrack The track values to fill out.
 	 **/
-	void CWavEditorFileSettingsPage::Load( LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions ) {
-		auto aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitle.c_str() ); }
+	void CWavEditorFileSettingsPage::Load( const LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE &_pfPerFileOptions, LSN_TRACK &_tTrack ) {
+		_tTrack.wsTitle = _pfPerFileOptions.wsTitle;
+		_tTrack.wsTitlePreFix = _pfPerFileOptions.wsTitlePreFix;
+		_tTrack.wsTitlePostFix = _pfPerFileOptions.wsTitlePostFix;
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitlePreFix.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsTitlePostFix.c_str() ); }
+		_tTrack.wsActualHz = _pfPerFileOptions.wsActualHz;
+		_tTrack.wsCharVolume = _pfPerFileOptions.wsCharVolume;
+		_tTrack.wsCharLpfHz = _pfPerFileOptions.wsCharLpfHz;
+		_tTrack.wsCharHpf0Hz = _pfPerFileOptions.wsCharHpf0Hz;
+		_tTrack.wsCharHpf1Hz = _pfPerFileOptions.wsCharHpf1Hz;
+		_tTrack.wsCharHpf2Hz = _pfPerFileOptions.wsCharHpf2Hz;
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsActualHz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharVolume.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharLpfHz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf0Hz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf1Hz.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf2Hz.c_str() ); }
+		_tTrack.wsCharLpfFall = _pfPerFileOptions.wsCharLpfFall;
+		_tTrack.wsCharHpf0Fall = _pfPerFileOptions.wsCharHpf0Fall;
+		_tTrack.wsCharHpf1Fall = _pfPerFileOptions.wsCharHpf1Fall;
+		_tTrack.wsCharHpf2Fall = _pfPerFileOptions.wsCharHpf2Fall;
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharLpfFall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf0Fall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf1Fall.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsCharHpf2Fall.c_str() ); }
-
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsArtist.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsAlbum.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsYear.c_str() ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
-		if ( aTmp ) { aTmp->SetTextW( _pfPerFileOptions.wsComment.c_str() ); }
+		_tTrack.wsArtist = _pfPerFileOptions.wsArtist;
+		_tTrack.wsAlbum = _pfPerFileOptions.wsAlbum;
+		_tTrack.wsYear = _pfPerFileOptions.wsYear;
+		_tTrack.wsComment = _pfPerFileOptions.wsComment;
 
 
 		// Last checks.
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLockVol ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bInvert ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bLpf ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bHpf0 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bHpf1 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bHpf2 ); }
+		_tTrack.bLockVol = _pfPerFileOptions.bLockVol;
+		_tTrack.bInvert = _pfPerFileOptions.bInvert;
+		_tTrack.bLpf = _pfPerFileOptions.bLpf;
+		_tTrack.bHpf0 = _pfPerFileOptions.bHpf0;
+		_tTrack.bHpf1 = _pfPerFileOptions.bHpf1;
+		_tTrack.bHpf2 = _pfPerFileOptions.bHpf2;
 
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bRf1 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bRf2 ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK );
-		if ( aTmp ) { aTmp->SetCheck( _pfPerFileOptions.bSunsoft5b ); }
+		_tTrack.bRf1 = _pfPerFileOptions.bRf1;
+		_tTrack.bRf2 = _pfPerFileOptions.bRf2 && !_pfPerFileOptions.bRf1;	// Mutually exclusive; RF 1 wins (see Update()).
+		_tTrack.bSunsoft5b = _pfPerFileOptions.bSunsoft5b;
 
 		// Last combo-box selections.
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( LPARAM( int32_t( _pfPerFileOptions.ui32ActualHz ) ) ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8LpfType ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8Hpf0Type ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8Hpf1Type ); }
-		aTmp = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( aTmp ) { aTmp->SetCurSelByItemData( _pfPerFileOptions.ui8Hpf2Type ); }
+		_tTrack.i32ActualHzSelection = ComboIndex( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO, LPARAM( int32_t( _pfPerFileOptions.ui32ActualHz ) ) );
+		_tTrack.i32LpfTypeSelection = ComboIndex( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, _pfPerFileOptions.ui8LpfType );
+		_tTrack.i32Hpf0TypeSelection = ComboIndex( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO, _pfPerFileOptions.ui8Hpf0Type );
+		_tTrack.i32Hpf1TypeSelection = ComboIndex( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO, _pfPerFileOptions.ui8Hpf1Type );
+		_tTrack.i32Hpf2TypeSelection = ComboIndex( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO, _pfPerFileOptions.ui8Hpf2Type );
+	}
 
+	/**
+	 * Sets the values of a newly added track that depend on its WAV file (its name and an initial Actual Hz value based off the Hz detected in the
+	 *	WAV file).
+	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The track values to fill out.
+	 **/
+	void CWavEditorFileSettingsPage::InitTrack( uint32_t _ui32Id, LSN_TRACK &_tTrack ) {
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( _ui32Id ) : nullptr;
+		if ( !pwfsSet ) { return; }
+
+		std::filesystem::path pPath = pwfsSet->wfFile.wsPath;
+		pPath = pPath.filename().replace_extension( "" );
+		_tTrack.wsTitle = pPath.generic_wstring();
+
+		LPARAM lpHz;
+		switch ( pwfsSet->wfFile.fcFormat.uiSampleRate ) {
+			case 1789773 : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_NTSC );
+				break;
+			}
+			case 1662608 : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_PAL );
+				break;
+			}
+			case 1773448 : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_DENDY );
+				break;
+			}
+			case 1787806 : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_PALM );
+				break;
+			}
+			case 1791029 : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_PALN );
+				break;
+			}
+			default : {
+				lpHz = LPARAM( CWavEditor::LSN_AH_BY_FILE );
+			}
+		}
+		_tTrack.i32ActualHzSelection = ComboIndex( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO, lpHz );
+	}
+
+	/**
+	 * Shows the values of a track in the controls.
+	 * 
+	 * \param _ui32Id The unique ID of the track.
+	 * \param _tTrack The values to show.
+	 **/
+	void CWavEditorFileSettingsPage::LoadTrack( uint32_t _ui32Id, const LSN_TRACK &_tTrack ) {
+		m_ui32Id = _ui32Id;
+		m_bInternalUpdate = true;
+
+		for ( auto I = std::size( m_wEditIds ); I--; ) {
+			auto pwThis = FindChild( m_wEditIds[I] );
+			if ( pwThis ) { pwThis->SetTextW( _tTrack.Text( m_wEditIds[I] )->c_str() ); }
+		}
+		for ( auto I = std::size( m_wComboIds ); I--; ) {
+			auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( m_wComboIds[I] ));
+			if ( pcbCombo ) { pcbCombo->SetCurSel( (*_tTrack.Selection( m_wComboIds[I] )) ); }
+		}
+		for ( auto I = std::size( m_wCheckIds ); I--; ) {
+			auto pwThis = FindChild( m_wCheckIds[I] );
+			if ( pwThis ) { pwThis->SetCheck( (*_tTrack.Check( m_wCheckIds[I] )) ); }
+		}
+
+		m_bInternalUpdate = false;
 		Update();
+	}
+
+	/**
+	 * Copies the values in the controls to a track structure.
+	 * 
+	 * \param _tTrack Holds the values from the controls.
+	 **/
+	void CWavEditorFileSettingsPage::SaveTrack( LSN_TRACK &_tTrack ) {
+		for ( auto I = std::size( m_wEditIds ); I--; ) {
+			auto pwThis = FindChild( m_wEditIds[I] );
+			if ( pwThis ) { (*_tTrack.Text( m_wEditIds[I] )) = pwThis->GetTextW(); }
+		}
+		for ( auto I = std::size( m_wComboIds ); I--; ) {
+			auto pwThis = FindChild( m_wComboIds[I] );
+			if ( pwThis ) { (*_tTrack.Selection( m_wComboIds[I] )) = pwThis->GetCurSel(); }
+		}
+		for ( auto I = std::size( m_wCheckIds ); I--; ) {
+			auto pwThis = FindChild( m_wCheckIds[I] );
+			if ( pwThis ) { (*_tTrack.Check( m_wCheckIds[I] )) = pwThis->IsChecked(); }
+		}
 	}
 
 	/**
@@ -963,159 +1088,48 @@ namespace lsn {
 	}
 
 	/**
-	 * Sets this page as active.  Allows the 0th page to gather text and checks from all the pages it affects.
+	 * Shows the combined values of all the tracks being edited together (the selected tracks, or all tracks if none are selected).
 	 **/
 	void CWavEditorFileSettingsPage::Activate() {
 		if ( !m_pweEditor ) { return; }
-		if ( UniqueId() != 0 ) { return; }
-		m_bInternalUpdate = true;
+		m_ui32Id = 0;
 
 		std::vector<LPARAM> vAffected;
 		GetPagesToUpdate( vAffected );
-
-		auto pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO, vAffected, -80 ) );
+		// With no tracks the controls keep their values, which are saved as the defaults for new tracks.
+		if ( vAffected.size() ) {
+			m_bInternalUpdate = true;
+			auto pwewWindow = static_cast<CWavEditorWindow *>(m_pwParent);
+			for ( auto I = std::size( m_wComboIds ); I--; ) {
+				auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( m_wComboIds[I] ));
+				if ( pcbCombo ) {
+					pcbCombo->SetCurSel( pwewWindow->GetAllSettingsComboSel( m_wComboIds[I], vAffected ) );
+				}
+			}
+			for ( auto I = std::size( m_wEditIds ); I--; ) {
+				auto pwThis = FindChild( m_wEditIds[I] );
+				if ( pwThis ) {
+					pwThis->SetTextW( pwewWindow->GetAllSettingsEditTexts( m_wEditIds[I], vAffected ).c_str() );
+				}
+			}
+			for ( auto I = std::size( m_wCheckIds ); I--; ) {
+				auto pwThis = FindChild( m_wCheckIds[I] );
+				if ( pwThis ) {
+					pwThis->CheckButton( pwewWindow->GetAllSettingsCheckStates( m_wCheckIds[I], vAffected ) );
+				}
+			}
+			m_bInternalUpdate = false;
 		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO, vAffected, -80 ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO, vAffected, -1 ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO, vAffected, -1 ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO, vAffected, -1 ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO );
-		if ( pwThis ) {
-			pwThis->SetCurSelByItemData( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsComboSel( Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO, vAffected, -1 ) );
-		}
-
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_PREFIX_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_POSTFIX_EDIT, vAffected ).c_str() );
-		}
-
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_FDATA_HZ_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_MDATA_ARTIST_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_MDATA_ALBUM_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_MDATA_YEAR_EDIT, vAffected ).c_str() );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT );
-		if ( pwThis ) {
-			pwThis->SetTextW( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsEditTexts( Layout::LSN_WEWI_FSETS_MDATA_COMMENTS_EDIT, vAffected ).c_str() );
-		}
-
-
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK, vAffected ) );
-		}
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK );
-		if ( pwThis ) {
-			pwThis->CheckButton( static_cast<CWavEditorWindow *>(m_pwParent)->GetAllSettingsCheckStates( Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK, vAffected ) );
-		}
-
-		m_bInternalUpdate = false;
 
 		Update();
 	}
 
 	/**
-	 * Gets an array of pages to update on text-editing for the 0th page.
+	 * Gets the unique ID's of the tracks to which changes in the controls are applied.  This is the shown track or else the selected tracks (or
+	 *	all tracks if none are selected).
 	 * 
-	 * \param _vPages Holds the returned array of pages to update.
-	 * \param _bUpdateAll If true, all pages are updated.
+	 * \param _vPages Holds the returned array of track ID's to update.
+	 * \param _bUpdateAll If true, all tracks except the shown track are returned.
 	 **/
 	void CWavEditorFileSettingsPage::GetPagesToUpdate( std::vector<LPARAM> &_vPages, bool _bUpdateAll ) {
 		_vPages.clear();
@@ -1153,56 +1167,65 @@ namespace lsn {
 	}
 
 	/**
-	 * Selects an initial Actual Hz value based off the Hz detected in the WAV file assigned to us.
+	 * Gets the index of the item in a combo box with the given item data.
+	 * 
+	 * \param _wId The ID of the combo box.
+	 * \param _lpData The item data to find.
+	 * \return Returns the index of the item with the given data or -1.
 	 **/
-	void CWavEditorFileSettingsPage::InitialUpdate() {
-		if ( !m_pweEditor ) { return; }
-		if ( UniqueId() == 0 ) { return; }
-
-		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
-		if ( !pwfsSet ) { return; }
-
-		m_bInternalUpdate = true;
-
-		auto pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_NAME_EDIT );
-		if ( pwThis ) {
-			std::filesystem::path pPath = pwfsSet->wfFile.wsPath;
-			pPath = pPath.filename().replace_extension( "" );
-			pwThis->SetTextW( pPath.generic_wstring().c_str() );
-		}
-
-		pwThis = FindChild( Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO );
-		if ( pwThis ) {
-			switch ( pwfsSet->wfFile.fcFormat.uiSampleRate ) {
-				case 1789773 : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_NTSC ) );
-					break;
-				}
-				case 1662608 : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PAL ) );
-					break;
-				}
-				case 1773448 : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_DENDY ) );
-					break;
-				}
-				case 1787806 : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PALM ) );
-					break;
-				}
-				case 1791029 : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_PALN ) );
-					break;
-				}
-				default : {
-					pwThis->SetCurSelByItemData( LPARAM( CWavEditor::LSN_AH_BY_FILE ) );
-				}
+	int32_t CWavEditorFileSettingsPage::ComboIndex( WORD _wId, LPARAM _lpData ) {
+		auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( _wId ));
+		if ( pcbCombo ) {
+			for ( INT I = pcbCombo->GetCount(); I--; ) {
+				if ( pcbCombo->GetItemData( I ) == _lpData ) { return int32_t( I ); }
 			}
-			
 		}
+		return -1;
+	}
 
-		m_bInternalUpdate = false;
-		Update();
+	/**
+	 * Gets the item data of an item in a combo box.
+	 * 
+	 * \param _wId The ID of the combo box.
+	 * \param _i32Index The index of the item.
+	 * \param _lpBad The value to return if the combo box does not exist.
+	 * \return Returns the item data of the given item.
+	 **/
+	LPARAM CWavEditorFileSettingsPage::ComboData( WORD _wId, int32_t _i32Index, LPARAM _lpBad ) {
+		auto pcbCombo = reinterpret_cast<lsw::CComboBox *>(FindChild( _wId ));
+		if ( !pcbCombo ) { return _lpBad; }
+		return pcbCombo->GetItemData( _i32Index );
+	}
+
+	/**
+	 * Gets the LPF Pole and Zero from a string.
+	 * 
+	 * \param _wsText The text to evaluate.
+	 * \param _fPole Holds the returned Pole.
+	 * \param _fZero Holds the returned Zero.
+	 * \return Returns true if the text is a valid expression giving 1 or 2 values.
+	 **/
+	bool CWavEditorFileSettingsPage::GetLpfAndZero( const std::wstring &_wsText, float &_fPole, float &_fZero ) {
+		std::vector<float> vPrimArray;
+		ee::CExpEvalContainer::EE_RESULT rRes;
+		if ( CWinUtilities::TextAsFloatVectorExpression( _wsText, vPrimArray ) ) {
+			if ( vPrimArray.size() == 2 ) {
+				_fPole = vPrimArray[0];
+				_fZero = vPrimArray[1];
+				return true;
+			}
+			if ( vPrimArray.size() == 1 ) {
+				_fPole = vPrimArray[0];
+				_fZero = 0.0;
+				return true;
+			}
+		}
+		else if ( CWinUtilities::TextAsDoubleExpression( _wsText, rRes ) ) {
+			_fPole = float( rRes.u.dVal );
+			_fZero = 0.0f;
+			return true;
+		}
+		return false;
 	}
 
 }	// namespace lsn
