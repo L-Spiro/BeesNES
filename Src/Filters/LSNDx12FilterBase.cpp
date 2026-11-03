@@ -70,6 +70,9 @@ namespace lsn {
 		m_rtGamma.reset();
 		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
+		m_rCaptureReadback.reset();
+		m_ui64CaptureSize = 0;
+		m_bCapturePending = false;
 
 		m_dhGammaRtv.reset();
 		m_dhPhosphorRtv.reset();
@@ -240,6 +243,8 @@ namespace lsn {
 	 */
 	bool CDx12FilterBase::RenderBase( CDirectX12Device * _pdx12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_prSrc || !_pdx12dDevice || !_pgclCommandList ) { return false; }
+		// The previous frame's command list has finished (the callers flush the queue after executing it), so its capture can be read.
+		ReadCapture();
 		if LSN_UNLIKELY( !EnsureBaseSizeAndResources( _pdx12dDevice, _pgclCommandList, _ui32NativeW, _ui32NativeH ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pdx12dDevice->GetDevice();
@@ -361,12 +366,134 @@ namespace lsn {
 				m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
 			}
 
+			if ( m_pcbCapture ) {
+				// Capture the part of the back buffer showing the console screen.
+				RecordTextureCapture( _pgclCommandList->Get(), rBackBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, _rOutput );
+			}
+
 			D3D12_RESOURCE_BARRIER rbPresent[1];
 			rbPresent[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { rBackBuffer.Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT } };
 			_pgclCommandList->Get()->ResourceBarrier( 1, rbPresent );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Records commands that copy an area of a texture into the capture readback buffer, to be read by ReadCapture() after the GPU has
+	 *	finished the frame.  The texture is returned to _rsState afterward.
+	 *
+	 * \param _pgclCommandList The command list in which to record the copy.
+	 * \param _prTexture The texture to copy.  Must not be multi-sampled.
+	 * \param _rsState The state _prTexture is in when the copy is recorded, and to which it is returned.
+	 * \param _rArea The area of _prTexture to copy.  It is clipped to the texture.
+	 * \return Returns true if the copy was recorded.
+	 */
+	bool CDx12FilterBase::RecordTextureCapture( ID3D12GraphicsCommandList * _pgclCommandList, ID3D12Resource * _prTexture, D3D12_RESOURCE_STATES _rsState, const lsw::LSW_RECT &_rArea ) {
+		m_bCapturePending = false;
+		if LSN_UNLIKELY( !_pgclCommandList || !_prTexture || !m_pdx12dDevice || !m_pdx12dDevice->GetDevice() ) { return false; }
+		ID3D12Device * pd12Device = m_pdx12dDevice->GetDevice();
+
+		D3D12_RESOURCE_DESC rdTex = _prTexture->GetDesc();
+		LSN_CAPTURE_FORMAT cfFormat = CaptureFormat( rdTex.Format );
+		if LSN_UNLIKELY( cfFormat == LSN_CF_UNKNOWN || rdTex.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D || rdTex.SampleDesc.Count != 1 ) { return false; }
+
+		// Clip the area to the texture.
+		LONG lW = LONG( rdTex.Width ), lH = LONG( rdTex.Height );
+		LONG lLeft = std::clamp<LONG>( _rArea.left, 0, lW );
+		LONG lTop = std::clamp<LONG>( _rArea.top, 0, lH );
+		LONG lRight = std::clamp<LONG>( _rArea.right, lLeft, lW );
+		LONG lBottom = std::clamp<LONG>( _rArea.bottom, lTop, lH );
+		if LSN_UNLIKELY( lRight == lLeft || lBottom == lTop ) { return false; }
+
+		// The layout of the area in a buffer.
+		D3D12_RESOURCE_DESC rdArea = rdTex;
+		rdArea.Width = UINT64( lRight - lLeft );
+		rdArea.Height = UINT( lBottom - lTop );
+		rdArea.DepthOrArraySize = 1;
+		rdArea.MipLevels = 1;
+		rdArea.Flags = D3D12_RESOURCE_FLAG_NONE;
+		UINT64 ui64Total = 0;
+		pd12Device->GetCopyableFootprints( &rdArea, 0, 1, 0, &m_pspfCaptureFootprint, nullptr, nullptr, &ui64Total );
+		if LSN_UNLIKELY( !ui64Total ) { return false; }
+
+		if LSN_UNLIKELY( !m_rCaptureReadback.get() || !m_rCaptureReadback->Get() || m_ui64CaptureSize < ui64Total ) {
+			if ( !m_rCaptureReadback.get() ) { m_rCaptureReadback = std::make_unique<CDirectX12Resource>(); }
+			else { m_rCaptureReadback->Reset(); }
+			m_ui64CaptureSize = 0;
+			D3D12_HEAP_PROPERTIES hpReadback = { D3D12_HEAP_TYPE_READBACK, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
+			D3D12_RESOURCE_DESC rdBuffer = { D3D12_RESOURCE_DIMENSION_BUFFER, 0, ui64Total, 1, 1, 1, DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE };
+			if ( !m_rCaptureReadback->CreateCommittedResource( pd12Device, &hpReadback, D3D12_HEAP_FLAG_NONE, &rdBuffer, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
+			m_ui64CaptureSize = ui64Total;
+		}
+
+		D3D12_RESOURCE_BARRIER rbCopy[1];
+		rbCopy[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { _prTexture, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, _rsState, D3D12_RESOURCE_STATE_COPY_SOURCE } };
+		_pgclCommandList->ResourceBarrier( 1, rbCopy );
+
+		D3D12_TEXTURE_COPY_LOCATION tclDst = {};
+		tclDst.pResource = m_rCaptureReadback->Get();
+		tclDst.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		tclDst.PlacedFootprint = m_pspfCaptureFootprint;
+		D3D12_TEXTURE_COPY_LOCATION tclSrc = {};
+		tclSrc.pResource = _prTexture;
+		tclSrc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+		tclSrc.SubresourceIndex = 0;
+		D3D12_BOX bBox = { UINT( lLeft ), UINT( lTop ), 0, UINT( lRight ), UINT( lBottom ), 1 };
+		_pgclCommandList->CopyTextureRegion( &tclDst, 0, 0, 0, &tclSrc, &bBox );
+
+		rbCopy[0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+		rbCopy[0].Transition.StateAfter = _rsState;
+		_pgclCommandList->ResourceBarrier( 1, rbCopy );
+
+		m_cfCaptureFormat = cfFormat;
+		m_ui64CapturePpuFrame = m_ui64CaptureFrame;
+		m_bCapturePending = true;
+		return true;
+	}
+
+	/**
+	 * Copies the pending capture (if any) into the capture target (m_pcbCapture).  Must only be called once the command list that recorded
+	 *	the copy has finished executing.  If capturing has stopped, the capture resources are released.
+	 */
+	void CDx12FilterBase::ReadCapture() {
+		if ( m_bCapturePending && m_pcbCapture && m_rCaptureReadback.get() && m_rCaptureReadback->Get() ) {
+			void * pvData = nullptr;
+			D3D12_RANGE rRead = { SIZE_T( m_pspfCaptureFootprint.Offset ), SIZE_T( m_pspfCaptureFootprint.Offset + UINT64( m_pspfCaptureFootprint.Footprint.RowPitch ) * m_pspfCaptureFootprint.Footprint.Height ) };
+			if ( SUCCEEDED( m_rCaptureReadback->Get()->Map( 0, &rRead, &pvData ) ) && pvData ) {
+				m_pcbCapture->Copy( static_cast<const uint8_t *>(pvData) + m_pspfCaptureFootprint.Offset,
+					m_pspfCaptureFootprint.Footprint.Width, m_pspfCaptureFootprint.Footprint.Height, m_pspfCaptureFootprint.Footprint.RowPitch,
+					m_cfCaptureFormat, false, m_ui64CapturePpuFrame );
+				D3D12_RANGE rWritten = { 0, 0 };
+				m_rCaptureReadback->Get()->Unmap( 0, &rWritten );
+			}
+		}
+		m_bCapturePending = false;
+		if ( !m_pcbCapture && m_rCaptureReadback.get() ) {
+			m_rCaptureReadback.reset();
+			m_ui64CaptureSize = 0;
+		}
+	}
+
+	/**
+	 * Gets the capture format matching a DXGI format.
+	 *
+	 * \param _fFormat The DXGI format to convert.
+	 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+	 */
+	LSN_CAPTURE_FORMAT CDx12FilterBase::CaptureFormat( DXGI_FORMAT _fFormat ) {
+		switch ( _fFormat ) {
+			case DXGI_FORMAT_R8G8B8A8_UNORM : { return LSN_CF_RGBA8; }
+			case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : { return LSN_CF_RGBA8_SRGB; }
+			case DXGI_FORMAT_B8G8R8A8_UNORM : { return LSN_CF_BGRA8; }
+			case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : { return LSN_CF_BGRA8_SRGB; }
+			case DXGI_FORMAT_B8G8R8X8_UNORM : { return LSN_CF_BGRX8; }
+			case DXGI_FORMAT_R10G10B10A2_UNORM : { return LSN_CF_R10G10B10A2; }
+			case DXGI_FORMAT_B5G6R5_UNORM : { return LSN_CF_B5G6R5; }
+			case DXGI_FORMAT_R16G16B16A16_FLOAT : { return LSN_CF_RGBA16F; }
+			case DXGI_FORMAT_R32G32B32A32_FLOAT : { return LSN_CF_RGBA32F; }
+			default : { return LSN_CF_UNKNOWN; }
+		}
 	}
 
 	// == Functions.

@@ -1861,6 +1861,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Cpu\LSNCpuBase.h" />
     <ClInclude Include="Src\Crc\LSNCrc.h" />
     <ClInclude Include="Src\Database\LSNDatabase.h" />
+    <ClInclude Include="Src\Display\LSNCaptureBuffer.h" />
     <ClInclude Include="Src\Display\LSNDisplayClient.h" />
     <ClInclude Include="Src\Display\LSNDisplayHost.h" />
     <ClInclude Include="Src\EEPROM\LSNI2cEeprom157.h" />

@@ -14,6 +14,7 @@
 
 #include "../GPU/Vulkan/LSNVulkan.h"
 #include "../GPU/Vulkan/LSNVulkanDevice.h"
+#include "../GPU/Vulkan/LSNVulkanBuffer.h"
 #include "../GPU/Vulkan/LSNVulkanCommandBuffer.h"
 #include "../GPU/Vulkan/LSNVulkanCommandPool.h"
 #include "../GPU/Vulkan/LSNVulkanFence.h"
@@ -353,6 +354,18 @@ namespace lsn {
 		bool													m_bUse16BitInitialTarget = true;	/**< Uses 16-bit intermediate formats if true. */
 		bool													m_bUseHighQualityResampler = true;	/**< Executes the 2-pass convolution resampler if true. */
 
+		// == Capture ==
+		CVulkanBuffer											m_bCaptureBuffer;					/**< The host-visible buffer into which captured images are copied. */
+		CVulkanDeviceMemory										m_dmCaptureMemory;					/**< The memory backing m_bCaptureBuffer. */
+		void *													m_pvCaptureMapped = nullptr;		/**< m_dmCaptureMemory, persistently mapped. */
+		VkDeviceSize											m_dsCaptureSize = 0;				/**< The size of m_bCaptureBuffer in bytes. */
+		uint64_t												m_ui64CapturePpuFrame = 0;			/**< The PPU frame whose capture is pending. */
+		uint32_t												m_ui32CaptureW = 0;					/**< The width of the pending capture. */
+		uint32_t												m_ui32CaptureH = 0;					/**< The height of the pending capture. */
+		LSN_CAPTURE_FORMAT										m_cfCaptureFormat = LSN_CF_UNKNOWN;	/**< The format of the pending capture. */
+		bool													m_bCaptureCoherent = false;			/**< True if m_dmCaptureMemory is host-coherent (no invalidation needed). */
+		bool													m_bCapturePending = false;			/**< True if a copy into m_bCaptureBuffer was recorded and has not been read yet. */
+
 
 		// == Functions.
 		/**
@@ -451,6 +464,48 @@ namespace lsn {
 		 * \return Returns the result of vkAcquireNextImageKHR().
 		 */
 		VkResult												AcquireNextImage();
+
+		/**
+		 * Records commands that copy an area of an image into the capture buffer, to be read by ReadCapture() after the GPU has finished the
+		 *	frame.  The image is returned to _ilLayout afterward.  The image must have been created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT.
+		 *
+		 * \param _cbCmd The command buffer in which to record the copy.
+		 * \param _iImage The image to copy.
+		 * \param _fFormat The format of _iImage.
+		 * \param _ilLayout The layout _iImage is in when the copy is recorded, and to which it is returned.
+		 * \param _ui32ImageW The width of _iImage.
+		 * \param _ui32ImageH The height of _iImage.
+		 * \param _rArea The area of _iImage to copy.  It is clipped to the image.
+		 * \return Returns true if the copy was recorded.
+		 */
+		bool													RecordImageCapture( VkCommandBuffer _cbCmd, VkImage _iImage, VkFormat _fFormat, VkImageLayout _ilLayout, uint32_t _ui32ImageW, uint32_t _ui32ImageH, const lsw::LSW_RECT &_rArea );
+
+		/**
+		 * Copies the pending capture (if any) into the capture target (m_pcbCapture).  Must only be called once the frame that recorded the
+		 *	copy has retired.  If capturing has stopped, the capture resources are released.
+		 */
+		void													ReadCapture();
+
+		/**
+		 * Ensures the capture buffer can hold at least the given number of bytes.
+		 *
+		 * \param _dsSize The number of bytes the capture buffer must hold.
+		 * \return Returns true if the capture buffer is large enough.
+		 */
+		bool													EnsureCaptureBuffer( VkDeviceSize _dsSize );
+
+		/**
+		 * Releases the capture buffer and its memory.  The GPU must not be using them.
+		 */
+		void													ReleaseCaptureResources();
+
+		/**
+		 * Gets the capture format matching a Vulkan format.
+		 *
+		 * \param _fFormat The Vulkan format to convert.
+		 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+		 */
+		static LSN_CAPTURE_FORMAT								CaptureFormat( VkFormat _fFormat );
 	};
 
 }	// namespace lsn

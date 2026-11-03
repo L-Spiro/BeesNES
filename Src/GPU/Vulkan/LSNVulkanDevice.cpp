@@ -192,6 +192,9 @@ namespace lsn {
 			sciSwapChainCreateInfo.clipped = VK_TRUE;
 			sciSwapChainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 			sciSwapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			// Allow the images to be copied to the CPU (video capture) where supported.
+			const bool bCanCopy = (scCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) != 0;
+			if ( bCanCopy ) { sciSwapChainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; }
 			sciSwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			sciSwapChainCreateInfo.queueFamilyIndexCount = 1;
 			sciSwapChainCreateInfo.pQueueFamilyIndices = &m_ui32QueueFamilyIndex;
@@ -211,6 +214,8 @@ namespace lsn {
 			m_fSwapFormat = fSwapFormat;
 			m_pmPresentMode = pmPresentMode;
 			m_ui32SwapImages = ui32SwapImages;
+			m_eSwapExtent = eExtent;
+			m_bSwapCanCopy = bCanCopy;
 			
 			m_fFence = std::move( fFence );
 			m_qGraphicsQueue = qGraphicsQueue;
@@ -288,6 +293,9 @@ namespace lsn {
 		sciSwapChainCreateInfo.clipped = VK_TRUE;
 		sciSwapChainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		sciSwapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		// Allow the images to be copied to the CPU (video capture) where supported.
+		const bool bCanCopy = (scCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) != 0;
+		if ( bCanCopy ) { sciSwapChainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT; }
 		sciSwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		sciSwapChainCreateInfo.queueFamilyIndexCount = 1;
 		sciSwapChainCreateInfo.pQueueFamilyIndices = &m_ui32QueueFamilyIndex;
@@ -301,6 +309,8 @@ namespace lsn {
 		// This assignment invokes the RAII move assignment operator, which properly 
 		// destroys the *old* swapchain before taking ownership of the new one.
 		m_sSwapchain = std::move( sNewSwapchain );
+		m_eSwapExtent = sciSwapChainCreateInfo.imageExtent;
+		m_bSwapCanCopy = bCanCopy;
 
 		return true;
 	}
@@ -321,6 +331,8 @@ namespace lsn {
 		m_qGraphicsQueue = VK_NULL_HANDLE;
 		m_hWnd = NULL;
 		m_ui32SwapImages = 0;
+		m_eSwapExtent = { 0, 0 };
+		m_bSwapCanCopy = false;
 	}
 
 }	// namespace lsn

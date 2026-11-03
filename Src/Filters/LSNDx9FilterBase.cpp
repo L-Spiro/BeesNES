@@ -72,6 +72,7 @@ namespace lsn {
 		m_rtGamma.reset();
 		m_rtPhosphorTarget.reset();
 		m_rtResampled.reset();
+		ReleaseCaptureResources();
 
 		if ( m_pdx9dDevice ) {
 			s_dgsState.DestroyDx9();
@@ -282,10 +283,101 @@ namespace lsn {
 			}
 			
 			psBackBuffer->Release();
+
+			// CaptureBackBuffer() copies this area after EndScene().
+			m_rCaptureArea = _rOutput;
+			m_bCaptureRequested = m_pcbCapture != nullptr;
 		}
 
 		return true;
 	}
+
+	/**
+	 * If capturing (CaptureTarget() is not nullptr), copies the area of the back buffer showing the console screen into the capture
+	 *	target.  Call after EndScene() and before Present() for the frame rendered by this filter.
+	 */
+	void CDx9FilterBase::CaptureBackBuffer() {
+		bool bRequested = m_bCaptureRequested;
+		m_bCaptureRequested = false;
+		if ( !m_pcbCapture ) {
+			ReleaseCaptureResources();
+			return;
+		}
+		if ( !bRequested || !m_pdx9dDevice ) { return; }
+		IDirect3DDevice9 * pd3d9dDevice = m_pdx9dDevice->GetDirectX9Device();
+		if LSN_UNLIKELY( !pd3d9dDevice ) { return; }
+
+		IDirect3DSurface9 * psBackBuffer = nullptr;
+		if LSN_UNLIKELY( FAILED( pd3d9dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &psBackBuffer ) ) ) { return; }
+
+		D3DSURFACE_DESC sdBack;
+		if ( SUCCEEDED( psBackBuffer->GetDesc( &sdBack ) ) && sdBack.MultiSampleType == D3DMULTISAMPLE_NONE ) {
+			LSN_CAPTURE_FORMAT cfFormat = CaptureFormat( sdBack.Format );
+
+			// The system-memory surface must match the back buffer in size and format.
+			if ( m_psCaptureSurface ) {
+				D3DSURFACE_DESC sdCapture;
+				if ( FAILED( m_psCaptureSurface->GetDesc( &sdCapture ) ) || sdCapture.Width != sdBack.Width || sdCapture.Height != sdBack.Height || sdCapture.Format != sdBack.Format ) {
+					ReleaseCaptureResources();
+				}
+			}
+			if ( cfFormat != LSN_CF_UNKNOWN && !m_psCaptureSurface ) {
+				if ( FAILED( pd3d9dDevice->CreateOffscreenPlainSurface( sdBack.Width, sdBack.Height, sdBack.Format, D3DPOOL_SYSTEMMEM, &m_psCaptureSurface, nullptr ) ) ) {
+					m_psCaptureSurface = nullptr;
+				}
+			}
+
+			RECT rArea;
+			rArea.left = std::clamp<LONG>( m_rCaptureArea.left, 0, LONG( sdBack.Width ) );
+			rArea.top = std::clamp<LONG>( m_rCaptureArea.top, 0, LONG( sdBack.Height ) );
+			rArea.right = std::clamp<LONG>( m_rCaptureArea.right, rArea.left, LONG( sdBack.Width ) );
+			rArea.bottom = std::clamp<LONG>( m_rCaptureArea.bottom, rArea.top, LONG( sdBack.Height ) );
+
+			if ( m_psCaptureSurface && rArea.right > rArea.left && rArea.bottom > rArea.top &&
+				SUCCEEDED( pd3d9dDevice->GetRenderTargetData( psBackBuffer, m_psCaptureSurface ) ) ) {
+				D3DLOCKED_RECT lrLocked;
+				if ( SUCCEEDED( m_psCaptureSurface->LockRect( &lrLocked, &rArea, D3DLOCK_READONLY ) ) ) {
+					m_pcbCapture->Copy( static_cast<const uint8_t *>(lrLocked.pBits), uint32_t( rArea.right - rArea.left ), uint32_t( rArea.bottom - rArea.top ),
+						uint32_t( lrLocked.Pitch ), cfFormat, false, m_ui64CaptureFrame );
+					m_psCaptureSurface->UnlockRect();
+				}
+			}
+		}
+		psBackBuffer->Release();
+	}
+
+	/**
+	 * Releases the capture surface.
+	 */
+	void CDx9FilterBase::ReleaseCaptureResources() {
+		if ( m_psCaptureSurface ) {
+			m_psCaptureSurface->Release();
+			m_psCaptureSurface = nullptr;
+		}
+	}
+
+	/**
+	 * Gets the capture format matching a Direct3D 9 format.
+	 *
+	 * \param _fFormat The Direct3D 9 format to convert.
+	 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+	 */
+	LSN_CAPTURE_FORMAT CDx9FilterBase::CaptureFormat( D3DFORMAT _fFormat ) {
+		switch ( _fFormat ) {
+			case D3DFMT_X8R8G8B8 : { return LSN_CF_BGRX8; }
+			case D3DFMT_A8R8G8B8 : { return LSN_CF_BGRA8; }
+			case D3DFMT_X8B8G8R8 : { return LSN_CF_RGBX8; }
+			case D3DFMT_A8B8G8R8 : { return LSN_CF_RGBA8; }
+			case D3DFMT_R8G8B8 : { return LSN_CF_BGR8; }
+			case D3DFMT_X1R5G5B5 : { return LSN_CF_B5G5R5X1; }
+			case D3DFMT_R5G6B5 : { return LSN_CF_B5G6R5; }
+			case D3DFMT_A2B10G10R10 : { return LSN_CF_R10G10B10A2; }
+			case D3DFMT_A16B16G16R16F : { return LSN_CF_RGBA16F; }
+			case D3DFMT_A32B32G32R32F : { return LSN_CF_RGBA32F; }
+			default : { return LSN_CF_UNKNOWN; }
+		}
+	}
+
 
 }	// namespace lsn
 

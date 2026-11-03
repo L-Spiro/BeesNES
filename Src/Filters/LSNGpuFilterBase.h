@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../Display/LSNCaptureBuffer.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
 #include "LSNNesPalette.h"
@@ -179,6 +180,25 @@ namespace lsn {
 		 */
 		static inline float constexpr						DefaultPhosphorDecayDuration() { return 1.79113161563873291015625f / 7.0f; }
 
+		/**
+		 * Sets the buffer into which the next rendered frames are captured.  The swap chain (the area of it showing the console screen) is
+		 *	captured.  GPU captures are read back after the GPU finishes with them, which can be a frame later.
+		 *
+		 * \param _pcbTarget The buffer to fill with each rendered frame, or nullptr to stop capturing.
+		 * \param _ui64PpuFrame The PPU frame about to be rendered.
+		 */
+		inline void											SetCaptureTarget( LSN_CAPTURE_BUFFER * _pcbTarget, uint64_t _ui64PpuFrame ) {
+			m_pcbCapture = _pcbTarget;
+			m_ui64CaptureFrame = _ui64PpuFrame;
+		}
+
+		/**
+		 * Gets the buffer into which rendered frames are being captured.
+		 *
+		 * \return Returns the buffer into which rendered frames are being captured or nullptr if not capturing.
+		 */
+		inline LSN_CAPTURE_BUFFER *							CaptureTarget() const { return m_pcbCapture; }
+
 	protected :
 		// == Members.
 		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_AUTO;					/**< The requested gamma curve. */
@@ -189,6 +209,9 @@ namespace lsn {
 		float												m_fPhosphorDecayRateBlue = 0.193711475f;			/**< The frame-to-frame blue decay multiplier. */
 		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The decay curve half-life time base. */
 		bool												m_bEnablePhosphorDecay = true;						/**< True if the phosphor pass should execute. */
+		LSN_CAPTURE_BUFFER *								m_pcbCapture = nullptr;								/**< The buffer into which rendered frames are captured, or nullptr. */
+		uint64_t											m_ui64CaptureFrame = 0;								/**< The PPU frame being rendered, for the capture. */
+
 		
 	};
 

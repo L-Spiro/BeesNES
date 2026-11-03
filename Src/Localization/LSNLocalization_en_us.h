@@ -145,6 +145,7 @@
 // Tools menu.
 #define LSN_TOOLS_PATCH														i&Patch
 #define LSN_TOOLS_WAV_EDIT													&WAV Editor
+#define LSN_TOOLS_RECORD_VIDEO												&Record Video
 
 // Main menu.
 #define LSN_SELECT_ROM														Select ROM

@@ -121,6 +121,12 @@ namespace lsn {
 		static CDirectX9Device &							Device() { return s_dgsState.dx9Device; }
 
 		/**
+		 * If capturing (CaptureTarget() is not nullptr), copies the area of the back buffer showing the console screen into the capture
+		 *	target.  Call after EndScene() and before Present() for the frame rendered by this filter.
+		 */
+		void												CaptureBackBuffer();
+
+		/**
 		 * \brief Updates the vertical sharpness factor (integer scale).
 		 *
 		 * Changing this triggers size-dependent reallocation on the next Init().
@@ -394,6 +400,14 @@ namespace lsn {
 		/** Enable phosphor decay? */
 		bool												m_bEnablePhosphorDecay = true;
 
+		// == Capture ==
+		/** The system-memory copy of the back buffer, for capturing. */
+		IDirect3DSurface9 *									m_psCaptureSurface = nullptr;
+		/** The area of the back buffer to capture. */
+		lsw::LSW_RECT										m_rCaptureArea;
+		/** True if RenderBase() rendered a frame that should be captured. */
+		bool												m_bCaptureRequested = false;
+
 
 		// == Functions.
 		/**
@@ -488,6 +502,19 @@ namespace lsn {
 		 * \return Returns true if rendering succeeded.
 		 */
 		bool												RenderBase( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY = false );
+
+		/**
+		 * Releases the capture surface.
+		 */
+		void												ReleaseCaptureResources();
+
+		/**
+		 * Gets the capture format matching a Direct3D 9 format.
+		 *
+		 * \param _fFormat The Direct3D 9 format to convert.
+		 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+		 */
+		static LSN_CAPTURE_FORMAT							CaptureFormat( D3DFORMAT _fFormat );
 	};
 
 }	// namespace lsn

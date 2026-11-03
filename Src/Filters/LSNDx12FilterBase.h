@@ -322,6 +322,14 @@ namespace lsn {
 		/** Toggles whether the high-quality 2-pass CDirectX12Resampler handles final scaling. */
 		bool													m_bUseHighQualityResampler = true;
 
+		// == Capture ==
+		std::unique_ptr<CDirectX12Resource>						m_rCaptureReadback;										/**< The readback buffer into which captured images are copied. */
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT						m_pspfCaptureFootprint = {};							/**< The layout of the pending capture in m_rCaptureReadback. */
+		UINT64													m_ui64CaptureSize = 0;									/**< The size of m_rCaptureReadback in bytes. */
+		uint64_t												m_ui64CapturePpuFrame = 0;								/**< The PPU frame whose capture is pending. */
+		LSN_CAPTURE_FORMAT										m_cfCaptureFormat = LSN_CF_UNKNOWN;						/**< The format of the pending capture. */
+		bool													m_bCapturePending = false;								/**< True if a copy into m_rCaptureReadback was recorded and has not been read yet. */
+
 
 		// == Functions.
 		/**
@@ -383,6 +391,32 @@ namespace lsn {
 		 * \return Returns true if rendering succeeded.
 		 */
 		bool													RenderBase( CDirectX12Device * _pdx12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY = false );
+
+		/**
+		 * Records commands that copy an area of a texture into the capture readback buffer, to be read by ReadCapture() after the GPU has
+		 *	finished the frame.  The texture is returned to _rsState afterward.
+		 *
+		 * \param _pgclCommandList The command list in which to record the copy.
+		 * \param _prTexture The texture to copy.  Must not be multi-sampled.
+		 * \param _rsState The state _prTexture is in when the copy is recorded, and to which it is returned.
+		 * \param _rArea The area of _prTexture to copy.  It is clipped to the texture.
+		 * \return Returns true if the copy was recorded.
+		 */
+		bool													RecordTextureCapture( ID3D12GraphicsCommandList * _pgclCommandList, ID3D12Resource * _prTexture, D3D12_RESOURCE_STATES _rsState, const lsw::LSW_RECT &_rArea );
+
+		/**
+		 * Copies the pending capture (if any) into the capture target (m_pcbCapture).  Must only be called once the command list that recorded
+		 *	the copy has finished executing.  If capturing has stopped, the capture resources are released.
+		 */
+		void													ReadCapture();
+
+		/**
+		 * Gets the capture format matching a DXGI format.
+		 *
+		 * \param _fFormat The DXGI format to convert.
+		 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+		 */
+		static LSN_CAPTURE_FORMAT								CaptureFormat( DXGI_FORMAT _fFormat );
 	};
 
 }	// namespace lsn

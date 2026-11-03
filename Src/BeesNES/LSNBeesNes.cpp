@@ -861,6 +861,8 @@ namespace lsn {
 
 			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
 				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
+				// GPU filters capture from the GPU (their returned buffer is not what is shown).
+				pgfbThis->SetCaptureTarget( m_bCaptureVideo ? &m_cbVideoCapture : nullptr, m_cfartCurFilterAndTargets.ui64Frame );
 
 				m_cfartCurFilterAndTargets.pui8LastFilteredResult = pgfbThis->ApplyFilter( m_cfartCurFilterAndTargets.pui8CurRenderTarget,
 					m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
@@ -879,6 +881,15 @@ namespace lsn {
 						_ui32FinalW, _ui32FinalH, m_cfartCurFilterAndTargets.bMirrored,
 						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height, m_cfartCurFilterAndTargets.ui16Bits, m_cfartCurFilterAndTargets.ui32Stride,
 						m_cfartCurFilterAndTargets.ui64Frame, m_cfartCurFilterAndTargets.ui64RenderStartCycle );
+				}
+
+				if ( m_bCaptureVideo ) {
+					// Capture exactly what gets blitted:  a DIB with DWORD-aligned rows, stored bottom-up when bMirrored is set.
+					const uint32_t ui32Bits = m_cfartCurFilterAndTargets.ui16Bits;
+					m_cbVideoCapture.Copy( m_cfartCurFilterAndTargets.pui8LastFilteredResult,
+						m_cfartCurFilterAndTargets.ui32Width, m_cfartCurFilterAndTargets.ui32Height,
+						CFilterBase::RowStride( m_cfartCurFilterAndTargets.ui32Width, ui32Bits ), LSN_CAPTURE_BUFFER::DibFormat( ui32Bits ),
+						m_cfartCurFilterAndTargets.bMirrored, m_cfartCurFilterAndTargets.ui64Frame );
 				}
 			}
 		}

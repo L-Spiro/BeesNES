@@ -1064,3 +1064,15 @@ PFN_vkCmdPipelineBarrier CVulkan::m_pfCmdPipelineBarrier = nullptr;
  * \param _pRegions A pointer to an array of VkBufferImageCopy structures specifying the regions to copy.
  **/
 PFN_vkCmdCopyBufferToImage CVulkan::m_pfCmdCopyBufferToImage = nullptr;
+
+/**
+ * Copy image data into a buffer.
+ * 
+ * \param _commandBuffer The command buffer into which the command will be recorded.
+ * \param _srcImage The source image.
+ * \param _srcImageLayout The layout of the source image subresources for the copy.
+ * \param _dstBuffer The destination buffer.
+ * \param _regionCount The number of regions to copy.
+ * \param _pRegions A pointer to an array of VkBufferImageCopy structures specifying the regions to copy.
+ **/
+PFN_vkCmdCopyImageToBuffer CVulkan::m_pfCmdCopyImageToBuffer = nullptr;

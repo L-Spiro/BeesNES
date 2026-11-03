@@ -258,6 +258,7 @@ namespace lsn {
 		LSN_LOAD_FUNC( GetPhysicalDeviceMemoryProperties );
 		LSN_LOAD_FUNC( CmdPipelineBarrier );
 		LSN_LOAD_FUNC( CmdCopyBufferToImage );
+		LSN_LOAD_FUNC( CmdCopyImageToBuffer );
 
 #ifdef LSN_WINDOWS
 		// Ray-tracing.

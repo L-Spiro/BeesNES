@@ -99,6 +99,7 @@ namespace lsn {
 		m_sLinearSampler.Reset();
 
 		ReleaseSwapchainResources();
+		ReleaseCaptureResources();
 
 		// Purge the base command components and synchronization primitives
 		// so they are forced to rebuild if the device is destroyed.
@@ -437,6 +438,8 @@ namespace lsn {
 	 */
 	bool CVulkanFilterBase::RenderBase( CVulkanDevice * _pvkDevice, CVulkanCommandBuffer * _pcbCommandBuffer, VkImageView _ivSrc, VkSampler _sSrcSampler, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, uint32_t _ui32ImageIndex, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_ivSrc || !_pvkDevice || !_pcbCommandBuffer ) { return false; }
+		// The previous frame has retired (the callers wait for it), so its capture can be read.
+		ReadCapture();
 		if LSN_UNLIKELY( !EnsureBaseSizeAndResources( _pvkDevice, _ui32NativeW, _ui32NativeH ) ) { return false; }
 
 		VkCommandBuffer cbCmd = _pcbCommandBuffer->Get();
@@ -631,6 +634,12 @@ namespace lsn {
 		m_trRenderer.Render( _pvkDevice, _pcbCommandBuffer, m_dsRendererSet.dsDescriptorSet, _rOutput );
 		CVulkan::m_pfCmdEndRenderPass( cbCmd );
 
+		if ( m_pcbCapture && _pvkDevice->SwapChainCanCopy() && _ui32ImageIndex < m_vSwapImages.size() ) {
+			// Capture the part of the swap chain showing the console screen.  The render pass left it in VK_IMAGE_LAYOUT_PRESENT_SRC_KHR.
+			RecordImageCapture( cbCmd, m_vSwapImages[_ui32ImageIndex], _pvkDevice->GetSwapFormat(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+				_pvkDevice->GetSwapExtent().width, _pvkDevice->GetSwapExtent().height, _rOutput );
+		}
+
 		return true;
 	}
 
@@ -714,6 +723,193 @@ namespace lsn {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Records commands that copy an area of an image into the capture buffer, to be read by ReadCapture() after the GPU has finished the
+	 *	frame.  The image is returned to _ilLayout afterward.  The image must have been created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT.
+	 *
+	 * \param _cbCmd The command buffer in which to record the copy.
+	 * \param _iImage The image to copy.
+	 * \param _fFormat The format of _iImage.
+	 * \param _ilLayout The layout _iImage is in when the copy is recorded, and to which it is returned.
+	 * \param _ui32ImageW The width of _iImage.
+	 * \param _ui32ImageH The height of _iImage.
+	 * \param _rArea The area of _iImage to copy.  It is clipped to the image.
+	 * \return Returns true if the copy was recorded.
+	 */
+	bool CVulkanFilterBase::RecordImageCapture( VkCommandBuffer _cbCmd, VkImage _iImage, VkFormat _fFormat, VkImageLayout _ilLayout, uint32_t _ui32ImageW, uint32_t _ui32ImageH, const lsw::LSW_RECT &_rArea ) {
+		m_bCapturePending = false;
+		if LSN_UNLIKELY( !_cbCmd || !_iImage ) { return false; }
+		LSN_CAPTURE_FORMAT cfFormat = CaptureFormat( _fFormat );
+		if LSN_UNLIKELY( cfFormat == LSN_CF_UNKNOWN ) { return false; }
+
+		// Clip the area to the image.
+		int32_t i32Left = std::clamp<int32_t>( int32_t( _rArea.left ), 0, int32_t( _ui32ImageW ) );
+		int32_t i32Top = std::clamp<int32_t>( int32_t( _rArea.top ), 0, int32_t( _ui32ImageH ) );
+		int32_t i32Right = std::clamp<int32_t>( int32_t( _rArea.right ), i32Left, int32_t( _ui32ImageW ) );
+		int32_t i32Bottom = std::clamp<int32_t>( int32_t( _rArea.bottom ), i32Top, int32_t( _ui32ImageH ) );
+		uint32_t ui32W = uint32_t( i32Right - i32Left );
+		uint32_t ui32H = uint32_t( i32Bottom - i32Top );
+		if LSN_UNLIKELY( !ui32W || !ui32H ) { return false; }
+
+		if LSN_UNLIKELY( !EnsureCaptureBuffer( VkDeviceSize( ui32W ) * ui32H * LSN_CAPTURE_BUFFER::BytesPerPixel( cfFormat ) ) ) { return false; }
+
+		VkImageMemoryBarrier imbBarrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+		imbBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		imbBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imbBarrier.oldLayout = _ilLayout;
+		imbBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imbBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imbBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		imbBarrier.image = _iImage;
+		imbBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+		CVulkan::m_pfCmdPipelineBarrier( _cbCmd, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imbBarrier );
+
+		VkBufferImageCopy bicCopy = {};
+		bicCopy.bufferOffset = 0;
+		bicCopy.bufferRowLength = 0;		// Tightly packed.
+		bicCopy.bufferImageHeight = 0;
+		bicCopy.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		bicCopy.imageOffset = { i32Left, i32Top, 0 };
+		bicCopy.imageExtent = { ui32W, ui32H, 1 };
+		CVulkan::m_pfCmdCopyImageToBuffer( _cbCmd, _iImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_bCaptureBuffer.Get(), 1, &bicCopy );
+
+		// Return the image to its layout.  The semaphore signaled at the end of the submission orders presentation after this.
+		imbBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imbBarrier.dstAccessMask = 0;
+		imbBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imbBarrier.newLayout = _ilLayout;
+
+		// Make the copied data visible to the host once the fence signals.
+		VkBufferMemoryBarrier bmbBarrier = { VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+		bmbBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		bmbBarrier.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+		bmbBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bmbBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		bmbBarrier.buffer = m_bCaptureBuffer.Get();
+		bmbBarrier.offset = 0;
+		bmbBarrier.size = VK_WHOLE_SIZE;
+		CVulkan::m_pfCmdPipelineBarrier( _cbCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT | VK_PIPELINE_STAGE_HOST_BIT, 0, 0, nullptr, 1, &bmbBarrier, 1, &imbBarrier );
+
+		m_ui32CaptureW = ui32W;
+		m_ui32CaptureH = ui32H;
+		m_cfCaptureFormat = cfFormat;
+		m_ui64CapturePpuFrame = m_ui64CaptureFrame;
+		m_bCapturePending = true;
+		return true;
+	}
+
+	/**
+	 * Copies the pending capture (if any) into the capture target (m_pcbCapture).  Must only be called once the frame that recorded the
+	 *	copy has retired.  If capturing has stopped, the capture resources are released.
+	 */
+	void CVulkanFilterBase::ReadCapture() {
+		if ( m_bCapturePending && m_pcbCapture && m_pvCaptureMapped && m_pvkDevice ) {
+			uint32_t ui32Pitch = m_ui32CaptureW * LSN_CAPTURE_BUFFER::BytesPerPixel( m_cfCaptureFormat );
+			if ( !m_bCaptureCoherent ) {
+				VkMappedMemoryRange mmrRange = { VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE };
+				mmrRange.memory = m_dmCaptureMemory.Get();
+				mmrRange.offset = 0;
+				mmrRange.size = VK_WHOLE_SIZE;
+				CVulkan::m_pfInvalidateMappedMemoryRanges( m_pvkDevice->GetDevice(), 1, &mmrRange );
+			}
+			m_pcbCapture->Copy( static_cast<const uint8_t *>(m_pvCaptureMapped), m_ui32CaptureW, m_ui32CaptureH, ui32Pitch, m_cfCaptureFormat, false, m_ui64CapturePpuFrame );
+		}
+		m_bCapturePending = false;
+		if ( !m_pcbCapture && m_bCaptureBuffer.Get() ) {
+			ReleaseCaptureResources();
+		}
+	}
+
+	/**
+	 * Ensures the capture buffer can hold at least the given number of bytes.
+	 *
+	 * \param _dsSize The number of bytes the capture buffer must hold.
+	 * \return Returns true if the capture buffer is large enough.
+	 */
+	bool CVulkanFilterBase::EnsureCaptureBuffer( VkDeviceSize _dsSize ) {
+		if LSN_LIKELY( m_bCaptureBuffer.Get() && m_pvCaptureMapped && m_dsCaptureSize >= _dsSize ) { return true; }
+		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() ) { return false; }
+		ReleaseCaptureResources();
+		VkDevice dDevice = m_pvkDevice->GetDevice();
+
+		VkBufferCreateInfo bciInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bciInfo.size = _dsSize;
+		bciInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		bciInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if ( !m_bCaptureBuffer.CreateBuffer( dDevice, &bciInfo ) ) { return false; }
+
+		VkMemoryRequirements mrReq;
+		CVulkan::m_pfGetBufferMemoryRequirements( dDevice, m_bCaptureBuffer.Get(), &mrReq );
+
+		// Prefer cached memory (fast CPU reads); fall back to coherent memory.
+		VkPhysicalDeviceMemoryProperties pdmpProps;
+		CVulkan::m_pfGetPhysicalDeviceMemoryProperties( m_pvkDevice->GetPhysicalDevice(), &pdmpProps );
+		const VkMemoryPropertyFlags mpfWanted[] = {
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		};
+		uint32_t ui32Type = UINT32_MAX;
+		for ( size_t J = 0; J < std::size( mpfWanted ) && ui32Type == UINT32_MAX; ++J ) {
+			for ( uint32_t I = 0; I < pdmpProps.memoryTypeCount; ++I ) {
+				if ( (mrReq.memoryTypeBits & (1U << I)) && (pdmpProps.memoryTypes[I].propertyFlags & mpfWanted[J]) == mpfWanted[J] ) {
+					ui32Type = I;
+					break;
+				}
+			}
+		}
+		if ( ui32Type == UINT32_MAX ) { ReleaseCaptureResources(); return false; }
+
+		VkMemoryAllocateInfo maiAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		maiAlloc.allocationSize = mrReq.size;
+		maiAlloc.memoryTypeIndex = ui32Type;
+		if ( !m_dmCaptureMemory.AllocateMemory( dDevice, &maiAlloc ) ) { ReleaseCaptureResources(); return false; }
+		if ( CVulkan::m_pfBindBufferMemory( dDevice, m_bCaptureBuffer.Get(), m_dmCaptureMemory.Get(), 0 ) != VK_SUCCESS ||
+			CVulkan::m_pfMapMemory( dDevice, m_dmCaptureMemory.Get(), 0, VK_WHOLE_SIZE, 0, &m_pvCaptureMapped ) != VK_SUCCESS ) {
+			m_pvCaptureMapped = nullptr;
+			ReleaseCaptureResources();
+			return false;
+		}
+		m_bCaptureCoherent = (pdmpProps.memoryTypes[ui32Type].propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
+		m_dsCaptureSize = _dsSize;
+		return true;
+	}
+
+	/**
+	 * Releases the capture buffer and its memory.  The GPU must not be using them.
+	 */
+	void CVulkanFilterBase::ReleaseCaptureResources() {
+		if ( m_pvCaptureMapped && m_pvkDevice && m_pvkDevice->GetDevice() ) {
+			CVulkan::m_pfUnmapMemory( m_pvkDevice->GetDevice(), m_dmCaptureMemory.Get() );
+		}
+		m_pvCaptureMapped = nullptr;
+		m_bCaptureBuffer.Reset();
+		m_dmCaptureMemory.Reset();
+		m_dsCaptureSize = 0;
+		m_bCapturePending = false;
+	}
+
+	/**
+	 * Gets the capture format matching a Vulkan format.
+	 *
+	 * \param _fFormat The Vulkan format to convert.
+	 * \return Returns the matching capture format or LSN_CF_UNKNOWN if the format is not supported for capturing.
+	 */
+	LSN_CAPTURE_FORMAT CVulkanFilterBase::CaptureFormat( VkFormat _fFormat ) {
+		switch ( _fFormat ) {
+			case VK_FORMAT_R8G8B8A8_UNORM : { return LSN_CF_RGBA8; }
+			case VK_FORMAT_R8G8B8A8_SRGB : { return LSN_CF_RGBA8_SRGB; }
+			case VK_FORMAT_B8G8R8A8_UNORM : { return LSN_CF_BGRA8; }
+			case VK_FORMAT_B8G8R8A8_SRGB : { return LSN_CF_BGRA8_SRGB; }
+			case VK_FORMAT_R8G8B8_UNORM : { return LSN_CF_RGB8; }
+			case VK_FORMAT_B8G8R8_UNORM : { return LSN_CF_BGR8; }
+			case VK_FORMAT_A2B10G10R10_UNORM_PACK32 : { return LSN_CF_R10G10B10A2; }
+			case VK_FORMAT_R5G6B5_UNORM_PACK16 : { return LSN_CF_B5G6R5; }
+			case VK_FORMAT_R16G16B16A16_SFLOAT : { return LSN_CF_RGBA16F; }
+			case VK_FORMAT_R32G32B32A32_SFLOAT : { return LSN_CF_RGBA32F; }
+			default : { return LSN_CF_UNKNOWN; }
+		}
 	}
 
 	// == LSN_VULKAN_GLOBAL_STATE ==

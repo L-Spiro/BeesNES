@@ -10,6 +10,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Cheats/LSNCheatManager.h"
+#include "../Display/LSNCaptureBuffer.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
 #ifdef LSN_DX12
@@ -393,6 +394,31 @@ namespace lsn {
 		}
 
 		/**
+		 * Starts or stops capturing each rendered frame into the video-capture buffer (CaptureBuffer()).  Software output is captured as it
+		 *	is blitted to the screen; GPU output is captured from the swap chain.  Must be called from the thread that calls Render().
+		 *
+		 * \param _bCapture If true, rendered frames are captured; if false, capturing stops and the last captured frame is kept.
+		 **/
+		void									SetVideoCapture( bool _bCapture ) {
+			if ( _bCapture && !m_bCaptureVideo ) { m_cbVideoCapture.Reset(); }
+			m_bCaptureVideo = _bCapture;
+		}
+
+		/**
+		 * Determines whether rendered frames are being captured.
+		 *
+		 * \return Returns true if rendered frames are being captured into CaptureBuffer().
+		 **/
+		inline bool								IsCapturingVideo() const { return m_bCaptureVideo; }
+
+		/**
+		 * Gets the video-capture buffer, which holds the most recently captured frame.
+		 *
+		 * \return Returns a constant reference to the video-capture buffer.
+		 **/
+		inline const LSN_CAPTURE_BUFFER &		CaptureBuffer() const { return m_cbVideoCapture; }
+
+		/**
 		 * Loads a ROM.
 		 *
 		 * \param _vRom The in-memory ROM file.
@@ -658,6 +684,10 @@ namespace lsn {
 		double									m_dRatioActual;
 		/** The current/next filter/render target. */
 		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
+		/** The most recently captured frame, filled by Render() while capturing video. */
+		LSN_CAPTURE_BUFFER						m_cbVideoCapture;
+		/** True while capturing video. */
+		bool									m_bCaptureVideo = false;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** L. Spiro's NTSC filter. */

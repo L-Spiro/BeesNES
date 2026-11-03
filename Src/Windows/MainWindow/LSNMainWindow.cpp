@@ -747,6 +747,12 @@ namespace lsn {
 				ShowCheats();
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
+				// Start/stop capturing each rendered frame.  Rendering happens inside m_csRenderCrit, so toggle inside it too.
+				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+				m_bnEmulator.SetVideoCapture( !m_bnEmulator.IsCapturingVideo() );
+				break;
+			}
 
 			case CMainWindowLayout::LSN_MWMI_INPUT : {
 				CInputWindowLayout::CreateInputDialog( this, m_bnEmulator.Options(), this );
@@ -910,6 +916,8 @@ namespace lsn {
 							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;*/
 
 							pd3d->EndScene();
+							// The back buffer is read after EndScene() and before Present() (does nothing unless recording video).
+							static_cast<CDx9FilterBase *>(m_bnEmulator.RenderInfo().pfbPrevFilter)->CaptureBackBuffer();
 						}
 						const HRESULT hrPresent = pd3d->Present( nullptr, nullptr, nullptr, nullptr );
 						if ( FAILED( hrPresent ) ) {
@@ -1499,6 +1507,13 @@ namespace lsn {
 					bool bCanToggle = m_bMaximized ? m_wpPlacement.bInBorderless : m_woWindowOptions.bGoBorderless;
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE,
 						.fState = UINT( (m_wpPlacement.bInBorderless ? MFS_CHECKED : MFS_UNCHECKED) | (bCanToggle ? MFS_ENABLED : MFS_GRAYED) ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+
+				case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
+					// Checked while recording.
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.IsCapturingVideo() ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}

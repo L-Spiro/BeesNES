@@ -67,6 +67,27 @@ namespace lsn {
 		inline VkSwapchainKHR									GetSwapChain() const { return m_sSwapchain.sSwapchain; }
 
 		/**
+		 * Gets the format of the swap-chain images.
+		 *
+		 * \return Returns the format of the swap-chain images.
+		 **/
+		inline VkFormat											GetSwapFormat() const { return m_fSwapFormat; }
+
+		/**
+		 * Gets the size of the swap-chain images.
+		 *
+		 * \return Returns the size of the swap-chain images.
+		 **/
+		inline VkExtent2D										GetSwapExtent() const { return m_eSwapExtent; }
+
+		/**
+		 * Determines whether the swap-chain images can be copied from (VK_IMAGE_USAGE_TRANSFER_SRC_BIT), which capturing them requires.
+		 *
+		 * \return Returns true if the swap-chain images can be the source of copies.
+		 **/
+		inline bool												SwapChainCanCopy() const { return m_bSwapCanCopy; }
+
+		/**
 		 * Resizes the swap chain backbuffers to match the current target window dimensions.
 		 * Note: It is the caller's responsibility to release any active Render Target Views referencing the swap chain before calling this.
 		 *
@@ -103,6 +124,8 @@ namespace lsn {
 		VkPresentModeKHR										m_pmPresentMode = VK_PRESENT_MODE_FIFO_KHR;	/**< The swap-chain present mode. */
 		uint32_t												m_ui32QueueFamilyIndex = 0;			/**< The graphics/present queue family. */
 		uint32_t												m_ui32SwapImages = 0;				/**< The swap-chain image count chosen by Create().  ResizeSwapChain() must keep it. */
+		VkExtent2D												m_eSwapExtent = { 0, 0 };			/**< The size of the swap-chain images. */
+		bool													m_bSwapCanCopy = false;				/**< True if the swap-chain images were created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT. */
 	};
 
 }	// namespace lsn
