@@ -568,7 +568,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the default folder where default cheats can be found.
 		 **/
-		std::wstring							DefaultCheatsFolder() const;
+		static std::wstring						DefaultCheatsFolder();
 
 		/**
 		 * Applies the current palette.
@@ -582,7 +582,7 @@ namespace lsn {
 		 * 
 		 * \return Returns the default folder where default palettes can be found.
 		 **/
-		std::wstring							DefaultPaletteFolder() const;
+		static std::wstring						DefaultPaletteFolder();
 
 		/**
 		 * Gets the default NTSC palette path.

@@ -1220,7 +1220,7 @@ namespace lsn {
 	 * 
 	 * \return Returns the default folder where default cheats can be found.
 	 **/
-	std::wstring CBeesNes::DefaultCheatsFolder() const {
+	std::wstring CBeesNes::DefaultCheatsFolder() {
 #if defined( _WIN32 )
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
@@ -1328,7 +1328,7 @@ namespace lsn {
 	 * 
 	 * \return Returns the default folder where default palettes can be found.
 	 **/
-	std::wstring CBeesNes::DefaultPaletteFolder() const {
+	std::wstring CBeesNes::DefaultPaletteFolder() {
 #if defined( _WIN32 )
 		std::wstring wsBuffer;
 		const DWORD dwSize = 0xFFFF;
