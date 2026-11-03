@@ -12,6 +12,8 @@
 #include "../Filters/LSNGpuFilterBase.h"
 #include "../Peripherals/LSNStdController.h"
 
+#include <ctime>
+#include <cwchar>
 #include <filesystem>
 
 
@@ -1369,6 +1371,97 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the default folder for exported movies.
+	 * 
+	 * \return Returns the default folder into which movies are exported.
+	 **/
+	std::wstring CBeesNes::DefaultMoviesFolder() {
+#if defined( _WIN32 )
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 );
+		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+		return wsRoot + L"Movies\\";
+#else
+		char szBuffer[PATH_MAX];
+		std::string sPathStr;
+
+#if defined( __APPLE__ )
+		uint32_t uiSize = sizeof( szBuffer );
+		if ( ::_NSGetExecutablePath( szBuffer, &uiSize ) == 0 ) {
+			char szRealPath[PATH_MAX];
+			if ( ::realpath( szBuffer, szRealPath ) != nullptr ) {
+				sPathStr = szRealPath;
+			}
+			else {
+				sPathStr = szBuffer;
+			}
+		}
+#elif defined( __linux__ )
+		ssize_t sLen = ::readlink( "/proc/self/exe", szBuffer, sizeof( szBuffer ) - 1 );
+		if ( sLen != -1 ) {
+			szBuffer[sLen] = '\0';
+			sPathStr = szBuffer;
+		}
+#endif
+
+		size_t stPos = sPathStr.find_last_of( '/' );
+		std::string sDir = ( stPos != std::string::npos ) ? sPathStr.substr( 0, stPos + 1 ) : "";
+		sDir += "Movies/";
+
+		return std::wstring( sDir.begin(), sDir.end() );
+#endif
+	}
+
+	/**
+	 * Generates a movie file name from the current local date and time, in the form BeesNES_DD-MM-YYYY_HH-MM-SS.  The name has no
+	 *	folder and no extension.
+	 * 
+	 * \return Returns the generated movie file name.
+	 **/
+	std::wstring CBeesNes::MovieFileName() const {
+		std::time_t tNow = std::time( nullptr );
+		std::tm tLocal = {};
+#if defined( _WIN32 )
+		::localtime_s( &tLocal, &tNow );
+#else
+		::localtime_r( &tNow, &tLocal );
+#endif	// #if defined( _WIN32 )
+
+		wchar_t wszName[64];
+		std::swprintf( wszName, std::size( wszName ), L"BeesNES_%02d-%02d-%04d_%02d-%02d-%02d",
+			tLocal.tm_mday, tLocal.tm_mon + 1, tLocal.tm_year + 1900,
+			tLocal.tm_hour, tLocal.tm_min, tLocal.tm_sec );
+		return std::wstring( wszName );
+	}
+
+	/**
+	 * Prepares the path to which to export a new movie.  The Movies folder is created if it does not exist, and the returned path
+	 *	(folder, MovieFileName(), and the extension of the current video-export format) names a file that does not yet exist.
+	 * 
+	 * \return Returns the full path of the new movie file or an empty string if the Movies folder could not be created.
+	 **/
+	std::wstring CBeesNes::PrepareMoviePath() const {
+		const LSN_VIDEO_FORMAT_DATA * pvfdData = CVideoFormat::Data( m_oOptions.veoVideoExport.vfFormat );
+		if ( !pvfdData ) { pvfdData = CVideoFormat::Data( LSN_VF_H264 ); }
+
+		std::wstring wsFolder = DefaultMoviesFolder();
+		std::error_code ecErr;
+		std::filesystem::create_directories( std::filesystem::path( wsFolder ), ecErr );
+		if ( !std::filesystem::is_directory( std::filesystem::path( wsFolder ), ecErr ) ) { return std::wstring(); }
+
+		// Two recordings started within the same second get a suffix.
+		std::wstring wsBase = wsFolder + MovieFileName();
+		std::wstring wsPath = wsBase + (*pvfdData).pwcFileExtension;
+		for ( uint32_t I = 2; std::filesystem::exists( std::filesystem::path( wsPath ), ecErr ) && I < 1000; ++I ) {
+			wsPath = wsBase + L"_" + std::to_wstring( I ) + (*pvfdData).pwcFileExtension;
+		}
+		return wsPath;
+	}
+
+	/**
 	 * Updates the GPU palette for GPU-enabled palette rendering.
 	 **/
 	void CBeesNes::UpdateGpuPalette() {
@@ -1555,6 +1648,13 @@ namespace lsn {
 
 		if ( !_sFile.ReadStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
 
+		if ( ui32Version >= 1 ) {
+			if ( !LoadVideoExportSettings( ui32Version, _sFile, m_oOptions.veoVideoExport ) ) { return false; }
+		}
+		else {
+			m_oOptions.veoVideoExport = LSN_VIDEO_EXPORT_OPTIONS();
+		}
+
 		return true;
 	}
 
@@ -1614,6 +1714,8 @@ namespace lsn {
 		}
 		
 		if ( !_sFile.WriteStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
+
+		if ( !SaveVideoExportSettings( _sFile, m_oOptions.veoVideoExport ) ) { return false; }
 
 		return true;
 	}
@@ -2108,7 +2210,7 @@ namespace lsn {
 			_poOptions.gMonitorGamma = CNesPalette::LSN_G_sRGB;
 		}
 		if ( !_sFile.Read( _poOptions.bUseGlobal ) ) { return false; }
-		return false;
+		return true;
 	}
 
 	/**
@@ -2125,6 +2227,80 @@ namespace lsn {
 		}
 		if ( !_sFile.Write( _poOptions.gMonitorGamma ) ) { return false; }
 		if ( !_sFile.Write( _poOptions.bUseGlobal ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads video-export settings.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _veoOptions The video-export settings into which to load the settings data.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadVideoExportSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_VIDEO_EXPORT_OPTIONS &_veoOptions ) {
+		_veoOptions = LSN_VIDEO_EXPORT_OPTIONS();
+
+		// Formats are stored by name so that adding, removing, or reordering formats does not scramble the settings.
+		std::string sId;
+		if ( !_sFile.ReadString( sId ) ) { return false; }
+		LSN_VIDEO_FORMAT vfFormat = CVideoFormat::FromIdStr( sId.c_str() );
+		if ( vfFormat != LSN_VF_TOTAL ) { _veoOptions.vfFormat = vfFormat; }
+		if ( !_sFile.Read( _veoOptions.bInterpolateFrames ) ) { return false; }
+
+		uint32_t ui32Total;
+		if ( !_sFile.ReadUi32( ui32Total ) ) { return false; }
+		for ( uint32_t I = 0; I < ui32Total; ++I ) {
+			LSN_VIDEO_EXPORT_OPTIONS::LSN_FORMAT_OPTIONS foTmp;
+			std::string sPixelFormat, sAudioCodec;
+			if ( !_sFile.ReadString( sId ) ) { return false; }
+			if ( !_sFile.Read( foTmp.dFrameRate ) ) { return false; }
+			if ( !_sFile.Read( foTmp.i32Quality ) ) { return false; }
+			if ( !_sFile.Read( foTmp.i32AltQuality ) ) { return false; }
+			if ( !_sFile.Read( foTmp.ui32Preset ) ) { return false; }
+			if ( !_sFile.Read( foTmp.ui32AudioBitrate ) ) { return false; }
+			if ( !_sFile.ReadString( sPixelFormat ) ) { return false; }
+			if ( !_sFile.ReadString( sAudioCodec ) ) { return false; }
+			if ( !_sFile.Read( foTmp.bUseAltQuality ) ) { return false; }
+			if ( !_sFile.Read( foTmp.bLossless ) ) { return false; }
+
+			vfFormat = CVideoFormat::FromIdStr( sId.c_str() );
+			if ( vfFormat == LSN_VF_TOTAL ) { continue; }		// A format that no longer exists.
+			foTmp.vpfPixelFormat = CVideoFormat::PixelFormatFromFfmpegName( sPixelFormat.c_str() );
+			foTmp.vacAudioCodec = CVideoFormat::AudioCodecFromFfmpegName( sAudioCodec.c_str() );
+			foTmp.Validate( vfFormat );
+			_veoOptions.foFormat[vfFormat] = foTmp;
+		}
+		return true;
+	}
+
+	/**
+	 * Saves video-export settings.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _veoOptions The video-export settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveVideoExportSettings( CStream &_sFile, const LSN_VIDEO_EXPORT_OPTIONS &_veoOptions ) {
+		if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(CVideoFormat::IdStr( _veoOptions.vfFormat )) ) ) { return false; }
+		if ( !_sFile.Write( _veoOptions.bInterpolateFrames ) ) { return false; }
+
+		if ( !_sFile.WriteUi32( LSN_VF_TOTAL ) ) { return false; }
+		for ( uint16_t I = 0; I < LSN_VF_TOTAL; ++I ) {
+			const LSN_VIDEO_EXPORT_OPTIONS::LSN_FORMAT_OPTIONS &foThis = _veoOptions.foFormat[I];
+			const LSN_VIDEO_PIXEL_FORMAT_DATA * pvpfdPixel = CVideoFormat::PixelFormatData( foThis.vpfPixelFormat );
+			const LSN_VIDEO_AUDIO_CODEC_DATA * pvacdAudio = CVideoFormat::AudioCodecData( foThis.vacAudioCodec );
+			if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(CVideoFormat::IdStr( LSN_VIDEO_FORMAT( I ) )) ) ) { return false; }
+			if ( !_sFile.Write( foThis.dFrameRate ) ) { return false; }
+			if ( !_sFile.Write( foThis.i32Quality ) ) { return false; }
+			if ( !_sFile.Write( foThis.i32AltQuality ) ) { return false; }
+			if ( !_sFile.Write( foThis.ui32Preset ) ) { return false; }
+			if ( !_sFile.Write( foThis.ui32AudioBitrate ) ) { return false; }
+			if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(pvpfdPixel ? (*pvpfdPixel).pcFfmpegName : "") ) ) { return false; }
+			if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(pvacdAudio ? (*pvacdAudio).pcEncoder : "") ) ) { return false; }
+			if ( !_sFile.Write( foThis.bUseAltQuality ) ) { return false; }
+			if ( !_sFile.Write( foThis.bLossless ) ) { return false; }
+		}
 		return true;
 	}
 

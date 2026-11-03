@@ -16,6 +16,7 @@
 #include "../Wav/LSNWavFile.h"
 #include "LSNInputOptions.h"
 #include "LSNPaletteOptions.h"
+#include "LSNVideoExportOptions.h"
 #include "LSNWavEditorWindowOptions.h"
 
 
@@ -42,6 +43,8 @@ namespace lsn {
 		LSN_PALETTE_OPTIONS									poThisGamePalette[LSN_PM_CONSOLE_TOTAL];					/**< This game's palette options. */
 
 		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
+
+		LSN_VIDEO_EXPORT_OPTIONS							veoVideoExport;												/**< Video-export settings. */
 
 #ifdef _WIN32
 		WINDOWPLACEMENT										wpMainWindowPlacement = { 0 };								/**< The main window's placement. */

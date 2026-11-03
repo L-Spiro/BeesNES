@@ -39,8 +39,11 @@ namespace lsn {
 		LSN_CF_RGBA8_SRGB,										/**< 32-bit:  R, G, B, A, sRGB-encoded. */
 		LSN_CF_BGRA8_SRGB,										/**< 32-bit:  B, G, R, A, sRGB-encoded. */
 		LSN_CF_R10G10B10A2,										/**< 32-bit:  R in bits 0-9, G in bits 10-19, B in bits 20-29, A in bits 30-31. */
+		LSN_CF_RGBA16,											/**< 64-bit:  R, G, B, A as 16-bit unsigned normalized integers. */
 		LSN_CF_RGBA16F,											/**< 64-bit:  R, G, B, A as 16-bit floats. */
 		LSN_CF_RGBA32F,											/**< 128-bit:  R, G, B, A as 32-bit floats. */
+
+		LSN_CF_TOTAL,											/**< The number of capture formats. */
 	};
 
 	/**
@@ -154,6 +157,7 @@ namespace lsn {
 				case LSN_CF_RGBA8_SRGB : {}						LSN_FALLTHROUGH
 				case LSN_CF_BGRA8_SRGB : {}						LSN_FALLTHROUGH
 				case LSN_CF_R10G10B10A2 : { return 4; }
+				case LSN_CF_RGBA16 : {}							LSN_FALLTHROUGH
 				case LSN_CF_RGBA16F : { return 8; }
 				case LSN_CF_RGBA32F : { return 16; }
 				default : { return 0; }

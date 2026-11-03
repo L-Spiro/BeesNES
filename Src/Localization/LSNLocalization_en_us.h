@@ -706,6 +706,60 @@
 #define LSN_STR_INVALID_CODE												Invalid code.
 
 
+// Video export.
+#define LSN_STR_H_264_X264												H.264 / AVC (x264)
+#define LSN_STR_H_264_NVENC												H.264 / AVC (NVIDIA NVENC)
+#define LSN_STR_H_264_AMF												H.264 / AVC (AMD AMF)
+#define LSN_STR_H_264_QSV												H.264 / AVC (Intel Quick Sync)
+#define LSN_STR_HEVC_X265												H.265 / HEVC (x265)
+#define LSN_STR_HEVC_NVENC												H.265 / HEVC (NVIDIA NVENC)
+#define LSN_STR_HEVC_AMF												H.265 / HEVC (AMD AMF)
+#define LSN_STR_HEVC_QSV												H.265 / HEVC (Intel Quick Sync)
+#define LSN_STR_AV1_SVT													AV1 (SVT-AV1)
+#define LSN_STR_AV1_NVENC												AV1 (NVIDIA NVENC)
+#define LSN_STR_VP9_LIBVPX												VP9 (WebM)
+#define LSN_STR_APPLE_PRORES											Apple ProRes (QuickTime)
+#define LSN_STR_FFV1_LOSSLESS											FFV1 Lossless (Matroska)
+#define LSN_STR_UT_VIDEO_LOSSLESS										Ut Video Lossless (AVI)
+#define LSN_STR_MPEG_4_PART_2											MPEG-4 part 2
+
+#define LSN_STR_VPF_YUV420P												YUV 4:2:0 (8-bit)
+#define LSN_STR_VPF_YUV422P												YUV 4:2:2 (8-bit)
+#define LSN_STR_VPF_YUV444P												YUV 4:4:4 (8-bit)
+#define LSN_STR_VPF_NV12												NV12 (YUV 4:2:0 8-bit)
+#define LSN_STR_VPF_P010												P010 (YUV 4:2:0 10-bit)
+#define LSN_STR_VPF_YUV420P10											YUV 4:2:0 (10-bit)
+#define LSN_STR_VPF_YUV422P10											YUV 4:2:2 (10-bit)
+#define LSN_STR_VPF_YUV444P10											YUV 4:4:4 (10-bit)
+#define LSN_STR_VPF_YUV444P16											YUV 4:4:4 (16-bit)
+#define LSN_STR_VPF_GBRP												RGB 4:4:4 (8-bit)
+#define LSN_STR_VPF_GBRP10												RGB 4:4:4 (10-bit)
+
+#define LSN_STR_VAC_AAC													AAC
+#define LSN_STR_VAC_ALAC												ALAC (Lossless)
+#define LSN_STR_VAC_FLAC												FLAC (Lossless)
+#define LSN_STR_VAC_OPUS												Opus
+#define LSN_STR_VAC_MP3													MP3
+#define LSN_STR_VAC_PCM_S16												PCM (16-bit)
+#define LSN_STR_VAC_PCM_S24												PCM (24-bit)
+#define LSN_STR_VAC_PCM_F32												PCM (32-bit Float)
+
+#define LSN_STR_VQM_NONE												Not Applicable
+#define LSN_STR_VQM_CRF													Constant Rate Factor (CRF)
+#define LSN_STR_VQM_QP													Constant Quantizer (QP)
+#define LSN_STR_VQM_CQ													Constant Quality (CQ)
+#define LSN_STR_VQM_ICQ													Intelligent Constant Quality (ICQ)
+#define LSN_STR_VQM_QSCALE												Quantizer Scale
+#define LSN_STR_VQM_PROFILE												Profile
+#define LSN_STR_VQM_BITRATE												Bitrate (kbps)
+
+#define LSN_STR_PRORES_PROXY											Proxy
+#define LSN_STR_PRORES_LT												LT
+#define LSN_STR_PRORES_STANDARD											Standard
+#define LSN_STR_PRORES_HQ												HQ
+#define LSN_STR_PRORES_4444												4444
+#define LSN_STR_PRORES_4444_XQ											4444 XQ
+
 // General.
 #define LSN_ERROR															Error
 #define LSN_INTERNAL_ERROR													Internal error.

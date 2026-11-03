@@ -2095,7 +2095,9 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Options\LSNInputOptions.h" />
     <ClInclude Include="Src\Options\LSNOptions.h" />
     <ClInclude Include="Src\Options\LSNPaletteOptions.h" />
+    <ClInclude Include="Src\Options\LSNVideoExportOptions.h" />
     <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h" />
+    <ClInclude Include="Src\Video\LSNVideoFormat.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />
     <ClInclude Include="Src\OS\LSNFeatureSet.h" />
     <ClInclude Include="Src\OS\LSNOs.h" />
@@ -2333,6 +2335,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Utilities\LSNHotkeyManager.cpp" />
     <ClCompile Include="Src\Utilities\LSNTextureAddressing.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Video\LSNVideoFormat.cpp" />
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp" />
     <ClCompile Include="Src\Wav\LSNWavFile.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsRecordingPage.cpp" />
@@ -2411,6 +2414,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DirectX 9 Release|Win32'">true</ExcludedFromBuild>
     </MASM>
     <None Include="Src\GPU\Vulkan\LSNVulkanFuncDecl.inl" />
+    <None Include="Src\Video\LSNVideoFormatEnum.inl" />
     <None Include="Src\GPU\Vulkan\LSNVulkanFuncDef.inl" />
     <None Include="Src\GPU\Vulkan\LSNVulkanWrappers.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />

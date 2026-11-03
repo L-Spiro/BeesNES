@@ -310,6 +310,12 @@
     <Filter Include="Source Files\Windows\Cheats">
       <UniqueIdentifier>{d336491b-7cdd-4eaf-8504-63b7d65ab54f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Video">
+      <UniqueIdentifier>{94a27916-a589-40ac-94e6-87bb191e890e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Video">
+      <UniqueIdentifier>{6bd0ef5d-15f1-4dcb-86f5-04160dbe276f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\LSNLSpiroNes.h">
@@ -962,6 +968,12 @@
     </ClInclude>
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.h">
       <Filter>Header Files\Windows\WavEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Options\LSNVideoExportOptions.h">
+      <Filter>Header Files\Options</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Video\LSNVideoFormat.h">
+      <Filter>Header Files\Video</Filter>
     </ClInclude>
     <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h">
       <Filter>Header Files\Options</Filter>
@@ -1751,6 +1763,9 @@
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.cpp">
       <Filter>Source Files\Windows\WavEditor</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Video\LSNVideoFormat.cpp">
+      <Filter>Source Files\Video</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp">
       <Filter>Source Files\Wav</Filter>
     </ClCompile>
@@ -2004,6 +2019,9 @@
     </None>
     <None Include="Src\Cpu\LSNCycleFuncs.inl">
       <Filter>Header Files\Cpu</Filter>
+    </None>
+    <None Include="Src\Video\LSNVideoFormatEnum.inl">
+      <Filter>Header Files\Video</Filter>
     </None>
     <None Include="Src\GPU\Vulkan\LSNVulkanFuncDecl.inl">
       <Filter>Header Files\GPU\Vulkan</Filter>

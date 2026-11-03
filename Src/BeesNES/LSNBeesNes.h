@@ -54,7 +54,7 @@
 #include "../Utilities/LSNStream.h"
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			0
+#define LSN_BEESNES_SETTINGS_VERSION			1
 
 namespace lsn {
 
@@ -612,6 +612,29 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets the default folder for exported movies.
+		 * 
+		 * \return Returns the default folder into which movies are exported.
+		 **/
+		static std::wstring						DefaultMoviesFolder();
+
+		/**
+		 * Generates a movie file name from the current local date and time, in the form BeesNES_DD-MM-YYYY_HH-MM-SS.  The name has no
+		 *	folder and no extension.
+		 * 
+		 * \return Returns the generated movie file name.
+		 **/
+		std::wstring							MovieFileName() const;
+
+		/**
+		 * Prepares the path to which to export a new movie.  The Movies folder is created if it does not exist, and the returned path
+		 *	(folder, MovieFileName(), and the extension of the current video-export format) names a file that does not yet exist.
+		 * 
+		 * \return Returns the full path of the new movie file or an empty string if the Movies folder could not be created.
+		 **/
+		std::wstring							PrepareMoviePath() const;
+
+		/**
 		 * Gets a reference to the current palette.
 		 * 
 		 * \return Returns a reference to the current palette.
@@ -1052,6 +1075,25 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SavePaletteSettings( CStream &_sFile, const LSN_PALETTE_OPTIONS &_poOptions );
+
+		/**
+		 * Loads video-export settings.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _veoOptions The video-export settings into which to load the settings data.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadVideoExportSettings( uint32_t _ui32Version, CStream &_sFile, LSN_VIDEO_EXPORT_OPTIONS &_veoOptions );
+
+		/**
+		 * Saves video-export settings.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _veoOptions The video-export settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveVideoExportSettings( CStream &_sFile, const LSN_VIDEO_EXPORT_OPTIONS &_veoOptions );
 
 		/**
 		 * Adds or move to the top a given file path.

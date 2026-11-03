@@ -372,6 +372,7 @@ namespace lsn {
 			case D3DFMT_X1R5G5B5 : { return LSN_CF_B5G5R5X1; }
 			case D3DFMT_R5G6B5 : { return LSN_CF_B5G6R5; }
 			case D3DFMT_A2B10G10R10 : { return LSN_CF_R10G10B10A2; }
+			case D3DFMT_A16B16G16R16 : { return LSN_CF_RGBA16; }
 			case D3DFMT_A16B16G16R16F : { return LSN_CF_RGBA16F; }
 			case D3DFMT_A32B32G32R32F : { return LSN_CF_RGBA32F; }
 			default : { return LSN_CF_UNKNOWN; }
