@@ -577,7 +577,11 @@ namespace lsn {
 	void CDx12FilterBase::ReadCapture() {
 		if ( m_bCapturePending && m_pcbCapture && m_rCaptureReadback.get() && m_rCaptureReadback->Get() ) {
 			void * pvData = nullptr;
-			D3D12_RANGE rRead = { SIZE_T( m_pspfCaptureFootprint.Offset ), SIZE_T( m_pspfCaptureFootprint.Offset + UINT64( m_pspfCaptureFootprint.Footprint.RowPitch ) * m_pspfCaptureFootprint.Footprint.Height ) };
+			UINT64 ui64End = m_pspfCaptureFootprint.Offset +
+				UINT64( m_pspfCaptureFootprint.Footprint.RowPitch ) * (m_pspfCaptureFootprint.Footprint.Height - 1) +
+				UINT64( m_pspfCaptureFootprint.Footprint.Width ) * LSN_CAPTURE_BUFFER::BytesPerPixel( m_cfCaptureFormat );
+			ui64End = std::min( ui64End, m_ui64CaptureSize );
+			D3D12_RANGE rRead = { SIZE_T( m_pspfCaptureFootprint.Offset ), SIZE_T( ui64End ) };
 			HRESULT hRes = m_rCaptureReadback->Get()->Map( 0, &rRead, &pvData );
 			if ( SUCCEEDED( hRes ) && pvData ) {
 				m_pcbCapture->Copy( static_cast<const uint8_t *>(pvData) + m_pspfCaptureFootprint.Offset,
