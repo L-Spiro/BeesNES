@@ -277,9 +277,6 @@
     <Filter Include="Source Files\EEPROM">
       <UniqueIdentifier>{1af4dc4f-6ef2-42bf-96c5-5186377e59e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Filters\NTSC-CRT-Full\Display">
-      <UniqueIdentifier>{f0e8d94a-2b95-445d-8c33-58a826ddb258}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Patching">
       <UniqueIdentifier>{99e66de3-aff6-4cc6-8829-b717e3c5e5e6}</UniqueIdentifier>
     </Filter>
@@ -315,6 +312,9 @@
     </Filter>
     <Filter Include="Source Files\Video">
       <UniqueIdentifier>{6bd0ef5d-15f1-4dcb-86f5-04160dbe276f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Display">
+      <UniqueIdentifier>{f0e8d94a-2b95-445d-8c33-58a826ddb258}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -397,13 +397,13 @@
       <Filter>Header Files\Localization</Filter>
     </ClInclude>
     <ClInclude Include="Src\Display\LSNDisplayHost.h">
-      <Filter>Header Files\Filters\NTSC-CRT-Full\Display</Filter>
+      <Filter>Header Files\Display</Filter>
     </ClInclude>
     <ClInclude Include="Src\Display\LSNDisplayClient.h">
-      <Filter>Header Files\Filters\NTSC-CRT-Full\Display</Filter>
+      <Filter>Header Files\Display</Filter>
     </ClInclude>
     <ClInclude Include="Src\Display\LSNCaptureBuffer.h">
-      <Filter>Header Files\Filters\NTSC-CRT-Full\Display</Filter>
+      <Filter>Header Files\Display</Filter>
     </ClInclude>
     <ClInclude Include="Src\System\LSNSystemBase.h">
       <Filter>Header Files\System</Filter>
@@ -971,6 +971,12 @@
     </ClInclude>
     <ClInclude Include="Src\Options\LSNVideoExportOptions.h">
       <Filter>Header Files\Options</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Video\LSNFfmpegProcess.h">
+      <Filter>Header Files\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Video\LSNVideoExporter.h">
+      <Filter>Header Files\Video</Filter>
     </ClInclude>
     <ClInclude Include="Src\Video\LSNVideoFormat.h">
       <Filter>Header Files\Video</Filter>
@@ -1762,6 +1768,12 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.cpp">
       <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Video\LSNFfmpegProcess.cpp">
+      <Filter>Source Files\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Video\LSNVideoExporter.cpp">
+      <Filter>Source Files\Video</Filter>
     </ClCompile>
     <ClCompile Include="Src\Video\LSNVideoFormat.cpp">
       <Filter>Source Files\Video</Filter>

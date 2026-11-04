@@ -1877,10 +1877,13 @@ namespace lsn {
 					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
 						paApu->m_pwfOutStream->AddStreamSample( fSample );
 					}
+					paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fSample );
 					return fSample;
 				}
 			}
-			return _fSample * paApu->m_fVolume;
+			float fSample = _fSample * paApu->m_fVolume;
+			paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fSample );
+			return fSample;
 		}
 
 		/**

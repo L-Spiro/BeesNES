@@ -226,7 +226,7 @@ namespace lsn {
 		/**
 		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
 		 */
-		virtual void							Swap() { SwapInternal( true ); }
+		virtual void							Swap();
 
 		/**
 		 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
@@ -415,6 +415,8 @@ namespace lsn {
 		volatile std::atomic_int				m_aiThreadState;
 		/** True while an LSN_GPU_DRAW is waiting in the message queue.  Posted messages outrank input and WM_PAINT, so only one is ever queued. */
 		std::atomic_bool						m_abGpuDrawQueued = false;
+		/** Set when a video-export error has been posted to the window and not yet handled. */
+		std::atomic_bool						m_abVideoExportErrorPosted = false;
 		/** The Patch window. */
 		lsw::CWidget *							m_pwPatchWindow = nullptr;
 		/** The WAV Editor window. */

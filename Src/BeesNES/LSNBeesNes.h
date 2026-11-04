@@ -52,6 +52,11 @@
 #include "../Utilities/LSNCpuTemperatureReader.h"
 #include "../Utilities/LSNHotkeyManager.h"
 #include "../Utilities/LSNStream.h"
+#include "../Video/LSNVideoExporter.h"
+
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 
 #define LSN_BEESNES_SETTINGS_VERSION			1
@@ -419,6 +424,63 @@ namespace lsn {
 		inline const LSN_CAPTURE_BUFFER &		CaptureBuffer() const { return m_cbVideoCapture; }
 
 		/**
+		 * Starts exporting a movie with the current video-export options:  checks FFmpeg and the selected format, starts capturing
+		 *	rendered frames, and starts receiving the APU's output samples.  Must be called while the emulation thread is stopped, from the
+		 *	thread that calls Render().
+		 * 
+		 * \param _wsError Receives an error message on failure.
+		 * \return Returns true if exporting started.
+		 **/
+		bool									StartVideoExport( std::wstring &_wsError );
+
+		/**
+		 * Stops exporting a movie and waits for FFmpeg to finish the file.  Must be called while the emulation thread is stopped, from the
+		 *	thread that calls Render().
+		 * 
+		 * \param _wsError Receives an error message on failure (including an earlier failure that ended the export).
+		 * \return Returns true if every movie file was finished without error.
+		 **/
+		bool									StopVideoExport( std::wstring &_wsError );
+
+		/**
+		 * Determines whether a movie is being exported.
+		 * 
+		 * \return Returns true between StartVideoExport() and StopVideoExport().
+		 **/
+		inline bool								IsExportingVideo() const { return m_veExporter.IsActive(); }
+
+		/**
+		 * Called on the emulation thread at the end of each frame (before the frame is swapped) while exporting.  Waits until the previous
+		 *	frame has been rendered and captured (so that no frame is ever skipped), then passes the captured frames and audio to FFmpeg,
+		 *	waiting if FFmpeg is behind.
+		 * 
+		 * \return Returns false if the export has failed; call StopVideoExport() (from the rendering thread) to get the error.
+		 **/
+		bool									VideoExportFrameBoundary();
+
+		/**
+		 * Called on the rendering thread after each Render() (and after any capture that follows it, such as
+		 *	CDx9FilterBase::CaptureBackBuffer()).  Passes the newly captured frame to the exporter and lets the emulation thread continue.
+		 **/
+		void									FinishRenderedFrame();
+
+		/**
+		 * Makes the waits in VideoExportFrameBoundary() return immediately (true) or restores normal waiting (false).  Set while stopping the
+		 *	emulation thread.
+		 * 
+		 * \param _bAbort Whether to abort waits.
+		 **/
+		void									SetVideoExportAbort( bool _bAbort );
+
+		/**
+		 * Gets the current audio output rate:  the sample box's output rate, or the audio device's rate if the sample box has not been
+		 *	initialized.
+		 * 
+		 * \return Returns the audio output rate in Hz.
+		 **/
+		uint32_t								AudioOutputHz();
+
+		/**
 		 * Loads a ROM.
 		 *
 		 * \param _vRom The in-memory ROM file.
@@ -711,6 +773,28 @@ namespace lsn {
 		LSN_CAPTURE_BUFFER						m_cbVideoCapture;
 		/** True while capturing video. */
 		bool									m_bCaptureVideo = false;
+		/** Streams frames and audio to FFmpeg. */
+		CVideoExporter							m_veExporter;
+		/** Incremented each time a frame is swapped while exporting. */
+		std::atomic<uint64_t>					m_aui64ExportSwapId = 0;
+		/** The swap ID of the last frame that has been rendered and captured. */
+		std::atomic<uint64_t>					m_aui64ExportDoneId = 0;
+		/** The swap ID of the frame rendered by the last Render() (read by FinishRenderedFrame()). */
+		uint64_t								m_ui64ExportRenderedId = 0;
+		/** The capture count of the last frame given to the exporter. */
+		uint64_t								m_ui64ExportLastCapture = 0;
+		/** The PPU frame of the last frame given to the exporter (a re-render of the same frame is not exported twice). */
+		uint64_t								m_ui64ExportLastPpuFrame = ~0ULL;
+		/** The APU whose output samples go to the exporter. */
+		CApuBase *								m_pabExportApu = nullptr;
+		/** Guards the wait for a frame to be rendered. */
+		std::mutex								m_mExportWait;
+		/** Signaled when a frame has been rendered. */
+		std::condition_variable					m_cvExportWait;
+		/** Makes the wait for a frame to be rendered return immediately. */
+		std::atomic<bool>						m_abExportAbort = false;
+		/** Set by Render() when it renders a new frame while exporting. */
+		bool									m_bExportRenderPending = false;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** L. Spiro's NTSC filter. */
@@ -1094,6 +1178,21 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SaveVideoExportSettings( CStream &_sFile, const LSN_VIDEO_EXPORT_OPTIONS &_veoOptions );
+
+		/**
+		 * Generates the path of each new movie file for the exporter.
+		 *
+		 * \param _pvThis A pointer to this object.
+		 * \return Returns the path of a new movie file, or an empty string if the Movies folder could not be created.
+		 */
+		static std::wstring						ExportMoviePath( void * _pvThis );
+
+		/**
+		 * Points the current system's APU's sample output at the exporter (or at nothing).
+		 *
+		 * \param _bAttach If true, the current APU's samples go to the exporter; if false, no APU's samples do.
+		 */
+		void									AttachExportApu( bool _bAttach );
 
 		/**
 		 * Adds or move to the top a given file path.

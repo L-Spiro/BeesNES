@@ -306,6 +306,13 @@ namespace lsn {
 		inline std::vector<float> &							Output() { return m_gGen.vOutputBuffer; }
 
 		/**
+		 * Gets the output sample rate.
+		 * 
+		 * \return Returns the output sample rate in Hz, or 0 if Init() has not been called.
+		 **/
+		inline uint32_t										OutputHz() const { return m_gGen.ui32OutputHz; }
+
+		/**
 		 * Sets the AVX/SSE feature set.
 		 * 
 		 * \param _bAvx512 Specifies whether the AVX-512F feature set is available.

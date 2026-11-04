@@ -22,6 +22,8 @@
 
 namespace lsn {
 
+	class CApuBase;
+
 	/**
 	 * Class CSystemBase
 	 * \brief System base class.
@@ -356,6 +358,13 @@ namespace lsn {
 		 * Sets as inactive (another system is being played).
 		 **/
 		virtual void									SetAsInactive() {}
+
+		/**
+		 * Gets the APU.
+		 *
+		 * \return Returns a pointer to the APU or nullptr if the system has none.
+		 */
+		virtual CApuBase *								GetApu() { return nullptr; }
 
 		/**
 		 * Sets the parameters needed for metadata streaming via our APU.

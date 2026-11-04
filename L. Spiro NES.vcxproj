@@ -2097,6 +2097,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Options\LSNPaletteOptions.h" />
     <ClInclude Include="Src\Options\LSNVideoExportOptions.h" />
     <ClInclude Include="Src\Options\LSNWavEditorWindowOptions.h" />
+    <ClInclude Include="Src\Video\LSNFfmpegProcess.h" />
+    <ClInclude Include="Src\Video\LSNVideoExporter.h" />
     <ClInclude Include="Src\Video\LSNVideoFormat.h" />
     <ClInclude Include="Src\Options\LSNWindowOptions.h" />
     <ClInclude Include="Src\OS\LSNFeatureSet.h" />
@@ -2335,6 +2337,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Utilities\LSNHotkeyManager.cpp" />
     <ClCompile Include="Src\Utilities\LSNTextureAddressing.cpp" />
     <ClCompile Include="Src\Utilities\LSNUtilities.cpp" />
+    <ClCompile Include="Src\Video\LSNFfmpegProcess.cpp" />
+    <ClCompile Include="Src\Video\LSNVideoExporter.cpp" />
     <ClCompile Include="Src\Video\LSNVideoFormat.cpp" />
     <ClCompile Include="Src\Wav\LSNWavEditor.cpp" />
     <ClCompile Include="Src\Wav\LSNWavFile.cpp" />

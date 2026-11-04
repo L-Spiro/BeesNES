@@ -748,9 +748,18 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
-				// Start/stop capturing each rendered frame.  Rendering happens inside m_csRenderCrit, so toggle inside it too.
-				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-				m_bnEmulator.SetVideoCapture( !m_bnEmulator.IsCapturingVideo() );
+				// Start/stop exporting a movie.  The emulation thread is stopped meanwhile so that it is not in the middle of a frame.
+				bool bWasRunning = m_ptThread.get() != nullptr;
+				StopThread();
+				std::wstring wsError;
+				HCURSOR hOldCursor = ::SetCursor( ::LoadCursorW( NULL, IDC_WAIT ) );
+				bool bOk = m_bnEmulator.IsExportingVideo() ? m_bnEmulator.StopVideoExport( wsError ) : m_bnEmulator.StartVideoExport( wsError );
+				::SetCursor( hOldCursor );
+				m_abVideoExportErrorPosted = false;
+				if ( !bOk ) {
+					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
+				}
+				if ( bWasRunning ) { StartThread(); }
 				break;
 			}
 
@@ -800,6 +809,23 @@ namespace lsn {
 				FlushPendingPaints();
 				break;
 			}
+			case CWinUtilities::LSN_VIDEO_EXPORT_ERROR : {
+				// The export failed on the emulation thread.  Stop it (which finishes what can be finished) and report why.
+				if ( m_bnEmulator.IsExportingVideo() ) {
+					bool bWasRunning = m_ptThread.get() != nullptr;
+					StopThread();
+					std::wstring wsError;
+					HCURSOR hOldCursor = ::SetCursor( ::LoadCursorW( NULL, IDC_WAIT ) );
+					bool bOk = m_bnEmulator.StopVideoExport( wsError );
+					::SetCursor( hOldCursor );
+					if ( !bOk ) {
+						lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
+					}
+					if ( bWasRunning ) { StartThread(); }
+				}
+				m_abVideoExportErrorPosted = false;
+				break;
+			}
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -815,6 +841,13 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
 		StopThread();
+		if ( m_bnEmulator.IsExportingVideo() ) {
+			// Let FFmpeg finish the movie file.
+			std::wstring wsError;
+			if ( !m_bnEmulator.StopVideoExport( wsError ) ) {
+				lsw::CBase::MessageBoxError( NULL, wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
+			}
+		}
 		if ( m_bnEmulator.GetSystem()->IsRomLoaded() ) {
 			uint64_t ui64Time = m_cClock.GetRealTick() - m_cClock.GetStartTick();
 			double dTime = ui64Time / double( m_cClock.GetResolution() );
@@ -1001,6 +1034,8 @@ namespace lsn {
 				}
 			}
 
+			// The frame (and its capture) is done; when exporting, this lets the emulation thread continue.
+			m_bnEmulator.FinishRenderedFrame();
 			m_bnEmulator.RenderInfo().DeActivate();
 			return LSW_H_HANDLED;
 		}
@@ -1023,6 +1058,8 @@ namespace lsn {
 			bMirrored = m_bnEmulator.RenderInfo().bMirrored;
 			puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;
 		}
+		// The frame (and its capture) is done; when exporting, this lets the emulation thread continue.
+		m_bnEmulator.FinishRenderedFrame();
 
 		if ( iDestX ) {
 			::StretchDIBits( bpPaint.hDc,
@@ -1513,7 +1550,7 @@ namespace lsn {
 
 				case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
 					// Checked while recording.
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.IsCapturingVideo() ? MFS_CHECKED : MFS_UNCHECKED ) };
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.IsExportingVideo() ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1836,6 +1873,23 @@ namespace lsn {
 
 	/**
 	 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
+	 */
+	void CMainWindow::Swap() {
+		if ( m_bnEmulator.IsExportingVideo() ) {
+			// Waits for the previous frame to be rendered and exported (and for FFmpeg if it is behind).
+			if ( !m_bnEmulator.VideoExportFrameBoundary() ) {
+				if ( !m_abVideoExportErrorPosted.exchange( true ) ) {
+					if ( !::PostMessageW( Wnd(), CWinUtilities::LSN_VIDEO_EXPORT_ERROR, 0, 0 ) ) {
+						m_abVideoExportErrorPosted = false;
+					}
+				}
+			}
+		}
+		SwapInternal( true );
+	}
+
+	/**
+	 * Informs the host that a frame has been rendered.  This typically causes a display update and a framebuffer swap.
 	 *
 	 * \param _bActuallySwap If true, the source buffer is swapped.  Set to false to re-render the previous source buffer. 
 	 */
@@ -1889,12 +1943,15 @@ namespace lsn {
 	void CMainWindow::StopThread() {
 		if ( m_ptThread.get() ) {
 			if ( m_aiThreadState == LSN_TS_ACTIVE ) {
+				// The emulation thread might be waiting on this thread (to render a frame) or on FFmpeg while exporting a movie.
+				m_bnEmulator.SetVideoExportAbort( true );
 				m_aiThreadState = LSN_TS_STOP;
 				while ( true ) {
 					std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 					if ( m_aiThreadState != LSN_TS_STOP ) { break; }
 				}
 				m_ptThread->join();
+				m_bnEmulator.SetVideoExportAbort( false );
 			}
 			m_ptThread.reset();
 		}

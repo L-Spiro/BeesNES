@@ -42,6 +42,7 @@ namespace lsn {
 			LSN_UPDATE_PATCHER_DESC,
 			LSN_USB_CONTROLLER_INPUT,
 			LSN_GPU_DRAW,
+			LSN_VIDEO_EXPORT_ERROR,
 #endif	// #if defined( LSN_WINDOWS )
 		};
 

@@ -894,6 +894,13 @@ namespace lsn {
 		}
 
 		/**
+		 * Gets the APU.
+		 *
+		 * \return Returns a pointer to the APU.
+		 */
+		virtual CApuBase *								GetApu() override { return &m_aApu; }
+
+		/**
 		 * Sets the parameters needed for metadata streaming via our APU.
 		 * 
 		 * \param _pvParm Holds the returned pointer to our APU as a void *.

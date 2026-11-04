@@ -760,6 +760,25 @@
 #define LSN_STR_PRORES_4444												4444
 #define LSN_STR_PRORES_4444_XQ											4444 XQ
 
+// Video export errors.
+#define LSN_VE_TITLE													Video Export
+#define LSN_VE_FFMPEG_NOT_FOUND											FFmpeg could not be found.  Put the FFmpeg executable in the BeesNES folder or in a folder listed in the PATH environment variable.  FFmpeg can be downloaded from ffmpeg.org.
+#define LSN_VE_FFMPEG_FAILED_TO_RUN										FFmpeg (\u201C{}\u201D) could not be run.
+#define LSN_VE_MISSING_ENCODER											This build of FFmpeg (\u201C{}\u201D) does not include the \u201C{}\u201D encoder needed for {}.
+#define LSN_VE_MISSING_MUXER											This build of FFmpeg (\u201C{}\u201D) cannot write \u201C{}\u201D files.
+#define LSN_VE_MISSING_FILTER											This build of FFmpeg (\u201C{}\u201D) does not include the \u201C{}\u201D filter.
+#define LSN_VE_TEST_FAILED												FFmpeg could not encode {} with the selected settings.  If the encoder runs on a GPU then the GPU or its driver may not support it or these settings.\r\n\r\n{}
+#define LSN_VE_MOVIES_FOLDER_FAILED										The Movies folder could not be created.
+#define LSN_VE_PIPE_FAILED												The pipes to FFmpeg could not be created.
+#define LSN_VE_LAUNCH_FAILED											FFmpeg (\u201C{}\u201D) could not be started.
+#define LSN_VE_FFMPEG_STOPPED											FFmpeg stopped accepting data while making \u201C{}\u201D (exit code {}).  Its log was saved to \u201C{}\u201D.\r\n\r\n{}
+#define LSN_VE_FFMPEG_ERROR												FFmpeg reported an error while finishing \u201C{}\u201D (exit code {}).  Its log was saved to \u201C{}\u201D.\r\n\r\n{}
+#define LSN_VE_FFMPEG_TIMEOUT											FFmpeg did not finish \u201C{}\u201D in time and was stopped.  The file may be incomplete.
+#define LSN_VE_FRAME_TOO_LARGE											The captured frame ({}\u00D7{}) is too large for {} (the limit is {}\u00D7{}).
+#define LSN_VE_FRAME_TOO_SMALL											The captured frame ({}\u00D7{}) is too small to export.
+#define LSN_VE_UNSUPPORTED_CAPTURE										Frames captured in this pixel format cannot be exported.
+#define LSN_VE_INVALID_FORMAT											The selected video format is not valid.
+
 // General.
 #define LSN_ERROR															Error
 #define LSN_INTERNAL_ERROR													Internal error.

@@ -860,6 +860,11 @@ namespace lsn {
 	void CBeesNes::Render( int32_t _i32Left, int32_t _i32Top, uint32_t _ui32FinalW, uint32_t _ui32FinalH ) {
 		if ( m_cfartCurFilterAndTargets.bDirty && m_cfartCurFilterAndTargets.pfbPrevFilter ) {
 			m_cfartCurFilterAndTargets.bDirty = false;
+			if ( m_veExporter.IsActive() ) {
+				// FinishRenderedFrame() tells the emulation thread that this frame has been rendered.
+				m_ui64ExportRenderedId = m_aui64ExportSwapId;
+				m_bExportRenderPending = true;
+			}
 
 			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
 				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
@@ -918,6 +923,7 @@ namespace lsn {
 		m_cfartCurFilterAndTargets.bMirrored = m_cfartCurFilterAndTargets.pfbCurFilter->FlipInput();
 
 		m_cfartCurFilterAndTargets.pfbCurFilter = m_cfartCurFilterAndTargets.pfbNextFilter;
+		if ( _bActuallySwap && m_veExporter.IsActive() ) { ++m_aui64ExportSwapId; }
 		
 		if LSN_LIKELY( _bActuallySwap ) {
 			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
@@ -1459,6 +1465,154 @@ namespace lsn {
 			wsPath = wsBase + L"_" + std::to_wstring( I ) + (*pvfdData).pwcFileExtension;
 		}
 		return wsPath;
+	}
+
+	/**
+	 * Starts exporting a movie with the current video-export options:  checks FFmpeg and the selected format, starts capturing
+	 *	rendered frames, and starts receiving the APU's output samples.  Must be called while the emulation thread is stopped, from the
+	 *	thread that calls Render().
+	 * 
+	 * \param _wsError Receives an error message on failure.
+	 * \return Returns true if exporting started.
+	 **/
+	bool CBeesNes::StartVideoExport( std::wstring &_wsError ) {
+		_wsError.clear();
+		if ( m_veExporter.IsActive() ) { return true; }
+		if ( !m_veExporter.Start( m_oOptions.veoVideoExport, CVideoExporter::RegionFrameRate( m_pmSystem ), AudioOutputHz(),
+			ExportMoviePath, this, _wsError ) ) { return false; }
+		m_aui64ExportSwapId = 0;
+		m_aui64ExportDoneId = 0;
+		m_ui64ExportRenderedId = 0;
+		m_bExportRenderPending = false;
+		m_abExportAbort = false;
+		SetVideoCapture( true );
+		m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
+		m_ui64ExportLastPpuFrame = ~0ULL;
+		AttachExportApu( true );
+		return true;
+	}
+
+	/**
+	 * Stops exporting a movie and waits for FFmpeg to finish the file.  Must be called while the emulation thread is stopped, from the
+	 *	thread that calls Render().
+	 * 
+	 * \param _wsError Receives an error message on failure (including an earlier failure that ended the export).
+	 * \return Returns true if every movie file was finished without error.
+	 **/
+	bool CBeesNes::StopVideoExport( std::wstring &_wsError ) {
+		_wsError.clear();
+		if ( !m_veExporter.IsActive() ) { return true; }
+		AttachExportApu( false );
+		SetVideoCapture( false );
+		m_bExportRenderPending = false;
+		return m_veExporter.Stop( _wsError );
+	}
+
+	/**
+	 * Called on the emulation thread at the end of each frame (before the frame is swapped) while exporting.  Waits until the previous
+	 *	frame has been rendered and captured (so that no frame is ever skipped), then passes the captured frames and audio to FFmpeg,
+	 *	waiting if FFmpeg is behind.
+	 * 
+	 * \return Returns false if the export has failed; call StopVideoExport() (from the rendering thread) to get the error.
+	 **/
+	bool CBeesNes::VideoExportFrameBoundary() {
+		if ( !m_veExporter.IsActive() ) { return true; }
+		if ( m_veExporter.Failed() ) { return false; }
+
+		// Normally the renderer only shows the newest frame, skipping any that were replaced before it got to them.  While exporting, each
+		//	frame must be rendered (and captured) before the next one replaces it, so the emulation waits here instead.
+		{
+			std::unique_lock<std::mutex> ulLock( m_mExportWait );
+			while ( m_aui64ExportDoneId < m_aui64ExportSwapId && !m_abExportAbort ) {
+				m_cvExportWait.wait_for( ulLock, std::chrono::milliseconds( 10 ) );
+			}
+		}
+
+		// The system (and so the APU) changes when a ROM for another region is loaded.
+		if ( m_psbSystem && m_psbSystem->GetApu() != m_pabExportApu ) { AttachExportApu( true ); }
+
+		if ( !m_veExporter.FrameBoundary( CVideoExporter::RegionFrameRate( m_pmSystem ), AudioOutputHz() ) ) {
+			// Stop collecting samples; the rendering thread reports the error and stops the export.
+			AttachExportApu( false );
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Called on the rendering thread after each Render() (and after any capture that follows it, such as
+	 *	CDx9FilterBase::CaptureBackBuffer()).  Passes the newly captured frame to the exporter and lets the emulation thread continue.
+	 **/
+	void CBeesNes::FinishRenderedFrame() {
+		if ( !m_bExportRenderPending ) { return; }
+		m_bExportRenderPending = false;
+		if ( m_cbVideoCapture.ui64Captures != m_ui64ExportLastCapture ) {
+			m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
+			// GPU captures arrive 1 frame late and a re-render of the same frame captures it again; each PPU frame is exported once.
+			if ( m_cbVideoCapture.ui64PpuFrame != m_ui64ExportLastPpuFrame ) {
+				m_ui64ExportLastPpuFrame = m_cbVideoCapture.ui64PpuFrame;
+				m_veExporter.SubmitFrame( m_cbVideoCapture );
+			}
+		}
+		{
+			std::lock_guard<std::mutex> lgLock( m_mExportWait );
+			m_aui64ExportDoneId = m_ui64ExportRenderedId;
+		}
+		m_cvExportWait.notify_all();
+	}
+
+	/**
+	 * Makes the waits in VideoExportFrameBoundary() return immediately (true) or restores normal waiting (false).  Set while stopping the
+	 *	emulation thread.
+	 * 
+	 * \param _bAbort Whether to abort waits.
+	 **/
+	void CBeesNes::SetVideoExportAbort( bool _bAbort ) {
+		{
+			std::lock_guard<std::mutex> lgLock( m_mExportWait );
+			m_abExportAbort = _bAbort;
+		}
+		m_cvExportWait.notify_all();
+		m_veExporter.SetAbortWaits( _bAbort );
+	}
+
+	/**
+	 * Gets the current audio output rate:  the sample box's output rate, or the audio device's rate if the sample box has not been
+	 *	initialized.
+	 * 
+	 * \return Returns the audio output rate in Hz.
+	 **/
+	uint32_t CBeesNes::AudioOutputHz() {
+		CApuBase * pabApu = m_psbSystem ? m_psbSystem->GetApu() : nullptr;
+		uint32_t ui32Hz = pabApu ? pabApu->SampleBox().OutputHz() : 0;
+		if ( !ui32Hz ) { ui32Hz = CAudio::GetOutputFrequency(); }
+		return ui32Hz ? ui32Hz : 48000;
+	}
+
+	/**
+	 * Generates the path of each new movie file for the exporter.
+	 *
+	 * \param _pvThis A pointer to this object.
+	 * \return Returns the path of a new movie file, or an empty string if the Movies folder could not be created.
+	 */
+	std::wstring CBeesNes::ExportMoviePath( void * _pvThis ) {
+		return static_cast<CBeesNes *>(_pvThis)->PrepareMoviePath();
+	}
+
+	/**
+	 * Points the current system's APU's sample output at the exporter (or at nothing).
+	 *
+	 * \param _bAttach If true, the current APU's samples go to the exporter; if false, no APU's samples do.
+	 */
+	void CBeesNes::AttachExportApu( bool _bAttach ) {
+		if ( m_pabExportApu ) {
+			m_pabExportApu->SetSampleOutFunc( nullptr, nullptr );
+			m_pabExportApu = nullptr;
+		}
+		if ( _bAttach && m_psbSystem ) {
+			m_pabExportApu = m_psbSystem->GetApu();
+			if ( m_pabExportApu ) { m_pabExportApu->SetSampleOutFunc( CVideoExporter::AddSample, &m_veExporter ); }
+		}
 	}
 
 	/**
