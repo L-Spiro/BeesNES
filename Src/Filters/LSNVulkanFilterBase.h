@@ -90,6 +90,12 @@ namespace lsn {
 		virtual void											DeActivate() override;
 
 		/**
+		 * Reads the pending capture (if any) into the capture target now, waiting for the GPU to finish the frame that recorded it.  Captures
+		 *	are normally read when the next frame is rendered; this gets the last one when capturing stops.
+		 */
+		virtual void											FlushCapture() override;
+
+		/**
 		 * Sets the window parent for the Vulkan rendering child target.
 		 *
 		 * \param _pwParent A pointer to the parent widget.

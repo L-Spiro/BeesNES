@@ -207,6 +207,12 @@ namespace lsn {
 		 */
 		inline const std::wstring &							CaptureError() const { return m_wsCaptureError; }
 
+		/**
+		 * Reads any capture that is still on the GPU into the capture target now.  GPU captures can arrive a frame late; call this when
+		 *	capturing stops so that the last rendered frame is not lost.
+		 */
+		virtual void										FlushCapture() {}
+
 	protected :
 		// == Members.
 		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_AUTO;					/**< The requested gamma curve. */

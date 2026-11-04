@@ -417,6 +417,8 @@ namespace lsn {
 		std::atomic_bool						m_abGpuDrawQueued = false;
 		/** Set when a video-export error has been posted to the window and not yet handled. */
 		std::atomic_bool						m_abVideoExportErrorPosted = false;
+		/** If true, StopThread() renders any frame the emulation thread is waiting on while exporting a movie (false while the window is being destroyed). */
+		bool									m_bExportRenderOnStop = true;
 		/** The Patch window. */
 		lsw::CWidget *							m_pwPatchWindow = nullptr;
 		/** The WAV Editor window. */

@@ -76,6 +76,9 @@ namespace lsn {
 		m_rCaptureReadback.reset();
 		m_ui64CaptureSize = 0;
 		m_bCapturePending = false;
+		m_bCaptureRequested = false;
+		m_gclCapture.reset();
+		m_caCapture.reset();
 
 		m_dhGammaRtv.reset();
 		m_dhPhosphorRtv.reset();
@@ -246,8 +249,7 @@ namespace lsn {
 	 */
 	bool CDx12FilterBase::RenderBase( CDirectX12Device * _pdx12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32NativeW, uint32_t _ui32NativeH, const lsw::LSW_RECT &_rOutput, bool _bFlipY ) {
 		if LSN_UNLIKELY( !_prSrc || !_pdx12dDevice || !_pgclCommandList ) { return false; }
-		// The previous frame's command list has finished (the callers flush the queue after executing it), so its capture can be read.
-		ReadCapture();
+		m_bCaptureRequested = false;
 		if LSN_UNLIKELY( !EnsureBaseSizeAndResources( _pdx12dDevice, _pgclCommandList, _ui32NativeW, _ui32NativeH ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pdx12dDevice->GetDevice();
@@ -370,8 +372,10 @@ namespace lsn {
 			}
 
 			if ( m_pcbCapture ) {
-				// Capture the part of the back buffer showing the console screen.
-				RecordTextureCapture( _pgclCommandList->Get(), rBackBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, _rOutput );
+				// CaptureBackBuffer() copies the part of the back buffer showing the console screen once this frame has been rendered.
+				m_rCaptureArea = _rOutput;
+				m_ui64CaptureRequestFrame = m_ui64CaptureFrame;
+				m_bCaptureRequested = true;
 			}
 
 			D3D12_RESOURCE_BARRIER rbPresent[1];
@@ -478,10 +482,92 @@ namespace lsn {
 		_pgclCommandList->ResourceBarrier( 1, rbCopy );
 
 		m_cfCaptureFormat = cfFormat;
-		m_ui64CapturePpuFrame = m_ui64CaptureFrame;
+		m_ui64CapturePpuFrame = m_ui64CaptureRequestFrame;
 		m_bCapturePending = true;
 		m_wsCaptureError.clear();
 		return true;
+	}
+
+	/**
+	 * If a frame was rendered while capturing, copies the area of the back buffer showing the console screen into the capture target.
+	 *	Call after the frame has been rendered (its command list executed and flushed) and before Present().  The copy is recorded into a
+	 *	command list of its own, executed, and read back immediately, so nothing is carried over to the next frame.
+	 */
+	void CDx12FilterBase::CaptureBackBuffer() {
+		bool bRequested = m_bCaptureRequested;
+		m_bCaptureRequested = false;
+		if ( !m_pcbCapture ) {
+			// Not capturing:  free the capture resources.
+			if ( m_rCaptureReadback.get() ) {
+				m_rCaptureReadback.reset();
+				m_ui64CaptureSize = 0;
+			}
+			m_gclCapture.reset();
+			m_caCapture.reset();
+			m_bCapturePending = false;
+			return;
+		}
+		if ( !bRequested ) {
+			// Also reached by repaints that do not render a new frame; keep any more specific reason.
+			if ( m_wsCaptureError.empty() ) { m_wsCaptureError = LSN_LSTR( LSN_VE_DX12_NOT_RENDERED ); }
+			return;
+		}
+		if LSN_UNLIKELY( !m_pdx12dDevice || !m_pdx12dDevice->GetDevice() || !m_pdx12dDevice->GetSwapChain() || !m_pdx12dDevice->GetCommandQueue() ) {
+			m_wsCaptureError = LSN_LSTR( LSN_VE_DX12_NOT_RENDERED );
+			return;
+		}
+		ID3D12Device * pd12Device = m_pdx12dDevice->GetDevice();
+
+		if LSN_UNLIKELY( !m_caCapture.get() ) {
+			m_caCapture = std::make_unique<CDirectX12CommandAllocator>();
+			if ( !m_caCapture->CreateCommandAllocator( pd12Device, D3D12_COMMAND_LIST_TYPE_DIRECT ) ) {
+				m_caCapture.reset();
+				m_wsCaptureError = LSN_LSTR( LSN_VE_DX12_CAPTURE_LIST );
+				return;
+			}
+		}
+		if LSN_UNLIKELY( !m_gclCapture.get() ) {
+			m_gclCapture = std::make_unique<CDirectX12GraphicsCommandList>();
+			if ( !m_gclCapture->CreateCommandList( pd12Device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_caCapture->Get(), nullptr ) ) {
+				m_gclCapture.reset();
+				m_wsCaptureError = LSN_LSTR( LSN_VE_DX12_CAPTURE_LIST );
+				return;
+			}
+			m_gclCapture->Get()->Close();
+		}
+
+		Microsoft::WRL::ComPtr<ID3D12Resource> rBackBuffer;
+		HRESULT hRes = m_pdx12dDevice->GetSwapChain()->GetBuffer( m_pdx12dDevice->GetSwapChain()->GetCurrentBackBufferIndex(), IID_PPV_ARGS( &rBackBuffer ) );
+		if LSN_UNLIKELY( FAILED( hRes ) ) {
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_HRESULT ), L"GetBuffer", uint32_t( hRes ) );
+			return;
+		}
+
+		if LSN_UNLIKELY( FAILED( hRes = m_caCapture->Get()->Reset() ) ) {
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_HRESULT ), L"ID3D12CommandAllocator::Reset", uint32_t( hRes ) );
+			return;
+		}
+		if LSN_UNLIKELY( FAILED( hRes = m_gclCapture->Get()->Reset( m_caCapture->Get(), nullptr ) ) ) {
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_HRESULT ), L"ID3D12GraphicsCommandList::Reset", uint32_t( hRes ) );
+			return;
+		}
+		// The frame's command list left the back buffer in the PRESENT state.
+		bool bRecorded = RecordTextureCapture( m_gclCapture->Get(), rBackBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, m_rCaptureArea );
+		if LSN_UNLIKELY( FAILED( hRes = m_gclCapture->Get()->Close() ) ) {
+			m_bCapturePending = false;
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_HRESULT ), L"ID3D12GraphicsCommandList::Close", uint32_t( hRes ) );
+			return;
+		}
+		if ( !bRecorded ) { return; }		// RecordTextureCapture() set m_wsCaptureError.
+
+		ID3D12CommandList * pclLists[] = { m_gclCapture->Get() };
+		m_pdx12dDevice->GetCommandQueue()->ExecuteCommandLists( 1, pclLists );
+		if LSN_UNLIKELY( !m_pdx12dDevice->FlushCommandQueue() ) {
+			m_bCapturePending = false;
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_HRESULT ), L"FlushCommandQueue", uint32_t( E_FAIL ) );
+			return;
+		}
+		ReadCapture();
 	}
 
 	/**

@@ -756,7 +756,7 @@ namespace lsn {
 				bool bOk = m_bnEmulator.IsExportingVideo() ? m_bnEmulator.StopVideoExport( wsError ) : m_bnEmulator.StartVideoExport( wsError );
 				::SetCursor( hOldCursor );
 				m_abVideoExportErrorPosted = false;
-				if ( !bOk ) {
+				if ( !bOk || !wsError.empty() ) {
 					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
 				}
 				if ( bWasRunning ) { StartThread(); }
@@ -840,6 +840,8 @@ namespace lsn {
 	 * \return Returns LSW_H_CONTINUE to allow default processing; return LSW_H_HANDLED to stop it.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::NcDestroy() {
+		// The window is going away; do not render while stopping the emulation thread.
+		m_bExportRenderOnStop = false;
 		StopThread();
 		if ( m_bnEmulator.IsExportingVideo() ) {
 			// Let FFmpeg finish the movie file.
@@ -982,6 +984,10 @@ namespace lsn {
 							m_biBlitInfo.bmiHeader.biSizeImage = CFilterBase::RowStride( m_biBlitInfo.bmiHeader.biWidth, m_biBlitInfo.bmiHeader.biBitCount ) * m_biBlitInfo.bmiHeader.biHeight;
 							/*bMirrored = m_bnEmulator.RenderInfo().bMirrored;
 							puiBuffer = m_bnEmulator.RenderInfo().pui8LastFilteredResult;*/
+						}
+						// The back buffer is read after the frame is rendered and before Present() (does nothing unless recording video).
+						if ( m_bnEmulator.RenderInfo().pfbPrevFilter ) {
+							static_cast<CDx12FilterBase *>(m_bnEmulator.RenderInfo().pfbPrevFilter)->CaptureBackBuffer();
 						}
 						
 						const HRESULT hrPresent = pscSwapChain->Present( 0, 0 );
@@ -1943,15 +1949,30 @@ namespace lsn {
 	void CMainWindow::StopThread() {
 		if ( m_ptThread.get() ) {
 			if ( m_aiThreadState == LSN_TS_ACTIVE ) {
-				// The emulation thread might be waiting on this thread (to render a frame) or on FFmpeg while exporting a movie.
-				m_bnEmulator.SetVideoExportAbort( true );
 				m_aiThreadState = LSN_TS_STOP;
+				// While a movie is being exported, the emulation thread can be waiting for this thread to render a frame (or for FFmpeg).
+				//	Render those frames here so that none is lost; give up on them only if they cannot be rendered or FFmpeg stops responding.
+				auto aLastProgress = std::chrono::steady_clock::now();
+				bool bAborted = false;
 				while ( true ) {
-					std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
+					std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
 					if ( m_aiThreadState != LSN_TS_STOP ) { break; }
+					if ( bAborted ) { continue; }
+					if ( !m_bnEmulator.IsExportingVideo() ) {
+						m_bnEmulator.SetVideoExportAbort( true );
+						bAborted = true;
+					}
+					else if ( m_bnEmulator.ExportFramePending() && m_bExportRenderOnStop ) {
+						Paint();
+						if ( !m_bnEmulator.ExportFramePending() ) { aLastProgress = std::chrono::steady_clock::now(); }
+					}
+					if ( !bAborted && std::chrono::steady_clock::now() - aLastProgress > std::chrono::seconds( m_bExportRenderOnStop ? 10 : 0 ) ) {
+						m_bnEmulator.SetVideoExportAbort( true );
+						bAborted = true;
+					}
 				}
 				m_ptThread->join();
-				m_bnEmulator.SetVideoExportAbort( false );
+				if ( bAborted ) { m_bnEmulator.SetVideoExportAbort( false ); }
 			}
 			m_ptThread.reset();
 		}

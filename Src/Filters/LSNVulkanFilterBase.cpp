@@ -155,7 +155,8 @@ namespace lsn {
 		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() ) { return false; }
 		VkFence fFence = m_fRenderFence.Get();
 		if LSN_UNLIKELY( fFence == VK_NULL_HANDLE ) { return false; }
-		return CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, LSN_MAX_UI_GPU_WAIT ) == VK_SUCCESS;
+		// While capturing (recording a movie), every frame must be rendered, so wait as long as it takes.
+		return CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, m_pcbCapture ? UINT64_MAX : LSN_MAX_UI_GPU_WAIT ) == VK_SUCCESS;
 	}
 
 	/**
@@ -168,8 +169,9 @@ namespace lsn {
 	 */
 	VkResult CVulkanFilterBase::AcquireNextImage() {
 		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() || m_pvkDevice->GetSwapChain() == VK_NULL_HANDLE ) { return VK_ERROR_INITIALIZATION_FAILED; }
-		// A timeout of 0 never blocks; it returns VK_NOT_READY while the presentation engine holds every image.
-		VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( m_pvkDevice->GetDevice(), m_pvkDevice->GetSwapChain(), 0, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
+		// A timeout of 0 never blocks; it returns VK_NOT_READY while the presentation engine holds every image.  While capturing (recording
+		//	a movie), every frame must be rendered, so wait for an image instead.
+		VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( m_pvkDevice->GetDevice(), m_pvkDevice->GetSwapChain(), m_pcbCapture ? UINT64_MAX : 0, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
 		if ( rRes == VK_ERROR_OUT_OF_DATE_KHR ) {
 			m_pvkDevice->ResizeSwapChain();
 		}
@@ -798,6 +800,21 @@ namespace lsn {
 		m_ui64CapturePpuFrame = m_ui64CaptureFrame;
 		m_bCapturePending = true;
 		return true;
+	}
+
+	/**
+	 * Reads the pending capture (if any) into the capture target now, waiting for the GPU to finish the frame that recorded it.  Captures
+	 *	are normally read when the next frame is rendered; this gets the last one when capturing stops.
+	 */
+	void CVulkanFilterBase::FlushCapture() {
+		if ( m_bCapturePending && m_pvkDevice && m_pvkDevice->GetDevice() ) {
+			// The copy is part of the last frame's work; wait for that frame to finish.
+			VkFence fFence = m_fRenderFence.Get();
+			if ( fFence != VK_NULL_HANDLE ) {
+				CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, UINT64_MAX );
+			}
+			ReadCapture();
+		}
 	}
 
 	/**

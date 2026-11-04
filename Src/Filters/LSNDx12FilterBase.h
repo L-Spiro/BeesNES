@@ -84,6 +84,13 @@ namespace lsn {
 		virtual void											DeActivate() override;
 
 		/**
+		 * If a frame was rendered while capturing, copies the area of the back buffer showing the console screen into the capture target.
+		 *	Call after the frame has been rendered (its command list executed and flushed) and before Present().  The copy is recorded into a
+		 *	command list of its own, executed, and read back immediately, so nothing is carried over to the next frame.
+		 */
+		void													CaptureBackBuffer();
+
+		/**
 		 * Sets the parent window handle.  Must be set only when there is a 0 reference count.
 		 * Typically it will only ever be set once; nothing should ever destroy the main window except shut-down.
 		 * 
@@ -324,11 +331,16 @@ namespace lsn {
 
 		// == Capture ==
 		std::unique_ptr<CDirectX12Resource>						m_rCaptureReadback;										/**< The readback buffer into which captured images are copied. */
+		std::unique_ptr<CDirectX12CommandAllocator>				m_caCapture;											/**< The command allocator for the capture copy. */
+		std::unique_ptr<CDirectX12GraphicsCommandList>			m_gclCapture;											/**< The command list for the capture copy. */
+		lsw::LSW_RECT											m_rCaptureArea;											/**< The area of the back buffer to capture. */
+		uint64_t												m_ui64CaptureRequestFrame = 0;							/**< The PPU frame rendered for capture. */
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT						m_pspfCaptureFootprint = {};							/**< The layout of the pending capture in m_rCaptureReadback. */
 		UINT64													m_ui64CaptureSize = 0;									/**< The size of m_rCaptureReadback in bytes. */
 		uint64_t												m_ui64CapturePpuFrame = 0;								/**< The PPU frame whose capture is pending. */
 		LSN_CAPTURE_FORMAT										m_cfCaptureFormat = LSN_CF_UNKNOWN;						/**< The format of the pending capture. */
 		bool													m_bCapturePending = false;								/**< True if a copy into m_rCaptureReadback was recorded and has not been read yet. */
+		bool													m_bCaptureRequested = false;							/**< True if RenderBase() rendered a frame that CaptureBackBuffer() should capture. */
 
 
 		// == Functions.

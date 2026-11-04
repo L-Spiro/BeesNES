@@ -15,6 +15,7 @@
 #include <ctime>
 #include <cwchar>
 #include <filesystem>
+#include <format>
 
 
 namespace lsn {
@@ -1485,6 +1486,8 @@ namespace lsn {
 		m_ui64ExportRenderedId = 0;
 		m_bExportRenderPending = false;
 		m_ui32ExportMissedCaptures = 0;
+		m_ui64ExportDroppedFrames = 0;
+		m_ui64ExportFirstDropped = 0;
 		m_abExportAbort = false;
 		SetVideoCapture( true );
 		m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
@@ -1504,9 +1507,50 @@ namespace lsn {
 		_wsError.clear();
 		if ( !m_veExporter.IsActive() ) { return true; }
 		AttachExportApu( false );
+		// GPU captures can arrive a frame late; get the last rendered frame before capturing stops.
+		if ( m_cfartCurFilterAndTargets.pfbPrevFilter && m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
+			static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter)->FlushCapture();
+			ExportLatestCapture();
+		}
 		SetVideoCapture( false );
 		m_bExportRenderPending = false;
-		return m_veExporter.Stop( _wsError );
+		bool bRet = m_veExporter.Stop( _wsError );
+		if ( bRet && m_ui64ExportDroppedFrames ) {
+			// Should never happen; if it does, say so rather than leave a gap in the movie unnoticed.
+			_wsError = std::format( LSN_LSTR( LSN_VE_FRAMES_DROPPED ), m_ui64ExportDroppedFrames, m_ui64ExportFirstDropped );
+		}
+		return bRet;
+	}
+
+	/**
+	 * Determines whether the emulation thread is waiting for a frame to be rendered so that it can be exported.
+	 * 
+	 * \return Returns true if exporting and a swapped frame has not yet been rendered.
+	 **/
+	bool CBeesNes::ExportFramePending() const {
+		return m_veExporter.IsActive() && !m_veExporter.Failed() && m_aui64ExportDoneId < m_aui64ExportSwapId;
+	}
+
+	/**
+	 * Gives the most recently captured frame to the exporter if it is new, and keeps track of any PPU frames that were never captured.
+	 * 
+	 * \return Returns true if a new capture was found.
+	 **/
+	bool CBeesNes::ExportLatestCapture() {
+		if ( m_cbVideoCapture.ui64Captures == m_ui64ExportLastCapture ) { return false; }
+		m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
+		// GPU captures can arrive a frame late and a re-render of the same frame captures it again; each PPU frame is exported once.
+		uint64_t ui64Frame = m_cbVideoCapture.ui64PpuFrame;
+		if ( ui64Frame != m_ui64ExportLastPpuFrame ) {
+			// Every frame the PPU makes is exported, so frame numbers must be consecutive (they restart from 0 when a ROM is loaded or reset).
+			if ( m_ui64ExportLastPpuFrame != ~0ULL && ui64Frame > m_ui64ExportLastPpuFrame + 1 ) {
+				if ( !m_ui64ExportDroppedFrames ) { m_ui64ExportFirstDropped = m_ui64ExportLastPpuFrame + 1; }
+				m_ui64ExportDroppedFrames += ui64Frame - m_ui64ExportLastPpuFrame - 1;
+			}
+			m_ui64ExportLastPpuFrame = ui64Frame;
+			m_veExporter.SubmitFrame( m_cbVideoCapture );
+		}
+		return true;
 	}
 
 	/**
@@ -1547,14 +1591,8 @@ namespace lsn {
 	void CBeesNes::FinishRenderedFrame() {
 		if ( !m_bExportRenderPending ) { return; }
 		m_bExportRenderPending = false;
-		if ( m_cbVideoCapture.ui64Captures != m_ui64ExportLastCapture ) {
-			m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
+		if ( ExportLatestCapture() ) {
 			m_ui32ExportMissedCaptures = 0;
-			// GPU captures arrive 1 frame late and a re-render of the same frame captures it again; each PPU frame is exported once.
-			if ( m_cbVideoCapture.ui64PpuFrame != m_ui64ExportLastPpuFrame ) {
-				m_ui64ExportLastPpuFrame = m_cbVideoCapture.ui64PpuFrame;
-				m_veExporter.SubmitFrame( m_cbVideoCapture );
-			}
 		}
 		else if ( m_ui32ExportMissedCaptures < 120 ) {
 			if ( ++m_ui32ExportMissedCaptures == 120 ) {

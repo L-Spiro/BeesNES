@@ -465,6 +465,13 @@ namespace lsn {
 		void									FinishRenderedFrame();
 
 		/**
+		 * Determines whether the emulation thread is waiting for a frame to be rendered so that it can be exported.
+		 * 
+		 * \return Returns true if exporting and a swapped frame has not yet been rendered.
+		 **/
+		bool									ExportFramePending() const;
+
+		/**
 		 * Makes the waits in VideoExportFrameBoundary() return immediately (true) or restores normal waiting (false).  Set while stopping the
 		 *	emulation thread.
 		 * 
@@ -795,6 +802,10 @@ namespace lsn {
 		std::atomic<bool>						m_abExportAbort = false;
 		/** The number of frames rendered in a row without producing a capture. */
 		uint32_t								m_ui32ExportMissedCaptures = 0;
+		/** The number of PPU frames that were never exported (should always be 0). */
+		uint64_t								m_ui64ExportDroppedFrames = 0;
+		/** The first PPU frame that was never exported. */
+		uint64_t								m_ui64ExportFirstDropped = 0;
 		/** Set by Render() when it renders a new frame while exporting. */
 		bool									m_bExportRenderPending = false;
 		/** The standard RGB filter. */
@@ -1188,6 +1199,13 @@ namespace lsn {
 		 * \return Returns the path of a new movie file, or an empty string if the Movies folder could not be created.
 		 */
 		static std::wstring						ExportMoviePath( void * _pvThis );
+
+		/**
+		 * Gives the most recently captured frame to the exporter if it is new, and keeps track of any PPU frames that were never captured.
+		 * 
+		 * \return Returns true if a new capture was found.
+		 **/
+		bool									ExportLatestCapture();
 
 		/**
 		 * Points the current system's APU's sample output at the exporter (or at nothing).
