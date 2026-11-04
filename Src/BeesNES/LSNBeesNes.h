@@ -793,6 +793,8 @@ namespace lsn {
 		std::condition_variable					m_cvExportWait;
 		/** Makes the wait for a frame to be rendered return immediately. */
 		std::atomic<bool>						m_abExportAbort = false;
+		/** The number of frames rendered in a row without producing a capture. */
+		uint32_t								m_ui32ExportMissedCaptures = 0;
 		/** Set by Render() when it renders a new frame while exporting. */
 		bool									m_bExportRenderPending = false;
 		/** The standard RGB filter. */

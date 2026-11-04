@@ -14,6 +14,7 @@
 #include "LSNFilterBase.h"
 #include "LSNNesPalette.h"
 
+#include <string>
 #include <vector>
 
 
@@ -199,6 +200,13 @@ namespace lsn {
 		 */
 		inline LSN_CAPTURE_BUFFER *							CaptureTarget() const { return m_pcbCapture; }
 
+		/**
+		 * Gets the reason the last capture failed.
+		 *
+		 * \return Returns a description of why the last attempt to capture a frame failed, or an empty string if it did not fail.
+		 */
+		inline const std::wstring &							CaptureError() const { return m_wsCaptureError; }
+
 	protected :
 		// == Members.
 		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_AUTO;					/**< The requested gamma curve. */
@@ -211,6 +219,7 @@ namespace lsn {
 		bool												m_bEnablePhosphorDecay = true;						/**< True if the phosphor pass should execute. */
 		LSN_CAPTURE_BUFFER *								m_pcbCapture = nullptr;								/**< The buffer into which rendered frames are captured, or nullptr. */
 		uint64_t											m_ui64CaptureFrame = 0;								/**< The PPU frame being rendered, for the capture. */
+		std::wstring										m_wsCaptureError;									/**< Why the last capture failed, or empty. */
 
 		
 	};

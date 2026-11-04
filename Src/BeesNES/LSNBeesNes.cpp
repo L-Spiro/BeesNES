@@ -1484,6 +1484,7 @@ namespace lsn {
 		m_aui64ExportDoneId = 0;
 		m_ui64ExportRenderedId = 0;
 		m_bExportRenderPending = false;
+		m_ui32ExportMissedCaptures = 0;
 		m_abExportAbort = false;
 		SetVideoCapture( true );
 		m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
@@ -1548,10 +1549,27 @@ namespace lsn {
 		m_bExportRenderPending = false;
 		if ( m_cbVideoCapture.ui64Captures != m_ui64ExportLastCapture ) {
 			m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
+			m_ui32ExportMissedCaptures = 0;
 			// GPU captures arrive 1 frame late and a re-render of the same frame captures it again; each PPU frame is exported once.
 			if ( m_cbVideoCapture.ui64PpuFrame != m_ui64ExportLastPpuFrame ) {
 				m_ui64ExportLastPpuFrame = m_cbVideoCapture.ui64PpuFrame;
 				m_veExporter.SubmitFrame( m_cbVideoCapture );
+			}
+		}
+		else if ( m_ui32ExportMissedCaptures < 120 ) {
+			if ( ++m_ui32ExportMissedCaptures == 120 ) {
+				// Frames are being rendered but not captured.  That can happen for a while (such as when a minimized window leaves nothing to
+				//	capture), but if nothing at all has been captured since the export started then capturing does not work with this renderer:
+				//	report it (with the renderer's reason, if it gave one) rather than silently making nothing.
+				std::wstring wsReason;
+				if ( m_cfartCurFilterAndTargets.pfbPrevFilter && m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
+					wsReason = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter)->CaptureError();
+				}
+				if ( m_ui64ExportLastPpuFrame == ~0ULL ) {
+					std::wstring wsError = LSN_LSTR( LSN_VE_NO_CAPTURES );
+					if ( !wsReason.empty() ) { wsError += L"\r\n\r\n" + wsReason; }
+					m_veExporter.ReportError( wsError );
+				}
 			}
 		}
 		{

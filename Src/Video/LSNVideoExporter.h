@@ -166,6 +166,14 @@ namespace lsn {
 		void													SubmitFrame( const LSN_CAPTURE_BUFFER &_cbFrame );
 
 		/**
+		 * Ends the export with an error detected outside of the exporter (such as frames not being captured).  The emulation thread's next
+		 *	FrameBoundary() returns false.  Can be called from any thread.
+		 *
+		 * \param _wsError The error message.
+		 */
+		void													ReportError( const std::wstring &_wsError );
+
+		/**
 		 * Receives each audio sample.  Called on the emulation thread for each sample the APU outputs (set as the APU's sample-out function).
 		 *
 		 * \param _pvThis A pointer to this object.
@@ -399,6 +407,7 @@ namespace lsn {
 		uint64_t												m_ui64SamplesThisFrame = 0;					/**< Samples received since the last FrameBoundary(). */
 		std::wstring											m_wsFfmpeg;									/**< The FFmpeg executable. */
 		std::wstring											m_wsError;									/**< The first error. */
+		mutable std::mutex										m_mError;									/**< Guards m_wsError (Fail() can be called from any thread). */
 		std::vector<std::wstring>								m_vMovies;									/**< Every movie made since Start(). */
 		const LSN_VIDEO_FORMAT_DATA *							m_pvfdFormat = nullptr;						/**< The video format. */
 		LSN_VIDEO_EXPORT_OPTIONS::LSN_FORMAT_OPTIONS			m_foOptions;								/**< The settings for the video format. */

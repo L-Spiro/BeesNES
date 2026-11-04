@@ -460,7 +460,10 @@ namespace lsn {
 		_wsError.clear();
 		m_abFailed = false;
 		m_abAbort = false;
-		m_wsError.clear();
+		{
+			std::lock_guard<std::mutex> lgLock( m_mError );
+			m_wsError.clear();
+		}
 		m_vMovies.clear();
 
 		m_vfFormat = _veoOptions.vfFormat;
@@ -538,7 +541,10 @@ namespace lsn {
 		m_cbConverted.Reset();
 		m_vStage = std::vector<float>();
 		m_bActive = false;
-		_wsError = m_wsError;
+		{
+			std::lock_guard<std::mutex> lgLock( m_mError );
+			_wsError = m_wsError;
+		}
 		bool bRet = !m_abFailed;
 		m_abFailed = false;
 		return bRet;
@@ -556,6 +562,17 @@ namespace lsn {
 			m_cvPool.notify_all();
 			if ( m_psSession ) { m_psSession->Wake(); }
 		}
+	}
+
+	/**
+	 * Ends the export with an error detected outside of the exporter (such as frames not being captured).  The emulation thread's next
+	 *	FrameBoundary() returns false.  Can be called from any thread.
+	 *
+	 * \param _wsError The error message.
+	 */
+	void CVideoExporter::ReportError( const std::wstring &_wsError ) {
+		if ( !m_bActive ) { return; }
+		Fail( _wsError );
 	}
 
 	/**
@@ -887,11 +904,14 @@ namespace lsn {
 	 * \param _wsError The error message.
 	 */
 	void CVideoExporter::Fail( const std::wstring &_wsError ) {
-		if ( m_wsError.empty() ) {
-			try {
-				m_wsError = _wsError;
+		{
+			std::lock_guard<std::mutex> lgLock( m_mError );
+			if ( m_wsError.empty() ) {
+				try {
+					m_wsError = _wsError;
+				}
+				catch ( ... ) {}
 			}
-			catch ( ... ) {}
 		}
 		m_abFailed = true;
 		m_cvPool.notify_all();

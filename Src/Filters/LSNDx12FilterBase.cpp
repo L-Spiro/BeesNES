@@ -9,10 +9,13 @@
  */
 
 #include "LSNDx12FilterBase.h"
+#include "../Localization/LSNLocalization.h"
 #include "../Utilities/LSNUtilities.h"
 
 #include <Base/LSWBase.h>
 #include <Base/LSWWndClassEx.h>
+
+#include <format>
 
 namespace lsn {
 
@@ -396,7 +399,10 @@ namespace lsn {
 
 		D3D12_RESOURCE_DESC rdTex = _prTexture->GetDesc();
 		LSN_CAPTURE_FORMAT cfFormat = CaptureFormat( rdTex.Format );
-		if LSN_UNLIKELY( cfFormat == LSN_CF_UNKNOWN || rdTex.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D || rdTex.SampleDesc.Count != 1 ) { return false; }
+		if LSN_UNLIKELY( cfFormat == LSN_CF_UNKNOWN || rdTex.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D || rdTex.SampleDesc.Count != 1 ) {
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_FORMAT ), uint32_t( rdTex.Format ), rdTex.SampleDesc.Count );
+			return false;
+		}
 
 		// Clip the area to the texture.
 		LONG lW = LONG( rdTex.Width ), lH = LONG( rdTex.Height );
@@ -404,18 +410,40 @@ namespace lsn {
 		LONG lTop = std::clamp<LONG>( _rArea.top, 0, lH );
 		LONG lRight = std::clamp<LONG>( _rArea.right, lLeft, lW );
 		LONG lBottom = std::clamp<LONG>( _rArea.bottom, lTop, lH );
-		if LSN_UNLIKELY( lRight == lLeft || lBottom == lTop ) { return false; }
+		if LSN_UNLIKELY( lRight == lLeft || lBottom == lTop ) {
+			m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_CAPTURE_AREA_EMPTY ), _rArea.left, _rArea.top, _rArea.right, _rArea.bottom, lW, lH );
+			return false;
+		}
 
-		// The layout of the area in a buffer.
-		D3D12_RESOURCE_DESC rdArea = rdTex;
+		// The layout of the area in a buffer.  The description is built from scratch rather than copied from the texture's:  a swap-chain
+		//	buffer's description carries the alignment and flags of its own allocation, which can make GetCopyableFootprints() reject a
+		//	description of a smaller area (it then reports a size of UINT64_MAX).
+		D3D12_RESOURCE_DESC rdArea = {};
+		rdArea.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+		rdArea.Alignment = 0;
 		rdArea.Width = UINT64( lRight - lLeft );
 		rdArea.Height = UINT( lBottom - lTop );
 		rdArea.DepthOrArraySize = 1;
 		rdArea.MipLevels = 1;
+		rdArea.Format = rdTex.Format;
+		rdArea.SampleDesc.Count = 1;
+		rdArea.SampleDesc.Quality = 0;
+		rdArea.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		rdArea.Flags = D3D12_RESOURCE_FLAG_NONE;
 		UINT64 ui64Total = 0;
 		pd12Device->GetCopyableFootprints( &rdArea, 0, 1, 0, &m_pspfCaptureFootprint, nullptr, nullptr, &ui64Total );
-		if LSN_UNLIKELY( !ui64Total ) { return false; }
+		if LSN_UNLIKELY( !ui64Total || ui64Total == UINT64( -1 ) ) {
+			// Use the documented layout for uncompressed formats:  rows padded to D3D12_TEXTURE_DATA_PITCH_ALIGNMENT bytes.
+			UINT uiRowSize = UINT( rdArea.Width ) * LSN_CAPTURE_BUFFER::BytesPerPixel( cfFormat );
+			UINT uiRowPitch = (uiRowSize + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~UINT( D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1 );
+			m_pspfCaptureFootprint.Offset = 0;
+			m_pspfCaptureFootprint.Footprint.Format = rdArea.Format;
+			m_pspfCaptureFootprint.Footprint.Width = UINT( rdArea.Width );
+			m_pspfCaptureFootprint.Footprint.Height = rdArea.Height;
+			m_pspfCaptureFootprint.Footprint.Depth = 1;
+			m_pspfCaptureFootprint.Footprint.RowPitch = uiRowPitch;
+			ui64Total = UINT64( uiRowPitch ) * rdArea.Height;
+		}
 
 		if LSN_UNLIKELY( !m_rCaptureReadback.get() || !m_rCaptureReadback->Get() || m_ui64CaptureSize < ui64Total ) {
 			if ( !m_rCaptureReadback.get() ) { m_rCaptureReadback = std::make_unique<CDirectX12Resource>(); }
@@ -423,7 +451,10 @@ namespace lsn {
 			m_ui64CaptureSize = 0;
 			D3D12_HEAP_PROPERTIES hpReadback = { D3D12_HEAP_TYPE_READBACK, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
 			D3D12_RESOURCE_DESC rdBuffer = { D3D12_RESOURCE_DIMENSION_BUFFER, 0, ui64Total, 1, 1, 1, DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR, D3D12_RESOURCE_FLAG_NONE };
-			if ( !m_rCaptureReadback->CreateCommittedResource( pd12Device, &hpReadback, D3D12_HEAP_FLAG_NONE, &rdBuffer, D3D12_RESOURCE_STATE_COPY_DEST ) ) { return false; }
+			if ( !m_rCaptureReadback->CreateCommittedResource( pd12Device, &hpReadback, D3D12_HEAP_FLAG_NONE, &rdBuffer, D3D12_RESOURCE_STATE_COPY_DEST ) ) {
+				m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_BUFFER ), ui64Total );
+				return false;
+			}
 			m_ui64CaptureSize = ui64Total;
 		}
 
@@ -449,6 +480,7 @@ namespace lsn {
 		m_cfCaptureFormat = cfFormat;
 		m_ui64CapturePpuFrame = m_ui64CaptureFrame;
 		m_bCapturePending = true;
+		m_wsCaptureError.clear();
 		return true;
 	}
 
@@ -460,12 +492,16 @@ namespace lsn {
 		if ( m_bCapturePending && m_pcbCapture && m_rCaptureReadback.get() && m_rCaptureReadback->Get() ) {
 			void * pvData = nullptr;
 			D3D12_RANGE rRead = { SIZE_T( m_pspfCaptureFootprint.Offset ), SIZE_T( m_pspfCaptureFootprint.Offset + UINT64( m_pspfCaptureFootprint.Footprint.RowPitch ) * m_pspfCaptureFootprint.Footprint.Height ) };
-			if ( SUCCEEDED( m_rCaptureReadback->Get()->Map( 0, &rRead, &pvData ) ) && pvData ) {
+			HRESULT hRes = m_rCaptureReadback->Get()->Map( 0, &rRead, &pvData );
+			if ( SUCCEEDED( hRes ) && pvData ) {
 				m_pcbCapture->Copy( static_cast<const uint8_t *>(pvData) + m_pspfCaptureFootprint.Offset,
 					m_pspfCaptureFootprint.Footprint.Width, m_pspfCaptureFootprint.Footprint.Height, m_pspfCaptureFootprint.Footprint.RowPitch,
 					m_cfCaptureFormat, false, m_ui64CapturePpuFrame );
 				D3D12_RANGE rWritten = { 0, 0 };
 				m_rCaptureReadback->Get()->Unmap( 0, &rWritten );
+			}
+			else {
+				m_wsCaptureError = std::format( LSN_LSTR( LSN_VE_DX12_CAPTURE_MAP ), uint32_t( hRes ) );
 			}
 		}
 		m_bCapturePending = false;

@@ -778,6 +778,11 @@
 #define LSN_VE_FRAME_TOO_SMALL											The captured frame ({}\u00D7{}) is too small to export.
 #define LSN_VE_UNSUPPORTED_CAPTURE										Frames captured in this pixel format cannot be exported.
 #define LSN_VE_INVALID_FORMAT											The selected video format is not valid.
+#define LSN_VE_NO_CAPTURES												No frames are being captured from the current video filter so the movie cannot be made.  Try another video filter or graphics API.
+#define LSN_VE_DX12_CAPTURE_FORMAT										Direct3D 12 cannot capture the swap chain (DXGI format {} with {} samples).
+#define LSN_VE_DX12_CAPTURE_BUFFER										Direct3D 12 could not create the {}-byte buffer used to read frames back from the GPU.
+#define LSN_VE_DX12_CAPTURE_MAP											Direct3D 12 could not map the buffer used to read frames back from the GPU (HRESULT 0x{:08X}).
+#define LSN_VE_CAPTURE_AREA_EMPTY										The capture area ({} {} to {} {}) does not overlap the {}\u00D7{} swap chain.
 
 // General.
 #define LSN_ERROR															Error
