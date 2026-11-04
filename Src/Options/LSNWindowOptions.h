@@ -29,6 +29,10 @@ typedef lsw::LSW_KEY															CUiKey;
 #define LSN_DEFAULT_HRESET_KEYCODE												VK_F1
 #define LSN_DEFAULT_HRESET_SCANCODE												0x003B0001
 
+#define LSN_DEFAULT_RECORD_VIDEO_KEYMOD											0x00
+#define LSN_DEFAULT_RECORD_VIDEO_KEYCODE										VK_F9
+#define LSN_DEFAULT_RECORD_VIDEO_SCANCODE										0x00430001
+
 #define LSN_KEY_INIT( SCANCODE, KEYCODE, KEYMOD )								{ .dwScanCode = DWORD( SCANCODE ), .bKeyCode = BYTE( KEYCODE ), .bKeyModifier = BYTE( KEYMOD ) }
 #else
 #endif	// #ifdef LSN_USE_WINDOWS
@@ -52,6 +56,8 @@ namespace lsn {
 		CUiKey								ukResetKey							= LSN_KEY_INIT( LSN_DEFAULT_RESET_SCANCODE, LSN_DEFAULT_RESET_KEYCODE, LSN_DEFAULT_RESET_KEYMOD );
 		/** The key to hard-reset the system. */
 		CUiKey								ukHardResetKey						= LSN_KEY_INIT( LSN_DEFAULT_HRESET_SCANCODE, LSN_DEFAULT_HRESET_KEYCODE, LSN_DEFAULT_HRESET_KEYMOD );
+		/** The key to start/stop recording a video. */
+		CUiKey								ukRecordVideoKey					= LSN_KEY_INIT( LSN_DEFAULT_RECORD_VIDEO_SCANCODE, LSN_DEFAULT_RECORD_VIDEO_KEYCODE, LSN_DEFAULT_RECORD_VIDEO_KEYMOD );
 		/** Enter borderless mode on maximize? */
 		bool								bGoBorderless						= true;
 		/** Hide the menu in borderless maximized mode? */

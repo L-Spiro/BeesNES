@@ -164,14 +164,15 @@ namespace lsn {
 			std::vector<std::wstring> vArgs = {
 				L"-hide_banner", L"-nostdin", L"-loglevel", L"error", L"-y",
 				// Input 0:  raw video.  The small probe size keeps FFmpeg from waiting for lots of data before it opens the audio input.
+				// (-thread_queue_size is not used:  newer builds of FFmpeg accept it only on outputs and refuse to start if it is given to an input.)
 				L"-f", L"rawvideo", L"-pix_fmt", Wide( pcInFormat ),
 				L"-s", std::to_wstring( _spProps.ui32Width ) + L"x" + std::to_wstring( _spProps.ui32Height ),
 				L"-framerate", Wide( RateStr( rInRate ).c_str() ),
-				L"-probesize", L"32", L"-analyzeduration", L"0", L"-thread_queue_size", L"4",
+				L"-probesize", L"32", L"-analyzeduration", L"0",
 				L"-i", wsVideoPipe,
 				// Input 1:  32-bit float mono audio.  FFmpeg converts it to whatever the audio codec needs.
 				L"-f", L"f32le", L"-ar", std::to_wstring( _spProps.ui32AudioHz ), L"-ac", L"1",
-				L"-probesize", L"32", L"-analyzeduration", L"0", L"-thread_queue_size", L"1024",
+				L"-probesize", L"32", L"-analyzeduration", L"0",
 				L"-i", wsAudioPipe,
 			};
 			if ( !BuildOutputArgs( (*m_pveOwner->m_pvfdFormat), m_pveOwner->m_foOptions, m_pveOwner->m_bInterpolate,

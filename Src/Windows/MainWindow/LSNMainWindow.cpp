@@ -748,18 +748,7 @@ namespace lsn {
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
-				// Start/stop exporting a movie.  The emulation thread is stopped meanwhile so that it is not in the middle of a frame.
-				bool bWasRunning = m_ptThread.get() != nullptr;
-				StopThread();
-				std::wstring wsError;
-				HCURSOR hOldCursor = ::SetCursor( ::LoadCursorW( NULL, IDC_WAIT ) );
-				bool bOk = m_bnEmulator.IsExportingVideo() ? m_bnEmulator.StopVideoExport( wsError ) : m_bnEmulator.StartVideoExport( wsError );
-				::SetCursor( hOldCursor );
-				m_abVideoExportErrorPosted = false;
-				if ( !bOk || !wsError.empty() ) {
-					lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
-				}
-				if ( bWasRunning ) { StartThread(); }
+				ToggleVideoRecording();
 				break;
 			}
 
@@ -1204,6 +1193,9 @@ namespace lsn {
 			m_bnEmulator.PowerCycle();
 			StartThread();
 		}
+		else if ( wVkCode == m_woWindowOptions.ukRecordVideoKey.bKeyCode && ((!m_woWindowOptions.ukRecordVideoKey.bKeyModifier && !bHasModifier) || ::GetAsyncKeyState( m_woWindowOptions.ukRecordVideoKey.bKeyModifier ) & 0x8000) ) {
+			if ( !(wKeyFlags & KF_REPEAT) ) { ToggleVideoRecording(); }
+		}
 		//::OutputDebugStringA( std::format( "{:X}, {:X}, {:X}\r\n", _uiKeyCode, _uiFlags, wVkCode ).c_str() );
 		return LSW_H_CONTINUE;
 	}
@@ -1555,6 +1547,17 @@ namespace lsn {
 				}
 
 				case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD_VIDEO : {
+					try {
+						std::wstring wStr = LSN_LSTR( LSN_TOOLS_RECORD_VIDEO );
+
+						if ( m_woWindowOptions.ukRecordVideoKey.bKeyCode ) {
+							wStr += L"\t" + CHelpers::ToString( m_woWindowOptions.ukRecordVideoKey, false );
+						}
+
+						MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STRING, .dwTypeData = const_cast<LPWSTR>(wStr.c_str()) };
+						::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					} catch ( ... ) {}
+
 					// Checked while recording.
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.IsExportingVideo() ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -2228,6 +2231,25 @@ namespace lsn {
 	 **/
 	void CMainWindow::ShowCheats() {
 		CCheatsWindowLayout::CreateCheatsDialog( this, &m_bnEmulator.CheatManager() );
+	}
+
+	/**
+	 * Starts recording a video if not recording, otherwise stops recording.  Used by both the Record Video menu item and its hotkey.
+	 *	Any error is shown in a message box.
+	 **/
+	void CMainWindow::ToggleVideoRecording() {
+		// The emulation thread is stopped meanwhile so that it is not in the middle of a frame.
+		bool bWasRunning = m_ptThread.get() != nullptr;
+		StopThread();
+		std::wstring wsError;
+		HCURSOR hOldCursor = ::SetCursor( ::LoadCursorW( NULL, IDC_WAIT ) );
+		bool bOk = m_bnEmulator.IsExportingVideo() ? m_bnEmulator.StopVideoExport( wsError ) : m_bnEmulator.StartVideoExport( wsError );
+		::SetCursor( hOldCursor );
+		m_abVideoExportErrorPosted = false;
+		if ( !bOk || !wsError.empty() ) {
+			lsw::CBase::MessageBoxError( Wnd(), wsError.c_str(), LSN_LSTR( LSN_VE_TITLE ) );
+		}
+		if ( bWasRunning ) { StartThread(); }
 	}
 
 	/**
