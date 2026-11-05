@@ -794,7 +794,7 @@
 #define LSN_VE_FFMPEG_PATH_INVALID										FFmpeg could not be found at \u201C{}\u201D.  Check the FFmpeg path in the video recording settings.
 
 // Video recording settings.
-#define LSN_VR_TITLE													Video Recording Settings
+#define LSN_VR_TITLE													Video-Recording Settings
 #define LSN_VR_OUTPUT													Output
 #define LSN_VR_FOLDER_													Folder:
 #define LSN_VR_FFMPEG_													FFmpeg:

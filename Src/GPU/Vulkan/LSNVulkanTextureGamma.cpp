@@ -200,7 +200,7 @@ namespace lsn {
 			"    if (v < Vc) { return K * pow(Vc + B, (Alpha1 - Alpha2)) * pow(v + B, Alpha2); }\n"
 			"    return K * pow(v + B, Alpha1);\n"
 			"}\n"
-			"float CrtProperToLinear(float v) { return CrtProperToLinear(v, 1.0, 0.0181); }\n"
+			"float CrtProperToLinear(float v) { return CrtProperToLinear(v, 1.0, 0.0181 * 8.0); }\n"
 			"vec3 CrtProperToLinear3(vec3 c) { return vec3(CrtProperToLinear(c.r), CrtProperToLinear(c.g), CrtProperToLinear(c.b)); }\n"
 			"\n"
 			"float CrtProper2ToLinear(float v) {\n"
