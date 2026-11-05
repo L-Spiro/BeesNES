@@ -146,6 +146,10 @@
 #define LSN_TOOLS_PATCH														i&Patch
 #define LSN_TOOLS_WAV_EDIT													&WAV Editor
 #define LSN_TOOLS_RECORD_VIDEO												&Record Video
+#define LSN_TOOLS_RECORD													&Record
+#define LSN_TOOLS_STOP_RECORDING											&Stop Recording
+#define LSN_TOOLS_RECORDING_PENDING											Recording &Pending\u2026								// Recording Pending...
+#define LSN_TOOLS_RECORDING_SETTINGS										Recording S&ettings\u2026								// Recording Settings...
 
 // Main menu.
 #define LSN_SELECT_ROM														Select ROM
@@ -768,7 +772,7 @@
 #define LSN_VE_MISSING_MUXER											This build of FFmpeg (\u201C{}\u201D) cannot write \u201C{}\u201D files.
 #define LSN_VE_MISSING_FILTER											This build of FFmpeg (\u201C{}\u201D) does not include the \u201C{}\u201D filter.
 #define LSN_VE_TEST_FAILED												FFmpeg could not encode {} with the selected settings.  If the encoder runs on a GPU then the GPU or its driver may not support it or these settings.\r\n\r\n{}
-#define LSN_VE_MOVIES_FOLDER_FAILED										The Movies folder could not be created.
+#define LSN_VE_MOVIES_FOLDER_FAILED										The folder for movies could not be created.  Check the output folder in the video recording settings.
 #define LSN_VE_PIPE_FAILED												The pipes to FFmpeg could not be created.
 #define LSN_VE_LAUNCH_FAILED											FFmpeg (\u201C{}\u201D) could not be started.
 #define LSN_VE_FFMPEG_STOPPED											FFmpeg stopped accepting data while making \u201C{}\u201D (exit code {}).  Its log was saved to \u201C{}\u201D.\r\n\r\n{}
@@ -787,6 +791,60 @@
 #define LSN_VE_DX12_NOT_RENDERED										Direct3D 12 did not render the frame that was to be captured.
 #define LSN_VE_DX12_CAPTURE_LIST										Direct3D 12 could not create the command list used to capture frames.
 #define LSN_VE_DX12_CAPTURE_HRESULT										Direct3D 12 failed to capture a frame:  {} returned HRESULT 0x{:08X}.
+#define LSN_VE_FFMPEG_PATH_INVALID										FFmpeg could not be found at \u201C{}\u201D.  Check the FFmpeg path in the video recording settings.
+
+// Video recording settings.
+#define LSN_VR_TITLE													Video Recording Settings
+#define LSN_VR_OUTPUT													Output
+#define LSN_VR_FOLDER_													Folder:
+#define LSN_VR_FFMPEG_													FFmpeg:
+#define LSN_VR_BROWSE													Browse
+#define LSN_VR_FFMPEG_CUE												Search local folder, .\\ffmpeg\\bin, then PATH
+#define LSN_VR_BROWSE_FOLDER											Select the folder into which to save movies.
+#define LSN_VR_FFMPEG_TYPES												FFmpeg (ffmpeg.exe)\0ffmpeg.exe\0Programs (*.exe)\0*.exe\0All Files (*.*)\0*.*\0\0
+#define LSN_VR_VIDEO													Video
+#define LSN_VR_FORMAT_													Format:
+#define LSN_VR_PRESET_													Preset:
+#define LSN_VR_QUALITY_													Quality:
+#define LSN_VR_QUALITY													Quality
+#define LSN_VR_ALT_QUALITY_												Alt. Quality:
+#define LSN_VR_ALT_QUALITY												Alt. Quality
+#define LSN_VR_LOSSLESS													Lossless
+#define LSN_VR_USE														Use
+#define LSN_VR_RANGE_LOWER_BETTER										{}:  {} to {} (lower is better)
+#define LSN_VR_RANGE_HIGHER_BETTER										{}:  {} to {} (higher is better)
+#define LSN_VR_NAMED_VALUE												{}:  {} = {}
+#define LSN_VR_ALWAYS_LOSSLESS											This format is always lossless.
+#define LSN_VR_NO_PRESETS												This encoder has no presets.
+#define LSN_VR_PIXEL_FORMAT_											Pixel Format:
+#define LSN_VR_FRAME_RATE_												Frame Rate:
+#define LSN_VR_MATCH_CONSOLE											Match Console
+#define LSN_VR_BLEND_FRAMES												Blend frames when the frame rate differs from the console
+#define LSN_VR_FPS_CUE													{} or {}
+#define LSN_VR_AUDIO													Audio
+#define LSN_VR_CODEC_													Codec:
+#define LSN_VR_BITRATE_													Bitrate:
+#define LSN_VR_KBPS														Kilobits per second
+#define LSN_VR_AUDIO_BITRATE											The audio bitrate
+#define LSN_VR_NO_BITRATE												This codec is lossless and has no bitrate.
+#define LSN_VR_CONDITIONS												Conditions
+#define LSN_VR_START_CONDITION_											Start Condition:
+#define LSN_VR_END_CONDITION_											End Condition:
+#define LSN_VR_NONE														None
+#define LSN_VR_START_AT_FRAME											Start at Frame\u2026									// Start at Frame...
+#define LSN_VR_END_AT_FRAME												End at Frame\u2026										// End at Frame...
+#define LSN_VR_DURATION_SECONDS											Duration (Seconds)
+#define LSN_VR_START_FRAME_CUE											First PPU frame to record (such as {})
+#define LSN_VR_END_FRAME_CUE											PPU frame at which to stop (such as {})
+#define LSN_VR_SECONDS_CUE												Seconds to record (such as {})
+#define LSN_VR_DEFAULTS													Restore Defaults
+#define LSN_VR_ERR_RANGE												{} must be a whole number from {} to {}.
+#define LSN_VR_ERR_FPS													The frame rate must be a whole number of frames per second (such as {}) or a pair of whole numbers that make a fraction (such as {} for {} frames per second).  It must be above 0 and no more than {} frames per second.
+#define LSN_VR_ERR_START_FRAME											The start frame must be a whole number (such as {}).
+#define LSN_VR_ERR_END_FRAME											The end frame must be a whole number (such as {}).
+#define LSN_VR_ERR_END_BEFORE_START										The end frame must be larger than the start frame.
+#define LSN_VR_ERR_DURATION												The duration must be a number of seconds larger than 0 (such as {}).
+#define LSN_VR_ERR_FFMPEG												FFmpeg could not be found at \u201C{}\u201D.  Enter the path of ffmpeg.exe (or of the folder that contains it).  Leave it blank to search for FFmpeg.
 
 // General.
 #define LSN_ERROR															Error

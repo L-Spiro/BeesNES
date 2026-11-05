@@ -476,6 +476,13 @@ namespace lsn {
 		m_foOptions = _veoOptions.foFormat[m_vfFormat];
 		m_foOptions.Validate( m_vfFormat );
 		m_bInterpolate = _veoOptions.bInterpolateFrames;
+		try {
+			m_wsFfmpegSetting = _veoOptions.wsFfmpegPath;
+		}
+		catch ( ... ) {
+			_wsError = LSN_LSTR( LSN_OUT_OF_MEMORY );
+			return false;
+		}
 		m_pfNewPath = _pfNewPath;
 		m_pvNewPathParm = _pvParm;
 		m_rLastRate = _rEmuRate;
@@ -672,6 +679,15 @@ namespace lsn {
 	}
 
 	/**
+	 * Discards the audio received since the last frame was sent to FFmpeg.  Called on the emulation thread (after FrameBoundary()) for
+	 *	each emulated frame that is not to be in the movie, such as the frames before a recording's start frame.
+	 */
+	void CVideoExporter::DiscardStagedAudio() {
+		m_vStage.clear();
+		m_ui64SamplesThisFrame = 0;
+	}
+
+	/**
 	 * Gets the path of the movie currently being written.
 	 *
 	 * \return Returns the path of the movie currently being written, or an empty string.
@@ -804,8 +820,17 @@ namespace lsn {
 			return false;
 		}
 
-		LSN_RATE rOutRate = _foOptions.dFrameRate > 0.0 ? ToRate( _foOptions.dFrameRate, _vfdFormat.ui32MaxTimeBaseDen ) : _rInRate;
-		if ( !rOutRate.ui32Num ) { rOutRate = _rInRate; }
+		LSN_RATE rOutRate = _rInRate;
+		if ( !_foOptions.MatchesConsole() && LSN_VIDEO_EXPORT_OPTIONS::LSN_FORMAT_OPTIONS::ValidFrameRate( _foOptions.ui32FrameRateNum, _foOptions.ui32FrameRateDen ) ) {
+			uint32_t ui32Gcd = std::gcd( _foOptions.ui32FrameRateNum, _foOptions.ui32FrameRateDen );
+			rOutRate = LSN_RATE{ _foOptions.ui32FrameRateNum / ui32Gcd, _foOptions.ui32FrameRateDen / ui32Gcd };
+			if ( !_vfdFormat.bAllowsFractions && rOutRate.ui32Den != 1 ) {
+				rOutRate = LSN_RATE{ std::max<uint32_t>( 1, uint32_t( std::round( rOutRate.Value() ) ) ), 1 };
+			}
+			else if ( _vfdFormat.ui32MaxTimeBaseDen && rOutRate.ui32Num > _vfdFormat.ui32MaxTimeBaseDen ) {
+				rOutRate = LimitNumerator( rOutRate, _vfdFormat.ui32MaxTimeBaseDen );
+			}
+		}
 		bool bRateChange = rOutRate != _rInRate;
 		std::string sOutRate = RateStr( rOutRate );
 		// The "framerate" filter derives its output time base from its input time base and the output rate, which overflows with exact NES
@@ -1071,9 +1096,10 @@ namespace lsn {
 	 */
 	bool CVideoExporter::CheckFfmpeg( LSN_RATE _rEmuRate, uint32_t _ui32AudioHz, std::wstring &_wsError ) {
 		try {
-			m_wsFfmpeg = CFfmpegProcess::FindFfmpeg();
+			m_wsFfmpeg = CFfmpegProcess::ResolveFfmpeg( m_wsFfmpegSetting );
 			if ( m_wsFfmpeg.empty() ) {
-				_wsError = LSN_LSTR( LSN_VE_FFMPEG_NOT_FOUND );
+				if ( m_wsFfmpegSetting.empty() ) { _wsError = LSN_LSTR( LSN_VE_FFMPEG_NOT_FOUND ); }
+				else { _wsError = std::format( LSN_LSTR( LSN_VE_FFMPEG_PATH_INVALID ), m_wsFfmpegSetting ); }
 				return false;
 			}
 

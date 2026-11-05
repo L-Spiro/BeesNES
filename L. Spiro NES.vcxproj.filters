@@ -307,6 +307,12 @@
     <Filter Include="Source Files\Windows\Cheats">
       <UniqueIdentifier>{d336491b-7cdd-4eaf-8504-63b7d65ab54f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\VideoRecording">
+      <UniqueIdentifier>{069b95a6-f43d-41ad-b9de-7bdaf41fc577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\VideoRecording">
+      <UniqueIdentifier>{bbcbcf51-2937-423c-95af-4c4ae20f3dd0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Video">
       <UniqueIdentifier>{94a27916-a589-40ac-94e6-87bb191e890e}</UniqueIdentifier>
     </Filter>
@@ -1389,6 +1395,12 @@
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindowLayout.h">
       <Filter>Header Files\Windows\Cheats</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\VideoRecording\LSNVideoRecordingWindow.h">
+      <Filter>Header Files\Windows\VideoRecording</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoRecording\LSNVideoRecordingWindowLayout.h">
+      <Filter>Header Files\Windows\VideoRecording</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Cheats\LSNCheatManager.h">
       <Filter>Header Files\Cheats</Filter>
     </ClInclude>
@@ -1984,6 +1996,12 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindowLayout.cpp">
       <Filter>Source Files\Windows\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoRecording\LSNVideoRecordingWindow.cpp">
+      <Filter>Source Files\Windows\VideoRecording</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoRecording\LSNVideoRecordingWindowLayout.cpp">
+      <Filter>Source Files\Windows\VideoRecording</Filter>
     </ClCompile>
     <ClCompile Include="Src\Cheats\LSNCheatManager.cpp">
       <Filter>Source Files\Cheats</Filter>

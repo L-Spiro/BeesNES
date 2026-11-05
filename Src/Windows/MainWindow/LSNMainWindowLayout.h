@@ -171,6 +171,9 @@ namespace lsn {
 			LSN_MWMI_TOOLS_WAV_EDIT,
 			LSN_MWMI_TOOLS_CHEATS,
 			LSN_MWMI_TOOLS_RECORD_VIDEO,
+			LSN_MWMI_RECORD_VIDEO_MENU,
+			LSN_MWMI_TOOLS_RECORD,
+			LSN_MWMI_TOOLS_RECORDING_SETTINGS,
 
 			/*LSN_MWMI_SHOWFOUNDADDR,
 			LSN_MWMI_SHOW_EXPEVAL,
@@ -252,6 +255,9 @@ namespace lsn {
 
 		/** Region sub-menu. */
 		static LSW_MENU_ITEM					m_miRegionMenu[];
+
+		/** Record-video sub-menu. */
+		static LSW_MENU_ITEM					m_miRecordVideoMenu[];
 
 		/** Menus. */
 		static LSW_MENU_LAYOUT					m_miMenus[];

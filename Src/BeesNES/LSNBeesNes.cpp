@@ -1423,6 +1423,33 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the folder into which movies are exported:  the folder set in the video-export options, or the default Movies folder if none
+	 *	is set.
+	 * 
+	 * \return Returns the movie folder, including the trailing separator.
+	 **/
+	std::wstring CBeesNes::MovieFolder() const {
+		const std::wstring &wsFolder = m_oOptions.veoVideoExport.wsOutputFolder;
+		if ( wsFolder.empty() ) { return DefaultMoviesFolder(); }
+		wchar_t wcLast = wsFolder.back();
+		if ( wcLast == L'\\' || wcLast == L'/' ) { return wsFolder; }
+#if defined( _WIN32 )
+		return wsFolder + L"\\";
+#else
+		return wsFolder + L"/";
+#endif	// #if defined( _WIN32 )
+	}
+
+	/**
+	 * Gets the frame rate of the current console.
+	 * 
+	 * \return Returns the frame rate of the current console as a fraction.
+	 **/
+	CVideoExporter::LSN_RATE CBeesNes::ConsoleFrameRate() const {
+		return CVideoExporter::RegionFrameRate( m_pmSystem );
+	}
+
+	/**
 	 * Generates a movie file name from the current local date and time, in the form BeesNES_DD-MM-YYYY_HH-MM-SS.  The name has no
 	 *	folder and no extension.
 	 * 
@@ -1445,16 +1472,18 @@ namespace lsn {
 	}
 
 	/**
-	 * Prepares the path to which to export a new movie.  The Movies folder is created if it does not exist, and the returned path
-	 *	(folder, MovieFileName(), and the extension of the current video-export format) names a file that does not yet exist.
+	 * Prepares the path to which to export a new movie.  The output folder of the current export (see MovieFolder()) is created if it
+	 *	does not exist, and the returned path (folder, MovieFileName(), and the extension of the current export's video format) names a
+	 *	file that does not yet exist.  Called on the emulation thread, so it uses only the copies of the options made when exporting started.
 	 * 
-	 * \return Returns the full path of the new movie file or an empty string if the Movies folder could not be created.
+	 * \return Returns the full path of the new movie file or an empty string if the output folder could not be created.
 	 **/
 	std::wstring CBeesNes::PrepareMoviePath() const {
-		const LSN_VIDEO_FORMAT_DATA * pvfdData = CVideoFormat::Data( m_oOptions.veoVideoExport.vfFormat );
+		const LSN_VIDEO_FORMAT_DATA * pvfdData = CVideoFormat::Data( m_vfExportFormat );
 		if ( !pvfdData ) { pvfdData = CVideoFormat::Data( LSN_VF_H264 ); }
 
-		std::wstring wsFolder = DefaultMoviesFolder();
+		const std::wstring &wsFolder = m_wsExportFolder;
+		if ( wsFolder.empty() ) { return std::wstring(); }
 		std::error_code ecErr;
 		std::filesystem::create_directories( std::filesystem::path( wsFolder ), ecErr );
 		if ( !std::filesystem::is_directory( std::filesystem::path( wsFolder ), ecErr ) ) { return std::wstring(); }
@@ -1479,7 +1508,33 @@ namespace lsn {
 	bool CBeesNes::StartVideoExport( std::wstring &_wsError ) {
 		_wsError.clear();
 		if ( m_veExporter.IsActive() ) { return true; }
-		if ( !m_veExporter.Start( m_oOptions.veoVideoExport, CVideoExporter::RegionFrameRate( m_pmSystem ), AudioOutputHz(),
+
+		// Copy everything needed while exporting so that the options can change meanwhile.
+		const LSN_VIDEO_EXPORT_OPTIONS &veoOptions = m_oOptions.veoVideoExport;
+		try {
+			m_wsExportFolder = MovieFolder();
+		}
+		catch ( ... ) {
+			_wsError = LSN_LSTR( LSN_OUT_OF_MEMORY );
+			return false;
+		}
+		m_vfExportFormat = veoOptions.vfFormat;
+		m_scExportStart = veoOptions.scStart < LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_TOTAL ? veoOptions.scStart : LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_NONE;
+		m_ecExportEnd = veoOptions.ecEnd < LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_TOTAL ? veoOptions.ecEnd : LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_NONE;
+		m_ui64ExportStartFrame = veoOptions.ui64StartFrame;
+		m_ui64ExportEndFrame = veoOptions.ui64EndFrame;
+		m_ui64ExportDurationFrames = 0;
+		if ( m_ecExportEnd == LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_DURATION ) {
+			// The length is measured in emulated frames:  changing the output frame rate does not change the length of a movie.
+			double dFrames = std::round( veoOptions.dEndSeconds * CVideoExporter::RegionFrameRate( m_pmSystem ).Value() );
+			m_ui64ExportDurationFrames = dFrames >= 1.0 ? (dFrames < 1.0e18 ? uint64_t( dFrames ) : uint64_t( 1.0e18 )) : 1;
+		}
+		m_ui64ExportSubmitted = 0;
+		m_bExportVideoStarted = false;
+		m_abExportStarted = m_scExportStart == LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_NONE;
+		m_abExportEndReached = false;
+
+		if ( !m_veExporter.Start( veoOptions, CVideoExporter::RegionFrameRate( m_pmSystem ), AudioOutputHz(),
 			ExportMoviePath, this, _wsError ) ) { return false; }
 		m_aui64ExportSwapId = 0;
 		m_aui64ExportDoneId = 0;
@@ -1541,7 +1596,7 @@ namespace lsn {
 		m_ui64ExportLastCapture = m_cbVideoCapture.ui64Captures;
 		// GPU captures can arrive a frame late and a re-render of the same frame captures it again; each PPU frame is exported once.
 		uint64_t ui64Frame = m_cbVideoCapture.ui64PpuFrame;
-		if ( ui64Frame != m_ui64ExportLastPpuFrame ) {
+		if ( ui64Frame != m_ui64ExportLastPpuFrame && ExportFrameWanted( ui64Frame ) ) {
 			// Every frame the PPU makes is exported, so frame numbers must be consecutive (they restart from 0 when a ROM is loaded or reset).
 			if ( m_ui64ExportLastPpuFrame != ~0ULL && ui64Frame > m_ui64ExportLastPpuFrame + 1 ) {
 				if ( !m_ui64ExportDroppedFrames ) { m_ui64ExportFirstDropped = m_ui64ExportLastPpuFrame + 1; }
@@ -1549,6 +1604,33 @@ namespace lsn {
 			}
 			m_ui64ExportLastPpuFrame = ui64Frame;
 			m_veExporter.SubmitFrame( m_cbVideoCapture );
+			m_bExportVideoStarted = true;
+			++m_ui64ExportSubmitted;
+			if ( m_ecExportEnd == LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_DURATION && m_ui64ExportSubmitted >= m_ui64ExportDurationFrames ) {
+				m_abExportEndReached = true;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Determines whether a captured frame belongs in the movie according to the start and end conditions.  Called on the rendering
+	 *	thread for each new captured frame.  Sets m_abExportEndReached once the end frame is reached.
+	 * 
+	 * \param _ui64Frame The PPU frame that was captured.
+	 * \return Returns true if the frame is to be exported.
+	 **/
+	bool CBeesNes::ExportFrameWanted( uint64_t _ui64Frame ) {
+		if ( m_abExportEndReached ) { return false; }
+		if ( !m_bExportVideoStarted ) {
+			// The emulation thread decides when the start frame has been reached (it discards the audio until then).  A GPU capture
+			//	that arrives a frame late can belong to the frame before the start frame, so the frame number is checked too.
+			if ( !m_abExportStarted ) { return false; }
+			if ( m_scExportStart == LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_START_AT_FRAME && _ui64Frame < m_ui64ExportStartFrame ) { return false; }
+		}
+		if ( m_ecExportEnd == LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_END_AT_FRAME && _ui64Frame >= m_ui64ExportEndFrame ) {
+			m_abExportEndReached = true;
+			return false;
 		}
 		return true;
 	}
@@ -1558,7 +1640,8 @@ namespace lsn {
 	 *	frame has been rendered and captured (so that no frame is ever skipped), then passes the captured frames and audio to FFmpeg,
 	 *	waiting if FFmpeg is behind.
 	 * 
-	 * \return Returns false if the export has failed; call StopVideoExport() (from the rendering thread) to get the error.
+	 * \return Returns false if the export has failed or its end condition has been met; call StopVideoExport() (from the rendering
+	 *	thread) to finish it and get any error.
 	 **/
 	bool CBeesNes::VideoExportFrameBoundary() {
 		if ( !m_veExporter.IsActive() ) { return true; }
@@ -1578,6 +1661,22 @@ namespace lsn {
 
 		if ( !m_veExporter.FrameBoundary( CVideoExporter::RegionFrameRate( m_pmSystem ), AudioOutputHz() ) ) {
 			// Stop collecting samples; the rendering thread reports the error and stops the export.
+			AttachExportApu( false );
+			return false;
+		}
+
+		if ( !m_abExportStarted ) {
+			// Waiting for the start frame.  The frame that just ended is the one about to be swapped and rendered.
+			if ( GetDisplayClient() && GetDisplayClient()->FrameCount() >= m_ui64ExportStartFrame ) {
+				m_abExportStarted = true;
+			}
+			else {
+				// Its audio is not part of the movie.
+				m_veExporter.DiscardStagedAudio();
+			}
+		}
+		if ( m_abExportEndReached ) {
+			// The end condition was met:  stop collecting samples; the rendering thread stops the export.
 			AttachExportApu( false );
 			return false;
 		}
@@ -2448,7 +2547,7 @@ namespace lsn {
 	 * \param _veoOptions The video-export settings into which to load the settings data.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadVideoExportSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_VIDEO_EXPORT_OPTIONS &_veoOptions ) {
+	bool CBeesNes::LoadVideoExportSettings( uint32_t _ui32Version, CStream &_sFile, LSN_VIDEO_EXPORT_OPTIONS &_veoOptions ) {
 		_veoOptions = LSN_VIDEO_EXPORT_OPTIONS();
 
 		// Formats are stored by name so that adding, removing, or reordering formats does not scramble the settings.
@@ -2458,13 +2557,50 @@ namespace lsn {
 		if ( vfFormat != LSN_VF_TOTAL ) { _veoOptions.vfFormat = vfFormat; }
 		if ( !_sFile.Read( _veoOptions.bInterpolateFrames ) ) { return false; }
 
+		if ( _ui32Version >= 2 ) {
+			if ( !_sFile.ReadStringU16( _veoOptions.wsOutputFolder ) ) { return false; }
+			if ( !_sFile.ReadStringU16( _veoOptions.wsFfmpegPath ) ) { return false; }
+			uint8_t ui8Cond;
+			if ( !_sFile.Read( ui8Cond ) ) { return false; }
+			_veoOptions.scStart = ui8Cond < LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_TOTAL ? LSN_VIDEO_EXPORT_OPTIONS::LSN_START_CONDITION( ui8Cond ) : LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_NONE;
+			if ( !_sFile.Read( _veoOptions.ui64StartFrame ) ) { return false; }
+			if ( !_sFile.Read( ui8Cond ) ) { return false; }
+			_veoOptions.ecEnd = ui8Cond < LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_TOTAL ? LSN_VIDEO_EXPORT_OPTIONS::LSN_END_CONDITION( ui8Cond ) : LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_NONE;
+			if ( !_sFile.Read( _veoOptions.ui64EndFrame ) ) { return false; }
+			if ( !_sFile.Read( _veoOptions.dEndSeconds ) ) { return false; }
+			if ( !(_veoOptions.dEndSeconds >= 0.0 && _veoOptions.dEndSeconds < 1.0e9) ) { _veoOptions.dEndSeconds = 0.0; }
+			for ( std::vector<std::wstring> * pvHistory : { &_veoOptions.vStartHistory, &_veoOptions.vEndHistory } ) {
+				uint32_t ui32Size;
+				if ( !_sFile.ReadUi32( ui32Size ) ) { return false; }
+				if ( ui32Size > 1024 ) { return false; }
+				try {
+					(*pvHistory).resize( ui32Size );
+				}
+				catch ( ... ) { return false; }
+				for ( uint32_t J = 0; J < ui32Size; ++J ) {
+					if ( !_sFile.ReadStringU16( (*pvHistory)[J] ) ) { return false; }
+				}
+			}
+		}
+
 		uint32_t ui32Total;
 		if ( !_sFile.ReadUi32( ui32Total ) ) { return false; }
 		for ( uint32_t I = 0; I < ui32Total; ++I ) {
 			LSN_VIDEO_EXPORT_OPTIONS::LSN_FORMAT_OPTIONS foTmp;
 			std::string sPixelFormat, sAudioCodec;
 			if ( !_sFile.ReadString( sId ) ) { return false; }
-			if ( !_sFile.Read( foTmp.dFrameRate ) ) { return false; }
+			if ( _ui32Version >= 2 ) {
+				if ( !_sFile.Read( foTmp.ui32FrameRateNum ) ) { return false; }
+				if ( !_sFile.Read( foTmp.ui32FrameRateDen ) ) { return false; }
+			}
+			else {
+				// Version 1 stored the frame rate as a double (0.0 = match the console).
+				double dFrameRate;
+				if ( !_sFile.Read( dFrameRate ) ) { return false; }
+				CVideoExporter::LSN_RATE rRate = CVideoExporter::ToRate( dFrameRate, 0 );
+				foTmp.ui32FrameRateNum = rRate.ui32Num;
+				foTmp.ui32FrameRateDen = rRate.ui32Den;
+			}
 			if ( !_sFile.Read( foTmp.i32Quality ) ) { return false; }
 			if ( !_sFile.Read( foTmp.i32AltQuality ) ) { return false; }
 			if ( !_sFile.Read( foTmp.ui32Preset ) ) { return false; }
@@ -2494,6 +2630,19 @@ namespace lsn {
 	bool CBeesNes::SaveVideoExportSettings( CStream &_sFile, const LSN_VIDEO_EXPORT_OPTIONS &_veoOptions ) {
 		if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(CVideoFormat::IdStr( _veoOptions.vfFormat )) ) ) { return false; }
 		if ( !_sFile.Write( _veoOptions.bInterpolateFrames ) ) { return false; }
+		if ( !_sFile.WriteStringU16( _veoOptions.wsOutputFolder ) ) { return false; }
+		if ( !_sFile.WriteStringU16( _veoOptions.wsFfmpegPath ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _veoOptions.scStart ) ) ) { return false; }
+		if ( !_sFile.Write( _veoOptions.ui64StartFrame ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _veoOptions.ecEnd ) ) ) { return false; }
+		if ( !_sFile.Write( _veoOptions.ui64EndFrame ) ) { return false; }
+		if ( !_sFile.Write( _veoOptions.dEndSeconds ) ) { return false; }
+		for ( const std::vector<std::wstring> * pvHistory : { &_veoOptions.vStartHistory, &_veoOptions.vEndHistory } ) {
+			if ( !_sFile.WriteUi32( uint32_t( (*pvHistory).size() ) ) ) { return false; }
+			for ( size_t J = 0; J < (*pvHistory).size(); ++J ) {
+				if ( !_sFile.WriteStringU16( (*pvHistory)[J] ) ) { return false; }
+			}
+		}
 
 		if ( !_sFile.WriteUi32( LSN_VF_TOTAL ) ) { return false; }
 		for ( uint16_t I = 0; I < LSN_VF_TOTAL; ++I ) {
@@ -2501,7 +2650,8 @@ namespace lsn {
 			const LSN_VIDEO_PIXEL_FORMAT_DATA * pvpfdPixel = CVideoFormat::PixelFormatData( foThis.vpfPixelFormat );
 			const LSN_VIDEO_AUDIO_CODEC_DATA * pvacdAudio = CVideoFormat::AudioCodecData( foThis.vacAudioCodec );
 			if ( !_sFile.WriteString( reinterpret_cast<const char8_t *>(CVideoFormat::IdStr( LSN_VIDEO_FORMAT( I ) )) ) ) { return false; }
-			if ( !_sFile.Write( foThis.dFrameRate ) ) { return false; }
+			if ( !_sFile.Write( foThis.ui32FrameRateNum ) ) { return false; }
+			if ( !_sFile.Write( foThis.ui32FrameRateDen ) ) { return false; }
 			if ( !_sFile.Write( foThis.i32Quality ) ) { return false; }
 			if ( !_sFile.Write( foThis.i32AltQuality ) ) { return false; }
 			if ( !_sFile.Write( foThis.ui32Preset ) ) { return false; }

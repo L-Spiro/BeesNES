@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <thread>
 
 #if !defined( _WIN32 )
@@ -725,6 +726,35 @@ namespace lsn {
 				}
 			}
 #endif	// #if defined( _WIN32 )
+		}
+		catch ( ... ) {}
+		return std::wstring();
+	}
+
+	/**
+	 * Finds the FFmpeg executable given the path set by the user.  An empty path searches for FFmpeg (see FindFfmpeg()).  A folder is
+	 *	searched for FFmpeg (and so is its bin sub-folder).  A file is used as-is if it exists.
+	 *
+	 * \param _wsPath The path set by the user.
+	 * \return Returns the full path to FFmpeg or an empty string if it could not be found.
+	 */
+	std::wstring CFfmpegProcess::ResolveFfmpeg( const std::wstring &_wsPath ) {
+		if ( _wsPath.empty() ) { return FindFfmpeg(); }
+		try {
+			std::error_code ecErr;
+			std::filesystem::path pPath( _wsPath );
+			if ( std::filesystem::is_directory( pPath, ecErr ) ) {
+#if defined( _WIN32 )
+				const wchar_t * pwcExe = L"ffmpeg.exe";
+#else
+				const wchar_t * pwcExe = L"ffmpeg";
+#endif	// #if defined( _WIN32 )
+				for ( const std::filesystem::path &pCandidate : { pPath / pwcExe, pPath / L"bin" / pwcExe } ) {
+					if ( std::filesystem::is_regular_file( pCandidate, ecErr ) ) { return pCandidate.wstring(); }
+				}
+				return std::wstring();
+			}
+			if ( std::filesystem::is_regular_file( pPath, ecErr ) ) { return pPath.wstring(); }
 		}
 		catch ( ... ) {}
 		return std::wstring();

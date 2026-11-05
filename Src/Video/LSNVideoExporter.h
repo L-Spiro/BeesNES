@@ -193,6 +193,12 @@ namespace lsn {
 		bool													FrameBoundary( LSN_RATE _rEmuRate, uint32_t _ui32AudioHz );
 
 		/**
+		 * Discards the audio received since the last frame was sent to FFmpeg.  Called on the emulation thread (after FrameBoundary()) for
+		 *	each emulated frame that is not to be in the movie, such as the frames before a recording's start frame.
+		 */
+		void													DiscardStagedAudio();
+
+		/**
 		 * Gets the path of the movie currently being written.
 		 *
 		 * \return Returns the path of the movie currently being written, or an empty string.
@@ -406,6 +412,7 @@ namespace lsn {
 		std::vector<float>										m_vStage;									/**< Audio samples not yet sent to a session. */
 		uint64_t												m_ui64SamplesThisFrame = 0;					/**< Samples received since the last FrameBoundary(). */
 		std::wstring											m_wsFfmpeg;									/**< The FFmpeg executable. */
+		std::wstring											m_wsFfmpegSetting;							/**< The FFmpeg path set by the user (see CFfmpegProcess::ResolveFfmpeg()). */
 		std::wstring											m_wsError;									/**< The first error. */
 		mutable std::mutex										m_mError;									/**< Guards m_wsError (Fail() can be called from any thread). */
 		std::vector<std::wstring>								m_vMovies;									/**< Every movie made since Start(). */

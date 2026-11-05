@@ -59,6 +59,7 @@ namespace lsn {
 			LSN_SFI_NONE										= 0,	// CSelectRomDialogLayout::LSN_SELECT_FILE_IDS
 			LSN_WEWI_NONE										= 0,	// CWavEditorWindowLayout::LSN_WAV_EDITOR_WINDOW_IDS
 			LSN_CWI_NONE										= 0,	// CCheatsWindowLayout::LSN_CHEATS_WINDOW_IDS
+			LSN_VRWI_NONE										= 0,	// CVideoRecordingWindowLayout::LSN_VIDEO_RECORDING_WINDOW_IDS
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -702,6 +703,54 @@ namespace lsn {
 			LSN_CWI_EXPAND_ALL,
 			LSN_CWI_COLLAPSE_SELECTED,
 			LSN_CWI_COLLAPSE_ALL,
+
+			// CVideoRecordingWindowLayout::LSN_VIDEO_RECORDING_WINDOW_IDS
+			LSN_VRWI_DIALOG,
+			LSN_VRWI_OUTPUT_GROUP,
+			LSN_VRWI_FOLDER_LABEL,
+			LSN_VRWI_FOLDER_EDIT,
+			LSN_VRWI_FOLDER_BUTTON,
+			LSN_VRWI_FFMPEG_LABEL,
+			LSN_VRWI_FFMPEG_EDIT,
+			LSN_VRWI_FFMPEG_BUTTON,
+			LSN_VRWI_VIDEO_GROUP,
+			LSN_VRWI_FORMAT_LABEL,
+			LSN_VRWI_FORMAT_COMBO,
+			LSN_VRWI_PRESET_LABEL,
+			LSN_VRWI_PRESET_COMBO,
+			LSN_VRWI_QUALITY_LABEL,
+			LSN_VRWI_QUALITY_HINT,
+			LSN_VRWI_LOSSLESS_CHECK,
+			LSN_VRWI_QUALITY_TRACKBAR,
+			LSN_VRWI_QUALITY_EDIT,
+			LSN_VRWI_ALT_QUALITY_LABEL,
+			LSN_VRWI_ALT_QUALITY_HINT,
+			LSN_VRWI_ALT_QUALITY_CHECK,
+			LSN_VRWI_ALT_QUALITY_TRACKBAR,
+			LSN_VRWI_ALT_QUALITY_EDIT,
+			LSN_VRWI_PIXEL_FORMAT_LABEL,
+			LSN_VRWI_PIXEL_FORMAT_COMBO,
+			LSN_VRWI_FPS_LABEL,
+			LSN_VRWI_FPS_EDIT,
+			LSN_VRWI_MATCH_CONSOLE_CHECK,
+			LSN_VRWI_BLEND_CHECK,
+			LSN_VRWI_AUDIO_GROUP,
+			LSN_VRWI_CODEC_LABEL,
+			LSN_VRWI_CODEC_COMBO,
+			LSN_VRWI_BITRATE_LABEL,
+			LSN_VRWI_BITRATE_HINT,
+			LSN_VRWI_BITRATE_TRACKBAR,
+			LSN_VRWI_BITRATE_EDIT,
+			LSN_VRWI_CONDITIONS_GROUP,
+			LSN_VRWI_START_COND_LABEL,
+			LSN_VRWI_START_COND_COMBO,
+			LSN_VRWI_END_COND_LABEL,
+			LSN_VRWI_END_COND_COMBO,
+			LSN_VRWI_START_COMBO,
+			LSN_VRWI_END_COMBO,
+			LSN_VRWI_OK,
+			LSN_VRWI_DEFAULTS,
+			LSN_VRWI_CANCEL,
 		};
 #endif	// #if defined( LSN_WINDOWS )
 
@@ -983,6 +1032,16 @@ namespace lsn {
 		 * \return Returns true if the text is a valid expression whose result can be converted to an array of floats.
 		 **/
 		static bool												TextAsFloatVectorExpression( const std::wstring &_wsText, std::vector<float> &_vResult );
+
+		/**
+		 * Evaluates text as an expression that results in an array of doubles, the same way an edit control evaluates its text.  A single
+		 *	value results in an array with 1 element.  {a,b} results in an array with 2 elements.
+		 * 
+		 * \param _wsText The text to evaluate.
+		 * \param _vResult Holds the returned values.
+		 * \return Returns true if the text is a valid expression whose result can be converted to an array of doubles.
+		 **/
+		static bool												TextAsDoubleVectorExpression( const std::wstring &_wsText, std::vector<double> &_vResult );
 
 		/**
 		 * Callback procedure for the folder browser dialog.

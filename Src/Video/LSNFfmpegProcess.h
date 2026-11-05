@@ -144,6 +144,15 @@ namespace lsn {
 		static std::wstring										FindFfmpeg();
 
 		/**
+		 * Finds the FFmpeg executable given the path set by the user.  An empty path searches for FFmpeg (see FindFfmpeg()).  A folder is
+		 *	searched for FFmpeg (and so is its bin sub-folder).  A file is used as-is if it exists.
+		 *
+		 * \param _wsPath The path set by the user.
+		 * \return Returns the full path to FFmpeg or an empty string if it could not be found.
+		 */
+		static std::wstring										ResolveFfmpeg( const std::wstring &_wsPath );
+
+		/**
 		 * Converts a wide string to UTF-8.
 		 *
 		 * \param _wsString The string to convert.

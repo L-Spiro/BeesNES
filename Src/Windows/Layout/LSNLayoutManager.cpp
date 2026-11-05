@@ -22,6 +22,7 @@
 #include "../Patch/LSNPatchWindow.h"
 #include "../Patch/LSNPatchWindowTopPage.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
+#include "../VideoRecording/LSNVideoRecordingWindow.h"
 #include "../WavEditor/LSNWavEditorFileSettingsPage.h"
 #include "../WavEditor/LSNWavEditorFilesPage.h"
 #include "../WavEditor/LSNWavEditorOutputPage.h"
@@ -98,6 +99,10 @@ namespace lsn {
 
 			case LSN_LT_CHEATS : {
 				return new CCheatsWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
+			}
+
+			case LSN_LT_VIDEO_RECORDING_DIALOG : {
+				return new CVideoRecordingWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

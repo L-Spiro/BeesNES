@@ -59,7 +59,7 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			1
+#define LSN_BEESNES_SETTINGS_VERSION			2
 
 namespace lsn {
 
@@ -450,11 +450,22 @@ namespace lsn {
 		inline bool								IsExportingVideo() const { return m_veExporter.IsActive(); }
 
 		/**
+		 * Determines whether a recording has been started but is waiting for its start condition (no frame has been recorded yet).  Call
+		 *	from the thread that calls Render().
+		 * 
+		 * \return Returns true if exporting has started but is waiting for the start frame.
+		 **/
+		inline bool								IsVideoExportPending() const {
+			return m_veExporter.IsActive() && m_scExportStart != LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_NONE && !m_bExportVideoStarted;
+		}
+
+		/**
 		 * Called on the emulation thread at the end of each frame (before the frame is swapped) while exporting.  Waits until the previous
 		 *	frame has been rendered and captured (so that no frame is ever skipped), then passes the captured frames and audio to FFmpeg,
 		 *	waiting if FFmpeg is behind.
 		 * 
-		 * \return Returns false if the export has failed; call StopVideoExport() (from the rendering thread) to get the error.
+		 * \return Returns false if the export has failed or its end condition has been met; call StopVideoExport() (from the rendering
+		 *	thread) to finish it and get any error.
 		 **/
 		bool									VideoExportFrameBoundary();
 
@@ -688,6 +699,21 @@ namespace lsn {
 		static std::wstring						DefaultMoviesFolder();
 
 		/**
+		 * Gets the folder into which movies are exported:  the folder set in the video-export options, or the default Movies folder if none
+		 *	is set.
+		 * 
+		 * \return Returns the movie folder, including the trailing separator.
+		 **/
+		std::wstring							MovieFolder() const;
+
+		/**
+		 * Gets the frame rate of the current console.
+		 * 
+		 * \return Returns the frame rate of the current console as a fraction.
+		 **/
+		CVideoExporter::LSN_RATE				ConsoleFrameRate() const;
+
+		/**
 		 * Generates a movie file name from the current local date and time, in the form BeesNES_DD-MM-YYYY_HH-MM-SS.  The name has no
 		 *	folder and no extension.
 		 * 
@@ -808,6 +834,30 @@ namespace lsn {
 		uint64_t								m_ui64ExportFirstDropped = 0;
 		/** Set by Render() when it renders a new frame while exporting. */
 		bool									m_bExportRenderPending = false;
+		/** The folder into which the movies of the current export are written (copied from the options when exporting starts). */
+		std::wstring							m_wsExportFolder;
+		/** The PPU frame at which the current export starts (LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_START_AT_FRAME). */
+		uint64_t								m_ui64ExportStartFrame = 0;
+		/** The PPU frame before which the current export ends (LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_END_AT_FRAME). */
+		uint64_t								m_ui64ExportEndFrame = 0;
+		/** The number of frames after which the current export ends (LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_DURATION). */
+		uint64_t								m_ui64ExportDurationFrames = 0;
+		/** The number of frames given to the exporter since exporting started. */
+		uint64_t								m_ui64ExportSubmitted = 0;
+		/** Set on the emulation thread once the start frame has been emulated (immediately if there is no start condition). */
+		std::atomic<bool>						m_abExportStarted = false;
+		/** Set once the end condition has been met; no more frames are exported and the export is to be stopped. */
+		std::atomic<bool>						m_abExportEndReached = false;
+		/** The video format of the current export (copied from the options when exporting starts). */
+		LSN_VIDEO_FORMAT						m_vfExportFormat = LSN_VF_H264;
+		/** When the current export starts. */
+		LSN_VIDEO_EXPORT_OPTIONS::LSN_START_CONDITION
+												m_scExportStart = LSN_VIDEO_EXPORT_OPTIONS::LSN_VSC_NONE;
+		/** When the current export ends by itself. */
+		LSN_VIDEO_EXPORT_OPTIONS::LSN_END_CONDITION
+												m_ecExportEnd = LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_NONE;
+		/** Set on the rendering thread once the first frame has been given to the exporter. */
+		bool									m_bExportVideoStarted = false;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** L. Spiro's NTSC filter. */
@@ -1206,6 +1256,15 @@ namespace lsn {
 		 * \return Returns true if a new capture was found.
 		 **/
 		bool									ExportLatestCapture();
+
+		/**
+		 * Determines whether a captured frame belongs in the movie according to the start and end conditions.  Called on the rendering
+		 *	thread for each new captured frame.  Sets m_abExportEndReached once the end frame is reached.
+		 * 
+		 * \param _ui64Frame The PPU frame that was captured.
+		 * \return Returns true if the frame is to be exported.
+		 **/
+		bool									ExportFrameWanted( uint64_t _ui64Frame );
 
 		/**
 		 * Points the current system's APU's sample output at the exporter (or at nothing).

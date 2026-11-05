@@ -119,7 +119,15 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_TOOLS_WAV_EDIT,	FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_WAV_EDIT ) },
 		{ FALSE,		LSN_MWMI_TOOLS_CHEATS,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_STR__CHEATS ) },
 		{ TRUE,			0,							FALSE,		FALSE,		TRUE,		nullptr },
-		{ FALSE,		LSN_MWMI_TOOLS_RECORD_VIDEO,	TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_RECORD_VIDEO ) },
+		{ FALSE,		LSN_MWMI_TOOLS_RECORD_VIDEO,	FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_RECORD_VIDEO ) },
+	};
+
+	/** Record-video sub-menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miRecordVideoMenu[] = {
+		//bIsSeperator	dwId									bCheckable	bChecked	bEnabled	lpwcText
+		{ FALSE,		LSN_MWMI_TOOLS_RECORD,					FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_RECORD ) },
+		{ TRUE,			0,										FALSE,		FALSE,		TRUE,		nullptr },
+		{ FALSE,		LSN_MWMI_TOOLS_RECORDING_SETTINGS,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_TOOLS_RECORDING_SETTINGS ) },
 	};
 
 	/** Windows menu. */
@@ -357,6 +365,14 @@ namespace lsn {
 			LSN_MWMI_REGION,
 			std::size( m_miRegionMenu ),
 			m_miRegionMenu
+		},
+		// Record Video.
+		{
+			LSN_MWMI_RECORD_VIDEO_MENU,
+			LSN_MWMI_MENU_TOOLS,
+			LSN_MWMI_TOOLS_RECORD_VIDEO,
+			std::size( m_miRecordVideoMenu ),
+			m_miRecordVideoMenu
 		},
 	};
 

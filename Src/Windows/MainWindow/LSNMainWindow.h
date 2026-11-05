@@ -359,10 +359,15 @@ namespace lsn {
 		void									ShowCheats();
 
 		/**
-		 * Starts recording a video if not recording, otherwise stops recording.  Used by both the Record Video menu item and its hotkey.
-		 *	Any error is shown in a message box.
+		 * Starts recording a video if not recording, otherwise stops recording (or cancels a recording that is waiting for its start
+		 *	condition).  Used by both the Record menu item and its hotkey.  Any error is shown in a message box.
 		 **/
 		void									ToggleVideoRecording();
+
+		/**
+		 * Shows the Video Recording Settings dialog.  Changes apply to the next recording.
+		 **/
+		void									ShowVideoRecordingSettings();
 
 
 	protected :
