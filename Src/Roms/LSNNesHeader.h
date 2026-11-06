@@ -269,9 +269,9 @@ namespace lsn {
 		switch ( GetHeaderVersion() ) {
 			case LSN_ROM_HEADER_VERSION::LSN_RHV_INES_2 : {
 				switch ( ui8Byte12 & 0x03 ) {
-					case 0 : { return LSN_PPU_METRICS::LSN_PM_NTSC; }
+					case 0 : { return LSN_PPU_METRICS::LSN_PM_NTSC_M; }
 					case 1 : { return LSN_PPU_METRICS::LSN_PM_PAL; }
-					case 2 : { return LSN_PPU_METRICS::LSN_PM_NTSC; }
+					case 2 : { return LSN_PPU_METRICS::LSN_PM_NTSC_M; }
 					case 3 : { return LSN_PPU_METRICS::LSN_PM_DENDY; }
 				}
 				break;

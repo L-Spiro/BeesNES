@@ -139,7 +139,7 @@ int main() {
 		const char *				pcFile;
 	} prRevisions[] = {
 		//ui32RegCode				ui32PreRender						ui32Render								ui32PostRender							ui16DotHeight						_ui16DotWidth				bOddFrameShenanigans	pcFile
-		{ lsn::LSN_PM_NTSC,			lsn::LSN_PM_NTSC_PRERENDER,			lsn::LSN_PM_NTSC_RENDER_LINES,			lsn::LSN_PM_NTSC_POSTRENDER_LINES,		lsn::LSN_PM_NTSC_SCANLINES,			lsn::LSN_PM_NTSC_DOTS_X,	true,					"Ntsc" },
+		{ lsn::LSN_PM_NTSC_M,			lsn::LSN_PM_NTSC_M_PRERENDER,			lsn::LSN_PM_NTSC_M_RENDER_LINES,			lsn::LSN_PM_NTSC_M_POSTRENDER_LINES,		lsn::LSN_PM_NTSC_M_SCANLINES,			lsn::LSN_PM_NTSC_M_DOTS_X,	true,					"Ntsc" },
 		{ lsn::LSN_PM_PAL,			lsn::LSN_PM_PAL_PRERENDER,			lsn::LSN_PM_PAL_RENDER_LINES,			lsn::LSN_PM_PAL_POSTRENDER_LINES,		lsn::LSN_PM_PAL_SCANLINES,			lsn::LSN_PM_PAL_DOTS_X,		false,					"Pal" },
 		{ lsn::LSN_PM_DENDY,		lsn::LSN_PM_DENDY_PRERENDER,		lsn::LSN_PM_DENDY_RENDER_LINES,			lsn::LSN_PM_DENDY_POSTRENDER_LINES,		lsn::LSN_PM_DENDY_SCANLINES,		lsn::LSN_PM_DENDY_DOTS_X,	false,					"Dendy" },
 		{ lsn::LSN_PM_PALM,			lsn::LSN_PM_PALM_PRERENDER,			lsn::LSN_PM_PALM_RENDER_LINES,			lsn::LSN_PM_PALM_POSTRENDER_LINES,		lsn::LSN_PM_PALM_SCANLINES,			lsn::LSN_PM_PALM_DOTS_X,	false,					"PalM" },

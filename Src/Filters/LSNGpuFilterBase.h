@@ -9,6 +9,7 @@
 #pragma once
 
 #include "../LSNLSpiroNes.h"
+#include "../ColorSpace/LSNColorSpace.h"
 #include "../Display/LSNCaptureBuffer.h"
 #include "../Utilities/LSNUtilities.h"
 #include "LSNFilterBase.h"
@@ -116,6 +117,28 @@ namespace lsn {
 		 * \return Returns the effective gamma curve to use during rendering.
 		 */
 		virtual inline CNesPalette::LSN_GAMMA				GetEffectiveGamma() const { return m_gGamma == CNesPalette::LSN_G_AUTO ? CNesPalette::LSN_G_CRT2 : m_gGamma; }
+
+		/**
+		 * Sets the color-space conversion matrix applied (in linear light) after the gamma curve.  The identity matrix disables it.
+		 *
+		 * \param _cmColorSpace The color-space conversion matrix (see CColorSpace::ConversionMatrix()).
+		 */
+		inline void											SetColorSpace( const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace ) { m_cmColorSpace = _cmColorSpace; }
+
+		/**
+		 * Gets the color-space conversion matrix applied after the gamma curve.
+		 *
+		 * \return Returns the color-space conversion matrix.
+		 */
+		inline const CColorSpace::LSN_COLOR_MATRIX &		GetColorSpace() const { return m_cmColorSpace; }
+
+		/**
+		 * Determines whether the gamma pass (gamma curve and/or color-space conversion) must run.
+		 *
+		 * \param _gEffGamma The effective gamma curve (from GetEffectiveGamma()).
+		 * \return Returns true if a gamma curve or a non-identity color-space conversion is to be applied.
+		 */
+		inline bool											NeedsGammaPass( CNesPalette::LSN_GAMMA _gEffGamma ) const { return _gEffGamma != CNesPalette::LSN_G_NONE || !m_cmColorSpace.IsIdentity(); }
 		
 		/**
 		 * Enables or disables the phosphor decay effect.
@@ -216,6 +239,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		CNesPalette::LSN_GAMMA								m_gGamma = CNesPalette::LSN_G_AUTO;					/**< The requested gamma curve. */
+		CColorSpace::LSN_COLOR_MATRIX						m_cmColorSpace;										/**< The color-space conversion applied after the gamma curve (identity = none). */
 		float												m_fFps = 60.098812103271484375f;					/**< The refresh rate used for timing. */
 		float												m_fInitPhosphorDecay = 0.25f;						/**< The base decay scalar applied immediately. */
 		float												m_fPhosphorDecayRateRed = 0.401767850f;				/**< The frame-to-frame red decay multiplier. */

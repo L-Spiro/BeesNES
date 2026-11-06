@@ -37,7 +37,7 @@ namespace lsn {
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
-		SetWidth( LSN_PM_NTSC_RENDER_WIDTH );		// Allocate buffers.
+		SetWidth( LSN_PM_NTSC_M_RENDER_WIDTH );		// Allocate buffers.
 		SetHeight( 240 );							// Allocate buffers.		
 	}
 	CLSpiroNtscFilterBase::~CLSpiroNtscFilterBase() {
@@ -651,7 +651,7 @@ namespace lsn {
 			// Buffer size:
 			// [ui32Kernel/2][m_ui16Width*8][ui32Kernel/2][Padding for Alignment to 64 Bytes]
 			const uint32_t ui32Kernel = std::max( m_ui32FilterKernelSize, m_ui32FilterKernelSizeY );
-			size_t sRowSize = LSN_PM_NTSC_RENDER_WIDTH * 8 + ui32Kernel + 16;
+			size_t sRowSize = LSN_PM_NTSC_M_RENDER_WIDTH * 8 + ui32Kernel + 16;
 			m_vSignalBuffer.resize( sRowSize * _ui16H );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {

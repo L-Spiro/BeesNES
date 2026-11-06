@@ -5,12 +5,13 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "../../Filters/LSNNesPalette.h"
 #include "LSNDirectX12Device.h"
 #include "LSNDirectX12Resource.h"
@@ -30,7 +31,8 @@ namespace lsn {
 	 * Class CDirectX12TextureGamma
 	 * \brief A generic helper class for applying a gamma curve to a texture.
 	 *
-	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, outputting to a render target.
+	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, then (in linear light) a color-space conversion matrix,
+	 *	outputting to a render target.  If the matrix is the identity matrix, the shader has no matrix code at all.
 	 */
 	class CDirectX12TextureGamma {
 	public :
@@ -54,11 +56,12 @@ namespace lsn {
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
 		 * \param _gGamma The gamma curve to apply.
+		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 		 * \param _fTargetFormat The format of the RTV this shader will output to.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude = nullptr );
+		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude = nullptr );
 
 
 	protected :
@@ -80,6 +83,8 @@ namespace lsn {
 
 		/** The current gamma setting used to compile the shader. */
 		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		/** The color-space conversion matrix used to compile the shader. */
+		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
 		/** The format of the generated render target texture. */
 		DXGI_FORMAT												m_fFormat = DXGI_FORMAT_UNKNOWN;
 
@@ -97,11 +102,12 @@ namespace lsn {
 		 * 
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \param _gGamma The gamma curve to apply.
+		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
+		bool													EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.

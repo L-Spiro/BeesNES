@@ -166,18 +166,29 @@ namespace lsn {
 
 	/** PPU metrics. */
 	enum LSN_PPU_METRICS {
-		LSN_PM_NTSC							= 0,								/**< NTSC code. */
-		LSN_PM_NTSC_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
-		LSN_PM_NTSC_SCANLINES				= 262,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
-		LSN_PM_NTSC_PRERENDER				= 0,								/**< The number of pre-render scanlines. */
-		LSN_PM_NTSC_RENDER_LINES			= 240,								/**< The number of render scanlines. */
-		LSN_PM_NTSC_POSTRENDER_LINES		= 1,								/**< The number of post-render scanlines. */
-		LSN_PM_NTSC_VBLANK_LINES			= 20,								/**< The number of v-blank scanlines. */
-		LSN_PM_NTSC_POSTBLANK_LINES			= 1,								/**< The number of post-blank scanlines. */
-		LSN_PM_NTSC_RENDER_WIDTH			= 256,								/**< The number of visible pixels.  The X resolution of the screen. */
-		LSN_PM_NTSC_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
+		LSN_PM_NTSC_M						= 0,								/**< NTSC-M code (Nintendo Entertainment System). */
+		LSN_PM_NTSC_M_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_NTSC_M_SCANLINES				= 262,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
+		LSN_PM_NTSC_M_PRERENDER				= 0,								/**< The number of pre-render scanlines. */
+		LSN_PM_NTSC_M_RENDER_LINES			= 240,								/**< The number of render scanlines. */
+		LSN_PM_NTSC_M_POSTRENDER_LINES		= 1,								/**< The number of post-render scanlines. */
+		LSN_PM_NTSC_M_VBLANK_LINES			= 20,								/**< The number of v-blank scanlines. */
+		LSN_PM_NTSC_M_POSTBLANK_LINES			= 1,								/**< The number of post-blank scanlines. */
+		LSN_PM_NTSC_M_RENDER_WIDTH			= 256,								/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_NTSC_M_H_BORDER				= 0,								/**< The number of pixels to the left and right that are blackened out. */
 
-		LSN_PM_PAL							= 1,								/**< PAL code. */
+		LSN_PM_NTSC_J						= 1,								/**< NTSC-J code (Famicom). */
+		LSN_PM_NTSC_J_DOTS_X				= LSN_PM_NTSC_M_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_NTSC_J_SCANLINES				= LSN_PM_NTSC_M_SCANLINES,			/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
+		LSN_PM_NTSC_J_PRERENDER				= LSN_PM_NTSC_M_PRERENDER,			/**< The number of pre-render scanlines. */
+		LSN_PM_NTSC_J_RENDER_LINES			= LSN_PM_NTSC_M_RENDER_LINES,		/**< The number of render scanlines. */
+		LSN_PM_NTSC_J_POSTRENDER_LINES		= LSN_PM_NTSC_M_POSTRENDER_LINES,	/**< The number of post-render scanlines. */
+		LSN_PM_NTSC_J_VBLANK_LINES			= LSN_PM_NTSC_M_VBLANK_LINES,		/**< The number of v-blank scanlines. */
+		LSN_PM_NTSC_J_POSTBLANK_LINES		= LSN_PM_NTSC_M_POSTBLANK_LINES,	/**< The number of post-blank scanlines. */
+		LSN_PM_NTSC_J_RENDER_WIDTH			= LSN_PM_NTSC_M_RENDER_WIDTH,		/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_NTSC_J_H_BORDER				= LSN_PM_NTSC_M_H_BORDER,			/**< The number of pixels to the left and right that are blackened out. */
+
+		LSN_PM_PAL							= 2,								/**< PAL code. */
 		LSN_PM_PAL_DOTS_X					= 341,								/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_PAL_SCANLINES				= 312,								/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_PAL_PRERENDER				= 1,								/**< The number of pre-render scanlines. */
@@ -185,46 +196,46 @@ namespace lsn {
 		LSN_PM_PAL_POSTRENDER_LINES			= 1,								/**< The number of post-render scanlines. */
 		LSN_PM_PAL_VBLANK_LINES				= 70,								/**< The number of v-blank scanlines. */
 		LSN_PM_PAL_POSTBLANK_LINES			= 1,								/**< The number of post-blank scanlines. */
-		LSN_PM_PAL_RENDER_WIDTH				= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_PAL_RENDER_WIDTH				= LSN_PM_NTSC_M_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_PAL_H_BORDER					= 2,								/**< The number of pixels to the left and right that are blackened out. */
 
-		LSN_PM_DENDY						= 2,								/**< Dendy code. */
-		LSN_PM_DENDY_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_DENDY						= 3,								/**< Dendy code. */
+		LSN_PM_DENDY_DOTS_X					= LSN_PM_NTSC_M_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_DENDY_SCANLINES				= LSN_PM_PAL_SCANLINES,				/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_DENDY_PRERENDER				= LSN_PM_PAL_PRERENDER,				/**< The number of pre-render scanlines. */
 		LSN_PM_DENDY_RENDER_LINES			= LSN_PM_PAL_RENDER_LINES,			/**< The number of render scanlines. */
 		LSN_PM_DENDY_POSTRENDER_LINES		= 51,								/**< The number of post-render scanlines. */
-		LSN_PM_DENDY_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
-		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
-		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_DENDY_VBLANK_LINES			= LSN_PM_NTSC_M_VBLANK_LINES,			/**< The number of v-blank scanlines. */
+		LSN_PM_DENDY_POSTBLANK_LINES		= LSN_PM_NTSC_M_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
+		LSN_PM_DENDY_RENDER_WIDTH			= LSN_PM_NTSC_M_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_DENDY_H_BORDER				= LSN_PM_PAL_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
 
-		LSN_PM_PALM							= 3,								/**< PAL-M code. */
-		LSN_PM_PALM_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
-		LSN_PM_PALM_SCANLINES				= LSN_PM_NTSC_SCANLINES,			/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
-		LSN_PM_PALM_PRERENDER				= LSN_PM_NTSC_PRERENDER,			/**< The number of pre-render scanlines. */
-		LSN_PM_PALM_RENDER_LINES			= LSN_PM_NTSC_RENDER_LINES,			/**< The number of render scanlines. */
-		LSN_PM_PALM_POSTRENDER_LINES		= LSN_PM_NTSC_POSTRENDER_LINES,		/**< The number of post-render scanlines. */
-		LSN_PM_PALM_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
-		LSN_PM_PALM_POSTBLANK_LINES			= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
-		LSN_PM_PALM_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
-		LSN_PM_PALM_H_BORDER				= LSN_PM_NTSC_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
+		LSN_PM_PALM							= 4,								/**< PAL-M code. */
+		LSN_PM_PALM_DOTS_X					= LSN_PM_NTSC_M_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_PALM_SCANLINES				= LSN_PM_NTSC_M_SCANLINES,			/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
+		LSN_PM_PALM_PRERENDER				= LSN_PM_NTSC_M_PRERENDER,			/**< The number of pre-render scanlines. */
+		LSN_PM_PALM_RENDER_LINES			= LSN_PM_NTSC_M_RENDER_LINES,			/**< The number of render scanlines. */
+		LSN_PM_PALM_POSTRENDER_LINES		= LSN_PM_NTSC_M_POSTRENDER_LINES,		/**< The number of post-render scanlines. */
+		LSN_PM_PALM_VBLANK_LINES			= LSN_PM_NTSC_M_VBLANK_LINES,			/**< The number of v-blank scanlines. */
+		LSN_PM_PALM_POSTBLANK_LINES			= LSN_PM_NTSC_M_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
+		LSN_PM_PALM_RENDER_WIDTH			= LSN_PM_NTSC_M_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_PALM_H_BORDER				= LSN_PM_NTSC_M_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
 
-		LSN_PM_PALN							= 4,								/**< PAL-N code. */
-		LSN_PM_PALN_DOTS_X					= LSN_PM_NTSC_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
+		LSN_PM_PALN							= 5,								/**< PAL-N code. */
+		LSN_PM_PALN_DOTS_X					= LSN_PM_NTSC_M_DOTS_X,				/**< The number of dots horizontally across the screen (the pixel width of the screen including off-screen areas). */
 		LSN_PM_PALN_SCANLINES				= LSN_PM_PAL_SCANLINES,				/**< The number of scanlines (the pixel height of the screen including off-screen areas). */
 		LSN_PM_PALN_PRERENDER				= LSN_PM_PAL_PRERENDER,				/**< The number of pre-render scanlines. */
 		LSN_PM_PALN_RENDER_LINES			= LSN_PM_PAL_RENDER_LINES,			/**< The number of render scanlines. */
 		LSN_PM_PALN_POSTRENDER_LINES		= 51,								/**< The number of post-render scanlines. */
-		LSN_PM_PALN_VBLANK_LINES			= LSN_PM_NTSC_VBLANK_LINES,			/**< The number of v-blank scanlines. */
-		LSN_PM_PALN_POSTBLANK_LINES			= LSN_PM_NTSC_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
-		LSN_PM_PALN_RENDER_WIDTH			= LSN_PM_NTSC_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
+		LSN_PM_PALN_VBLANK_LINES			= LSN_PM_NTSC_M_VBLANK_LINES,			/**< The number of v-blank scanlines. */
+		LSN_PM_PALN_POSTBLANK_LINES			= LSN_PM_NTSC_M_POSTBLANK_LINES,		/**< The number of post-blank scanlines. */
+		LSN_PM_PALN_RENDER_WIDTH			= LSN_PM_NTSC_M_RENDER_WIDTH,			/**< The number of visible pixels.  The X resolution of the screen. */
 		LSN_PM_PALN_H_BORDER				= LSN_PM_PAL_H_BORDER,				/**< The number of pixels to the left and right that are blackened out. */
 
 
 		LSN_PM_UNKNOWN						= 0xFFE2,							/**< Unknown code. */
 
-		LSN_PM_CONSOLE_TOTAL				= 5,								/**< NTSC, PAL, Dendy, and PAL-M. */
+		LSN_PM_CONSOLE_TOTAL				= 6,								/**< NTSC-M, NTSC-J, PAL, Dendy, PAL-M, and PAL-N. */
 	};
 
 	/** Console types. */

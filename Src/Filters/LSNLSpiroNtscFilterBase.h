@@ -572,7 +572,7 @@ namespace lsn {
 		pfQ += sYiqStride * _ui16Start;
 		for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
 			const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
-			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_DOTS_X * H) * 8) % 12 ), H );
+			ScanlineToYiq( pfY, pfI, pfQ, pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_M_DOTS_X * H) * 8) % 12 ), H );
 			ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay>( H, _pui8Dst, _sPitch );
 			pfY += sYiqStride;
 			pfI += sYiqStride;

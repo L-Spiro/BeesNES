@@ -715,8 +715,12 @@ namespace lsn {
 				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_UNKNOWN;
 				break;
 			}
-			case CMainWindowLayout::LSN_MWMI_REGION_NTSC : {
-				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_NTSC;
+			case CMainWindowLayout::LSN_MWMI_REGION_NTSC_M : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_NTSC_M;
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_REGION_NTSC_J : {
+				m_bnEmulator.Options().pmRegion = LSN_PPU_METRICS::LSN_PM_NTSC_J;
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_REGION_PAL : {
@@ -1797,8 +1801,13 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
-				case CMainWindowLayout::LSN_MWMI_REGION_NTSC : {
-					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_NTSC ? MFS_CHECKED : MFS_UNCHECKED ) };
+				case CMainWindowLayout::LSN_MWMI_REGION_NTSC_M : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_NTSC_M ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_REGION_NTSC_J : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.Options().pmRegion == LSN_PPU_METRICS::LSN_PM_NTSC_J ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}

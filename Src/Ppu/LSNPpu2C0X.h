@@ -1712,7 +1712,7 @@ namespace lsn {
 			constexpr double dStart = 1.0;
 			constexpr double dEnd = 0.1;
 			constexpr uint64_t ui64DotsPerFrame = (_tDotWidth * _tDotHeight) / 1;
-			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
 				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / (ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL ) {
@@ -1735,7 +1735,7 @@ namespace lsn {
 		 */
 		uint64_t constexpr								OamDecayRate() const {
 			double dFps;
-			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
 				dFps = 60.098813897440515529533511098629;
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
@@ -1785,7 +1785,7 @@ namespace lsn {
 		 */
 		uint64_t constexpr								IoBusDecayCycles() const {
 			double dFps;
-			if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
 				dFps = 60.098813897440515529533511098629;
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
@@ -2136,7 +2136,7 @@ namespace lsn {
 					
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
-					if constexpr ( _tRegCode == LSN_PM_NTSC ) {
+					if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
 						/*ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 6);
 						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 7);*/
 						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8RedEmph << 6);
@@ -2749,7 +2749,7 @@ namespace lsn {
 	/**
 	 * An NTSC PPU.
 	 */
-	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC ), true, 128, 105>													CNtscPpu;
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC_M ), true, 128, 105>													CNtscPpu;
 	// 292.57142857142857142857142857143�240
 
 	/**

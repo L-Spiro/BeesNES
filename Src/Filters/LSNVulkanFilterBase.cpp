@@ -452,13 +452,13 @@ namespace lsn {
 
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
 		if LSN_UNLIKELY( !m_tgGamma.EnsureResources( _pvkDevice ) || 
-			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, effGamma, fmtRt, vDummy, vDummy ) ) { return false; }
+			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, effGamma, m_cmColorSpace, fmtRt, vDummy, vDummy ) ) { return false; }
 
 		if LSN_UNLIKELY( !m_trRenderer.EnsureResources( _pvkDevice ) || 
 			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_SRGB, vDummy, vDummy ) ) { return false; }
 
 		
-		if LSN_UNLIKELY( effGamma != CNesPalette::LSN_G_NONE ) {
+		if LSN_UNLIKELY( NeedsGammaPass( effGamma ) ) {
 			UpdateDescriptorSet( m_dsGammaSet.dsDescriptorSet, ivCurrentSource, sCurrentSampler );
 
 			VkRenderPassBeginInfo rpbiInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };

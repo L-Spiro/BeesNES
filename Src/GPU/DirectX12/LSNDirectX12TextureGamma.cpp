@@ -5,7 +5,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #include "LSNDirectX12TextureGamma.h"
@@ -44,6 +44,7 @@ namespace lsn {
 		m_dhSamplerHeap.reset();
 
 		m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
 		m_fFormat = DXGI_FORMAT_UNKNOWN;
 	}
 
@@ -57,15 +58,16 @@ namespace lsn {
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
 	 * \param _gGamma The gamma curve to apply.
+	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 	 * \param _fTargetFormat The format of the RTV this shader will output to.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TextureGamma::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
+	bool CDirectX12TextureGamma::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
 		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_ui32SrcW || !_ui32SrcH ) { return false; }
 
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gGamma, _fTargetFormat, _piInclude ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gGamma, _cmColorSpace, _fTargetFormat, _piInclude ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
@@ -164,16 +166,18 @@ namespace lsn {
 	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _gGamma The gamma curve to apply.
+	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX12TextureGamma::EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
-		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gShaderGamma == _gGamma && m_fFormat == _fFormat ) { return true; }
+	bool CDirectX12TextureGamma::EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
+		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace && m_fFormat == _fFormat ) { return true; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		m_ppsShader = std::make_unique<CDirectX12PipelineState>();
 		m_gShaderGamma = _gGamma;
+		m_cmShaderColorSpace = _cmColorSpace;
 		m_fFormat = _fFormat;
 
 		if ( !m_prsRootSignature.get() ) {
@@ -243,6 +247,7 @@ namespace lsn {
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
 			"    float4 c = tSrc.Sample(sPoint, input.Tex);\n"
 			"    c.rgb = " + sGammaCall + ";\n"
+			"    " + CColorSpace::ShaderStatement( _cmColorSpace, true ) +
 			"    return c;\n"
 			"}\n";
 

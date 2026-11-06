@@ -27,7 +27,8 @@ namespace lsn {
 		// == Members.
 		std::wstring							wsPath;																												/**< Path to the palette. */
 		CNesPalette::LSN_GAMMA					gCrtGamma[LSN_PM_CONSOLE_TOTAL] = {
-			CNesPalette::LSN_G_CRT2,			// NTSC.
+			CNesPalette::LSN_G_CRT2,			// NTSC-M.
+			CNesPalette::LSN_G_CRT2,			// NTSC-J.
 			CNesPalette::LSN_G_CRT1,			// PAL.
 			CNesPalette::LSN_G_CRT1,			// Dendy.
 			CNesPalette::LSN_G_CRT2,			// Brazil.

@@ -43,65 +43,65 @@ namespace lsn {
 		
 		//m_pfbFilterTable
 		CFilterBase * pfbTmp[CFilterBase::LSN_F_TOTAL][LSN_PM_CONSOLE_TOTAL] = {
-			//LSN_PM_NTSC							LSN_PM_PAL								LSN_PM_DENDY							LSN_PM_PALM								LSN_PM_PALN
-			{ &m_r24fRgb24Filter,					&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter },					// LSN_F_INDEXED
-			{ &m_nbfBlarggNtscFilter,				&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter },				// LSN_F_NTSC_BLARGG
-			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter },				// LSN_F_NTSC_LSPIRO
-			{ &m_nbfLSpiroPalFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter },				// LSN_F_PAL_LSPIRO
-			{ &m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter },				// LSN_F_DENDY_LSPIRO
-			{ &m_nbfLSpiroPalMFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter },				// LSN_F_PALM_LSPIRO
-			{ &m_nbfLSpiroPalNFilter,				&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_PALN_LSPIRO
-			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter },			// LSN_F_NTSC_CRT_FULL
-			{ &m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_PAL_CRT_FULL
-			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_AUTO_CRT_FULL
-			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_AUTO_LSPIRO
+			//LSN_PM_NTSC_M							LSN_PM_NTSC_J							LSN_PM_PAL								LSN_PM_DENDY							LSN_PM_PALM								LSN_PM_PALN
+			{ &m_r24fRgb24Filter,					&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter,						&m_r24fRgb24Filter },					// LSN_F_INDEXED
+			{ &m_nbfBlarggNtscFilter,				&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter,					&m_nbfBlarggNtscFilter },				// LSN_F_NTSC_BLARGG
+			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroNtscFilter },				// LSN_F_NTSC_LSPIRO
+			{ &m_nbfLSpiroPalFilter,				&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroPalFilter },				// LSN_F_PAL_LSPIRO
+			{ &m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroDendyFilter },				// LSN_F_DENDY_LSPIRO
+			{ &m_nbfLSpiroPalMFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalMFilter },				// LSN_F_PALM_LSPIRO
+			{ &m_nbfLSpiroPalNFilter,				&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_PALN_LSPIRO
+			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirNtscFullFilter },			// LSN_F_NTSC_CRT_FULL
+			{ &m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_PAL_CRT_FULL
+			{ &m_ncfEmmirNtscFullFilter,			&m_ncfEmmirNtscFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter,				&m_ncfEmmirPalFullFilter },				// LSN_F_AUTO_CRT_FULL
+			{ &m_nbfLSpiroNtscFilter,				&m_nbfLSpiroNtscFilter,					&m_nbfLSpiroPalFilter,					&m_nbfLSpiroDendyFilter,				&m_nbfLSpiroPalMFilter,					&m_nbfLSpiroPalNFilter },				// LSN_F_AUTO_LSPIRO
 #ifdef LSN_DX9
-			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXED_DX9
-			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_DX9
-			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX9
-			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX9
+			{ &m_d9pfDx9Palette,					&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette,						&m_d9pfDx9Palette },					// LSN_F_INDEXED_DX9
+			{ &m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter,			&m_d9nbfDx9BlarggNtscFilter },			// LSN_F_NTSC_BLARGG_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX9
+			{ &m_d9ncfDx9EmmirPalFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX9
 
-			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc,					&m_d9nlsfDx9LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX9
 
-			{ &m_d9plsfDx9LSpiroPal,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_DX9
-			{ &m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_DX9
-			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_DX9
-			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIROPALN_DX9
+			{ &m_d9plsfDx9LSpiroPal,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroPal },				// LSN_F_LSPIROPAL_DX9
+			{ &m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroDendy },				// LSN_F_LSPIRODENDY_DX9
+			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_DX9
+			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIROPALN_DX9
 			
-			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX9
-			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
-			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXED_DX12
-			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_DX12
-			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX12
-			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX12
+			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXED_DX12
+			{ &m_d12nbfDx12BlarggNtscFilter,		&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter,			&m_d12nbfDx12BlarggNtscFilter },		// LSN_F_NTSC_BLARGG_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_DX12
+			{ &m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_DX12
 
-			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc },				// LSN_F_LSPIRONTSC_DX12
 
-			{ &m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_DX12
-			{ &m_d12plsfDx12LSpiroDendy,			&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_DX12
-			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_DX12
-			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_DX12
+			{ &m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroPal },				// LSN_F_LSPIROPAL_DX12
+			{ &m_d12plsfDx12LSpiroDendy,			&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroDendy },			// LSN_F_LSPIRODENDY_DX12
+			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_DX12
+			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_DX12
 
-			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX12
-			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
-			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXED_VULKAN1
-			{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_VULKAN1
-			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_VULKAN1
-			{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_VULKAN1
+			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXED_VULKAN1
+			{ &m_vnbfVulkanBlarggNtscFilter,		&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter,			&m_vnbfVulkanBlarggNtscFilter },		// LSN_F_NTSC_BLARGG_VULKAN1
+			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter },		// LSN_F_NTSC_CRT_FULL_VULKAN1
+			{ &m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_PAL_CRT_FULL_VULKAN1
 
-			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc },				// LSN_F_LSPIRONTSC_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc },				// LSN_F_LSPIRONTSC_VULKAN1
 
-			{ &m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal },				// LSN_F_LSPIROPAL_VULKAN1
-			{ &m_vplsfVulkanLSpiroDendy,			&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy },			// LSN_F_LSPIRODENDY_VULKAN1
-			{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_VULKAN1
-			{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_VULKAN1
+			{ &m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroPal },				// LSN_F_LSPIROPAL_VULKAN1
+			{ &m_vplsfVulkanLSpiroDendy,			&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroDendy },			// LSN_F_LSPIRODENDY_VULKAN1
+			{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_VULKAN1
+			{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_VULKAN1
 
-			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_VULKAN1
-			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
+			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
 #endif	// #ifdef LSN_VULKAN1
 		};
 		m_nbfLSpiroPalFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
@@ -399,13 +399,16 @@ namespace lsn {
 		//m_vPostProcesses.push_back( CPostProcessBase::LSN_PP_SRGB );
 
 
-		m_psbSystems[LSN_PM_NTSC] = &m_nsNtscSystem;
+		m_psbSystems[LSN_PM_NTSC_M] = &m_nsNtscSystem;
+		m_psbSystems[LSN_PM_NTSC_J] = &m_nsNtscSystem;										// The Famicom shares the NES system (only its color space differs).
 		m_psbSystems[LSN_PM_PAL] = &m_nsPalSystem;
 		m_psbSystems[LSN_PM_DENDY] = &m_nsDendySystem;
 		m_psbSystems[LSN_PM_PALM] = &m_nsPalMSystem;
 		m_psbSystems[LSN_PM_PALN] = &m_nsPalNSystem;
 
+		// The Famicom (NTSC-J) is an NES with a Japanese television, which uses the NTSC-J color space.
 		for ( uint32_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
+			SetRegionColorSpace( LSN_PPU_METRICS( I ), I == LSN_PM_NTSC_J ? CColorSpace::LSN_CSP_TOSHIBA_CF2005 : CColorSpace::LSN_CSP_SRGB );
 		}
 		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL]
 
@@ -531,11 +534,8 @@ namespace lsn {
 					if ( !sStream.Read( ui32Version ) ) { return false; }
 					if ( !LoadAudioSettings( ui32Version, sStream, Options().aoThisGameAudioOptions ) ) { return false; }
 
-					for ( size_t I = 0; I < std::size( Options().poThisGamePalette ); ++I ) {
-						Options().poThisGamePalette[I] = Options().poGlobalPalettes[I];
-						Options().poThisGamePalette[I].bUseGlobal = true;
-						if ( !LoadPaletteSettings( ui32Version, sStream, Options().poThisGamePalette[I] ) ) { return false; }
-					}
+					// Per-game files were always version 0 before NTSC-J was added (so version 0 has 5 regions).
+					if ( !LoadRegionPaletteSettings( ui32Version, sStream, Options().poThisGamePalette, Options().poGlobalPalettes ) ) { return false; }
 					
 					if ( !LoadInputSettings( ui32Version, sStream, m_oOptions.ioThisGameInputOptions ) ) { return false; }
 					return true;
@@ -554,7 +554,7 @@ namespace lsn {
 	bool CBeesNes::SavePerGameSettings( const std::u16string &_u16Path ) {
 		std::vector<uint8_t> vFile;
 		CStream sStream( vFile );
-		uint32_t ui32Version = 0;
+		uint32_t ui32Version = LSN_BEESNES_SETTINGS_VERSION;
 		if ( !sStream.Write( ui32Version ) ) { return false; }
 		if ( !SaveAudioSettings( sStream, Options().aoThisGameAudioOptions ) ) { return false; }
 
@@ -818,6 +818,19 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the color space of a region.  GPU filters convert from it to sRGB (after linearizing).
+	 * 
+	 * \param _pmRegion The region whose color space is to be set.
+	 * \param _cspColorSpace The color space of the region.
+	 **/
+	void CBeesNes::SetRegionColorSpace( LSN_PPU_METRICS _pmRegion, CColorSpace::LSN_COLOR_SPACE _cspColorSpace ) {
+		if ( size_t( _pmRegion ) >= LSN_PM_CONSOLE_TOTAL ) { return; }
+		if ( size_t( _cspColorSpace ) >= CColorSpace::LSN_CSP_TOTAL ) { _cspColorSpace = CColorSpace::LSN_CSP_SRGB; }
+		m_cspRegionColorSpace[_pmRegion] = _cspColorSpace;
+		m_cmRegionColorMatrix[_pmRegion] = CColorSpace::ConversionMatrix( _cspColorSpace );
+	}
+
+	/**
 	 * Gets the current region.
 	 *
 	 * \return Returns the current region.
@@ -869,6 +882,8 @@ namespace lsn {
 
 			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
 				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
+				// The filters are shared between regions, so the color space is set every frame (the shader is only rebuilt when it changes).
+				pgfbThis->SetColorSpace( m_cmRegionColorMatrix[size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M] );
 				// GPU filters capture from the GPU (their returned buffer is not what is shown).
 				pgfbThis->SetCaptureTarget( m_bCaptureVideo ? &m_cbVideoCapture : nullptr, m_cfartCurFilterAndTargets.ui64Frame );
 
@@ -978,10 +993,11 @@ namespace lsn {
 				m_pmSystem = rTmp.riInfo.pmConsoleRegion;
 			}
 			if ( m_pmSystem == LSN_PPU_METRICS::LSN_PM_UNKNOWN ) {
-				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC;
+				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC_M;
 			}
 			for ( auto I = std::size( m_psbSystems ); I--; ) {
-				if ( I != size_t( m_pmSystem ) ) {
+				// Compare the systems rather than the indices because regions can share a system (NTSC-J uses the NTSC-M system).
+				if ( m_psbSystems[I] != m_psbSystems[m_pmSystem] ) {
 					m_psbSystems[I]->SetAsInactive();
 				}
 			}
@@ -1023,7 +1039,7 @@ namespace lsn {
 	 **/
 	void CBeesNes::PauseRom() {
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] ) {
+			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
 				m_psbSystems[I]->PauseRom();
 			}
 		}
@@ -1034,7 +1050,7 @@ namespace lsn {
 	 **/
 	void CBeesNes::UnpauseRom() {
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] ) {
+			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
 				m_psbSystems[I]->UnpauseRom();
 			}
 		}
@@ -1047,7 +1063,7 @@ namespace lsn {
 		CCpuTemperatureReader ctrTemp;
 		lsn::DebugA( std::format( "Temperature: {}\r\n\r\n", ctrTemp.GetTemperature() ).c_str() );
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] ) {
+			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
 				m_psbSystems[I]->TogglePauseRom();
 			}
 		}
@@ -1282,7 +1298,8 @@ namespace lsn {
 			if ( wsPath.empty() || !m_npPalette.LoadFromFile( wsPath ) ) {
 				wsPath.clear();
 				switch ( m_pmSystem ) {
-					case LSN_PM_NTSC : {
+					case LSN_PM_NTSC_M : {}				LSN_FALLTHROUGH
+					case LSN_PM_NTSC_J : {
 						wsPath = DefaultNtscPalette();
 						//wsPath = DefaultPaletteFolder() + L"SonyCXA2060BS_JP.pal";
 						break;
@@ -1907,6 +1924,11 @@ namespace lsn {
 		if ( !_sFile.ReadStringU16( m_oOptions.wsDefaultRomPath ) ) { return false; }
 
 		if ( !_sFile.Read( m_oOptions.pmRegion ) ) { return false; }
+		if ( ui32Version <= LSN_BEESNES_SETTINGS_VERSION_5_REGIONS ) {
+			// NTSC-J was inserted after NTSC-M, so PAL, Dendy, PAL-M, and PAL-N moved up by 1.
+			if ( m_oOptions.pmRegion >= 1 && m_oOptions.pmRegion <= 4 ) { m_oOptions.pmRegion = LSN_PPU_METRICS( m_oOptions.pmRegion + 1 ); }
+		}
+		if ( m_oOptions.pmRegion >= LSN_PM_CONSOLE_TOTAL && m_oOptions.pmRegion != LSN_PM_UNKNOWN ) { m_oOptions.pmRegion = LSN_PM_UNKNOWN; }
 
 		if ( !LoadAudioSettings( ui32Version, _sFile, m_oOptions.aoGlobalAudioOptions ) ) { return false; }
 		if ( !_sFile.ReadStringU16( m_oOptions.wsRawAudioPath ) ) { return false; }
@@ -1951,9 +1973,7 @@ namespace lsn {
 		
 		if ( !LoadWavEditorWindowSettings( ui32Version, _sFile, m_oOptions.wewoWavEditorWindow ) ) { return false; }
 
-		for ( size_t I = 0; I < std::size( m_oOptions.poGlobalPalettes ); ++I ) {
-			if ( !LoadPaletteSettings( ui32Version, _sFile, m_oOptions.poGlobalPalettes[I] ) ) { return false; }
-		}
+		if ( !LoadRegionPaletteSettings( ui32Version, _sFile, m_oOptions.poGlobalPalettes, nullptr ) ) { return false; }
 
 		if ( !_sFile.ReadStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
 
@@ -2504,21 +2524,55 @@ namespace lsn {
 	 * \param _poOptions The palette settings into which to load the settings data.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadPaletteSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions ) {
+	bool CBeesNes::LoadPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions ) {
 		_poOptions = LSN_PALETTE_OPTIONS();
 
 		if ( !_sFile.ReadStringU16( _poOptions.wsPath ) ) { return false; }
-		for ( size_t I = 0; I < std::size( _poOptions.gCrtGamma ); ++I ) {
-			if ( !_sFile.Read( _poOptions.gCrtGamma[I] ) ) { return false; }
-			if ( _poOptions.gCrtGamma[I] >= CNesPalette::LSN_G_TOTAL ) {
-				_poOptions.gCrtGamma[I] = CNesPalette::LSN_G_CRT2;
+		CNesPalette::LSN_GAMMA gStored[LSN_PM_CONSOLE_TOTAL];
+		const size_t stStored = StoredRegionCount( _ui32Version );
+		for ( size_t I = 0; I < stStored; ++I ) {
+			if ( !_sFile.Read( gStored[I] ) ) { return false; }
+			if ( gStored[I] >= CNesPalette::LSN_G_TOTAL ) {
+				gStored[I] = CNesPalette::LSN_G_CRT2;
 			}
+		}
+		for ( size_t I = 0; I < std::size( _poOptions.gCrtGamma ); ++I ) {
+			_poOptions.gCrtGamma[I] = gStored[StoredRegionIndex( _ui32Version, I )];
 		}
 		if ( !_sFile.Read( _poOptions.gMonitorGamma ) ) { return false; }
 		if ( _poOptions.gMonitorGamma >= CNesPalette::LSN_G_TOTAL ) {
 			_poOptions.gMonitorGamma = CNesPalette::LSN_G_sRGB;
 		}
 		if ( !_sFile.Read( _poOptions.bUseGlobal ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads a palette setting for each region.  Files from before NTSC-J was added hold 5 regions; NTSC-J gets a copy of NTSC-M.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _ppoOptions The LSN_PM_CONSOLE_TOTAL palette settings into which to load the settings data.
+	 * \param _ppoDefaults Optional LSN_PM_CONSOLE_TOTAL palette settings copied into _ppoOptions (with bUseGlobal set) before loading.
+	 *	They remain if loading fails.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadRegionPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS * _ppoOptions, const LSN_PALETTE_OPTIONS * _ppoDefaults ) {
+		if ( _ppoDefaults ) {
+			// If loading fails, the defaults remain.
+			for ( size_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
+				_ppoOptions[I] = _ppoDefaults[I];
+				_ppoOptions[I].bUseGlobal = true;
+			}
+		}
+		LSN_PALETTE_OPTIONS poStored[LSN_PM_CONSOLE_TOTAL];
+		const size_t stStored = StoredRegionCount( _ui32Version );
+		for ( size_t I = 0; I < stStored; ++I ) {
+			if ( !LoadPaletteSettings( _ui32Version, _sFile, poStored[I] ) ) { return false; }
+		}
+		for ( size_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
+			_ppoOptions[I] = poStored[StoredRegionIndex( _ui32Version, I )];
+		}
 		return true;
 	}
 

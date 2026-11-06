@@ -102,7 +102,7 @@ namespace lsn {
 			/** The End Time modifier. */
 			int32_t													i32StopMod = int32_t( LSN_SST_EXACT );
 			/** The last Actual Hz combo selection. */
-			uint32_t												ui32ActualHz = uint32_t( -LSN_PM_NTSC );
+			uint32_t												ui32ActualHz = uint32_t( 0 );												// CWavEditor::LSN_AH_NTSC.
 			/** The last Preset combo selection. */
 			uint32_t												ui32CharPreset = uint32_t( -1 );
 			

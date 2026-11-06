@@ -136,11 +136,12 @@
 #define LSN_VIDEO_FILTER_METAL												M&etal®
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
-#define LSN_REGION_NTSC														&NTSC
-#define LSN_REGION_PAL														&PAL
-#define LSN_REGION_DENDY													PAL \u201C&Dendy\u201D Famiclone
-#define LSN_REGION_PALM														&Brazil Famiclone
-#define LSN_REGION_PALN														Ar&gentina Famiclone
+#define LSN_REGION_NTSC_M													NTSC-&M (Nintendo Entertainment System\u00AE)
+#define LSN_REGION_NTSC_J													NTSC-&J (Famicom\u00AE)
+#define LSN_REGION_PAL														&PAL-I (PAL-A Nintendo Entertainment System\u00AE)
+#define LSN_REGION_DENDY													PAL-D/K (&Dendy Famiclone)
+#define LSN_REGION_PALM														PAL-M (&Brazil Famiclone)
+#define LSN_REGION_PALN														PAL-N (Ar&gentina Famiclone)
 
 // Tools menu.
 #define LSN_TOOLS_PATCH														i&Patch
@@ -756,6 +757,20 @@
 #define LSN_STR_VQM_QSCALE												Quantizer Scale
 #define LSN_STR_VQM_PROFILE												Profile
 #define LSN_STR_VQM_BITRATE												Bitrate (kbps)
+
+#define LSN_STR_CSP_SRGB													sRGB
+#define LSN_STR_CSP_BT709													BT.709
+#define LSN_STR_CSP_SMPTE_C													SMPTE C (SMPTE 170M/BT.601 525)
+#define LSN_STR_CSP_NTSC_1953												NTSC 1953
+#define LSN_STR_CSP_BT470_NTSC												BT.470 System M (NTSC)
+#define LSN_STR_CSP_BT470_PAL												BT.470 System B/G (PAL)
+#define LSN_STR_CSP_BT601_625												BT.601 625
+#define LSN_STR_CSP_BT2020													BT.2020
+#define LSN_STR_CSP_NTSC_J													NTSC-J
+#define LSN_STR_CSP_TOSHIBA_CF2005											Toshiba CF2005
+#define LSN_STR_CSP_SONY_PVM_20M2U											Sony PVM-20M2U
+#define LSN_STR_CSP_SONY_PVM_20L2MDU										Sony PVM-20L2MDU
+#define LSN_STR_CSP_SONY_P22_TRINITRON										Sony Trinitron (P22)
 
 #define LSN_STR_PRORES_PROXY											Proxy
 #define LSN_STR_PRORES_LT												LT

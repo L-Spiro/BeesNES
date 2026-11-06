@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #ifdef LSN_VULKAN1
@@ -39,6 +39,7 @@ namespace lsn {
 		m_pdslDescriptorSetLayout.reset();
 
 		m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
 	}
 
 	/**
@@ -91,18 +92,20 @@ namespace lsn {
 	 * \param _pvkDevice The Vulkan device.
 	 * \param _rpRenderPass The render pass that the pipeline will execute within.
 	 * \param _gGamma The specific gamma curve to hard-code into the generated shader.
+	 * \param _cmColorSpace The color-space conversion matrix to hard-code into the generated shader (skipped if it is the identity matrix).
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CVulkanTextureGamma::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
+	bool CVulkanTextureGamma::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_rpRenderPass ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) {
-			if ( m_gShaderGamma == _gGamma ) { return true; }
+			if ( m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace ) { return true; }
 			m_ppShader->Reset();
 		}
 		m_gShaderGamma = _gGamma;
+		m_cmShaderColorSpace = _cmColorSpace;
 
 		if ( !m_pdslDescriptorSetLayout.get() ) {
 			VkDescriptorSetLayoutBinding dslbBinding = {};
@@ -224,6 +227,7 @@ namespace lsn {
 			"void main() {\n"
 			"    vec4 c = texture(tTex, inTex);\n"
 			"    c.rgb = " + sGammaCall + ";\n"
+			"    " + CColorSpace::ShaderStatement( _cmColorSpace, false ) +
 			"    outColor = c;\n"
 			"}\n";
 

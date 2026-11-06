@@ -3,7 +3,7 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #pragma once
@@ -11,6 +11,7 @@
 #ifdef LSN_VULKAN1
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "../../Filters/LSNNesPalette.h"
 #include "LSNVulkanDevice.h"
 #include "LSNVulkanImage.h"
@@ -31,7 +32,8 @@ namespace lsn {
 	 * Class CVulkanTextureGamma
 	 * \brief A generic helper class for applying a gamma curve to a texture.
 	 *
-	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, outputting to a render target.
+	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, then (in linear light) a color-space conversion matrix,
+	 *	outputting to a render target.  If the matrix is the identity matrix, the shader has no matrix code at all.
 	 */
 	class CVulkanTextureGamma {
 	public :
@@ -59,12 +61,13 @@ namespace lsn {
 		 * \param _pvkDevice The Vulkan device.
 		 * \param _rpRenderPass The render pass that the pipeline will execute within.
 		 * \param _gGamma The specific gamma curve to hard-code into the generated shader.
+		 * \param _cmColorSpace The color-space conversion matrix to hard-code into the generated shader (skipped if it is the identity matrix).
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 		 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, VkFormat _fFormat = VK_FORMAT_UNDEFINED, const std::vector<uint32_t> &_vSpirvVert = std::vector<uint32_t>(), const std::vector<uint32_t> &_vSpirvFrag = std::vector<uint32_t>() );
+		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, VkFormat _fFormat = VK_FORMAT_UNDEFINED, const std::vector<uint32_t> &_vSpirvVert = std::vector<uint32_t>(), const std::vector<uint32_t> &_vSpirvFrag = std::vector<uint32_t>() );
 
 		/**
 		 * Renders the texture to the surface.
@@ -111,6 +114,9 @@ namespace lsn {
 
 		/** The currently compiled shader gamma curve. */
 		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
+
+		/** The currently compiled color-space conversion matrix. */
+		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
 
 	};
 

@@ -5,12 +5,13 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "../../Filters/LSNNesPalette.h"
 #include "LSNDirectX9Device.h"
 #include "LSNDirectX9PixelShader.h"
@@ -27,7 +28,8 @@ namespace lsn {
 	 * Class CDirectX9TextureGamma
 	 * \brief A generic helper class for applying a gamma curve to a texture.
 	 *
-	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, outputting to a render target.
+	 * Description: Performs a 1:1 texture fetch and applies a specified gamma curve, then (in linear light) a color-space conversion matrix,
+	 *	outputting to a render target.  If the matrix is the identity matrix, the shader has no matrix code at all.
 	 */
 	class CDirectX9TextureGamma {
 	public :
@@ -50,9 +52,10 @@ namespace lsn {
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _prtDst The destination render target.
 		 * \param _gGamma The gamma curve to apply.
+		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma );
+		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace );
 
 
 	protected :
@@ -63,6 +66,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9PixelShader>					m_psShader;
 		/** The current gamma setting used to compile the shader. */
 		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		/** The color-space conversion matrix used to compile the shader. */
+		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
 
 
 		// == Functions.
@@ -79,9 +84,10 @@ namespace lsn {
 		 * 
 		 * \param _pdx9dDevice The Direct3D 9 device.
 		 * \param _gGamma The gamma curve to apply.
+		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma );
+		bool													EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded D3DX.

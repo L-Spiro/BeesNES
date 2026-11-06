@@ -231,8 +231,8 @@ namespace lsn {
 
 		// --- PASS 1: GAMMA ---
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
-		if ( effGamma != CNesPalette::LSN_G_NONE ) {
-			if ( m_tgGamma.Render( _pdx9dDevice, ptScaleSource, _ui32NativeW, _ui32NativeH, m_rtGamma.get(), effGamma ) ) {
+		if ( NeedsGammaPass( effGamma ) ) {
+			if ( m_tgGamma.Render( _pdx9dDevice, ptScaleSource, _ui32NativeW, _ui32NativeH, m_rtGamma.get(), effGamma, m_cmColorSpace ) ) {
 				ptScaleSource = m_rtGamma->Texture()->Get();
 			}
 		}

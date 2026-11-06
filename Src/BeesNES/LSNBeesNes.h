@@ -10,6 +10,7 @@
 
 #include "../LSNLSpiroNes.h"
 #include "../Cheats/LSNCheatManager.h"
+#include "../ColorSpace/LSNColorSpace.h"
 #include "../Display/LSNCaptureBuffer.h"
 #include "../Filters/LSNBiLinearPostProcess.h"
 #include "../Filters/LSNBleedPostProcess.h"
@@ -59,7 +60,9 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			2
+#define LSN_BEESNES_SETTINGS_VERSION			3
+/** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
+#define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
 
 namespace lsn {
 
@@ -758,6 +761,24 @@ namespace lsn {
 		CNesPalette::LSN_GAMMA					PaletteMonitorGamma() const { return m_gMonitorGamma; }
 
 		/**
+		 * Sets the color space of a region.  GPU filters convert from it to sRGB (after linearizing).
+		 * 
+		 * \param _pmRegion The region whose color space is to be set.
+		 * \param _cspColorSpace The color space of the region.
+		 **/
+		void									SetRegionColorSpace( LSN_PPU_METRICS _pmRegion, CColorSpace::LSN_COLOR_SPACE _cspColorSpace );
+
+		/**
+		 * Gets the color space of a region.
+		 * 
+		 * \param _pmRegion The region whose color space is to be gotten.
+		 * \return Returns the color space of the region or CColorSpace::LSN_CSP_SRGB if _pmRegion is invalid.
+		 **/
+		CColorSpace::LSN_COLOR_SPACE			RegionColorSpace( LSN_PPU_METRICS _pmRegion ) const {
+			return size_t( _pmRegion ) < LSN_PM_CONSOLE_TOTAL ? m_cspRegionColorSpace[_pmRegion] : CColorSpace::LSN_CSP_SRGB;
+		}
+
+		/**
 		 * Updates the GPU palette for GPU-enabled palette rendering.
 		 **/
 		void									UpdateGpuPalette();
@@ -775,7 +796,8 @@ namespace lsn {
 		 **/
 		static float							SystemBlackLevel( LSN_PPU_METRICS _pmSystem ) {
 			switch ( _pmSystem ) {
-				case LSN_PM_NTSC : {}
+				case LSN_PM_NTSC_M : {}				LSN_FALLTHROUGH
+				case LSN_PM_NTSC_J : {}				LSN_FALLTHROUGH
 				case LSN_PM_PALM : { return 0.312f; }
 			}
 			return 0.0f;
@@ -945,9 +967,13 @@ namespace lsn {
 		/** The default palettes for each system. */
 		CNesPalette								m_npPalette;
 		/** The current system type. */
-		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC;
+		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC_M;
 		/** CRT gamma. */
 		CNesPalette::LSN_GAMMA					m_gCrtGamma[LSN_PM_CONSOLE_TOTAL];
+		/** The color space of each region. */
+		CColorSpace::LSN_COLOR_SPACE			m_cspRegionColorSpace[LSN_PM_CONSOLE_TOTAL];
+		/** The conversion matrix (from each region's color space to sRGB) handed to the GPU filters. */
+		CColorSpace::LSN_COLOR_MATRIX			m_cmRegionColorMatrix[LSN_PM_CONSOLE_TOTAL];
 		/** Monitor gamma. */
 		CNesPalette::LSN_GAMMA					m_gMonitorGamma;
 		/** "NONE" post-processing. */
@@ -1022,6 +1048,20 @@ namespace lsn {
 		 * Updates the current system with render information, display hosts, etc.
 		 */
 		void									UpdateCurrentSystem();
+
+		/**
+		 * Determines whether a region shares its system with a lower region (such as NTSC-J, which shares the NTSC-M system).  Used
+		 *	to visit each system only once when looping over m_psbSystems.
+		 *
+		 * \param _stRegion The index of the region in m_psbSystems.
+		 * \return Returns true if a region before _stRegion uses the same system.
+		 */
+		bool									IsSharedSystem( size_t _stRegion ) const {
+			for ( size_t I = 0; I < _stRegion; ++I ) {
+				if ( m_psbSystems[I] == m_psbSystems[_stRegion] ) { return true; }
+			}
+			return false;
+		}
 
 		/**
 		 * Sets the stream-to-file options.
@@ -1213,6 +1253,39 @@ namespace lsn {
 		 * \return Returns true if the settings data was loaded.
 		 */
 		bool									LoadPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS &_poOptions );
+
+		/**
+		 * Loads a palette setting for each region.  Files from before NTSC-J was added hold 5 regions; NTSC-J gets a copy of NTSC-M.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _ppoOptions The LSN_PM_CONSOLE_TOTAL palette settings into which to load the settings data.
+		 * \param _ppoDefaults Optional LSN_PM_CONSOLE_TOTAL palette settings copied into _ppoOptions (with bUseGlobal set) before loading.
+		 *	They remain if loading fails.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadRegionPaletteSettings( uint32_t _ui32Version, CStream &_sFile, LSN_PALETTE_OPTIONS * _ppoOptions, const LSN_PALETTE_OPTIONS * _ppoDefaults );
+
+		/**
+		 * Gets the number of regions stored in a settings file of a given version.
+		 *
+		 * \param _ui32Version The file version.
+		 * \return Returns the number of regions stored by the given version.
+		 */
+		static size_t							StoredRegionCount( uint32_t _ui32Version ) { return _ui32Version <= LSN_BEESNES_SETTINGS_VERSION_5_REGIONS ? 5 : LSN_PM_CONSOLE_TOTAL; }
+
+		/**
+		 * Converts a region index (an LSN_PPU_METRICS value) to its index in a settings file of a given version.  In files from before
+		 *	NTSC-J was added, NTSC-J maps to NTSC-M and the regions after it are 1 lower.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _stRegion The current region index.
+		 * \return Returns the index of the region in the file.
+		 */
+		static size_t							StoredRegionIndex( uint32_t _ui32Version, size_t _stRegion ) {
+			if ( _ui32Version > LSN_BEESNES_SETTINGS_VERSION_5_REGIONS ) { return _stRegion; }
+			return _stRegion <= LSN_PM_NTSC_J ? 0 : (_stRegion - 1);
+		}
 
 		/**
 		 * Saves palette settings.

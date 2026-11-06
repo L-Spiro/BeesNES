@@ -5,12 +5,13 @@
  *
  * Written by: Shawn (L. Spiro) Wilcoxen
  *
- * Description: A generic helper class for applying a gamma curve to a texture.
+ * Description: A generic helper class for applying a gamma curve and a color-space conversion to a texture.
  */
 
 #include "LSNDirectX9TextureGamma.h"
 #include "LSNDirectX9DiskInclude.h"
 
+#include <iterator>
 #include <string>
 
 namespace lsn {
@@ -39,6 +40,7 @@ namespace lsn {
 		m_vbQuad.reset();
 		m_psShader.reset();
 		m_gShaderGamma = CNesPalette::LSN_G_NONE;
+		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
 	}
 
 	/**
@@ -50,13 +52,14 @@ namespace lsn {
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _prtDst The destination render target.
 	 * \param _gGamma The gamma curve to apply.
+	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX9TextureGamma::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma ) {
+	bool CDirectX9TextureGamma::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_prtDst || !_ui32SrcW || !_ui32SrcH ) { return false; }
 
 		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice, _gGamma ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice, _gGamma, _cmColorSpace ) ) { return false; }
 
 		IDirect3DDevice9 * pd3d9dDevice = _pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
@@ -124,13 +127,15 @@ namespace lsn {
 	 * 
 	 * \param _pdx9dDevice The Direct3D 9 device.
 	 * \param _gGamma The gamma curve to apply.
+	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX9TextureGamma::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma ) {
-		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gShaderGamma == _gGamma ) { return true; }
+	bool CDirectX9TextureGamma::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace ) {
+		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace ) { return true; }
 
 		m_psShader = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
 		m_gShaderGamma = _gGamma;
+		m_cmShaderColorSpace = _cmColorSpace;
 
 		std::string sGammaCall = "c.rgb";
 		switch ( _gGamma ) {
@@ -158,12 +163,21 @@ namespace lsn {
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 			"    float4 c = tex2D( sSrc, uv );\n"
 			"    c.rgb = " + sGammaCall + ";\n"
+			"    " + CColorSpace::ShaderStatement( _cmColorSpace, true ) +
 			"    return c;\n"
 			"}\n";
 
 		CDirectX9DiskInclude diInclude( CDirectX9DiskInclude::GetExeShadersDir() );
 		std::vector<DWORD> vBc;
-		if ( !CompileHlslPs( sShaderSrc.c_str(), "main", "ps_2_0", vBc, &diInclude ) ) { return false; }
+		// The precise gamma curves plus a color-space matrix can exceed the ps_2_0 instruction limit, so fall back to the extended
+		//	2.x profiles.  ps_3_0 is not an option because it cannot be paired with fixed-function vertex processing.
+		static const char * pcProfiles[] = { "ps_2_0", "ps_2_b", "ps_2_a" };
+		bool bCompiled = false;
+		for ( size_t I = 0; I < std::size( pcProfiles ) && !bCompiled; ++I ) {
+			vBc.clear();
+			bCompiled = CompileHlslPs( sShaderSrc.c_str(), "main", pcProfiles[I], vBc, &diInclude );
+		}
+		if ( !bCompiled ) { return false; }
 		if ( !m_psShader->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
 
 		return true;

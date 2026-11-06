@@ -260,14 +260,14 @@ namespace lsn {
 
 		// --- PASS 1: GAMMA ---
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
-		if ( effGamma != CNesPalette::LSN_G_NONE ) {
+		if ( NeedsGammaPass( effGamma ) ) {
 			D3D12_RESOURCE_BARRIER rbGamma[1];
 			rbGamma[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtGamma->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET } };
 			_pgclCommandList->Get()->ResourceBarrier( 1, rbGamma );
 
 			D3D12_CPU_DESCRIPTOR_HANDLE hGammaRtv = m_dhGammaRtv->Get()->GetCPUDescriptorHandleForHeapStart();
 
-			if ( m_tgGamma.Render( _pdx12dDevice, _pgclCommandList, prScaleSource, _ui32NativeW, _ui32NativeH, hGammaRtv, effGamma, fmtRt ) ) {
+			if ( m_tgGamma.Render( _pdx12dDevice, _pgclCommandList, prScaleSource, _ui32NativeW, _ui32NativeH, hGammaRtv, effGamma, m_cmColorSpace, fmtRt ) ) {
 				prScaleSource = m_rtGamma.get();
 			}
 

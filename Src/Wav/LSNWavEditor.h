@@ -43,13 +43,13 @@ namespace lsn {
 
 
 		// == Enumerations.
-		/** Actual Hz types. */
+		/** Actual Hz types.  These values are saved, so they are fixed (they no longer follow the LSN_PM_* region codes). */
 		enum LSN_ACTUAL_HZ : int32_t {
-			LSN_AH_NTSC													= int32_t( -LSN_PM_NTSC ),
-			LSN_AH_PAL													= int32_t( -LSN_PM_PAL ),
-			LSN_AH_DENDY												= int32_t( -LSN_PM_DENDY ),
-			LSN_AH_PALM													= int32_t( -LSN_PM_PALM ),
-			LSN_AH_PALN													= int32_t( -LSN_PM_PALN ),
+			LSN_AH_NTSC													= int32_t( 0 ),
+			LSN_AH_PAL													= int32_t( -1 ),
+			LSN_AH_DENDY												= int32_t( -2 ),
+			LSN_AH_PALM													= int32_t( -3 ),
+			LSN_AH_PALN													= int32_t( -4 ),
 			LSN_AH_BY_FILE												= int32_t( -100 ),
 			LSN_AH_CUSTOM												= int32_t( -1000 ),
 		};

@@ -121,7 +121,7 @@ namespace lsn {
 						break;
 					}
 					default : {
-						_rRom.riInfo.pmConsoleRegion = LSN_PM_NTSC;
+						_rRom.riInfo.pmConsoleRegion = LSN_PM_NTSC_M;
 					}
 				}
 				_rRom.riInfo.ui32HeaderlessCrc = CCrc::GetCrc( pui8Data, stDataSize );

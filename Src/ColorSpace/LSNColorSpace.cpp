@@ -8,6 +8,12 @@
 
 
 #include "LSNColorSpace.h"
+#include "../Localization/LSNLocalization.h"
+#include "../Math/LSNMatrix4x4.h"
+
+#include <algorithm>
+#include <cstring>
+#include <format>
 
 namespace lsn {
 
@@ -102,7 +108,120 @@ namespace lsn {
 		0.2838f, 0.2984f
 	};
 
+	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {									/**< The information about each color space, in LSN_COLOR_SPACE order. */
+		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb" },
+		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709" },
+		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c" },
+		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953" },
+		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc" },
+		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal" },
+		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625" },
+		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020" },
+		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j" },
+		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005" },
+		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u" },
+		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu" },
+		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22" },
+	};
+
 	// == Functions.
+	/**
+	 * Creates a conversion matrix given a color-space's chromaticities and white point.
+	 *
+	 * \param _pfChromas the chroma and white-point values.  Source from the members of this class.
+	 * \return The RGB to XYZ transformation matrix.
+	 */
+	CMatrix4x4<LSN_ST_AVX512> CColorSpace::ComputeRgbToXyzMatrix( const float * _pfChromas ) {
+		return ComputeRgbToXyzMatrix( _pfChromas[0], _pfChromas[1], _pfChromas[2], _pfChromas[3], _pfChromas[4], _pfChromas[5], _pfChromas[6], _pfChromas[7] );
+	}
+
+	/**
+	 * Creates a conversion matrix given a color-space's chromaticities and white point.
+	 *
+	 * \param _pfChromas the chroma and white-point values.  Source from the members of this class.
+	 * \return The XYZ to RGB transformation matrix.
+	 */
+	CMatrix4x4<LSN_ST_AVX512> CColorSpace::ComputeXyzToRgbMatrix( const float * _pfChromas ) {
+		return ComputeXyzToRgbMatrix( _pfChromas[0], _pfChromas[1], _pfChromas[2], _pfChromas[3], _pfChromas[4], _pfChromas[5], _pfChromas[6], _pfChromas[7] );
+	}
+
+	/**
+	 * Gets information about a color space.
+	 *
+	 * \param _cspColorSpace The color space.
+	 * \return Returns the information about the color space, or the information about sRGB if _cspColorSpace is invalid.
+	 */
+	const CColorSpace::LSN_COLOR_SPACE_DATA & CColorSpace::Data( LSN_COLOR_SPACE _cspColorSpace ) {
+		return m_csdData[(_cspColorSpace < LSN_CSP_TOTAL) ? _cspColorSpace : LSN_CSP_SRGB];
+	}
+
+	/**
+	 * Finds a color space by the ID returned in LSN_COLOR_SPACE_DATA::pcId.
+	 *
+	 * \param _pcId The ID of the color space.
+	 * \return Returns the color space or LSN_CSP_TOTAL if there is no color space with that ID.
+	 */
+	CColorSpace::LSN_COLOR_SPACE CColorSpace::FromId( const char * _pcId ) {
+		if ( !_pcId ) { return LSN_CSP_TOTAL; }
+		for ( uint32_t I = 0; I < LSN_CSP_TOTAL; ++I ) {
+			if ( std::strcmp( m_csdData[I].pcId, _pcId ) == 0 ) { return LSN_COLOR_SPACE( I ); }
+		}
+		return LSN_CSP_TOTAL;
+	}
+
+	/**
+	 * Creates the matrix that converts linear RGB in one color space to linear RGB in another.  RGB is converted to CIE XYZ through the
+	 *	source primaries and back through the destination primaries.  White points are not adapted, so a source white that is bluer than
+	 *	the destination white stays bluer (as it was on the original screens).  If source white would then exceed 1.0 in any channel,
+	 *	the matrix is scaled so that source white just reaches 1.0 in its brightest channel instead of clipping.
+	 *
+	 * \param _cspSrc The color space of the input.
+	 * \param _cspDst The color space of the output (normally the display, sRGB).
+	 * \return Returns the conversion matrix.  It is exactly the identity matrix if the color spaces are the same.
+	 */
+	CColorSpace::LSN_COLOR_MATRIX CColorSpace::ConversionMatrix( LSN_COLOR_SPACE _cspSrc, LSN_COLOR_SPACE _cspDst ) {
+		LSN_COLOR_MATRIX cmRet;
+		const float * pfSrc = Data( _cspSrc ).pfChromas;
+		const float * pfDst = Data( _cspDst ).pfChromas;
+		if ( pfSrc == pfDst || std::memcmp( pfSrc, pfDst, sizeof( float ) * 8 ) == 0 ) { return cmRet; }
+
+		CMatrix4x4<LSN_ST_AVX512> mConv = ComputeXyzToRgbMatrix( pfDst ) * ComputeRgbToXyzMatrix( pfSrc );
+
+		// Source white is (1, 1, 1); scale so that it does not exceed 1.0 in any channel.
+		float fMaxWhite = 0.0f;
+		for ( size_t I = 0; I < 3; ++I ) {
+			fMaxWhite = std::max( fMaxWhite, mConv[I][0] + mConv[I][1] + mConv[I][2] );
+		}
+		float fScale = (fMaxWhite > 1.0f) ? (1.0f / fMaxWhite) : 1.0f;
+		for ( size_t I = 0; I < 3; ++I ) {
+			for ( size_t J = 0; J < 3; ++J ) {
+				cmRet.fM[I][J] = mConv[I][J] * fScale;
+			}
+		}
+		return cmRet;
+	}
+
+	/**
+	 * Creates a shader statement that converts the linear color in c.rgb by a matrix and clamps the result to [0, 1].
+	 *
+	 * \param _cmMatrix The conversion matrix.
+	 * \param _bHlsl If true, HLSL is generated (float3), otherwise GLSL (vec3).
+	 * \return Returns the statement, or an empty string if the matrix is the identity matrix.
+	 */
+	std::string CColorSpace::ShaderStatement( const LSN_COLOR_MATRIX &_cmMatrix, bool _bHlsl ) {
+		if ( _cmMatrix.IsIdentity() ) { return std::string(); }
+		const char * pcVec3 = _bHlsl ? "float3" : "vec3";
+		// 9 significant digits round-trip a float exactly; the exponent form is valid in both languages.
+		auto aNum = []( float _fVal ) { return std::format( "{:.8e}", _fVal ); };
+		std::string sRet = std::string( "c.rgb = clamp( " ) + pcVec3 + "(\n";
+		for ( size_t I = 0; I < 3; ++I ) {
+			sRet += std::string( "        dot( " ) + pcVec3 + "( " + aNum( _cmMatrix.fM[I][0] ) + ", " + aNum( _cmMatrix.fM[I][1] ) + ", " + aNum( _cmMatrix.fM[I][2] ) + " ), c.rgb )";
+			sRet += (I < 2) ? ",\n" : " ),\n";
+		}
+		sRet += std::string( "        " ) + pcVec3 + "( 0.0, 0.0, 0.0 ), " + pcVec3 + "( 1.0, 1.0, 1.0 ) );\n";
+		return sRet;
+	}
+
 	/**
 	 * Creates a conversion matrix given a color-space's chromaticities and white point.
 	 *
