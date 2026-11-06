@@ -23,6 +23,8 @@
 #include <filesystem>
 #include <format>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -42,6 +44,10 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CVideoRecordingWindow::InitDialog() {
 		Parent::InitDialog();
+
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_RECORDING_SETTINGS_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_RECORDING_SETTINGS_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+
 		if ( !m_pvrdData || !m_pvrdData->pveoOptions ) { return LSW_H_CONTINUE; }
 		m_bUpdating = true;
 

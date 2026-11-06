@@ -2484,6 +2484,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-turntable-16.ico" />
     <Image Include="Resources\icons8-turntable-32.ico" />
     <Image Include="Resources\icons8-up-radio-waves-24.bmp" />
+    <Image Include="Resources\icons8-video-camera-16.ico" />
+    <Image Include="Resources\icons8-video-camera-32.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc" />

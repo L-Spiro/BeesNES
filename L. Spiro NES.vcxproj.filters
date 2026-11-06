@@ -2198,6 +2198,12 @@
     <Image Include="Resources\icons8-edit-16.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-video-camera-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-video-camera-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">

@@ -564,7 +564,7 @@
 		std::string sTmp;
 		size_t stNoteStart = sEscaped.size(), stNoteEnd;
 		if ( FindNoteString( sEscaped, stNoteStart, stNoteEnd ) ) {
-			// Notes are not processed.
+			// Notes are lightly processed.
 			_wsNote = ee::CExpEval::ToUtf16( sEscaped.substr( stNoteStart + 2, stNoteEnd - stNoteStart - 3 ) );
 			sEscaped.erase( sEscaped.begin() + stNoteStart, sEscaped.begin() + stNoteEnd + 1 );
 			_wsNote = CUtilities::Replace<std::wstring>( _wsNote, std::wstring( L"\u201C" ), std::wstring( L" \u201C" ) );

@@ -90,6 +90,10 @@ IDI_JOYSTICK_16         ICON                    "Resources\\icons8-joystick-16.i
 
 IDI_JOYSTICK_32         ICON                    "Resources\\icons8-joystick-32.ico"
 
+IDI_RECORDING_SETTINGS_16 ICON                    "Resources\\icons8-video-camera-16.ico"
+
+IDI_RECORDING_SETTINGS_32 ICON                    "Resources\\icons8-video-camera-32.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

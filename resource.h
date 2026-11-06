@@ -41,12 +41,15 @@
 #define IDB_CHEAT_DUPLICATE_16          144
 #define IDB_BITMAP2                     145
 #define IDB_CHEAT_EDIT_16               145
+#define IDI_RECORDING_SETTINGS_16       146
+#define IDI_ICON3                       147
+#define IDI_RECORDING_SETTINGS_32       147
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        146
+#define _APS_NEXT_RESOURCE_VALUE        148
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
