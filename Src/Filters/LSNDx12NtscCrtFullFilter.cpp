@@ -38,6 +38,20 @@ namespace lsn {
 
 	// == Functions.
 	/**
+	 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).
+	 *
+	 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
+	 */
+	void CDx12NtscCrtFullFilter::SetHueOffset( float _fHueOffset ) {
+		m_fHueOffset = _fHueOffset;
+		// The CRT structure only exists after Init(), which applies m_fHueOffset itself.
+		if ( m_vCrtNtsc.size() >= sizeof( CRT ) ) {
+			// The CRT hue is in degrees.
+			m_nnCrtNtsc.hue_offset = double( _fHueOffset ) * 180.0 / std::numbers::pi;
+		}
+	}
+
+	/**
 	 * Sets the basic parameters for the filter.
 	 *
 	 * \param _stBuffers The number of render targets to create.
@@ -67,6 +81,7 @@ namespace lsn {
 		::crt_init_full( &m_nnCrtNtsc, m_ui32FinalWidth, m_ui32FinalHeight, CRT_PIX_FORMAT_BGRA, m_vRgbBuffer.data() );
 		
 		m_nnCrtNtsc.hue = 20;
+		m_nnCrtNtsc.hue_offset = double( m_fHueOffset ) * 180.0 / std::numbers::pi;
 		m_nnCrtNtsc.brightness = 4;
 		m_nnCrtNtsc.contrast = 180;
 		m_nnCrtNtsc.saturation = 17;

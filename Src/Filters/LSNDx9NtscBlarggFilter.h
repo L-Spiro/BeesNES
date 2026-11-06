@@ -45,6 +45,13 @@ namespace lsn {
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
 
 		/**
+		 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).
+		 *
+		 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
+		 */
+		virtual void										SetHueOffset( float _fHueOffset ) override;
+
+		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *
@@ -137,6 +144,10 @@ namespace lsn {
 
 		/** The Blargg NTSC emulation. */
 		nes_ntsc_t											m_nnBlarggNtsc;
+		/** The setup used to initialize m_nnBlarggNtsc (before the hue offset is added). */
+		nes_ntsc_setup_t									m_nsSetup;
+		/** The hue offset added to the setup's hue, in radians. */
+		float												m_fHueOffset = 0.0f;
 		/** The final stride. */
 		uint32_t											m_ui32FinalStride;
 		/** The output created by calling FilterFrame(). */

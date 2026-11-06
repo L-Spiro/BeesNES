@@ -139,6 +139,14 @@ namespace lsn {
 		 * \return Returns true if a gamma curve or a non-identity color-space conversion is to be applied.
 		 */
 		inline bool											NeedsGammaPass( CNesPalette::LSN_GAMMA _gEffGamma ) const { return _gEffGamma != CNesPalette::LSN_G_NONE || !m_cmColorSpace.IsIdentity(); }
+
+		/**
+		 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).  Filters
+		 *	that decode a composite signal (the L. Spiro, Blargg, and NTSC CRT Full filters) override this; the rest ignore it.
+		 *
+		 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
+		 */
+		virtual void										SetHueOffset( float /*_fHueOffset*/ ) {}
 		
 		/**
 		 * Enables or disables the phosphor decay effect.

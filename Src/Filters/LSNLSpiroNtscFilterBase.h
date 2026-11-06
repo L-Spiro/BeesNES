@@ -140,6 +140,21 @@ namespace lsn {
 		void												SetHue( float _fHue );
 
 		/**
+		 * Sets a hue offset that is added to the hue (see SetHue()).  Used for a color space's hue rotation (CColorSpace::HueOffset()) so
+		 *	that it is applied relative to the hue setting instead of replacing it.  The phase tables are only regenerated if it changes.
+		 * 
+		 * \param _fHueOffset The hue offset, in radians.
+		 **/
+		void												SetHueOffset( float _fHueOffset );
+
+		/**
+		 * Gets the hue offset (see SetHueOffset()).
+		 * 
+		 * \return Returns the hue offset, in radians.
+		 **/
+		inline float										HueOffset() const { return m_fHueOffset; }
+
+		/**
 		 * Sets the brightness.
 		 * 
 		 * \param _fBrightness The brightness to set.
@@ -292,6 +307,7 @@ namespace lsn {
 
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 0.0f;								/**< The hue. */
+		float												m_fHueOffset = 0.0f;								/**< An offset added to the hue (a color space's hue rotation), in radians. */
 		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
 		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */

@@ -33,12 +33,28 @@ namespace lsn {
 		nsTmp.gamma = 0.0;
 		nsTmp.hue = 7.89 / 180.0;
 		
-		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+		m_nsSetup = nsTmp;
+		::nes_ntsc_init( &m_nnBlarggNtsc, &m_nsSetup );
 	}
 	CDx9NtscBlarggFilter::~CDx9NtscBlarggFilter() {
 	}
 
 	// == Functions.
+	/**
+	 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).  The
+	 *	tables are only regenerated if the offset changes.
+	 *
+	 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
+	 */
+	void CDx9NtscBlarggFilter::SetHueOffset( float _fHueOffset ) {
+		if ( m_fHueOffset == _fHueOffset ) { return; }
+		m_fHueOffset = _fHueOffset;
+		// Blargg's hue is in units of 180 degrees (-1 = -180 degrees, 1 = 180 degrees).
+		nes_ntsc_setup_t nsTmp = m_nsSetup;
+		nsTmp.hue += double( _fHueOffset ) / std::numbers::pi;
+		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+	}
+
 	/**
 	 * Sets the basic parameters for the filter.
 	 *

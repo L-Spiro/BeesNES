@@ -828,6 +828,7 @@ namespace lsn {
 		if ( size_t( _cspColorSpace ) >= CColorSpace::LSN_CSP_TOTAL ) { _cspColorSpace = CColorSpace::LSN_CSP_SRGB; }
 		m_cspRegionColorSpace[_pmRegion] = _cspColorSpace;
 		m_cmRegionColorMatrix[_pmRegion] = CColorSpace::ConversionMatrix( _cspColorSpace );
+		m_fRegionHueOffset[_pmRegion] = CColorSpace::HueOffset( _cspColorSpace );
 	}
 
 	/**
@@ -883,7 +884,10 @@ namespace lsn {
 			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
 				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
 				// The filters are shared between regions, so the color space is set every frame (the shader is only rebuilt when it changes).
-				pgfbThis->SetColorSpace( m_cmRegionColorMatrix[size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M] );
+				// The hue rotation that goes with the color space is applied relative to the filter's own hue (filters without one ignore it).
+				const size_t stRegion = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? size_t( m_pmSystem ) : size_t( LSN_PM_NTSC_M );
+				pgfbThis->SetColorSpace( m_cmRegionColorMatrix[stRegion] );
+				pgfbThis->SetHueOffset( m_fRegionHueOffset[stRegion] );
 				// GPU filters capture from the GPU (their returned buffer is not what is shown).
 				pgfbThis->SetCaptureTarget( m_bCaptureVideo ? &m_cbVideoCapture : nullptr, m_cfartCurFilterAndTargets.ui64Frame );
 

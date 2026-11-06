@@ -106,6 +106,7 @@ struct CRT {
     unsigned char *out; /* output image */
 
     int hue, brightness, contrast, saturation; /* common monitor settings */
+    double hue_offset; /* added to hue, in degrees (may be fractional; used for a color space's hue rotation) */
     int black_point, white_point; /* user-adjustable */
     int scanlines; /* leave gaps between lines if necessary */
     int blend; /* blend new field onto previous image */

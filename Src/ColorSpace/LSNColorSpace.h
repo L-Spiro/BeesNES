@@ -61,6 +61,7 @@ namespace lsn {
 			const float *												pfChromas;							/**< The chromaticities and white point (8 values:  red, green, blue, and white x and y). */
 			const wchar_t *												pwcName;							/**< The name shown to the user. */
 			const char *												pcId;								/**< A name that never changes, for saving settings. */
+			float														fHueOffset;							/**< A hue rotation (in radians, the units of the L. Spiro filters' SetHue()) added to the decoder's hue when this color space is used.  Positive values rotate the demodulation axes forward (decoded colors turn clockwise on the U/V plane). */
 		};
 
 		/**
@@ -165,6 +166,14 @@ namespace lsn {
 		 * \return Returns the sign-preserving form of the call (or _sGammaCall if it does not change c.rgb).
 		 */
 		static std::string													SignedGammaCall( const std::string &_sGammaCall );
+
+		/**
+		 * Gets the hue rotation that goes with a color space (see LSN_COLOR_SPACE_DATA::fHueOffset).
+		 *
+		 * \param _cspColorSpace The color space.
+		 * \return Returns the hue rotation, in radians, to add to the decoder's hue.
+		 */
+		static inline float													HueOffset( LSN_COLOR_SPACE _cspColorSpace ) { return Data( _cspColorSpace ).fHueOffset; }
 
 		/**
 		 * Creates a conversion matrix given a color-space's chromaticities and white point.

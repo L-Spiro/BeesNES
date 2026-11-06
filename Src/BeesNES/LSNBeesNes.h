@@ -974,6 +974,8 @@ namespace lsn {
 		CColorSpace::LSN_COLOR_SPACE			m_cspRegionColorSpace[LSN_PM_CONSOLE_TOTAL];
 		/** The conversion matrix (from each region's color space to sRGB) handed to the GPU filters. */
 		CColorSpace::LSN_COLOR_MATRIX			m_cmRegionColorMatrix[LSN_PM_CONSOLE_TOTAL];
+		/** The hue rotation (in radians) of each region's color space, added to the hue of the GPU filters that have one. */
+		float									m_fRegionHueOffset[LSN_PM_CONSOLE_TOTAL];
 		/** Monitor gamma. */
 		CNesPalette::LSN_GAMMA					m_gMonitorGamma;
 		/** "NONE" post-processing. */

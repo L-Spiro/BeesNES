@@ -33,7 +33,7 @@ namespace lsn {
 		//m_fSaturationSetting = -0.50f + 1.0f;								/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
-		GenPhaseTables( m_fHueSetting );			// Generate phase table.
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
@@ -188,7 +188,19 @@ namespace lsn {
 	 **/
 	void CLSpiroNtscFilterBase::SetHue( float _fHue ) {
 		m_fHueSetting = _fHue;
-		GenPhaseTables( _fHue );
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );
+	}
+
+	/**
+	 * Sets a hue offset that is added to the hue (see SetHue()).  Used for a color space's hue rotation (CColorSpace::HueOffset()) so
+	 *	that it is applied relative to the hue setting instead of replacing it.  The phase tables are only regenerated if it changes.
+	 * 
+	 * \param _fHueOffset The hue offset, in radians.
+	 **/
+	void CLSpiroNtscFilterBase::SetHueOffset( float _fHueOffset ) {
+		if ( m_fHueOffset == _fHueOffset ) { return; }
+		m_fHueOffset = _fHueOffset;
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );
 	}
 
 	/**
@@ -198,7 +210,7 @@ namespace lsn {
 	 **/
 	void CLSpiroNtscFilterBase::SetBrightness( float _fBrightness ) {
 		m_fBrightnessSetting = _fBrightness;
-		GenPhaseTables( m_fHueSetting );
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );
 	}
 
 	/**
@@ -208,7 +220,7 @@ namespace lsn {
 	 **/
 	void CLSpiroNtscFilterBase::SetSaturation( float _fSat ) {
 		m_fSaturationSetting = _fSat;
-		GenPhaseTables( m_fHueSetting );
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );
 	}
 
 	/**
