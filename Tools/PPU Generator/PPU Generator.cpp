@@ -35,6 +35,42 @@ std::string		GenFunc( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, uint32_
 }
 
 
+/**
+ * Gets the number used in the names of the generated cycle functions.  These are the region codes from before NTSC-J was added, kept so that
+ *	the generated names never change.
+ *
+ * \param _ui32RegCode The region (an lsn::LSN_PPU_METRICS value).
+ * \return Returns the number used in the names of the generated cycle functions.
+ */
+uint32_t		GenFuncId( uint32_t _ui32RegCode ) {
+	switch ( _ui32RegCode ) {
+		case lsn::LSN_PM_NTSC_M : { return 0; }
+		case lsn::LSN_PM_PAL : { return 1; }
+		case lsn::LSN_PM_DENDY : { return 2; }
+		case lsn::LSN_PM_PALM : { return 3; }
+		case lsn::LSN_PM_PALN : { return 4; }
+		default : { return 5; }
+	}
+}
+
+/**
+ * Gets the name of a region constant.  The generated cycle tables select their region by name because the numbers change when regions are added.
+ *
+ * \param _ui32RegCode The region (an lsn::LSN_PPU_METRICS value).
+ * \return Returns the name of the lsn::LSN_PPU_METRICS constant.
+ */
+const char *	GenRegionName( uint32_t _ui32RegCode ) {
+	switch ( _ui32RegCode ) {
+		case lsn::LSN_PM_NTSC_M : { return "LSN_PM_NTSC_M"; }
+		case lsn::LSN_PM_NTSC_J : { return "LSN_PM_NTSC_J"; }
+		case lsn::LSN_PM_PAL : { return "LSN_PM_PAL"; }
+		case lsn::LSN_PM_DENDY : { return "LSN_PM_DENDY"; }
+		case lsn::LSN_PM_PALM : { return "LSN_PM_PALM"; }
+		case lsn::LSN_PM_PALN : { return "LSN_PM_PALN"; }
+		default : { return "LSN_PM_UNKNOWN"; }
+	}
+}
+
 void			GenerateCycleFuncs( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, uint32_t _ui32PreRender, uint32_t _ui32Render, uint32_t _ui32PostRender, uint16_t _ui16DotHeight, uint16_t _ui16DotWidth, const char * _pcFile ) {
 	struct LSN_TABLE_INDICES {
 		uint16_t								ui16X;
@@ -65,7 +101,7 @@ void			GenerateCycleFuncs( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, ui
 	}
 
 	auto FuncName = [_ui32RegCode]( const CStringList &_slDots ) {
-		std::string sName = "Cycle_" + std::to_string( _ui32RegCode ) + "_";
+		std::string sName = "Cycle_" + std::to_string( GenFuncId( _ui32RegCode ) ) + "_";
 		size_t I = 0;
 		for ( ; I < _slDots.size() && I < 10; ++I ) {
 			sName += "_" + std::to_string( _slDots[I].ui16X ) + "x" + std::to_string( _slDots[I].ui16Y );
@@ -77,7 +113,7 @@ void			GenerateCycleFuncs( uint32_t _ui32RegCode, bool _bOddFrameShenanigans, ui
 	};
 
 
-	std::string sTmp = "if constexpr ( _ui32RegCode == " + std::to_string( _ui32RegCode ) + " ) {\r\n";
+	std::string sTmp = std::string( "if constexpr ( _tRegCode == " ) + GenRegionName( _ui32RegCode ) + " ) {\r\n";
 
 
 	for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {

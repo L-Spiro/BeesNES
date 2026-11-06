@@ -1,4 +1,4 @@
-if constexpr ( _tRegCode == 2 ) {
+if constexpr ( _tRegCode == LSN_PM_DENDY ) {
 	{
 		PfCycles pfTmp = &CPpu2C0X::Cycle_2__0x0_0x1_0x2_0x3_0x4_0x5_0x6_0x7_0x8_0x9_X;
 		m_cCycle[0] = pfTmp;

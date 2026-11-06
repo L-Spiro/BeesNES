@@ -446,6 +446,42 @@ namespace lsn {
 		virtual LSN_PPU_METRICS							PpuRegion() const { return static_cast<LSN_PPU_METRICS>(_tRegCode); }
 
 		/**
+		 * Gets the number used in the names of the generated cycle functions (LSNGenFuncs*.inl).  These numbers are the region codes from
+		 *	before NTSC-J was added, kept so that the generated names never change (every region's functions share this class, so the names
+		 *	must stay unique).
+		 *
+		 * \return Returns the number used in the names of the generated cycle functions.
+		 */
+		static constexpr unsigned						GenFuncId() {
+			switch ( _tRegCode ) {
+				case LSN_PM_NTSC_M : { return 0; }
+				case LSN_PM_PAL : { return 1; }
+				case LSN_PM_DENDY : { return 2; }
+				case LSN_PM_PALM : { return 3; }
+				case LSN_PM_PALN : { return 4; }
+				default : { return 5; }
+			}
+		}
+
+		/**
+		 * Gets the name of the region constant, used by the generated cycle tables (LSNCreateCycleTable*.inl) to select their region.  The
+		 *	tables must name the region rather than use its number, because the numbers change when regions are added.
+		 *
+		 * \return Returns the name of the LSN_PPU_METRICS constant for this PPU's region.
+		 */
+		static constexpr const char *					GenRegionName() {
+			switch ( _tRegCode ) {
+				case LSN_PM_NTSC_M : { return "LSN_PM_NTSC_M"; }
+				case LSN_PM_NTSC_J : { return "LSN_PM_NTSC_J"; }
+				case LSN_PM_PAL : { return "LSN_PM_PAL"; }
+				case LSN_PM_DENDY : { return "LSN_PM_DENDY"; }
+				case LSN_PM_PALM : { return "LSN_PM_PALM"; }
+				case LSN_PM_PALN : { return "LSN_PM_PALN"; }
+				default : { return "LSN_PM_UNKNOWN"; }
+			}
+		}
+
+		/**
 		 * Gets the current row position.
 		 *
 		 * \return Returns the current row position.
@@ -2684,7 +2720,7 @@ namespace lsn {
 			}
 
 			auto FuncName = []( const CStringList &_slDots ) {
-				std::string sName = "Cycle_" + std::to_string( _tRegCode ) + "_";
+				std::string sName = "Cycle_" + std::to_string( GenFuncId() ) + "_";
 				size_t I = 0;
 				for ( ; I < _slDots.size() && I < 10; ++I ) {
 					sName += "_" + std::to_string( _slDots[I].ui16X ) + "x" + std::to_string( _slDots[I].ui16Y );
@@ -2696,7 +2732,7 @@ namespace lsn {
 			};
 
 			
-			::OutputDebugStringA( ("if constexpr ( _tRegCode == " + std::to_string( _tRegCode ) + " ) {\r\n").c_str() );
+			::OutputDebugStringA( (std::string( "if constexpr ( _tRegCode == " ) + GenRegionName() + " ) {\r\n").c_str() );
 
 			for ( auto I = mMap.begin(); I != mMap.end(); ++I ) {
 				std::string sTmp;
