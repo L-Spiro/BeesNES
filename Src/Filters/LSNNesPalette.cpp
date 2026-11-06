@@ -112,8 +112,8 @@ namespace lsn {
 			}
 			case LSN_G_CRT1 : {
 				fDst.x[0] = CUtilities::CrtProperToLinear( _fEntry.x[0], 1.0, 0.0181 * 8.0 );
-				fDst.x[1] = CUtilities::CrtProperToLinear( _fEntry.x[1], 1.0, 0.0181 * 8.0 * 0.5 );
-				fDst.x[2] = CUtilities::CrtProperToLinear( _fEntry.x[2], 1.0, 0.0181 * 8.0 * 0.45 );
+				fDst.x[1] = CUtilities::CrtProperToLinear( _fEntry.x[1], 1.0, 0.0181 * 8.0 );
+				fDst.x[2] = CUtilities::CrtProperToLinear( _fEntry.x[2], 1.0, 0.0181 * 8.0 );
 				break;
 			}
 			case LSN_G_CRT2 : {
@@ -214,8 +214,8 @@ namespace lsn {
 			}
 			case LSN_G_CRT1 : {
 				fDst.x[0] = CUtilities::LinearToCrtProper( fDst.x[0], 1.0, 0.0181 * 8.0 );
-				fDst.x[1] = CUtilities::LinearToCrtProper( fDst.x[1], 1.0, 0.0181 * 8.0 * 0.5 );
-				fDst.x[2] = CUtilities::LinearToCrtProper( fDst.x[2], 1.0, 0.0181 * 8.0 * 0.45 );
+				fDst.x[1] = CUtilities::LinearToCrtProper( fDst.x[1], 1.0, 0.0181 * 8.0 );
+				fDst.x[2] = CUtilities::LinearToCrtProper( fDst.x[2], 1.0, 0.0181 * 8.0 );
 				break;
 			}
 			case LSN_G_CRT2 : {

@@ -725,7 +725,7 @@
 #define LSN_STR_APPLE_PRORES											Apple ProRes (QuickTime)
 #define LSN_STR_FFV1_LOSSLESS											FFV1 Lossless (Matroska)
 #define LSN_STR_UT_VIDEO_LOSSLESS										Ut Video Lossless (AVI)
-#define LSN_STR_MPEG_4_PART_2											MPEG-4 part 2
+#define LSN_STR_MPEG_4_PART_2											MPEG-4 Part 2
 
 #define LSN_STR_VPF_YUV420P												YUV 4:2:0 (8-bit)
 #define LSN_STR_VPF_YUV422P												YUV 4:2:2 (8-bit)
@@ -811,22 +811,22 @@
 #define LSN_VR_ALT_QUALITY												Alt. Quality
 #define LSN_VR_LOSSLESS													Lossless
 #define LSN_VR_USE														Use
-#define LSN_VR_RANGE_LOWER_BETTER										{}:  {} to {} (lower is better)
-#define LSN_VR_RANGE_HIGHER_BETTER										{}:  {} to {} (higher is better)
+#define LSN_VR_RANGE_LOWER_BETTER										{}:  {} to {} (Lower Is Better)
+#define LSN_VR_RANGE_HIGHER_BETTER										{}:  {} to {} (Higher Is Better)
 #define LSN_VR_NAMED_VALUE												{}:  {} = {}
-#define LSN_VR_ALWAYS_LOSSLESS											This format is always lossless.
-#define LSN_VR_NO_PRESETS												This encoder has no presets.
+#define LSN_VR_ALWAYS_LOSSLESS											Always Lossless
+#define LSN_VR_NO_PRESETS												No Presets
 #define LSN_VR_PIXEL_FORMAT_											Pixel Format:
 #define LSN_VR_FRAME_RATE_												Frame Rate:
 #define LSN_VR_MATCH_CONSOLE											Match Console
-#define LSN_VR_BLEND_FRAMES												Blend frames when the frame rate differs from the console
+#define LSN_VR_BLEND_FRAMES												Blend Frames When Not Matching the Console
 #define LSN_VR_FPS_CUE													{} or {}
 #define LSN_VR_AUDIO													Audio
 #define LSN_VR_CODEC_													Codec:
 #define LSN_VR_BITRATE_													Bitrate:
-#define LSN_VR_KBPS														Kilobits per second
+#define LSN_VR_KBPS														Kilobits per Second
 #define LSN_VR_AUDIO_BITRATE											The audio bitrate
-#define LSN_VR_NO_BITRATE												This codec is lossless and has no bitrate.
+#define LSN_VR_NO_BITRATE												Not Applicable (Lossless)
 #define LSN_VR_CONDITIONS												Conditions
 #define LSN_VR_START_CONDITION_											Start Condition:
 #define LSN_VR_END_CONDITION_											End Condition:

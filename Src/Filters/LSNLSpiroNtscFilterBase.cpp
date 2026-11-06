@@ -151,8 +151,8 @@ namespace lsn {
 				m_ui8Gamma[I] = uint8_t( std::round( dVal ) );
 				m_ui32Gamma[I] = m_ui8Gamma[I];
 
-				dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 8.0 * 0.5 ) ) * 255.0 :
-					CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 8.0 * 0.5 ) * 255.0;
+				dVal = m_bHandleMonitorGamma ? CUtilities::LinearTosRGB_Precise( CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 8.0 ) ) * 255.0 :
+					CUtilities::CrtProperToLinear( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), 1.0, 0.0181 * 8.0 ) * 255.0;
 				//dVal = CUtilities::LinearTosRGB_Precise( CUtilities::CrtProper2ToLinear( I / (uint32_t( LSN_SRGB_RES ) - 1.0) ) ) * 255;
 				//dVal = CUtilities::LinearTosRGB_Precise( std::pow( (I / (uint32_t( LSN_SRGB_RES ) - 1.0)), m_fGammaSetting ) ) * 255.0;
 			

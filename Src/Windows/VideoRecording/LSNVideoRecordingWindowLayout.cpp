@@ -36,7 +36,7 @@ namespace lsn {
 #define LSN_VR_FFMPEG_T									(LSN_VR_FOLDER_T + LSN_VR_ROW_H)
 
 #define LSN_VR_VIDEO_T									(LSN_VR_OUTPUT_T + LSN_VR_OUTPUT_H)
-#define LSN_VR_VIDEO_H									(LSN_GROUP_TOP + LSN_VR_ROW_H * 7 + LSN_VR_TRACK_ROW_H * 2 + LSN_GROUP_BOTTOM)
+#define LSN_VR_VIDEO_H									(LSN_GROUP_TOP + LSN_VR_ROW_H * 6 + LSN_VR_TRACK_ROW_H * 2 + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + LSN_GROUP_BOTTOM)
 #define LSN_VR_FORMAT_T									(LSN_VR_VIDEO_T + LSN_GROUP_TOP)
 #define LSN_VR_PRESET_T									(LSN_VR_FORMAT_T + LSN_VR_ROW_H)
 #define LSN_VR_QUALITY_T								(LSN_VR_PRESET_T + LSN_VR_ROW_H)
@@ -527,7 +527,7 @@ namespace lsn {
 			TRUE,										// bEnabled
 			FALSE,										// bActive
 			LSN_VR_CTRL_L,								// iLeft
-			LSN_VR_BLEND_T + ((LSN_DEF_EDIT_HEIGHT - LSN_DEF_CHECK_HEIGHT) >> 1),	// iTop
+			LSN_VR_BLEND_T,	// iTop
 			LSN_VR_CTRL_W,								// dwWidth
 			LSN_DEF_CHECK_HEIGHT,						// dwHeight
 			LSN_CHECKSTYLE,								// dwStyle
