@@ -436,7 +436,7 @@ crt_demodulate_full(struct CRT *v, int noise)
 	}*/
 	pitch = v->outw * bpp;
     
-	crt_sincos14_full(&huesn, &huecs, (int)std::lround((((v->hue % 360) + 33) + v->hue_offset) * 8192.0 / 180.0));
+	crt_sincos14_full(&huesn, &huecs, (int)std::lround((((v->hue + 33) % 180) + v->hue_offset) * 8192.0 / 180.0));
 	huesn >>= 11; /* make 4-bit */
 	huecs >>= 11;
 
