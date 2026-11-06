@@ -68,8 +68,12 @@ namespace lsn {
 			{ &m_d9plsfDx9LSpiroPalM,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalM },				// LSN_F_LSPIROPALM_DX9
 			{ &m_d9plsfDx9LSpiroPalN,				&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIROPALN_DX9
 			
-			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX9
-			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtsc,					&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
+			{ &m_d9ncfDx9EmmirNtscFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter,			&m_d9ncfDx9EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc,				&m_d9nlsfDx9LSpiroNtscJ,				&m_d9plsfDx9LSpiroPal,					&m_d9plsfDx9LSpiroDendy,				&m_d9plsfDx9LSpiroPalM,					&m_d9plsfDx9LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX9
+
+			{ &m_d9nbfDx9BlarggNtscJFilter,			&m_d9nbfDx9BlarggNtscJFilter,			&m_d9nbfDx9BlarggNtscJFilter,			&m_d9nbfDx9BlarggNtscJFilter,			&m_d9nbfDx9BlarggNtscJFilter,			&m_d9nbfDx9BlarggNtscJFilter },			// LSN_F_NTSC_J_BLARGG_DX9
+			{ &m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter,		&m_d9ncfDx9EmmirNtscJFullFilter },		// LSN_F_NTSC_J_CRT_FULL_DX9
+			{ &m_d9nlsfDx9LSpiroNtscJ,				&m_d9nlsfDx9LSpiroNtscJ,				&m_d9nlsfDx9LSpiroNtscJ,				&m_d9nlsfDx9LSpiroNtscJ,				&m_d9nlsfDx9LSpiroNtscJ,				&m_d9nlsfDx9LSpiroNtscJ },				// LSN_F_LSPIRONTSC_J_DX9
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			{ &m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette,					&m_d12pfDx12Palette },					// LSN_F_INDEXED_DX12
@@ -84,8 +88,12 @@ namespace lsn {
 			{ &m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalM },				// LSN_F_LSPIROPALM_DX12
 			{ &m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIROPALN_DX12
 
-			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX12
-			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtsc,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
+			{ &m_d12ncfDx12EmmirNtscFullFilter,		&m_d12ncfDx12EmmirNtscJFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter,		&m_d12ncfDx12EmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc,				&m_d12nlsfDx12LSpiroNtscJ,				&m_d12plsfDx12LSpiroPal,				&m_d12plsfDx12LSpiroDendy,				&m_d12plsfDx12LSpiroPalM,				&m_d12plsfDx12LSpiroPalN },				// LSN_F_LSPIRO_AUTO_DX12
+
+			{ &m_d12nbfDx12BlarggNtscJFilter,		&m_d12nbfDx12BlarggNtscJFilter,			&m_d12nbfDx12BlarggNtscJFilter,			&m_d12nbfDx12BlarggNtscJFilter,			&m_d12nbfDx12BlarggNtscJFilter,			&m_d12nbfDx12BlarggNtscJFilter },		// LSN_F_NTSC_J_BLARGG_DX12
+			{ &m_d12ncfDx12EmmirNtscJFullFilter,	&m_d12ncfDx12EmmirNtscJFullFilter,		&m_d12ncfDx12EmmirNtscJFullFilter,		&m_d12ncfDx12EmmirNtscJFullFilter,		&m_d12ncfDx12EmmirNtscJFullFilter,		&m_d12ncfDx12EmmirNtscJFullFilter },	// LSN_F_NTSC_J_CRT_FULL_DX12
+			{ &m_d12nlsfDx12LSpiroNtscJ,			&m_d12nlsfDx12LSpiroNtscJ,				&m_d12nlsfDx12LSpiroNtscJ,				&m_d12nlsfDx12LSpiroNtscJ,				&m_d12nlsfDx12LSpiroNtscJ,				&m_d12nlsfDx12LSpiroNtscJ },			// LSN_F_LSPIRONTSC_J_DX12
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
 			{ &m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette,					&m_vpfVulkanPalette },					// LSN_F_INDEXED_VULKAN1
@@ -100,8 +108,12 @@ namespace lsn {
 			{ &m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalM },				// LSN_F_LSPIROPALM_VULKAN1
 			{ &m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIROPALN_VULKAN1
 
-			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_VULKAN1
-			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtsc,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
+			{ &m_vncfVulkanEmmirNtscFullFilter,		&m_vncfVulkanEmmirNtscJFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter,		&m_vncfVulkanEmmirPalFullFilter },		// LSN_F_AUTO_CRT_FULL_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vplsfVulkanLSpiroPal,				&m_vplsfVulkanLSpiroDendy,				&m_vplsfVulkanLSpiroPalM,				&m_vplsfVulkanLSpiroPalN },				// LSN_F_LSPIRO_AUTO_VULKAN1
+
+			{ &m_vnbfVulkanBlarggNtscJFilter,		&m_vnbfVulkanBlarggNtscJFilter,			&m_vnbfVulkanBlarggNtscJFilter,			&m_vnbfVulkanBlarggNtscJFilter,			&m_vnbfVulkanBlarggNtscJFilter,			&m_vnbfVulkanBlarggNtscJFilter },		// LSN_F_NTSC_J_BLARGG_VULKAN1
+			{ &m_vncfVulkanEmmirNtscJFullFilter,	&m_vncfVulkanEmmirNtscJFullFilter,		&m_vncfVulkanEmmirNtscJFullFilter,		&m_vncfVulkanEmmirNtscJFullFilter,		&m_vncfVulkanEmmirNtscJFullFilter,		&m_vncfVulkanEmmirNtscJFullFilter },	// LSN_F_NTSC_J_CRT_FULL_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtscJ,			&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ },			// LSN_F_LSPIRONTSC_J_VULKAN1
 #endif	// #ifdef LSN_VULKAN1
 		};
 		m_nbfLSpiroPalFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
@@ -121,6 +133,7 @@ namespace lsn {
 		m_d9pfDx9Palette.SetHorSharpness( 5 );
 
 		m_d9nlsfDx9LSpiroNtsc.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_d9nlsfDx9LSpiroNtscJ.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d9plsfDx9LSpiroPal.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
@@ -135,15 +148,19 @@ namespace lsn {
 
 
 		m_d9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
+		m_d9nlsfDx9LSpiroNtscJ.SetWidthScale( 8 );
 		/*m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
 		m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
 		m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 48 );
+		m_d9nlsfDx9LSpiroNtscJ.SetKernelSize( 48 );
 		//m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 64 );
 		/*m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
 		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
 		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		m_d9nlsfDx9LSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_d9nlsfDx9LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_d9nlsfDx9LSpiroNtscJ.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 		//m_d9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 
@@ -176,6 +193,7 @@ namespace lsn {
 		m_d12pfDx12Palette.SetHorSharpness( 5 );
 
 		m_d12nlsfDx12LSpiroNtsc.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_d12nlsfDx12LSpiroNtscJ.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d12plsfDx12LSpiroPal.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d12plsfDx12LSpiroDendy.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d12plsfDx12LSpiroPalM.CDx12FilterBase::SetFps( 60.032435273083568398202053145976f );
@@ -189,15 +207,19 @@ namespace lsn {
 		m_d12ncfDx12EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
 		m_d12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
+		m_d12nlsfDx12LSpiroNtscJ.SetWidthScale( 8 );
 		/*m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 25 );
 		m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
 		m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 48 );
+		m_d12nlsfDx12LSpiroNtscJ.SetKernelSize( 48 );
 		//m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 64 );
 		/*m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
 		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
 		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		m_d12nlsfDx12LSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_d12nlsfDx12LSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_d12nlsfDx12LSpiroNtscJ.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 		//m_d12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		
@@ -232,6 +254,7 @@ namespace lsn {
 		m_vpfVulkanPalette.SetHorSharpness( 5 );
 
 		m_vnlsfVulkanLSpiroNtsc.CVulkanFilterBase::SetFps( 60.098813897440515529533511098629f );
+		m_vnlsfVulkanLSpiroNtscJ.CVulkanFilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_vplsfVulkanLSpiroPal.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_vplsfVulkanLSpiroDendy.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_vplsfVulkanLSpiroPalM.CVulkanFilterBase::SetFps( 60.032435273083568398202053145976f );
@@ -245,15 +268,19 @@ namespace lsn {
 		m_vncfVulkanEmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
 
 		m_vnlsfVulkanLSpiroNtsc.SetWidthScale( 8 );
+		m_vnlsfVulkanLSpiroNtscJ.SetWidthScale( 8 );
 		/*m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 25 );
 		m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::BartlettFilterFunc );*/
 		m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 48 );
+		m_vnlsfVulkanLSpiroNtscJ.SetKernelSize( 48 );
 		//m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 64 );
 		/*m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::LanczosXFilterFunc<11, 4> );
 		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
 		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
+		m_vnlsfVulkanLSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
 		//m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
 		m_vnlsfVulkanLSpiroNtsc.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
+		m_vnlsfVulkanLSpiroNtscJ.SetFilterFunc( &CUtilities::GaussianXFilterFunc );
 		//m_vnlsfVulkanLSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
 
 		
@@ -406,10 +433,6 @@ namespace lsn {
 		m_psbSystems[LSN_PM_PALM] = &m_nsPalMSystem;
 		m_psbSystems[LSN_PM_PALN] = &m_nsPalNSystem;
 
-		// The Famicom (NTSC-J) is an NES with a Japanese television, which uses the NTSC-J color space.
-		for ( uint32_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
-			SetRegionColorSpace( LSN_PPU_METRICS( I ), I == LSN_PM_NTSC_J ? CColorSpace::LSN_CSP_TOSHIBA_CF2005 : CColorSpace::LSN_CSP_SRGB );
-		}
 		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL]
 
 
@@ -431,9 +454,12 @@ namespace lsn {
 #ifdef LSN_DX9
 		m_d9pfDx9Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9nbfDx9BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9nbfDx9BlarggNtscJFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9ncfDx9EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9ncfDx9EmmirNtscJFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9ncfDx9EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9nlsfDx9LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d9nlsfDx9LSpiroNtscJ.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_d9plsfDx9LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d9plsfDx9LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
@@ -444,9 +470,12 @@ namespace lsn {
 #ifdef LSN_DX12
 		m_d12pfDx12Palette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12nbfDx12BlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12nbfDx12BlarggNtscJFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12ncfDx12EmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12ncfDx12EmmirNtscJFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12ncfDx12EmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12nlsfDx12LSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_d12nlsfDx12LSpiroNtscJ.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_d12plsfDx12LSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_d12plsfDx12LSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
@@ -457,9 +486,12 @@ namespace lsn {
 #ifdef LSN_VULKAN1
 		m_vpfVulkanPalette.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_vnbfVulkanBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vnbfVulkanBlarggNtscJFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_vncfVulkanEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vncfVulkanEmmirNtscJFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_vncfVulkanEmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_vnlsfVulkanLSpiroNtsc.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
+		m_vnlsfVulkanLSpiroNtscJ.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
 		m_vplsfVulkanLSpiroPal.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_vplsfVulkanLSpiroDendy.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
@@ -467,6 +499,30 @@ namespace lsn {
 		m_vplsfVulkanLSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_VULKAN1
 
+		// The NTSC-J (Famicom) GPU filters convert from the color space of a Japanese television (with its hue rotation).  Only GPU filters
+		//	have NTSC-J versions because the color-space conversion is too heavy to run on the CPU in real time.
+		{
+			const CColorSpace::LSN_COLOR_MATRIX cmNtscJ = CColorSpace::ConversionMatrix( CColorSpace::LSN_CSP_TOSHIBA_CF2005 );
+			const float fNtscJHue = CColorSpace::HueOffset( CColorSpace::LSN_CSP_TOSHIBA_CF2005 );
+			CGpuFilterBase * pgfbNtscJ[] = {
+#ifdef LSN_DX9
+				&m_d9nbfDx9BlarggNtscJFilter, &m_d9ncfDx9EmmirNtscJFullFilter, &m_d9nlsfDx9LSpiroNtscJ,
+#endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+				&m_d12nbfDx12BlarggNtscJFilter, &m_d12ncfDx12EmmirNtscJFullFilter, &m_d12nlsfDx12LSpiroNtscJ,
+#endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+				&m_vnbfVulkanBlarggNtscJFilter, &m_vncfVulkanEmmirNtscJFullFilter, &m_vnlsfVulkanLSpiroNtscJ,
+#endif	// #ifdef LSN_VULKAN1
+				nullptr,
+			};
+			for ( auto pgfbThis : pgfbNtscJ ) {
+				if ( pgfbThis ) {
+					pgfbThis->SetColorSpace( cmNtscJ );
+					pgfbThis->SetHueOffset( fNtscJHue );
+				}
+			}
+		}
 
 		UpdateCurrentSystem();
 	}
@@ -626,7 +682,10 @@ namespace lsn {
 			case CFilterBase::LSN_F_LSPIROPALN_DX9 : {}					LSN_FALLTHROUGH
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX9 : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRO_AUTO_DX9 : { return true; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX9 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_DX9 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_DX9 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_J_DX9 : { return true; }
 		}
 #endif	// #ifdef LSN_DX9
 		return false;
@@ -653,7 +712,10 @@ namespace lsn {
 			case CFilterBase::LSN_F_LSPIROPALN_DX12 : {}				LSN_FALLTHROUGH
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 : {}				LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : { return true; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_DX12 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_DX12 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_J_DX12 : { return true; }
 		}
 #endif	// #ifdef LSN_DX12
 		return false;
@@ -680,7 +742,10 @@ namespace lsn {
 			case CFilterBase::LSN_F_LSPIROPALN_VULKAN1 : {}				LSN_FALLTHROUGH
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
-			case CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1 : { return true; }
+			case CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_VULKAN1 : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_LSPIRONTSC_J_VULKAN1 : { return true; }
 		}
 #endif	// #ifdef LSN_VULKAN1
 		return false;
@@ -734,6 +799,10 @@ namespace lsn {
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX9 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
 			case CFilterBase::LSN_F_LSPIRO_AUTO_DX9 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+			// The NTSC-J filters exist only on the GPU (the NTSC-J color space is too heavy for the CPU), so they become their NTSC-M versions.
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_DX9 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_DX9 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_J_DX9 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
 		}
 #endif	// #ifdef LSN_DX9
 		return _fFilter;
@@ -760,6 +829,10 @@ namespace lsn {
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
 			case CFilterBase::LSN_F_LSPIRO_AUTO_DX12 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+			// The NTSC-J filters exist only on the GPU (the NTSC-J color space is too heavy for the CPU), so they become their NTSC-M versions.
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_DX12 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_DX12 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_J_DX12 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
 		}
 #endif	// #ifdef LSN_DX12
 		return _fFilter;
@@ -786,6 +859,10 @@ namespace lsn {
 			
 			case CFilterBase::LSN_F_AUTO_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_AUTO_CRT_FULL; }
 			case CFilterBase::LSN_F_LSPIRO_AUTO_VULKAN1 : { return CFilterBase::LSN_F_AUTO_LSPIRO; }
+			// The NTSC-J filters exist only on the GPU (the NTSC-J color space is too heavy for the CPU), so they become their NTSC-M versions.
+			case CFilterBase::LSN_F_NTSC_J_BLARGG_VULKAN1 : { return CFilterBase::LSN_F_NTSC_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_J_CRT_FULL_VULKAN1 : { return CFilterBase::LSN_F_NTSC_CRT_FULL; }
+			case CFilterBase::LSN_F_LSPIRONTSC_J_VULKAN1 : { return CFilterBase::LSN_F_NTSC_LSPIRO; }
 		}
 #endif	// #ifdef LSN_VULKAN1
 		return _fFilter;
@@ -815,20 +892,6 @@ namespace lsn {
 		}
 #endif	// #ifdef LSN_METAL
 		return _fFilter;
-	}
-
-	/**
-	 * Sets the color space of a region.  GPU filters convert from it to sRGB (after linearizing).
-	 * 
-	 * \param _pmRegion The region whose color space is to be set.
-	 * \param _cspColorSpace The color space of the region.
-	 **/
-	void CBeesNes::SetRegionColorSpace( LSN_PPU_METRICS _pmRegion, CColorSpace::LSN_COLOR_SPACE _cspColorSpace ) {
-		if ( size_t( _pmRegion ) >= LSN_PM_CONSOLE_TOTAL ) { return; }
-		if ( size_t( _cspColorSpace ) >= CColorSpace::LSN_CSP_TOTAL ) { _cspColorSpace = CColorSpace::LSN_CSP_SRGB; }
-		m_cspRegionColorSpace[_pmRegion] = _cspColorSpace;
-		m_cmRegionColorMatrix[_pmRegion] = CColorSpace::ConversionMatrix( _cspColorSpace );
-		m_fRegionHueOffset[_pmRegion] = CColorSpace::HueOffset( _cspColorSpace );
 	}
 
 	/**
@@ -883,11 +946,6 @@ namespace lsn {
 
 			if ( m_cfartCurFilterAndTargets.pfbPrevFilter->IsGpuFilter() ) {
 				CGpuFilterBase * pgfbThis = static_cast<CGpuFilterBase *>(m_cfartCurFilterAndTargets.pfbPrevFilter);
-				// The filters are shared between regions, so the color space is set every frame (the shader is only rebuilt when it changes).
-				// The hue rotation that goes with the color space is applied relative to the filter's own hue (filters without one ignore it).
-				const size_t stRegion = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? size_t( m_pmSystem ) : size_t( LSN_PM_NTSC_M );
-				pgfbThis->SetColorSpace( m_cmRegionColorMatrix[stRegion] );
-				pgfbThis->SetHueOffset( m_fRegionHueOffset[stRegion] );
 				// GPU filters capture from the GPU (their returned buffer is not what is shown).
 				pgfbThis->SetCaptureTarget( m_bCaptureVideo ? &m_cbVideoCapture : nullptr, m_cfartCurFilterAndTargets.ui64Frame );
 

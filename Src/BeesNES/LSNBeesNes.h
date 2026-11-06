@@ -761,24 +761,6 @@ namespace lsn {
 		CNesPalette::LSN_GAMMA					PaletteMonitorGamma() const { return m_gMonitorGamma; }
 
 		/**
-		 * Sets the color space of a region.  GPU filters convert from it to sRGB (after linearizing).
-		 * 
-		 * \param _pmRegion The region whose color space is to be set.
-		 * \param _cspColorSpace The color space of the region.
-		 **/
-		void									SetRegionColorSpace( LSN_PPU_METRICS _pmRegion, CColorSpace::LSN_COLOR_SPACE _cspColorSpace );
-
-		/**
-		 * Gets the color space of a region.
-		 * 
-		 * \param _pmRegion The region whose color space is to be gotten.
-		 * \return Returns the color space of the region or CColorSpace::LSN_CSP_SRGB if _pmRegion is invalid.
-		 **/
-		CColorSpace::LSN_COLOR_SPACE			RegionColorSpace( LSN_PPU_METRICS _pmRegion ) const {
-			return size_t( _pmRegion ) < LSN_PM_CONSOLE_TOTAL ? m_cspRegionColorSpace[_pmRegion] : CColorSpace::LSN_CSP_SRGB;
-		}
-
-		/**
 		 * Updates the GPU palette for GPU-enabled palette rendering.
 		 **/
 		void									UpdateGpuPalette();
@@ -919,6 +901,12 @@ namespace lsn {
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalM;
 		/** Direct3D 9 L. Spiro PAL-N filter. */
 		CDx9PalLSpiroFilter						m_d9plsfDx9LSpiroPalN;
+		/** Direct3D 9 Blargg NTSC-J filter. */
+		CDx9NtscBlarggFilter					m_d9nbfDx9BlarggNtscJFilter;
+		/** Direct3D 9 LMP88959 NTSC-J CTR filter. */
+		CDx9NtscCrtFullFilter					m_d9ncfDx9EmmirNtscJFullFilter;
+		/** Direct3D 9 L. Spiro NTSC-J filter. */
+		CDx9NtscLSpiroFilter					m_d9nlsfDx9LSpiroNtscJ;
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 		/** Direct3D 12 palette filter. */
@@ -939,6 +927,12 @@ namespace lsn {
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalM;
 		/** Direct3D 12 L. Spiro PAL-N filter. */
 		CDx12PalLSpiroFilter					m_d12plsfDx12LSpiroPalN;
+		/** Direct3D 12 Blargg NTSC-J filter. */
+		CDx12NtscBlarggFilter					m_d12nbfDx12BlarggNtscJFilter;
+		/** Direct3D 12 LMP88959 NTSC-J CTR filter. */
+		CDx12NtscCrtFullFilter					m_d12ncfDx12EmmirNtscJFullFilter;
+		/** Direct3D 12 L. Spiro NTSC-J filter. */
+		CDx12NtscLSpiroFilter					m_d12nlsfDx12LSpiroNtscJ;
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
 		/** Vulkan 1 palette filter. */
@@ -959,6 +953,12 @@ namespace lsn {
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalM;
 		/** Vulkan 1 L. Spiro PAL-N filter. */
 		CVulkanPalLSpiroFilter					m_vplsfVulkanLSpiroPalN;
+		/** Vulkan 1 Blargg NTSC-J filter. */
+		CVulkanNtscBlarggFilter					m_vnbfVulkanBlarggNtscJFilter;
+		/** Vulkan 1 LMP88959 NTSC-J CTR filter. */
+		CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscJFullFilter;
+		/** Vulkan 1 L. Spiro NTSC-J filter. */
+		CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtscJ;
 #endif	// #ifdef LSN_VULKAN1
 
 
@@ -970,12 +970,6 @@ namespace lsn {
 		LSN_PPU_METRICS							m_pmSystem = LSN_PM_NTSC_M;
 		/** CRT gamma. */
 		CNesPalette::LSN_GAMMA					m_gCrtGamma[LSN_PM_CONSOLE_TOTAL];
-		/** The color space of each region. */
-		CColorSpace::LSN_COLOR_SPACE			m_cspRegionColorSpace[LSN_PM_CONSOLE_TOTAL];
-		/** The conversion matrix (from each region's color space to sRGB) handed to the GPU filters. */
-		CColorSpace::LSN_COLOR_MATRIX			m_cmRegionColorMatrix[LSN_PM_CONSOLE_TOTAL];
-		/** The hue rotation (in radians) of each region's color space, added to the hue of the GPU filters that have one. */
-		float									m_fRegionHueOffset[LSN_PM_CONSOLE_TOTAL];
 		/** Monitor gamma. */
 		CNesPalette::LSN_GAMMA					m_gMonitorGamma;
 		/** "NONE" post-processing. */

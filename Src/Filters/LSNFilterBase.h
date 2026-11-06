@@ -57,6 +57,10 @@ namespace lsn {
 			
 			LSN_F_AUTO_CRT_FULL_DX9,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 9. */
 			LSN_F_LSPIRO_AUTO_DX9,							/**< L. Spiro auto up-scaled Direct3D 9. */
+
+			LSN_F_NTSC_J_BLARGG_DX9,						/**< Blargg's NTSC-J up-scaled Direct3D 9. */
+			LSN_F_NTSC_J_CRT_FULL_DX9,						/**< EMMIR (LMP88959)'s NTSC-CRT (full) NTSC-J up-scaled Direct3D 9. */
+			LSN_F_LSPIRONTSC_J_DX9,							/**< L. Spiro NTSC-J up-scaled Direct3D 9. */
 #endif	// #ifdef LSN_DX9
 #ifdef LSN_DX12
 			LSN_F_INDEXED_DX12,								/**< Basic paletted Direct3D 12. */
@@ -71,20 +75,28 @@ namespace lsn {
 			
 			LSN_F_AUTO_CRT_FULL_DX12,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRO_AUTO_DX12,							/**< L. Spiro auto up-scaled Direct3D 12. */
+
+			LSN_F_NTSC_J_BLARGG_DX12,						/**< Blargg's NTSC-J up-scaled Direct3D 12. */
+			LSN_F_NTSC_J_CRT_FULL_DX12,						/**< EMMIR (LMP88959)'s NTSC-CRT (full) NTSC-J up-scaled Direct3D 12. */
+			LSN_F_LSPIRONTSC_J_DX12,						/**< L. Spiro NTSC-J up-scaled Direct3D 12. */
 #endif	// #ifdef LSN_DX12
 #ifdef LSN_VULKAN1
-			LSN_F_INDEXED_VULKAN1,							/**< Basic paletted Direct3D 12. */
-			LSN_F_NTSC_BLARGG_VULKAN1,						/**< Blargg's NTSC up-scaled Direct3D 12. */
-			LSN_F_NTSC_CRT_FULL_VULKAN1,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Direct3D 12. */
-			LSN_F_PAL_CRT_FULL_VULKAN1,						/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Direct3D 12. */
-			LSN_F_LSPIRONTSC_VULKAN1,						/**< L. Spiro NTSC up-scaled Direct3D 12. */
-			LSN_F_LSPIROPAL_VULKAN1,						/**< L. Spiro PAL up-scaled Direct3D 12. */
-			LSN_F_LSPIRODENDY_VULKAN1,						/**< L. Spiro Dendy up-scaled Direct3D 12. */
-			LSN_F_LSPIROPALM_VULKAN1,						/**< L. Spiro PAL-M up-scaled Direct3D 12. */
-			LSN_F_LSPIROPALN_VULKAN1,						/**< L. Spiro PAL-N up-scaled Direct3D 12. */
+			LSN_F_INDEXED_VULKAN1,							/**< Basic paletted Vulkan 1. */
+			LSN_F_NTSC_BLARGG_VULKAN1,						/**< Blargg's NTSC up-scaled Vulkan 1. */
+			LSN_F_NTSC_CRT_FULL_VULKAN1,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) up-scaled Vulkan 1. */
+			LSN_F_PAL_CRT_FULL_VULKAN1,						/**< EMMIR (LMP88959)'s PAL-CRT (full) up-scaled Vulkan 1. */
+			LSN_F_LSPIRONTSC_VULKAN1,						/**< L. Spiro NTSC up-scaled Vulkan 1. */
+			LSN_F_LSPIROPAL_VULKAN1,						/**< L. Spiro PAL up-scaled Vulkan 1. */
+			LSN_F_LSPIRODENDY_VULKAN1,						/**< L. Spiro Dendy up-scaled Vulkan 1. */
+			LSN_F_LSPIROPALM_VULKAN1,						/**< L. Spiro PAL-M up-scaled Vulkan 1. */
+			LSN_F_LSPIROPALN_VULKAN1,						/**< L. Spiro PAL-N up-scaled Vulkan 1. */
 			
-			LSN_F_AUTO_CRT_FULL_VULKAN1,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
-			LSN_F_LSPIRO_AUTO_VULKAN1,						/**< L. Spiro auto up-scaled Direct3D 12. */
+			LSN_F_AUTO_CRT_FULL_VULKAN1,					/**< NTSC-CRT (full) for NTSC and PAL up-scaled Vulkan 1. */
+			LSN_F_LSPIRO_AUTO_VULKAN1,						/**< L. Spiro auto up-scaled Vulkan 1. */
+
+			LSN_F_NTSC_J_BLARGG_VULKAN1,					/**< Blargg's NTSC-J up-scaled Vulkan 1. */
+			LSN_F_NTSC_J_CRT_FULL_VULKAN1,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) NTSC-J up-scaled Vulkan 1. */
+			LSN_F_LSPIRONTSC_J_VULKAN1,						/**< L. Spiro NTSC-J up-scaled Vulkan 1. */
 #endif	// #ifdef LSN_VULKAN1
 #ifdef LSN_METAL
 			LSN_F_INDEXED_METAL,							/**< Basic paletted Direct3D 12. */
@@ -99,7 +111,12 @@ namespace lsn {
 			
 			LSN_F_AUTO_CRT_FULL_METAL,						/**< NTSC-CRT (full) for NTSC and PAL up-scaled Direct3D 12. */
 			LSN_F_LSPIRO_AUTO_METAL,						/**< L. Spiro auto up-scaled Direct3D 12. */
+
+			LSN_F_NTSC_J_BLARGG_METAL,						/**< Blargg's NTSC-J up-scaled Metal. */
+			LSN_F_NTSC_J_CRT_FULL_METAL,					/**< EMMIR (LMP88959)'s NTSC-CRT (full) NTSC-J up-scaled Metal. */
+			LSN_F_LSPIRONTSC_J_METAL,						/**< L. Spiro NTSC-J up-scaled Metal. */
 #endif	// #ifdef LSN_METAL
+
 
 			LSN_F_TOTAL,									/**< The total number of filters.  Must be last. */
 		};
