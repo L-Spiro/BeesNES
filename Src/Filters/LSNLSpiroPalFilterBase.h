@@ -243,11 +243,11 @@ namespace lsn {
 		bool												SetPixelToSignal( uint16_t _ui16Value );
 
 		/**
-		 * Sets the filter function.
+		 * Sets the chroma filter function.
 		 * 
 		 * \param _pfFunc The filter function.
 		 **/
-		void												SetFilterFunc( PfFilterFunc _pfFunc ) {
+		void												SetFilterFuncChroma( PfFilterFunc _pfFunc ) {
 			m_pfFilterFunc = _pfFunc;
 			GenFilterKernel( m_ui32FilterKernelSize );
 		}

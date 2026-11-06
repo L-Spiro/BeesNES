@@ -183,11 +183,11 @@ namespace lsn {
 		void												SetWhiteLevel( float _fWhite );
 
 		/**
-		 * Sets the filter function.
+		 * Sets the chroma filter function.
 		 * 
 		 * \param _pfFunc The filter function.
 		 **/
-		void												SetFilterFunc( PfFilterFunc _pfFunc ) {
+		void												SetFilterFuncChroma( PfFilterFunc _pfFunc ) {
 			m_pfFilterFunc = _pfFunc;
 			GenFilterKernel( m_ui32FilterKernelSize );
 		}
