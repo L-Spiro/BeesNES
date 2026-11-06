@@ -49,7 +49,8 @@ uint32_t		GenFuncId( uint32_t _ui32RegCode ) {
 		case lsn::LSN_PM_DENDY : { return 2; }
 		case lsn::LSN_PM_PALM : { return 3; }
 		case lsn::LSN_PM_PALN : { return 4; }
-		default : { return 5; }
+		case lsn::LSN_PM_NTSC_J : { return 5; }
+		default : { return 6; }
 	}
 }
 
@@ -176,6 +177,7 @@ int main() {
 	} prRevisions[] = {
 		//ui32RegCode				ui32PreRender						ui32Render								ui32PostRender							ui16DotHeight						_ui16DotWidth				bOddFrameShenanigans	pcFile
 		{ lsn::LSN_PM_NTSC_M,			lsn::LSN_PM_NTSC_M_PRERENDER,			lsn::LSN_PM_NTSC_M_RENDER_LINES,			lsn::LSN_PM_NTSC_M_POSTRENDER_LINES,		lsn::LSN_PM_NTSC_M_SCANLINES,			lsn::LSN_PM_NTSC_M_DOTS_X,	true,					"Ntsc" },
+		{ lsn::LSN_PM_NTSC_J,			lsn::LSN_PM_NTSC_J_PRERENDER,			lsn::LSN_PM_NTSC_J_RENDER_LINES,			lsn::LSN_PM_NTSC_J_POSTRENDER_LINES,		lsn::LSN_PM_NTSC_J_SCANLINES,			lsn::LSN_PM_NTSC_J_DOTS_X,	true,					"NtscJ" },
 		{ lsn::LSN_PM_PAL,			lsn::LSN_PM_PAL_PRERENDER,			lsn::LSN_PM_PAL_RENDER_LINES,			lsn::LSN_PM_PAL_POSTRENDER_LINES,		lsn::LSN_PM_PAL_SCANLINES,			lsn::LSN_PM_PAL_DOTS_X,		false,					"Pal" },
 		{ lsn::LSN_PM_DENDY,		lsn::LSN_PM_DENDY_PRERENDER,		lsn::LSN_PM_DENDY_RENDER_LINES,			lsn::LSN_PM_DENDY_POSTRENDER_LINES,		lsn::LSN_PM_DENDY_SCANLINES,		lsn::LSN_PM_DENDY_DOTS_X,	false,					"Dendy" },
 		{ lsn::LSN_PM_PALM,			lsn::LSN_PM_PALM_PRERENDER,			lsn::LSN_PM_PALM_RENDER_LINES,			lsn::LSN_PM_PALM_POSTRENDER_LINES,		lsn::LSN_PM_PALM_SCANLINES,			lsn::LSN_PM_PALM_DOTS_X,	false,					"PalM" },

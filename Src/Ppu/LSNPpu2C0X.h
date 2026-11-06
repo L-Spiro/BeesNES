@@ -109,6 +109,7 @@ namespace lsn {
 			GenerateCycleFuncs();
 #else
 #include "LSNCreateCycleTableNtsc.inl"
+#include "LSNCreateCycleTableNtscJ.inl"
 #include "LSNCreateCycleTablePal.inl"
 #include "LSNCreateCycleTableDendy.inl"
 #include "LSNCreateCycleTablePalM.inl"
@@ -459,7 +460,8 @@ namespace lsn {
 				case LSN_PM_DENDY : { return 2; }
 				case LSN_PM_PALM : { return 3; }
 				case LSN_PM_PALN : { return 4; }
-				default : { return 5; }
+				case LSN_PM_NTSC_J : { return 5; }
+				default : { return 6; }
 			}
 		}
 
@@ -1748,7 +1750,7 @@ namespace lsn {
 			constexpr double dStart = 1.0;
 			constexpr double dEnd = 0.1;
 			constexpr uint64_t ui64DotsPerFrame = (_tDotWidth * _tDotHeight) / 1;
-			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M || _tRegCode == LSN_PM_NTSC_J ) {
 				return static_cast<float>(std::pow( dEnd / dStart, 1.0 / (ui64DotsPerFrame / double( OamDecayRate() )) ));
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL ) {
@@ -1771,7 +1773,7 @@ namespace lsn {
 		 */
 		uint64_t constexpr								OamDecayRate() const {
 			double dFps;
-			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M || _tRegCode == LSN_PM_NTSC_J ) {
 				dFps = 60.098813897440515529533511098629;
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
@@ -1821,7 +1823,7 @@ namespace lsn {
 		 */
 		uint64_t constexpr								IoBusDecayCycles() const {
 			double dFps;
-			if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
+			if constexpr ( _tRegCode == LSN_PM_NTSC_M || _tRegCode == LSN_PM_NTSC_J ) {
 				dFps = 60.098813897440515529533511098629;
 			}
 			else if constexpr ( _tRegCode == LSN_PM_PAL || _tRegCode == LSN_PM_DENDY ) {
@@ -2172,7 +2174,7 @@ namespace lsn {
 					
 					// https://archive.nes.science/nesdev-forums/f3/t8209.xhtml#p85078
 					// Mine is: none, red, green, red+green, blue, blue+red, blue+green, all.
-					if constexpr ( _tRegCode == LSN_PM_NTSC_M ) {
+					if constexpr ( _tRegCode == LSN_PM_NTSC_M || _tRegCode == LSN_PM_NTSC_J ) {
 						/*ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8RedEmph << 6);
 						ui16Val |= (m_dvLeftShowRedGreenDelay.Value().s.ui8GreenEmph << 7);*/
 						ui16Val |= (m_dvPpuMaskDelay.Value().s.ui8RedEmph << 6);
@@ -2766,6 +2768,7 @@ namespace lsn {
 #endif	// #ifdef LSN_GEN_PPU
 
 #include "LSNGenFuncsNtsc.inl"
+#include "LSNGenFuncsNtscJ.inl"
 #include "LSNGenFuncsPal.inl"
 #include "LSNGenFuncsDendy.inl"
 #include "LSNGenFuncsPalM.inl"
@@ -2786,6 +2789,13 @@ namespace lsn {
 	 * An NTSC PPU.
 	 */
 	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC_M ), true, 128, 105>													CNtscPpu;
+	// 292.57142857142857142857142857143�240
+
+	/**
+	 * An NTSC-J (Famicom) PPU.  Its timing matches the NTSC-M PPU, but it is a separate type so that it has its own cycle table and reports
+	 *	its own region (PpuRegion()).
+	 */
+	typedef CPpu2C0X<LSN_PPU_TYPE( NTSC_J ), true, 128, 105>													CNtscJPpu;
 	// 292.57142857142857142857142857143�240
 
 	/**

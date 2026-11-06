@@ -2020,6 +2020,9 @@
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
+    <None Include="Src\Ppu\LSNCreateCycleTableNtscJ.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
@@ -2030,6 +2033,9 @@
       <Filter>Header Files\Ppu</Filter>
     </None>
     <None Include="Src\Ppu\LSNGenFuncsNtsc.inl">
+      <Filter>Header Files\Ppu</Filter>
+    </None>
+    <None Include="Src\Ppu\LSNGenFuncsNtscJ.inl">
       <Filter>Header Files\Ppu</Filter>
     </None>
     <None Include="Src\Ppu\LSNGenFuncsPal.inl">

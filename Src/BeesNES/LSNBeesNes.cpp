@@ -400,7 +400,7 @@ namespace lsn {
 
 
 		m_psbSystems[LSN_PM_NTSC_M] = &m_nsNtscSystem;
-		m_psbSystems[LSN_PM_NTSC_J] = &m_nsNtscSystem;										// The Famicom shares the NES system (only its color space differs).
+		m_psbSystems[LSN_PM_NTSC_J] = &m_nsNtscJSystem;
 		m_psbSystems[LSN_PM_PAL] = &m_nsPalSystem;
 		m_psbSystems[LSN_PM_DENDY] = &m_nsDendySystem;
 		m_psbSystems[LSN_PM_PALM] = &m_nsPalMSystem;
@@ -1000,8 +1000,7 @@ namespace lsn {
 				m_pmSystem = LSN_PPU_METRICS::LSN_PM_NTSC_M;
 			}
 			for ( auto I = std::size( m_psbSystems ); I--; ) {
-				// Compare the systems rather than the indices because regions can share a system (NTSC-J uses the NTSC-M system).
-				if ( m_psbSystems[I] != m_psbSystems[m_pmSystem] ) {
+				if ( I != size_t( m_pmSystem ) ) {
 					m_psbSystems[I]->SetAsInactive();
 				}
 			}
@@ -1043,7 +1042,7 @@ namespace lsn {
 	 **/
 	void CBeesNes::PauseRom() {
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
 				m_psbSystems[I]->PauseRom();
 			}
 		}
@@ -1054,7 +1053,7 @@ namespace lsn {
 	 **/
 	void CBeesNes::UnpauseRom() {
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
 				m_psbSystems[I]->UnpauseRom();
 			}
 		}
@@ -1067,7 +1066,7 @@ namespace lsn {
 		CCpuTemperatureReader ctrTemp;
 		lsn::DebugA( std::format( "Temperature: {}\r\n\r\n", ctrTemp.GetTemperature() ).c_str() );
 		for ( auto I = std::size( m_psbSystems ); I--; ) {
-			if LSN_LIKELY( m_psbSystems[I] && !IsSharedSystem( I ) ) {
+			if LSN_LIKELY( m_psbSystems[I] ) {
 				m_psbSystems[I]->TogglePauseRom();
 			}
 		}

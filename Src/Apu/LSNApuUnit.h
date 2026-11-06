@@ -15,11 +15,16 @@
 namespace lsn {
 
 	// == Enumerations.
-	/** APU hardware types. */
+	/** APU hardware types.  There is one for each system, numbered like the regions (LSN_PPU_METRICS), so that every system has its own row
+	 *	in the APU tables. */
 	enum LSN_APU_TYPE {
-		LSN_AT_NTSC										= 0,								/**< NTSC. */
-		LSN_AT_PAL										= 1,								/**< PAL. */
-		LSN_AT_TOTAL,
+		LSN_AT_NTSC_M									= LSN_PM_NTSC_M,					/**< NTSC-M (Nintendo Entertainment System, 2A03). */
+		LSN_AT_NTSC_J									= LSN_PM_NTSC_J,					/**< NTSC-J (Famicom, 2A03). */
+		LSN_AT_PAL										= LSN_PM_PAL,						/**< PAL (2A07). */
+		LSN_AT_DENDY									= LSN_PM_DENDY,						/**< Dendy (UA6527P). */
+		LSN_AT_PALM										= LSN_PM_PALM,						/**< PAL-M (Brazil famiclone). */
+		LSN_AT_PALN										= LSN_PM_PALN,						/**< PAL-N (Argentina famiclone). */
+		LSN_AT_TOTAL									= LSN_PM_CONSOLE_TOTAL,
 	};
 
 	/**
@@ -48,8 +53,8 @@ namespace lsn {
 		/**
 		 * Gets a value from the noise period table.
 		 * 
-		 * \param _tTable The system type.  One of the LSN_APU_TYPE values.
 		 * \param _ui8Idx The index in the table for which to get the period.
+		 * \tparam _tTable The system type.  One of the LSN_APU_TYPE values.
 		 * \return Returns the associated noise period.
 		 **/
 		template <unsigned _tTable>
@@ -60,8 +65,8 @@ namespace lsn {
 		/**
 		 * Gets a value from the old noise period table.
 		 * 
-		 * \param _tTable The system type.  One of the LSN_APU_TYPE values.
 		 * \param _ui8Idx The index in the table for which to get the period.
+		 * \tparam _tTable The system type.  One of the LSN_APU_TYPE values.
 		 * \return Returns the associated noise period.
 		 **/
 		template <unsigned _tTable>

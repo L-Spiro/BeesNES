@@ -286,7 +286,7 @@ namespace lsn {
 		bool									m_bImplicitAbort = false;									/**< A 1-cycle DMA may halt the CPU on this cycle. */
 		bool									m_bClocked = false;											/**< The rate timer clocked the output unit on this cycle. */
 
-		static const uint16_t					m_ui16Periods[LSN_AT_TOTAL][16];							/**< Rate periods for each APU type (LSN_APU_TYPE, not the region). */
+		static const uint16_t					m_ui16Periods[LSN_AT_TOTAL][16];							/**< Rate periods for each system (indexed by LSN_APU_TYPE). */
 
 
 		// == Functions.
@@ -294,7 +294,7 @@ namespace lsn {
 		 * Gets the hardware timer period for a given rate index.
 		 *
 		 * \param _ui8Index The 4-bit rate index (0-15) written to $4010.
-		 * \tparam _uConsoleType The APU type (LSN_APU_TYPE).
+		 * \tparam _uConsoleType The APU type (LSN_APU_TYPE), one for each system.
 		 * \return Returns the timer countdown period (N-1) for the specified rate.
 		 */
 		template <unsigned _uConsoleType>

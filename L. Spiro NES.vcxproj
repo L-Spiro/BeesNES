@@ -2427,11 +2427,13 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <None Include="Src\GPU\Vulkan\LSNVulkanWrappers.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableDendy.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTableNtsc.inl" />
+    <None Include="Src\Ppu\LSNCreateCycleTableNtscJ.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePal.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePalM.inl" />
     <None Include="Src\Ppu\LSNCreateCycleTablePalN.inl" />
     <None Include="Src\Ppu\LSNGenFuncsDendy.inl" />
     <None Include="Src\Ppu\LSNGenFuncsNtsc.inl" />
+    <None Include="Src\Ppu\LSNGenFuncsNtscJ.inl" />
     <None Include="Src\Ppu\LSNGenFuncsPal.inl" />
     <None Include="Src\Ppu\LSNGenFuncsPalM.inl" />
     <None Include="Src\Ppu\LSNGenFuncsPalN.inl" />

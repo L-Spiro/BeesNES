@@ -994,6 +994,8 @@ namespace lsn {
 		CInputPoller *							m_pipPoller = nullptr;
 		/** The NTSC console. */
 		CNtscSystem								m_nsNtscSystem;
+		/** The NTSC-J (Famicom) console. */
+		CNtscJSystem							m_nsNtscJSystem;
 		/** The PAL console. */
 		CPalSystem								m_nsPalSystem;
 		/** The Dendy console. */
@@ -1050,20 +1052,6 @@ namespace lsn {
 		 * Updates the current system with render information, display hosts, etc.
 		 */
 		void									UpdateCurrentSystem();
-
-		/**
-		 * Determines whether a region shares its system with a lower region (such as NTSC-J, which shares the NTSC-M system).  Used
-		 *	to visit each system only once when looping over m_psbSystems.
-		 *
-		 * \param _stRegion The index of the region in m_psbSystems.
-		 * \return Returns true if a region before _stRegion uses the same system.
-		 */
-		bool									IsSharedSystem( size_t _stRegion ) const {
-			for ( size_t I = 0; I < _stRegion; ++I ) {
-				if ( m_psbSystems[I] == m_psbSystems[_stRegion] ) { return true; }
-			}
-			return false;
-		}
 
 		/**
 		 * Sets the stream-to-file options.

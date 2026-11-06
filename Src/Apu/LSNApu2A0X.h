@@ -92,12 +92,12 @@ namespace lsn {
 	// == Enumerations.
 	/** APU timings. */
 	enum LSN_APU_TIMINGS {
-		LSN_AT_NTSC_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
-		LSN_AT_NTSC_MODE_0_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
-		LSN_AT_NTSC_MODE_0_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
-		LSN_AT_NTSC_MODE_0_STEP_3_0						= uint32_t( 14914 * 2.0 ),			/**< 29828. */
-		LSN_AT_NTSC_MODE_0_STEP_3_1						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
-		LSN_AT_NTSC_MODE_0_STEP_3_2						= uint32_t( 14915 * 2.0 ),			/**< 29830. */
+		LSN_AT_NTSC_M_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
+		LSN_AT_NTSC_M_MODE_0_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
+		LSN_AT_NTSC_M_MODE_0_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_0						= uint32_t( 14914 * 2.0 ),			/**< 29828. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_1						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_2						= uint32_t( 14915 * 2.0 ),			/**< 29830. */
 
 		LSN_AT_PAL_MODE_0_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
 		LSN_AT_PAL_MODE_0_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
@@ -107,12 +107,12 @@ namespace lsn {
 		LSN_AT_PAL_MODE_0_STEP_3_2						= uint32_t( 16627 * 2.0 ),			/**< 33254. */
 
 
-		LSN_AT_NTSC_MODE_1_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
-		LSN_AT_NTSC_MODE_1_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
-		LSN_AT_NTSC_MODE_1_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
-		LSN_AT_NTSC_MODE_1_STEP_3						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
-		LSN_AT_NTSC_MODE_1_STEP_4_0						= uint32_t( 18640.5 * 2.0 ),		/**< 37281. */
-		LSN_AT_NTSC_MODE_1_STEP_4_1						= uint32_t( 18641 * 2.0 ),			/**< 37282. */
+		LSN_AT_NTSC_M_MODE_1_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
+		LSN_AT_NTSC_M_MODE_1_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
+		LSN_AT_NTSC_M_MODE_1_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
+		LSN_AT_NTSC_M_MODE_1_STEP_3						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
+		LSN_AT_NTSC_M_MODE_1_STEP_4_0						= uint32_t( 18640.5 * 2.0 ),		/**< 37281. */
+		LSN_AT_NTSC_M_MODE_1_STEP_4_1						= uint32_t( 18641 * 2.0 ),			/**< 37282. */
 
 		LSN_AT_PAL_MODE_1_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
 		LSN_AT_PAL_MODE_1_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
@@ -120,6 +120,59 @@ namespace lsn {
 		LSN_AT_PAL_MODE_1_STEP_3						= uint32_t( 16626.5 * 2.0 ),		/**< 33253. */
 		LSN_AT_PAL_MODE_1_STEP_4_0						= uint32_t( 20782.5 * 2.0 ),		/**< 41565. */
 		LSN_AT_PAL_MODE_1_STEP_4_1						= uint32_t( 20783 * 2.0 ),			/**< 41566. */
+
+		// NTSC-J (Famicom), Dendy, PAL-M, and PAL-N use the NTSC-M frame-counter timings.
+		LSN_AT_NTSC_J_MODE_0_STEP_0						= LSN_AT_NTSC_M_MODE_0_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_0_STEP_1						= LSN_AT_NTSC_M_MODE_0_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_0_STEP_2						= LSN_AT_NTSC_M_MODE_0_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_0_STEP_3_0					= LSN_AT_NTSC_M_MODE_0_STEP_3_0,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_0_STEP_3_1					= LSN_AT_NTSC_M_MODE_0_STEP_3_1,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_0_STEP_3_2					= LSN_AT_NTSC_M_MODE_0_STEP_3_2,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_0						= LSN_AT_NTSC_M_MODE_1_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_1						= LSN_AT_NTSC_M_MODE_1_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_2						= LSN_AT_NTSC_M_MODE_1_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_3						= LSN_AT_NTSC_M_MODE_1_STEP_3,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_4_0					= LSN_AT_NTSC_M_MODE_1_STEP_4_0,	/**< Same as NTSC-M. */
+		LSN_AT_NTSC_J_MODE_1_STEP_4_1					= LSN_AT_NTSC_M_MODE_1_STEP_4_1,	/**< Same as NTSC-M. */
+
+		LSN_AT_DENDY_MODE_0_STEP_0						= LSN_AT_NTSC_M_MODE_0_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_0_STEP_1						= LSN_AT_NTSC_M_MODE_0_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_0_STEP_2						= LSN_AT_NTSC_M_MODE_0_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_0_STEP_3_0					= LSN_AT_NTSC_M_MODE_0_STEP_3_0,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_0_STEP_3_1					= LSN_AT_NTSC_M_MODE_0_STEP_3_1,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_0_STEP_3_2					= LSN_AT_NTSC_M_MODE_0_STEP_3_2,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_0						= LSN_AT_NTSC_M_MODE_1_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_1						= LSN_AT_NTSC_M_MODE_1_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_2						= LSN_AT_NTSC_M_MODE_1_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_3						= LSN_AT_NTSC_M_MODE_1_STEP_3,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_4_0					= LSN_AT_NTSC_M_MODE_1_STEP_4_0,	/**< Same as NTSC-M. */
+		LSN_AT_DENDY_MODE_1_STEP_4_1					= LSN_AT_NTSC_M_MODE_1_STEP_4_1,	/**< Same as NTSC-M. */
+
+		LSN_AT_PALM_MODE_0_STEP_0						= LSN_AT_NTSC_M_MODE_0_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_0_STEP_1						= LSN_AT_NTSC_M_MODE_0_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_0_STEP_2						= LSN_AT_NTSC_M_MODE_0_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_0_STEP_3_0						= LSN_AT_NTSC_M_MODE_0_STEP_3_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_0_STEP_3_1						= LSN_AT_NTSC_M_MODE_0_STEP_3_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_0_STEP_3_2						= LSN_AT_NTSC_M_MODE_0_STEP_3_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_0						= LSN_AT_NTSC_M_MODE_1_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_1						= LSN_AT_NTSC_M_MODE_1_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_2						= LSN_AT_NTSC_M_MODE_1_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_3						= LSN_AT_NTSC_M_MODE_1_STEP_3,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_4_0						= LSN_AT_NTSC_M_MODE_1_STEP_4_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALM_MODE_1_STEP_4_1						= LSN_AT_NTSC_M_MODE_1_STEP_4_1,	/**< Same as NTSC-M. */
+
+		LSN_AT_PALN_MODE_0_STEP_0						= LSN_AT_NTSC_M_MODE_0_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_0_STEP_1						= LSN_AT_NTSC_M_MODE_0_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_0_STEP_2						= LSN_AT_NTSC_M_MODE_0_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_0_STEP_3_0						= LSN_AT_NTSC_M_MODE_0_STEP_3_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_0_STEP_3_1						= LSN_AT_NTSC_M_MODE_0_STEP_3_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_0_STEP_3_2						= LSN_AT_NTSC_M_MODE_0_STEP_3_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_0						= LSN_AT_NTSC_M_MODE_1_STEP_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_1						= LSN_AT_NTSC_M_MODE_1_STEP_1,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_2						= LSN_AT_NTSC_M_MODE_1_STEP_2,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_3						= LSN_AT_NTSC_M_MODE_1_STEP_3,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_4_0						= LSN_AT_NTSC_M_MODE_1_STEP_4_0,	/**< Same as NTSC-M. */
+		LSN_AT_PALN_MODE_1_STEP_4_1						= LSN_AT_NTSC_M_MODE_1_STEP_4_1,	/**< Same as NTSC-M. */
 	};
 
 	/** Frame-counter clock flags. */
@@ -533,7 +586,8 @@ namespace lsn {
 			m_nNoise.SetEnvelopeVolume( LSN_NOISE_ENV_DIVIDER( this ) );
 			Write4015( this, 0, 0, 0 );
 			m_i64TicksToLenCntr = _tM0S0;
-			if ( !m_bLetterless || _tType != LSN_AT_NTSC ) {
+			// Only the 2A03 had a letterless revision (every non-PAL system used the 2A03 behavior here).
+			if ( !m_bLetterless || _tType == LSN_AT_PAL ) {
 				m_dvRegisters3_4017.SetValue( m_ui8Last4017 | 0b01000000 );
 			}
 
@@ -632,7 +686,7 @@ namespace lsn {
 		}
 
 		/**
-		 * Gets the type of APU (LSN_AT_NTSC or LSN_AT_PAL).
+		 * Gets the type of APU (one of the LSN_APU_TYPE values, one for each system).
 		 * 
 		 * \return Returns the type of APU.
 		 **/
@@ -1627,7 +1681,7 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
 			if LSN_UNLIKELY( paApu->m_bLetterless ) {
-				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<0>( (_ui8Val & 0b00001111) ) );
+				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
 				paApu->m_nNoise.SetModeFlag( false );
 			}
 			else {
