@@ -202,24 +202,59 @@ namespace lsn {
 	}
 
 	/**
-	 * Creates a shader statement that converts the linear color in c.rgb by a matrix and clamps the result to [0, 1].
+	 * Creates shader code that converts the linear color in c.rgb by a matrix and then maps the result into [0, 1] without changing
+	 *	its hue:  rather than clamping each channel (which shifts the hue of out-of-gamut colors), the color is desaturated toward
+	 *	its own luminance just far enough for every channel to fit.  If the luminance itself is outside [0, 1], it is clamped first.
+	 *	The code is a single block, so it can be placed anywhere a statement can.
 	 *
 	 * \param _cmMatrix The conversion matrix.
 	 * \param _bHlsl If true, HLSL is generated (float3), otherwise GLSL (vec3).
-	 * \return Returns the statement, or an empty string if the matrix is the identity matrix.
+	 * \return Returns the code, or an empty string if the matrix is the identity matrix.
 	 */
 	std::string CColorSpace::ShaderStatement( const LSN_COLOR_MATRIX &_cmMatrix, bool _bHlsl ) {
 		if ( _cmMatrix.IsIdentity() ) { return std::string(); }
-		const char * pcVec3 = _bHlsl ? "float3" : "vec3";
+		const std::string sVec3 = _bHlsl ? "float3" : "vec3";
 		// 9 significant digits round-trip a float exactly; the exponent form is valid in both languages.
 		auto aNum = []( float _fVal ) { return std::format( "{:.8e}", _fVal ); };
-		std::string sRet = std::string( "c.rgb = clamp( " ) + pcVec3 + "(\n";
+		std::string sRet = "{\n";
+		// The conversion (the output is linear sRGB).
+		sRet += "        c.rgb = " + sVec3 + "(\n";
 		for ( size_t I = 0; I < 3; ++I ) {
-			sRet += std::string( "        dot( " ) + pcVec3 + "( " + aNum( _cmMatrix.fM[I][0] ) + ", " + aNum( _cmMatrix.fM[I][1] ) + ", " + aNum( _cmMatrix.fM[I][2] ) + " ), c.rgb )";
-			sRet += (I < 2) ? ",\n" : " ),\n";
+			sRet += "            dot( " + sVec3 + "( " + aNum( _cmMatrix.fM[I][0] ) + ", " + aNum( _cmMatrix.fM[I][1] ) + ", " + aNum( _cmMatrix.fM[I][2] ) + " ), c.rgb )";
+			sRet += (I < 2) ? ",\n" : " );\n";
 		}
-		sRet += std::string( "        " ) + pcVec3 + "( 0.0, 0.0, 0.0 ), " + pcVec3 + "( 1.0, 1.0, 1.0 ) );\n";
+		// Gamut mapping.  For each channel, find how much of its distance from the luminance (vD) can be kept:  (1 - Y) / D above the
+		//	luminance and Y / -D below it.  step() picks between them in both languages (GLSL mix() and HLSL lerp() differ).
+		sRet +=
+			"        float fCsY = clamp( dot( c.rgb, " + sVec3 + "( 2.12639006e-01, 7.15168679e-01, 7.21923187e-02 ) ), 0.0, 1.0 );\n"
+			"        " + sVec3 + " vCsD = c.rgb - " + sVec3 + "( fCsY, fCsY, fCsY );\n"
+			"        " + sVec3 + " vCsUp = step( " + sVec3 + "( 0.0, 0.0, 0.0 ), vCsD );\n"
+			"        " + sVec3 + " vCsT = vCsUp * ((1.0 - fCsY) / max( vCsD, " + sVec3 + "( 1.0e-6, 1.0e-6, 1.0e-6 ) )) +\n"
+			"            (" + sVec3 + "( 1.0, 1.0, 1.0 ) - vCsUp) * (fCsY / max( -vCsD, " + sVec3 + "( 1.0e-6, 1.0e-6, 1.0e-6 ) ));\n"
+			"        float fCsT = clamp( min( vCsT.x, min( vCsT.y, vCsT.z ) ), 0.0, 1.0 );\n"
+			"        c.rgb = clamp( " + sVec3 + "( fCsY, fCsY, fCsY ) + vCsD * fCsT, " + sVec3 + "( 0.0, 0.0, 0.0 ), " + sVec3 + "( 1.0, 1.0, 1.0 ) );\n"
+			"    }\n";
 		return sRet;
+	}
+
+	/**
+	 * Wraps a gamma-curve call so that it works on values outside [0, 1].  The composite decoders (the L. Spiro filters in
+	 *	particular) produce negative values for colors outside the gamut of the source, and the gamma curves return NaN for them
+	 *	(pow() of a negative number).  NaN in one channel then spreads to the whole pixel through the color-space matrix.  The
+	 *	wrapped call applies the curve to the magnitude and restores the sign, so the color reaches the matrix (and the gamut
+	 *	mapping after it) intact.
+	 *
+	 * \param _sGammaCall The gamma-curve call, which reads its input from c.rgb.
+	 * \return Returns the sign-preserving form of the call (or _sGammaCall if it does not change c.rgb).
+	 */
+	std::string CColorSpace::SignedGammaCall( const std::string &_sGammaCall ) {
+		if ( _sGammaCall == "c.rgb" ) { return _sGammaCall; }
+		std::string sRet = _sGammaCall;
+		const std::string sFind = "c.rgb", sReplace = "abs( c.rgb )";
+		for ( size_t sPos = sRet.find( sFind ); sPos != std::string::npos; sPos = sRet.find( sFind, sPos + sReplace.size() ) ) {
+			sRet.replace( sPos, sFind.size(), sReplace );
+		}
+		return "sign( c.rgb ) * " + sRet;
 	}
 
 	/**

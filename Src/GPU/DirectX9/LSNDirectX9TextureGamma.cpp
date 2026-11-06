@@ -156,6 +156,8 @@ namespace lsn {
 			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
 			default : { break; }
 		}
+		// With a color-space conversion, out-of-gamut (negative) inputs must survive the gamma curve (it would make them NaN).
+		if ( !_cmColorSpace.IsIdentity() ) { sGammaCall = CColorSpace::SignedGammaCall( sGammaCall ); }
 
 		std::string sShaderSrc =
 			"#include \"LSNGamma.hlsl\"\n"

@@ -136,9 +136,9 @@
 #define LSN_VIDEO_FILTER_METAL												M&etal®
 // Regions.
 #define LSN_REGION_AUTO														&Automatic
-#define LSN_REGION_NTSC_M													NTSC-&M (Nintendo Entertainment System\u00AE)
-#define LSN_REGION_NTSC_J													NTSC-&J (Famicom\u00AE)
-#define LSN_REGION_PAL														&PAL-I (PAL-A Nintendo Entertainment System\u00AE)
+#define LSN_REGION_NTSC_M													NTSC-&M (LSN_NES)
+#define LSN_REGION_NTSC_J													NTSC-&J (LSN_FAMICOM)
+#define LSN_REGION_PAL														&PAL-I (PAL-A LSN_NES)
 #define LSN_REGION_DENDY													PAL-D/K (&Dendy Famiclone)
 #define LSN_REGION_PALM														PAL-M (&Brazil Famiclone)
 #define LSN_REGION_PALN														PAL-N (Ar&gentina Famiclone)

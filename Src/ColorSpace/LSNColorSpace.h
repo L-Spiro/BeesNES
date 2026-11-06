@@ -143,13 +143,28 @@ namespace lsn {
 		static LSN_COLOR_MATRIX												ConversionMatrix( LSN_COLOR_SPACE _cspSrc, LSN_COLOR_SPACE _cspDst = LSN_CSP_SRGB );
 
 		/**
-		 * Creates a shader statement that converts the linear color in c.rgb by a matrix and clamps the result to [0, 1].
+		 * Creates shader code that converts the linear color in c.rgb by a matrix and then maps the result into [0, 1] without changing
+		 *	its hue:  rather than clamping each channel (which shifts the hue of out-of-gamut colors), the color is desaturated toward
+		 *	its own luminance just far enough for every channel to fit.  If the luminance itself is outside [0, 1], it is clamped first.
+		 *	The code is a single block, so it can be placed anywhere a statement can.
 		 *
 		 * \param _cmMatrix The conversion matrix.
 		 * \param _bHlsl If true, HLSL is generated (float3), otherwise GLSL (vec3).
-		 * \return Returns the statement, or an empty string if the matrix is the identity matrix.
+		 * \return Returns the code, or an empty string if the matrix is the identity matrix.
 		 */
 		static std::string													ShaderStatement( const LSN_COLOR_MATRIX &_cmMatrix, bool _bHlsl );
+
+		/**
+		 * Wraps a gamma-curve call so that it works on values outside [0, 1].  The composite decoders (the L. Spiro filters in
+		 *	particular) produce negative values for colors outside the gamut of the source, and the gamma curves return NaN for them
+		 *	(pow() of a negative number).  NaN in one channel then spreads to the whole pixel through the color-space matrix.  The
+		 *	wrapped call applies the curve to the magnitude and restores the sign, so the color reaches the matrix (and the gamut
+		 *	mapping after it) intact.
+		 *
+		 * \param _sGammaCall The gamma-curve call, which reads its input from c.rgb.
+		 * \return Returns the sign-preserving form of the call (or _sGammaCall if it does not change c.rgb).
+		 */
+		static std::string													SignedGammaCall( const std::string &_sGammaCall );
 
 		/**
 		 * Creates a conversion matrix given a color-space's chromaticities and white point.
