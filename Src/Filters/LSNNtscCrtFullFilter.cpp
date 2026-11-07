@@ -43,6 +43,30 @@ namespace lsn {
 
 	// == Functions.
 	/**
+	 * Sets the user-adjustable settings of the filter.  They are applied immediately and again whenever the filter is initialized.
+	 *
+	 * \param _lsSettings The settings to apply.
+	 */
+	void CNtscCrtFullFilter::SetSettings( const LSN_LMP88959_SETTINGS &_lsSettings ) {
+		m_lsSettings = _lsSettings;
+		ApplySettings();
+	}
+
+	/**
+	 * Copies m_lsSettings into the CRT structures.
+	 */
+	void CNtscCrtFullFilter::ApplySettings() {
+		m_nnCrtNtsc.hue = m_lsSettings.i32Hue;
+		m_nnCrtNtsc.brightness = m_lsSettings.i32Brightness;
+		m_nnCrtNtsc.contrast = m_lsSettings.i32Contrast;
+		m_nnCrtNtsc.saturation = m_lsSettings.i32Saturation;
+		m_nnCrtNtsc.black_point = m_lsSettings.i32BlackPoint;
+		m_nnCrtNtsc.white_point = m_lsSettings.i32WhitePoint;
+		m_nnCrtNtsc.blend = m_lsSettings.bBlend ? 1 : 0;
+		m_nsSettings.border_color = m_lsSettings.ui32BorderColor;
+	}
+
+	/**
 	 * Sets the basic parameters for the filter.
 	 *
 	 * \param _stBuffers The number of render targets to create.
@@ -86,17 +110,9 @@ namespace lsn {
 		m_nnCrtNtsc.white_point = 85;
 		m_nnCrtNtsc.blend = 1;*/
 
-		m_nnCrtNtsc.hue = 20;
-		m_nnCrtNtsc.brightness = 4;
-		m_nnCrtNtsc.contrast = 180;
-		m_nnCrtNtsc.saturation = 17;
-		m_nnCrtNtsc.black_point = 4;
-		m_nnCrtNtsc.white_point = 75;
-		m_nnCrtNtsc.blend = 1;
 		m_nnCrtNtsc.do_vsync = true;
 		m_nnCrtNtsc.do_hsync = true;
-
-		m_nsSettings.border_color = 0x22;
+		ApplySettings();
 
 		/** 
 		* 		hue	0	int
@@ -154,7 +170,7 @@ namespace lsn {
 			}
 		}
 
-		::crt_demodulate_full( &m_nnCrtNtsc, 8 );
+		::crt_demodulate_full( &m_nnCrtNtsc, m_lsSettings.i32Noise );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;

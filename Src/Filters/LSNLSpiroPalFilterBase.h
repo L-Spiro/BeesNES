@@ -60,14 +60,6 @@ namespace lsn {
 
 
 		// == Types.
-		/**
-		 * A filter function.
-		 *
-		 * \param _fT The value to filter.
-		 * \param _fWidth The size of the filter kernel.
-		 * \return Returns the filtered value.
-		 */
-		typedef float (*									PfFilterFunc)( float _fT, float _fWidth );
 
 
 		// == Functions.
@@ -243,24 +235,151 @@ namespace lsn {
 		bool												SetPixelToSignal( uint16_t _ui16Value );
 
 		/**
+		 * Gets how many signals each pixel generates.
+		 * 
+		 * \return Returns how many signals each pixel generates.
+		 **/
+		inline uint16_t										GetPixelToSignal() const { return m_ui16PixelToSignal; }
+
+		/**
 		 * Sets the chroma filter function.
 		 * 
-		 * \param _pfFunc The filter function.
+		 * \param _ffFunc The filter function.
+		 * \param _fParm0 The first parameter of the filter function (its meaning depends on the function; see LSN_FILTER_FUNC).
+		 * \param _fParm1 The second parameter of the filter function (its meaning depends on the function; see LSN_FILTER_FUNC).
 		 **/
-		void												SetFilterFuncChroma( PfFilterFunc _pfFunc ) {
-			m_pfFilterFunc = _pfFunc;
+		void												SetFilterFuncChroma( LSN_FILTER_FUNC _ffFunc, float _fParm0 = 0.0f, float _fParm1 = 0.0f ) {
+			m_ffFilterFunc = _ffFunc;
+			m_fFilterFuncParms[0] = _fParm0;
+			m_fFilterFuncParms[1] = _fParm1;
 			GenFilterKernel( m_ui32FilterKernelSize );
 		}
 
 		/**
+		 * Gets the chroma filter function.
+		 * 
+		 * \return Returns the chroma filter function.
+		 **/
+		inline LSN_FILTER_FUNC								GetFilterFuncChroma() const { return m_ffFilterFunc; }
+
+		/**
+		 * Gets a parameter of the chroma filter function.
+		 * 
+		 * \param _sIdx The index of the parameter (0 or 1).
+		 * \return Returns the requested parameter of the chroma filter function.
+		 **/
+		inline float										GetFilterFuncChromaParm( size_t _sIdx ) const { return m_fFilterFuncParms[_sIdx&1]; }
+
+		/**
 		 * Sets the Y filter function.
 		 * 
-		 * \param _pfFunc The filter function.
+		 * \param _ffFunc The filter function.
+		 * \param _fParm0 The first parameter of the filter function (its meaning depends on the function; see LSN_FILTER_FUNC).
+		 * \param _fParm1 The second parameter of the filter function (its meaning depends on the function; see LSN_FILTER_FUNC).
 		 **/
-		void												SetFilterFuncY( PfFilterFunc _pfFunc ) {
-			m_pfFilterFuncY = _pfFunc;
+		void												SetFilterFuncY( LSN_FILTER_FUNC _ffFunc, float _fParm0 = 0.0f, float _fParm1 = 0.0f ) {
+			m_ffFilterFuncY = _ffFunc;
+			m_fFilterFuncParmsY[0] = _fParm0;
+			m_fFilterFuncParmsY[1] = _fParm1;
 			GenFilterKernelY( m_ui32FilterKernelSizeY );
 		}
+
+		/**
+		 * Gets the Y filter function.
+		 * 
+		 * \return Returns the Y filter function.
+		 **/
+		inline LSN_FILTER_FUNC								GetFilterFuncY() const { return m_ffFilterFuncY; }
+
+		/**
+		 * Gets a parameter of the Y filter function.
+		 * 
+		 * \param _sIdx The index of the parameter (0 or 1).
+		 * \return Returns the requested parameter of the Y filter function.
+		 **/
+		inline float										GetFilterFuncYParm( size_t _sIdx ) const { return m_fFilterFuncParmsY[_sIdx&1]; }
+
+		/**
+		 * Gets the width scale (how many output samples each input pixel becomes horizontally).
+		 * 
+		 * \return Returns the width scale.
+		 **/
+		inline uint16_t										GetWidthScale() const { return m_ui16WidthScale; }
+
+		/**
+		 * Gets the CRT gamma (see SetGamma()).  Named differently from CGpuFilterBase::GetGamma() because the GPU versions of this filter
+		 *	derive from both.
+		 * 
+		 * \return Returns the CRT gamma.
+		 **/
+		inline float										GetCrtGamma() const { return m_fGammaSetting; }
+
+		/**
+		 * Gets the hue.
+		 * 
+		 * \return Returns the hue, in radians.
+		 **/
+		inline float										GetHue() const { return m_fHueSetting; }
+
+		/**
+		 * Gets the brightness.
+		 * 
+		 * \return Returns the brightness.
+		 **/
+		inline float										GetBrightness() const { return m_fBrightnessSetting; }
+
+		/**
+		 * Gets the saturation.
+		 * 
+		 * \return Returns the saturation.
+		 **/
+		inline float										GetSaturation() const { return m_fSaturationSetting; }
+
+		/**
+		 * Gets the black level.
+		 * 
+		 * \return Returns the black level.
+		 **/
+		inline float										GetBlackLevel() const { return m_fBlackSetting; }
+
+		/**
+		 * Gets the white level.
+		 * 
+		 * \return Returns the white level.
+		 **/
+		inline float										GetWhiteLevel() const { return m_fWhiteSetting; }
+
+		/**
+		 * Sets the bleed (how much of each kernel is spread to its neighbors).  Regenerates the filter kernels.
+		 * 
+		 * \param _fBleed The bleed amount.
+		 **/
+		void												SetBleed( float _fBleed ) {
+			m_fBleed = _fBleed;
+			GenFilterKernel( m_ui32FilterKernelSize );
+			GenFilterKernelY( m_ui32FilterKernelSizeY );
+		}
+
+		/**
+		 * Gets the bleed.
+		 * 
+		 * \return Returns the bleed amount.
+		 **/
+		inline float										GetBleed() const { return m_fBleed; }
+
+		/**
+		 * Gets the phosphor decay time.
+		 * 
+		 * \return Returns the time it takes the phosphors to decay to 0.001.
+		 **/
+		inline float										GetPhosphorDecayPeriod() const { return m_fPhosphorDecayTime; }
+
+		/**
+		 * Gets the initial phosphor decay level.
+		 * 
+		 * \return Returns the strength of the phosphor decay.
+		 **/
+		inline float										GetPhosphorDecayLevel() const { return m_fInitPhosphorDecay; }
 
 		/**
 		 * Sets the phospher decay time.
@@ -340,8 +459,10 @@ namespace lsn {
 		float												m_fFilterY[LSN_MAX_FILTER_SIZE];					/**< The Y filter kernel. */
 		float												m_fBleed = 0.35;									/**< The bleed amount. */
 
-		PfFilterFunc										m_pfFilterFunc = CUtilities::BoxFilterFunc;			/**< The filter function for chroma. */
-		PfFilterFunc										m_pfFilterFuncY = CUtilities::BoxFilterFunc;		/**< The filter function for Y. */
+		LSN_FILTER_FUNC										m_ffFilterFunc = LSN_FF_BOX;						/**< The filter function for chroma. */
+		float												m_fFilterFuncParms[2] = { 0.0f, 0.0f };				/**< The parameters of the chroma filter function. */
+		LSN_FILTER_FUNC										m_ffFilterFuncY = LSN_FF_BOX;						/**< The filter function for Y. */
+		float												m_fFilterFuncParmsY[2] = { 0.0f, 0.0f };			/**< The parameters of the Y filter function. */
 		uint32_t											m_ui32FilterKernelSize = 12;						/**< The kernel size for the chroma (U/V) gather during YUV creation. */
 		uint32_t											m_ui32FilterKernelSizeY = 12;						/**< The kernel size for the Y gather during YUV creation. */
 		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;									/**< The intermediate signal buffer for a single scanline. */

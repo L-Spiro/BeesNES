@@ -171,6 +171,23 @@ namespace lsn {
 		bool									SavePerGameSettings( const std::u16string &_u16Path );
 
 		/**
+		 * Gets the filter options that apply to a given region:  the per-game options if a game is loaded and its options for that region
+		 *	are not set to use the global options, otherwise the global options.
+		 *
+		 * \param _pmRegion The region whose options are to be returned.
+		 * \return Returns the filter options that apply to the given region.
+		 */
+		const LSN_FILTER_REGION_OPTIONS &		FilterOptions( LSN_PPU_METRICS _pmRegion ) const;
+
+		/**
+		 * Applies the filter options (see FilterOptions()) to every filter.  Palette, Blargg, and LMP88959 filters receive the settings of the
+		 *	active region (m_pmSystem); each L. Spiro filter is made for a single region and receives the settings of that region (the software
+		 *	NTSC L. Spiro filter serves both NTSC-M and NTSC-J and receives the settings of whichever is active).  Some settings reallocate
+		 *	buffers or regenerate tables, so this should not be called while a frame is being filtered or rendered.
+		 */
+		void									ApplyFilterOptions();
+
+		/**
 		 * Gets the screen scale.
 		 *
 		 * \return Returns the emulation screen scale.
@@ -1298,6 +1315,142 @@ namespace lsn {
 		 * \return Returns true if the settings data was saved.
 		 */
 		bool									SaveVideoExportSettings( CStream &_sFile, const LSN_VIDEO_EXPORT_OPTIONS &_veoOptions );
+
+		/**
+		 * Loads the settings of every filter for every region.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _vfoOptions The filter settings into which to load the settings data.  Values that are missing or invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadVideoFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_VIDEO_FILTER_OPTIONS &_vfoOptions );
+
+		/**
+		 * Saves the settings of every filter for every region.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _vfoOptions The filter settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveVideoFilterSettings( CStream &_sFile, const LSN_VIDEO_FILTER_OPTIONS &_vfoOptions );
+
+		/**
+		 * Loads the settings of every filter for a single region.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _froOptions The filter settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		bool									LoadFilterRegionSettings( uint32_t _ui32Version, CStream &_sFile, LSN_FILTER_REGION_OPTIONS &_froOptions );
+
+		/**
+		 * Saves the settings of every filter for a single region.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _froOptions The filter settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		bool									SaveFilterRegionSettings( CStream &_sFile, const LSN_FILTER_REGION_OPTIONS &_froOptions );
+
+		/**
+		 * Loads the settings shared by all GPU filters.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _gfoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		static bool								LoadGpuFilterSettings( CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions );
+
+		/**
+		 * Saves the settings shared by all GPU filters.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _gfoOptions The settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		static bool								SaveGpuFilterSettings( CStream &_sFile, const LSN_GPU_FILTER_OPTIONS &_gfoOptions );
+
+		/**
+		 * Loads the settings of a Blargg filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _boOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		static bool								LoadBlarggFilterSettings( CStream &_sFile, LSN_BLARGG_OPTIONS &_boOptions );
+
+		/**
+		 * Saves the settings of a Blargg filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _boOptions The settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		static bool								SaveBlarggFilterSettings( CStream &_sFile, const LSN_BLARGG_OPTIONS &_boOptions );
+
+		/**
+		 * Loads the settings of an LMP88959 filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _lsOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		static bool								LoadLmp88959FilterSettings( CStream &_sFile, LSN_LMP88959_SETTINGS &_lsOptions );
+
+		/**
+		 * Saves the settings of an LMP88959 filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _lsOptions The settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		static bool								SaveLmp88959FilterSettings( CStream &_sFile, const LSN_LMP88959_SETTINGS &_lsOptions );
+
+		/**
+		 * Loads the settings of an L. Spiro filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _lsoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		static bool								LoadLSpiroFilterSettings( CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions );
+
+		/**
+		 * Saves the settings of an L. Spiro filter.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _lsoOptions The settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		static bool								SaveLSpiroFilterSettings( CStream &_sFile, const LSN_LSPIRO_OPTIONS &_lsoOptions );
+
+		/**
+		 * Applies the settings shared by all GPU filters to a GPU filter.
+		 *
+		 * \param _gfbFilter The filter to which to apply the settings.
+		 * \param _gfoOptions The settings to apply.
+		 */
+		static void								ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions );
+
+		/**
+		 * Applies L. Spiro settings to an L. Spiro NTSC filter.
+		 *
+		 * \param _lsnfbFilter The filter to which to apply the settings.
+		 * \param _lsoOptions The settings to apply.
+		 * \param _bSoftware If true, the software-only settings (phosphor decay) are also applied.
+		 */
+		static void								ApplyLSpiroOptions( CLSpiroNtscFilterBase &_lsnfbFilter, const LSN_LSPIRO_OPTIONS &_lsoOptions, bool _bSoftware );
+
+		/**
+		 * Applies L. Spiro settings to an L. Spiro PAL filter.
+		 *
+		 * \param _lspfbFilter The filter to which to apply the settings.
+		 * \param _lsoOptions The settings to apply.
+		 * \param _bSoftware If true, the software-only settings (phosphor decay) are also applied.
+		 */
+		static void								ApplyLSpiroOptions( CLSpiroPalFilterBase &_lspfbFilter, const LSN_LSPIRO_OPTIONS &_lsoOptions, bool _bSoftware );
 
 		/**
 		 * Generates the path of each new movie file for the exporter.

@@ -13,6 +13,7 @@
 #include "../LSNLSpiroNes.h"
 #include "../GPU/DirectX9/LSNDirectX9TextureUploader.h"
 #include "LSNDx9FilterBase.h"
+#include "LSNLmp88959Settings.h"
 
 #include <mutex>
 #include <vector>
@@ -129,9 +130,25 @@ namespace lsn {
 			return CResamplerBase::LSN_FF_TOTAL;
 		}
 
+		/**
+		 * Sets the user-adjustable settings of the filter.  They are applied immediately and again whenever the filter is initialized.
+		 *
+		 * \param _lsSettings The settings to apply.
+		 */
+		void												SetSettings( const LSN_LMP88959_SETTINGS &_lsSettings );
+
+		/**
+		 * Gets the user-adjustable settings of the filter.
+		 *
+		 * \return Returns the settings of the filter.
+		 */
+		inline const LSN_LMP88959_SETTINGS &				GetSettings() const { return m_lsSettings; }
+
 
 	protected :
 		// == Members.
+		/** The user-adjustable settings. */
+		LSN_LMP88959_SETTINGS								m_lsSettings = LSN_LMP88959_SETTINGS::NtscGpuDefaults();
 		/** Generically uploads CPU texel arrays to GPU textures. */
 		CDirectX9TextureUploader							m_tuUploader;
 
@@ -162,6 +179,11 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Copies m_lsSettings into the CRT structures.
+		 */
+		void												ApplySettings();
+
 		/**
 		 * \brief Ensures internal size is updated and size-dependent resources are (re)created.
 		 * 

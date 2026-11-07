@@ -636,6 +636,9 @@
     <ClInclude Include="Src\Options\LSNOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Options\LSNVideoFilterOptions.h">
+      <Filter>Header Files\Options</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Options\LSNInputOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
@@ -1108,6 +1111,9 @@
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
     <ClInclude Include="Src\Filters\LSNLSpiroPalFilterBase.h">
+      <Filter>Header Files\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Filters\LSNLmp88959Settings.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
     <ClInclude Include="Src\Filters\LSNDx9PalLSpiroFilter.h">

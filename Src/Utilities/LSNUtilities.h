@@ -67,6 +67,20 @@ namespace lsn {
 		decltype( std::declval<const T &>().size() ),
 		decltype( std::declval<const T &>()[std::declval<typename T::size_type>()] ) >> : std::true_type {};
 
+	/** The filter-kernel functions used by the L. Spiro filters (see CUtilities::FilterFunc()).  Each takes 2 parameters whose meanings depend on
+	 *	the function.  These values are saved in the settings, so new functions must be added to the end. */
+	enum LSN_FILTER_FUNC : uint32_t {
+		LSN_FF_BOX,											/**< Box.  The parameters are unused. */
+		LSN_FF_LANCZOSX,									/**< Lanczos with (parameter 0 / parameter 1) lobes. */
+		LSN_FF_KAISER,										/**< Kaiser.  The parameters are unused. */
+		LSN_FF_BLACKMAN,									/**< Blackman.  The parameters are unused. */
+		LSN_FF_GAUSSIANX,									/**< Gaussian.  The parameters are unused. */
+		LSN_FF_CARDINAL_SPLINE_UNIFORM,						/**< Cardinal spline (uniform).  The parameters are unused. */
+		LSN_FF_BARTLETT,									/**< Bartlett.  The parameters are unused. */
+		LSN_FF_CRT_HUMP,									/**< A flat middle (parameter 0 = its width times 100) with fall-offs (parameter 1 = their power times 100). */
+		LSN_FF_FUNC_TOTAL,									/**< The number of filter-kernel functions. */
+	};
+
 	/**
 	 * Class CUtilities
 	 * \brief Useful utility functions.
@@ -2196,16 +2210,18 @@ namespace lsn {
 		}
 
 		/**
-		 * The Lanczos filter function with X samples.
+		 * The Lanczos filter function.  The lobe count is _fParm0 / _fParm1 (for example, 99 and 40 give 2.475 lobes).
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 The numerator of the lobe count.
+		 * \param _fParm1 The denominator of the lobe count.
 		 * \return Returns the filtered value.
 		 */
-		template <unsigned _uWidthD, unsigned _uWidthN>
-		static inline float									LanczosXFilterFunc( float _fT, float _fWidth ) {
+		static inline float									LanczosXFilterFunc( float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
+			if ( _fParm1 == 0.0f ) { return 0.0f; }
 			_fT = std::fabsf( _fT );
-			constexpr float fW = float( _uWidthD ) / float( _uWidthN );
+			const float fW = _fParm0 / _fParm1;
 			_fT = _fT / _fWidth * fW;
 			if ( _fT <= fW ) {
 				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / fW ) ));
@@ -2218,9 +2234,11 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									KaiserFilterFunc( float _fT, float _fWidth ) {
+		static inline float									KaiserFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
 				static const float fAtt = 40.0f;
@@ -2235,9 +2253,11 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BlackmanFilterFunc( float _fT, float _fWidth ) {
+		static inline float									BlackmanFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
 				_fT = float( std::pow( _fT / _fWidth, 16.0 ) * _fWidth );
@@ -2251,9 +2271,11 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									GaussianXFilterFunc( float _fT, float _fWidth ) {
+		static inline float									GaussianXFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
 			if ( _fT <= std::ceil( _fWidth ) ) {
 
@@ -2272,9 +2294,11 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									CardinalSplineUniformFilterFunc( float _fT, float _fWidth ) {
+		static inline float									CardinalSplineUniformFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			return MitchellFilterHelper( _fT * 2.0 / _fWidth, 0.0, 1.0 );
 		}
 
@@ -2283,9 +2307,11 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BartlettFilterFunc( float _fT, float _fWidth ) {
+		static inline float									BartlettFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			return BartlettWindow( (_fT + _fWidth) / (_fWidth * 2.0) * ((_fWidth * 2.0) - 1.0), _fWidth * 2.0 );
 		}
 
@@ -2294,27 +2320,55 @@ namespace lsn {
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 Unused.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BoxFilterFunc( float _fT, float _fWidth ) {
+		static inline float									BoxFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
 			return (_fT <= std::ceil( _fWidth )) ? 1.0f : 0.0f;
 		}
+
 		/**
 		 * A custom filter with a flat middle and fall-offs on the sides.
 		 * 
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 The width of the flat middle, times 100.
+		 * \param _fParm1 The power of the fall-off, times 100.
 		 * \return Returns the filtered value.
 		 **/
-		template <unsigned _uNotchWTime100, unsigned _uPowTimes100>
-		static inline float									CrtHumpFunc( float _fT, float _fWidth ) {
+		static inline float									CrtHumpFunc( float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
 			_fT = std::fabsf( _fT );
-			constexpr double dNotchW = double( _uNotchWTime100 ) / (2.0 * 100.0);
+			const double dNotchW = double( _fParm0 ) / (2.0 * 100.0);
 			if ( _fT <= dNotchW ) { return 1.0f; }
 			double dTmp = _fT - dNotchW;
 			double dNorm = dTmp / (_fWidth - dNotchW);
-			return float( std::pow( 1.0 - std::min( dNorm, 1.0 ), (_uPowTimes100 / 100.0) ) );
+			return float( std::pow( 1.0 - std::min( dNorm, 1.0 ), (_fParm1 / 100.0) ) );
+		}
+
+		/**
+		 * Calls one of the filter-kernel functions (see LSN_FILTER_FUNC).
+		 *
+		 * \param _ffFunc The filter function to call.
+		 * \param _fT The value to filter.
+		 * \param _fWidth The size of the filter kernel.
+		 * \param _fParm0 The first parameter of the filter function (its meaning depends on the function).
+		 * \param _fParm1 The second parameter of the filter function (its meaning depends on the function).
+		 * \return Returns the filtered value, or the value of the box filter if _ffFunc is invalid.
+		 */
+		static inline float									FilterFunc( LSN_FILTER_FUNC _ffFunc, float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
+			switch ( _ffFunc ) {
+				case LSN_FF_LANCZOSX : { return LanczosXFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_KAISER : { return KaiserFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_BLACKMAN : { return BlackmanFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_GAUSSIANX : { return GaussianXFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_CARDINAL_SPLINE_UNIFORM : { return CardinalSplineUniformFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_BARTLETT : { return BartlettFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_CRT_HUMP : { return CrtHumpFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+				case LSN_FF_BOX : {}							LSN_FALLTHROUGH
+				default : { return BoxFilterFunc( _fT, _fWidth, _fParm0, _fParm1 ); }
+			}
 		}
 
 		/**

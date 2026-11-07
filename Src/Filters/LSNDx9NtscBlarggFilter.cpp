@@ -56,6 +56,23 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets all of the settings of the filter (hue, saturation, contrast, brightness, sharpness, gamma, resolution, artifacts, fringing, bleed,
+	 *	and field merging).  The pointer members (decoder matrix and palettes) are ignored.  The tables are regenerated.
+	 *
+	 * \param _nsSetup The settings to apply.
+	 */
+	void CDx9NtscBlarggFilter::SetSetup( const nes_ntsc_setup_t &_nsSetup ) {
+		m_nsSetup = _nsSetup;
+		m_nsSetup.decoder_matrix = nullptr;
+		m_nsSetup.palette_out = nullptr;
+		m_nsSetup.palette = nullptr;
+		m_nsSetup.base_palette = nullptr;
+		nes_ntsc_setup_t nsTmp = m_nsSetup;
+		nsTmp.hue += double( m_fHueOffset ) / std::numbers::pi;
+		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+	}
+
+	/**
 	 * Sets the basic parameters for the filter.
 	 *
 	 * \param _stBuffers The number of render targets to create.

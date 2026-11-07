@@ -17,6 +17,7 @@
 #include "LSNInputOptions.h"
 #include "LSNPaletteOptions.h"
 #include "LSNVideoExportOptions.h"
+#include "LSNVideoFilterOptions.h"
 #include "LSNWavEditorWindowOptions.h"
 
 
@@ -41,6 +42,9 @@ namespace lsn {
 
 		LSN_PALETTE_OPTIONS									poGlobalPalettes[LSN_PM_CONSOLE_TOTAL];						/**< Global palette options. */
 		LSN_PALETTE_OPTIONS									poThisGamePalette[LSN_PM_CONSOLE_TOTAL];					/**< This game's palette options. */
+
+		LSN_VIDEO_FILTER_OPTIONS							vfoGlobalFilters;											/**< Global filter settings (for every region). */
+		LSN_VIDEO_FILTER_OPTIONS							vfoThisGameFilters;											/**< This game's filter settings (for every region; each region's bUseGlobal selects the global settings instead). */
 
 		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
 

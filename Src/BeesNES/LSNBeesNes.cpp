@@ -12,6 +12,7 @@
 #include "../Filters/LSNGpuFilterBase.h"
 #include "../Peripherals/LSNStdController.h"
 
+#include <cmath>
 #include <ctime>
 #include <cwchar>
 #include <filesystem>
@@ -116,303 +117,43 @@ namespace lsn {
 			{ &m_vnlsfVulkanLSpiroNtscJ,			&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ,				&m_vnlsfVulkanLSpiroNtscJ },			// LSN_F_LSPIRONTSC_J_VULKAN1
 #endif	// #ifdef LSN_VULKAN1
 		};
-		m_nbfLSpiroPalFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_nbfLSpiroDendyFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		m_nbfLSpiroPalMFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_nbfLSpiroPalNFilter.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-
-		m_nbfLSpiroDendyFilter.SetGamma( 2.35f );
-		m_nbfLSpiroPalMFilter.SetPixelToSignal( 8 );
-		m_nbfLSpiroPalMFilter.SetGamma( 1.0f / 0.45f );
-		m_nbfLSpiroPalNFilter.SetPixelToSignal( 8 );
-		m_nbfLSpiroPalNFilter.SetFilterFuncChroma( CUtilities::BoxFilterFunc );
-		m_nbfLSpiroPalNFilter.SetGamma( 2.5f );
-
+		// FPS settings (these come from the hardware, not the user).
 #ifdef LSN_DX9
-		m_d9pfDx9Palette.SetVertSharpness( 5 );
-		m_d9pfDx9Palette.SetHorSharpness( 5 );
-
 		m_d9nlsfDx9LSpiroNtsc.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d9nlsfDx9LSpiroNtscJ.CDx9FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d9plsfDx9LSpiroPal.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d9plsfDx9LSpiroDendy.CDx9FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d9plsfDx9LSpiroPalM.CDx9FilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_d9plsfDx9LSpiroPalN.CDx9FilterBase::SetFps( 50.502710495150011279043537108053f );
-
-		m_d9plsfDx9LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_d9plsfDx9LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		m_d9plsfDx9LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_d9plsfDx9LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-
 		m_d9ncfDx9EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
-
-
-		m_d9nlsfDx9LSpiroNtsc.SetWidthScale( 8 );
-		m_d9nlsfDx9LSpiroNtscJ.SetWidthScale( 8 );
-		/*m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 25 );
-		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncChroma( &CUtilities::BartlettFilterFunc );*/
-		m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 48 );
-		m_d9nlsfDx9LSpiroNtscJ.SetKernelSize( 48 );
-		//m_d9nlsfDx9LSpiroNtsc.SetKernelSize( 64 );
-		/*m_d9nlsfDx9LSpiroNtsc.SetFilterFuncChroma( &CUtilities::LanczosXFilterFunc<11, 4> );
-		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		m_d9nlsfDx9LSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		//m_d9nlsfDx9LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d9nlsfDx9LSpiroNtsc.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		m_d9nlsfDx9LSpiroNtscJ.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d9nlsfDx9LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-
-		m_d9plsfDx9LSpiroPal.SetWidthScale( 10 );
-		m_d9plsfDx9LSpiroPal.SetKernelSize( 48 );
-		m_d9plsfDx9LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-		m_d9plsfDx9LSpiroPal.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-		m_d9plsfDx9LSpiroDendy.SetWidthScale( 10 );
-		m_d9plsfDx9LSpiroDendy.SetKernelSize( 44 );
-		m_d9plsfDx9LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d9plsfDx9LSpiroDendy.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d9plsfDx9LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
-
-		m_d9plsfDx9LSpiroPalM.SetWidthScale( 8 );
-		m_d9plsfDx9LSpiroPalM.SetKernelSize( 46 );
-		m_d9plsfDx9LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d9plsfDx9LSpiroPalM.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d9plsfDx9LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-		m_d9plsfDx9LSpiroPalN.SetWidthScale( 8 );
-		m_d9plsfDx9LSpiroPalN.SetKernelSize( 48 );
-		m_d9plsfDx9LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-		m_d9plsfDx9LSpiroPalN.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d9plsfDx9LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX9
-
 #ifdef LSN_DX12
-		m_d12pfDx12Palette.SetVertSharpness( 5 );
-		m_d12pfDx12Palette.SetHorSharpness( 5 );
-
 		m_d12nlsfDx12LSpiroNtsc.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d12nlsfDx12LSpiroNtscJ.CDx12FilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_d12plsfDx12LSpiroPal.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d12plsfDx12LSpiroDendy.CDx12FilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_d12plsfDx12LSpiroPalM.CDx12FilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_d12plsfDx12LSpiroPalN.CDx12FilterBase::SetFps( 50.502710495150011279043537108053f );
-
-		m_d12plsfDx12LSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_d12plsfDx12LSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		m_d12plsfDx12LSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_d12plsfDx12LSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-
 		m_d12ncfDx12EmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
-
-		m_d12nlsfDx12LSpiroNtsc.SetWidthScale( 8 );
-		m_d12nlsfDx12LSpiroNtscJ.SetWidthScale( 8 );
-		/*m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 25 );
-		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncChroma( &CUtilities::BartlettFilterFunc );*/
-		m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 48 );
-		m_d12nlsfDx12LSpiroNtscJ.SetKernelSize( 48 );
-		//m_d12nlsfDx12LSpiroNtsc.SetKernelSize( 64 );
-		/*m_d12nlsfDx12LSpiroNtsc.SetFilterFuncChroma( &CUtilities::LanczosXFilterFunc<11, 4> );
-		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		m_d12nlsfDx12LSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		//m_d12nlsfDx12LSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d12nlsfDx12LSpiroNtsc.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		m_d12nlsfDx12LSpiroNtscJ.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d12nlsfDx12LSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-		
-		m_d12plsfDx12LSpiroPal.SetWidthScale( 10 );
-		m_d12plsfDx12LSpiroPal.SetKernelSize( 48 );
-		m_d12plsfDx12LSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-		m_d12plsfDx12LSpiroPal.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-		m_d12plsfDx12LSpiroDendy.SetWidthScale( 10 );
-		m_d12plsfDx12LSpiroDendy.SetKernelSize( 44 );
-		m_d12plsfDx12LSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d12plsfDx12LSpiroDendy.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d12plsfDx12LSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
-
-		m_d12plsfDx12LSpiroPalM.SetWidthScale( 8 );
-		m_d12plsfDx12LSpiroPalM.SetKernelSize( 46 );
-		m_d12plsfDx12LSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_d12plsfDx12LSpiroPalM.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d12plsfDx12LSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-		m_d12plsfDx12LSpiroPalN.SetWidthScale( 8 );
-		m_d12plsfDx12LSpiroPalN.SetKernelSize( 48 );
-		m_d12plsfDx12LSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-		m_d12plsfDx12LSpiroPalN.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_d12plsfDx12LSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_DX12
-
-
-
 #ifdef LSN_VULKAN1
-		m_vpfVulkanPalette.SetVertSharpness( 5 );
-		m_vpfVulkanPalette.SetHorSharpness( 5 );
-
 		m_vnlsfVulkanLSpiroNtsc.CVulkanFilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_vnlsfVulkanLSpiroNtscJ.CVulkanFilterBase::SetFps( 60.098813897440515529533511098629f );
 		m_vplsfVulkanLSpiroPal.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_vplsfVulkanLSpiroDendy.CVulkanFilterBase::SetFps( 50.006978908188585607940446650124f );
 		m_vplsfVulkanLSpiroPalM.CVulkanFilterBase::SetFps( 60.032435273083568398202053145976f );
 		m_vplsfVulkanLSpiroPalN.CVulkanFilterBase::SetFps( 50.502710495150011279043537108053f );
-
-		m_vplsfVulkanLSpiroPal.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_vplsfVulkanLSpiroDendy.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-		m_vplsfVulkanLSpiroPalM.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE );
-		m_vplsfVulkanLSpiroPalN.SetCombFilter( CLSpiroPalFilterBase::LSN_CF_3_LINE );
-
 		m_vncfVulkanEmmirPalFullFilter.SetFps( 50.006978908188585607940446650124f );
-
-		m_vnlsfVulkanLSpiroNtsc.SetWidthScale( 8 );
-		m_vnlsfVulkanLSpiroNtscJ.SetWidthScale( 8 );
-		/*m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 25 );
-		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncChroma( &CUtilities::BartlettFilterFunc );*/
-		m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 48 );
-		m_vnlsfVulkanLSpiroNtscJ.SetKernelSize( 48 );
-		//m_vnlsfVulkanLSpiroNtsc.SetKernelSize( 64 );
-		/*m_vnlsfVulkanLSpiroNtsc.SetFilterFuncChroma( &CUtilities::LanczosXFilterFunc<11, 4> );
-		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		m_vnlsfVulkanLSpiroNtscJ.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-		//m_vnlsfVulkanLSpiroNtsc.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_vnlsfVulkanLSpiroNtsc.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		m_vnlsfVulkanLSpiroNtscJ.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_vnlsfVulkanLSpiroNtsc.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-		
-		m_vplsfVulkanLSpiroPal.SetWidthScale( 10 );
-		m_vplsfVulkanLSpiroPal.SetKernelSize( 48 );
-		m_vplsfVulkanLSpiroPal.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-		m_vplsfVulkanLSpiroPal.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-		m_vplsfVulkanLSpiroDendy.SetWidthScale( 10 );
-		m_vplsfVulkanLSpiroDendy.SetKernelSize( 44 );
-		m_vplsfVulkanLSpiroDendy.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_vplsfVulkanLSpiroDendy.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_vplsfVulkanLSpiroDendy.SetPhosphorDecayPeriod( 2.0f );
-
-		m_vplsfVulkanLSpiroPalM.SetWidthScale( 8 );
-		m_vplsfVulkanLSpiroPalM.SetKernelSize( 46 );
-		m_vplsfVulkanLSpiroPalM.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-		m_vplsfVulkanLSpiroPalM.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_vplsfVulkanLSpiroPalM.SetPhosphorDecayPeriod( 1.79113161563873291015625f / 8.0f );
-
-		m_vplsfVulkanLSpiroPalN.SetWidthScale( 8 );
-		m_vplsfVulkanLSpiroPalN.SetKernelSize( 48 );
-		m_vplsfVulkanLSpiroPalN.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-		m_vplsfVulkanLSpiroPalN.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-		//m_vplsfVulkanLSpiroPalN.SetPhosphorDecayPeriod( 1.9f );
 #endif	// #ifdef LSN_VULKAN1
-
-		// FPS settings.
 		m_nbfLSpiroNtscFilter.SetFps( 60.098813897440515529533511098629f );
 		m_nbfLSpiroPalFilter.SetFps( 50.006978908188585607940446650124f );
 		m_nbfLSpiroDendyFilter.SetFps( 50.006978908188585607940446650124f );
 		m_nbfLSpiroPalMFilter.SetFps( 60.032435273083568398202053145976f );
 		m_nbfLSpiroPalNFilter.SetFps( 50.502710495150011279043537108053f );
 
-		m_nbfLSpiroDendyFilter.SetPhosphorDecayPeriod( 2.0f );
-		m_nbfLSpiroPalNFilter.SetPhosphorDecayPeriod( 1.9f );
-		
-
-
-		// Lowest quality.
-		m_nbfLSpiroNtscFilter.SetWidthScale( 2 );
-		m_nbfLSpiroNtscFilter.SetFilterFuncY( CUtilities::BoxFilterFunc );
-		m_nbfLSpiroNtscFilter.SetFilterFuncChroma( CUtilities::BoxFilterFunc );
-
-		m_nbfLSpiroPalFilter.SetWidthScale( 2 );
-		m_nbfLSpiroDendyFilter.SetWidthScale( 2 );
-		m_nbfLSpiroPalMFilter.SetWidthScale( 2 );
-		m_nbfLSpiroPalNFilter.SetWidthScale( 2 );
-
-		// SSE 4.1 or NEON.
-		if ( CUtilities::IsSse4Supported() ) {
-			m_nbfLSpiroNtscFilter.SetWidthScale( 4 );
-			m_nbfLSpiroNtscFilter.SetFilterFuncChroma( CUtilities::BoxFilterFunc );
-
-			m_nbfLSpiroPalFilter.SetWidthScale( 5 );
-			m_nbfLSpiroDendyFilter.SetWidthScale( 5 );
-			m_nbfLSpiroPalMFilter.SetWidthScale( 4 );
-			m_nbfLSpiroPalNFilter.SetWidthScale( 4 );
-		}
-		//if ( CUtilities::IsAvxSupported() ) {
-		//	m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
-		//	m_nbfLSpiroNtscFilter.SetKernelSize( 16 );
-		//	m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<1200, 480> );
-		//	m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<1200, 480> );
-		//	/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
-		//	m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::CardinalSplineUniformFilterFunc );*/
-		//	/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
-		//	m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );*/
-
-
-		//	m_nbfLSpiroPalFilter.SetWidthScale( 10 );
-		//	m_nbfLSpiroPalFilter.SetKernelSize( 16 );
-		//	m_nbfLSpiroPalFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<1200, 480> );
-		//	m_nbfLSpiroPalFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<1200, 480> );
-		//	/*m_nbfLSpiroPalFilter.SetKernelSize( 48 );
-		//	m_nbfLSpiroPalFilter.SetFilterFuncChroma( &CUtilities::CardinalSplineUniformFilterFunc );*/
-		//	
-
-		//	m_nbfLSpiroDendyFilter.SetWidthScale( 10 );
-		//	m_nbfLSpiroDendyFilter.SetKernelSize( 16 );
-		//	m_nbfLSpiroDendyFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<1200, 480> );
-		//	m_nbfLSpiroDendyFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<1200, 480> );
-
-		//	m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
-		//	m_nbfLSpiroPalNFilter.SetKernelSize( 16 );
-		//	m_nbfLSpiroPalNFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<1200, 640> );
-		//	m_nbfLSpiroPalNFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<1200, 640> );
-
-		//	m_nbfLSpiroPalMFilter.SetWidthScale( 8 );
-		//	m_nbfLSpiroPalNFilter.SetKernelSize( 16 );
-		//	m_nbfLSpiroPalNFilter.SetFilterFuncY( &CUtilities::CrtHumpFunc<1200, 640> );
-		//	m_nbfLSpiroPalNFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<1200, 640> );
-		//}
-		if ( CUtilities::IsAvx512FSupported() || CUtilities::IsAvxSupported() ) {
-			m_nbfLSpiroNtscFilter.SetWidthScale( 8 );
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 25 );
-			m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::BartlettFilterFunc );*/
-			m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
-			//m_nbfLSpiroNtscFilter.SetKernelSize( 64 );
-			/*m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::LanczosXFilterFunc<11, 4> );
-			m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );*/
-			m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<99, 40> );
-			//m_nbfLSpiroNtscFilter.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-			m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-			//m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::CrtHumpFunc<2300, 10> );
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 61 );
-			m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::LanczosXFilterFunc<14, 4> );*/
-			/*m_nbfLSpiroNtscFilter.SetKernelSize( 48 );
-			m_nbfLSpiroNtscFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );*/
-
-			m_nbfLSpiroPalFilter.SetWidthScale( 10 );
-			m_nbfLSpiroPalFilter.SetKernelSize( 48 );
-			m_nbfLSpiroPalFilter.SetFilterFuncY( &CUtilities::LanczosXFilterFunc<5, 2> );
-			m_nbfLSpiroPalFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-			m_nbfLSpiroDendyFilter.SetWidthScale( 10 );
-			m_nbfLSpiroDendyFilter.SetKernelSize( 44 );
-			m_nbfLSpiroDendyFilter.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-			m_nbfLSpiroDendyFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-			m_nbfLSpiroPalMFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalMFilter.SetKernelSize( 46 );
-			m_nbfLSpiroPalMFilter.SetFilterFuncY( &CUtilities::CardinalSplineUniformFilterFunc );
-			m_nbfLSpiroPalMFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-			m_nbfLSpiroPalNFilter.SetWidthScale( 8 );
-			m_nbfLSpiroPalNFilter.SetKernelSize( 48 );
-			m_nbfLSpiroPalNFilter.SetFilterFuncY( &CUtilities::GaussianXFilterFunc );
-			m_nbfLSpiroPalNFilter.SetFilterFuncChroma( &CUtilities::GaussianXFilterFunc );
-
-			
-		}
+		// Everything else the user can adjust comes from the options (LSN_VIDEO_FILTER_OPTIONS), whose defaults are the settings that used to
+		//	be hard-coded here.
+		ApplyFilterOptions();
 
 		static_assert( sizeof( m_pfbFilterTable ) == sizeof( pfbTmp ) );
 		std::memcpy( m_pfbFilterTable, pfbTmp, sizeof( pfbTmp ) );
@@ -544,7 +285,9 @@ namespace lsn {
 			if ( sfFile.LoadToMemory( vFile ) ) {
 				sfFile.Close();
 				CStream sStream( vFile );
-				return LoadSettings( sStream );
+				bool bRet = LoadSettings( sStream );
+				ApplyFilterOptions();
+				return bRet;
 			}
 		}
 		return false;
@@ -579,6 +322,10 @@ namespace lsn {
 
 		Options().ioThisGameInputOptions = Options().ioGlobalInputOptions;
 		Options().ioThisGameInputOptions.bUseGlobal = true;
+		Options().vfoThisGameFilters = Options().vfoGlobalFilters;
+		for ( auto & froThis : Options().vfoThisGameFilters.froRegions ) {
+			froThis.bUseGlobal = true;
+		}
 		if ( _u16Path.size() ) {
 			CStdFile sfFile;
 			if ( sfFile.Open( _u16Path.c_str() ) ) {
@@ -594,6 +341,9 @@ namespace lsn {
 					if ( !LoadRegionPaletteSettings( ui32Version, sStream, Options().poThisGamePalette, Options().poGlobalPalettes ) ) { return false; }
 					
 					if ( !LoadInputSettings( ui32Version, sStream, m_oOptions.ioThisGameInputOptions ) ) { return false; }
+					if ( ui32Version >= 3 ) {
+						if ( !LoadVideoFilterSettings( ui32Version, sStream, m_oOptions.vfoThisGameFilters ) ) { return false; }
+					}
 					return true;
 				}
 			}
@@ -619,10 +369,167 @@ namespace lsn {
 		}
 
 		if ( !SaveInputSettings( sStream, m_oOptions.ioThisGameInputOptions ) ) { return false; }
+		if ( !SaveVideoFilterSettings( sStream, m_oOptions.vfoThisGameFilters ) ) { return false; }
 
 		CStdFile sfFile;
 		if ( !sfFile.Create( _u16Path.c_str() ) ) { return false; }
 		return sfFile.WriteToFile( vFile );
+	}
+
+	/**
+	 * Gets the filter options that apply to a given region:  the per-game options if a game is loaded and its options for that region
+	 *	are not set to use the global options, otherwise the global options.
+	 *
+	 * \param _pmRegion The region whose options are to be returned.
+	 * \return Returns the filter options that apply to the given region.
+	 */
+	const LSN_FILTER_REGION_OPTIONS & CBeesNes::FilterOptions( LSN_PPU_METRICS _pmRegion ) const {
+		if ( size_t( _pmRegion ) >= LSN_PM_CONSOLE_TOTAL ) { _pmRegion = LSN_PM_NTSC_M; }
+		const LSN_FILTER_REGION_OPTIONS & froGame = m_oOptions.vfoThisGameFilters.froRegions[_pmRegion];
+		if ( m_u16PerGameSettings.size() && !froGame.bUseGlobal ) { return froGame; }
+		return m_oOptions.vfoGlobalFilters.froRegions[_pmRegion];
+	}
+
+	/**
+	 * Applies the filter options (see FilterOptions()) to every filter.  Palette, Blargg, and LMP88959 filters receive the settings of the
+	 *	active region (m_pmSystem); each L. Spiro filter is made for a single region and receives the settings of that region (the software
+	 *	NTSC L. Spiro filter serves both NTSC-M and NTSC-J and receives the settings of whichever is active).  Some settings reallocate
+	 *	buffers or regenerate tables, so this should not be called while a frame is being filtered or rendered.
+	 */
+	void CBeesNes::ApplyFilterOptions() {
+		const LSN_PPU_METRICS pmActive = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M;
+		const LSN_FILTER_REGION_OPTIONS & froActive = FilterOptions( pmActive );
+		const LSN_FILTER_REGION_OPTIONS & froNtscM = FilterOptions( LSN_PM_NTSC_M );
+		const LSN_FILTER_REGION_OPTIONS & froNtscJ = FilterOptions( LSN_PM_NTSC_J );
+		const LSN_FILTER_REGION_OPTIONS & froPal = FilterOptions( LSN_PM_PAL );
+		const LSN_FILTER_REGION_OPTIONS & froDendy = FilterOptions( LSN_PM_DENDY );
+		const LSN_FILTER_REGION_OPTIONS & froPalM = FilterOptions( LSN_PM_PALM );
+		const LSN_FILTER_REGION_OPTIONS & froPalN = FilterOptions( LSN_PM_PALN );
+
+		// == Software filters.
+		m_nbfBlarggNtscFilter.SetSetup( froActive.boBlarggNtsc.ToSetup() );
+		m_nbfBlarggPalFilter.SetSetup( froActive.boBlarggPal.ToSetup() );
+		m_ncfEmmirNtscFullFilter.SetSettings( froActive.lsLmpNtscCpu );
+		m_ncfEmmirPalFullFilter.SetSettings( froActive.lsLmpPalCpu );
+		ApplyLSpiroOptions( m_nbfLSpiroNtscFilter, (pmActive == LSN_PM_NTSC_J ? froNtscJ : froNtscM).lsoLSpiroCpu, true );
+		ApplyLSpiroOptions( m_nbfLSpiroPalFilter, froPal.lsoLSpiroCpu, true );
+		ApplyLSpiroOptions( m_nbfLSpiroDendyFilter, froDendy.lsoLSpiroCpu, true );
+		ApplyLSpiroOptions( m_nbfLSpiroPalMFilter, froPalM.lsoLSpiroCpu, true );
+		ApplyLSpiroOptions( m_nbfLSpiroPalNFilter, froPalN.lsoLSpiroCpu, true );
+
+		// == GPU filters.  The L. Spiro filters are called through their bases because they inherit two sets of similarly named functions.
+#define LSN_APPLY_GPU_FILTERS( PALETTE, BLARGG_NTSC, BLARGG_NTSC_J, LMP_NTSC, LMP_NTSC_J, LMP_PAL, LSPIRO_NTSC, LSPIRO_NTSC_J, LSPIRO_PAL, LSPIRO_DENDY, LSPIRO_PALM, LSPIRO_PALN )		\
+		ApplyGpuFilterOptions( PALETTE, froActive.gfoPalette );																									\
+		for ( auto pbfThis : { &BLARGG_NTSC, &BLARGG_NTSC_J } ) {																								\
+			(*pbfThis).SetSetup( froActive.boBlarggNtsc.ToSetup() );																								\
+			ApplyGpuFilterOptions( (*pbfThis), froActive.gfoBlargg );																							\
+		}																																						\
+		for ( auto pcfThis : { &LMP_NTSC, &LMP_NTSC_J } ) {																										\
+			(*pcfThis).SetSettings( froActive.lsLmpNtscGpu );																									\
+			ApplyGpuFilterOptions( (*pcfThis), froActive.gfoLmpNtsc );																							\
+		}																																						\
+		LMP_PAL.SetSettings( froActive.lsLmpPalGpu );																											\
+		ApplyGpuFilterOptions( LMP_PAL, froActive.gfoLmpPal );																									\
+		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC), froNtscM.lsoLSpiroGpu, false );												\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC), froNtscM.gfoLSpiro );																\
+		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC_J), froNtscJ.lsoLSpiroGpu, false );											\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC_J), froNtscJ.gfoLSpiro );																\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PAL), froPal.lsoLSpiroGpu, false );													\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PAL), froPal.gfoLSpiro );																	\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_DENDY), froDendy.lsoLSpiroGpu, false );												\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_DENDY), froDendy.gfoLSpiro );																\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALM), froPalM.lsoLSpiroGpu, false );													\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALM), froPalM.gfoLSpiro );																	\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALN), froPalN.lsoLSpiroGpu, false );													\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALN), froPalN.gfoLSpiro );
+
+#ifdef LSN_DX9
+		LSN_APPLY_GPU_FILTERS( m_d9pfDx9Palette, m_d9nbfDx9BlarggNtscFilter, m_d9nbfDx9BlarggNtscJFilter,
+			m_d9ncfDx9EmmirNtscFullFilter, m_d9ncfDx9EmmirNtscJFullFilter, m_d9ncfDx9EmmirPalFullFilter,
+			m_d9nlsfDx9LSpiroNtsc, m_d9nlsfDx9LSpiroNtscJ, m_d9plsfDx9LSpiroPal, m_d9plsfDx9LSpiroDendy, m_d9plsfDx9LSpiroPalM, m_d9plsfDx9LSpiroPalN )
+#endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+		LSN_APPLY_GPU_FILTERS( m_d12pfDx12Palette, m_d12nbfDx12BlarggNtscFilter, m_d12nbfDx12BlarggNtscJFilter,
+			m_d12ncfDx12EmmirNtscFullFilter, m_d12ncfDx12EmmirNtscJFullFilter, m_d12ncfDx12EmmirPalFullFilter,
+			m_d12nlsfDx12LSpiroNtsc, m_d12nlsfDx12LSpiroNtscJ, m_d12plsfDx12LSpiroPal, m_d12plsfDx12LSpiroDendy, m_d12plsfDx12LSpiroPalM, m_d12plsfDx12LSpiroPalN )
+#endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+		LSN_APPLY_GPU_FILTERS( m_vpfVulkanPalette, m_vnbfVulkanBlarggNtscFilter, m_vnbfVulkanBlarggNtscJFilter,
+			m_vncfVulkanEmmirNtscFullFilter, m_vncfVulkanEmmirNtscJFullFilter, m_vncfVulkanEmmirPalFullFilter,
+			m_vnlsfVulkanLSpiroNtsc, m_vnlsfVulkanLSpiroNtscJ, m_vplsfVulkanLSpiroPal, m_vplsfVulkanLSpiroDendy, m_vplsfVulkanLSpiroPalM, m_vplsfVulkanLSpiroPalN )
+#endif	// #ifdef LSN_VULKAN1
+#undef LSN_APPLY_GPU_FILTERS
+	}
+
+	/**
+	 * Applies the settings shared by all GPU filters to a GPU filter.
+	 *
+	 * \param _gfbFilter The filter to which to apply the settings.
+	 * \param _gfoOptions The settings to apply.
+	 */
+	void CBeesNes::ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		_gfbFilter.SetGamma( _gfoOptions.gGamma );
+		_gfbFilter.SetVertSharpness( _gfoOptions.ui32VertSharpness );
+		_gfbFilter.SetHorSharpness( _gfoOptions.ui32HorSharpness );
+		_gfbFilter.SetUseHighQualityResampler( _gfoOptions.bHighQualityResampler );
+		_gfbFilter.SetPhosphorDecayEnable( _gfoOptions.bPhosphorDecay );
+		_gfbFilter.SetPhosphorDecayLevel( _gfoOptions.fPhosphorDecayLevel );
+		_gfbFilter.SetPhosphorDecayPeriod( _gfoOptions.fPhosphorDecayPeriod );
+	}
+
+	/**
+	 * Applies L. Spiro settings to an L. Spiro NTSC filter.
+	 *
+	 * \param _lsnfbFilter The filter to which to apply the settings.
+	 * \param _lsoOptions The settings to apply.
+	 * \param _bSoftware If true, the software-only settings (phosphor decay) are also applied.
+	 */
+	void CBeesNes::ApplyLSpiroOptions( CLSpiroNtscFilterBase &_lsnfbFilter, const LSN_LSPIRO_OPTIONS &_lsoOptions, bool _bSoftware ) {
+		_lsnfbFilter.SetWidthScale( _lsoOptions.ui16WidthScale );
+		_lsnfbFilter.SetKernelSizeY( _lsoOptions.ui32KernelSizeY );
+		_lsnfbFilter.SetKernelSizeChroma( _lsoOptions.ui32KernelSizeChroma );
+		_lsnfbFilter.SetBleed( _lsoOptions.fBleed );
+		_lsnfbFilter.SetFilterFuncY( _lsoOptions.ffFilterY, _lsoOptions.fFilterYParms[0], _lsoOptions.fFilterYParms[1] );
+		_lsnfbFilter.SetFilterFuncChroma( _lsoOptions.ffFilterChroma, _lsoOptions.fFilterChromaParms[0], _lsoOptions.fFilterChromaParms[1] );
+		_lsnfbFilter.SetGamma( _lsoOptions.fGamma );
+		_lsnfbFilter.SetHue( _lsoOptions.fHue );
+		_lsnfbFilter.SetBrightness( _lsoOptions.fBrightness );
+		_lsnfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		_lsnfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
+		_lsnfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
+		if ( _bSoftware ) {
+			_lsnfbFilter.SetPhosphorDecayPeriod( _lsoOptions.fPhosphorDecayPeriod );
+			_lsnfbFilter.SetPhosphorDecayLevel( _lsoOptions.fPhosphorDecayLevel );
+		}
+	}
+
+	/**
+	 * Applies L. Spiro settings to an L. Spiro PAL filter.
+	 *
+	 * \param _lspfbFilter The filter to which to apply the settings.
+	 * \param _lsoOptions The settings to apply.
+	 * \param _bSoftware If true, the software-only settings (phosphor decay) are also applied.
+	 */
+	void CBeesNes::ApplyLSpiroOptions( CLSpiroPalFilterBase &_lspfbFilter, const LSN_LSPIRO_OPTIONS &_lsoOptions, bool _bSoftware ) {
+		_lspfbFilter.SetPixelToSignal( _lsoOptions.ui16PixelToSignal );
+		_lspfbFilter.SetWidthScale( _lsoOptions.ui16WidthScale );
+		_lspfbFilter.SetKernelSizeY( _lsoOptions.ui32KernelSizeY );
+		_lspfbFilter.SetKernelSizeChroma( _lsoOptions.ui32KernelSizeChroma );
+		_lspfbFilter.SetCombFilter( _lsoOptions.cfCombFilter );
+		_lspfbFilter.SetCombWeight( _lsoOptions.fCombWeight );
+		_lspfbFilter.SetBleed( _lsoOptions.fBleed );
+		_lspfbFilter.SetFilterFuncY( _lsoOptions.ffFilterY, _lsoOptions.fFilterYParms[0], _lsoOptions.fFilterYParms[1] );
+		_lspfbFilter.SetFilterFuncChroma( _lsoOptions.ffFilterChroma, _lsoOptions.fFilterChromaParms[0], _lsoOptions.fFilterChromaParms[1] );
+		_lspfbFilter.SetGamma( _lsoOptions.fGamma );
+		_lspfbFilter.SetHue( _lsoOptions.fHue );
+		_lspfbFilter.SetBrightness( _lsoOptions.fBrightness );
+		_lspfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		_lspfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
+		_lspfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
+		if ( _bSoftware ) {
+			_lspfbFilter.SetPhosphorDecayPeriod( _lsoOptions.fPhosphorDecayPeriod );
+			_lspfbFilter.SetPhosphorDecayLevel( _lsoOptions.fPhosphorDecayLevel );
+		}
 	}
 
 	/**
@@ -1072,6 +979,7 @@ namespace lsn {
 			}
 			
 			LoadPerGameSettings( m_u16PerGameSettings );
+			ApplyFilterOptions();
 			UpdateCurrentSystem();
 			if ( m_psbSystem->LoadRom( rTmp ) ) {
 				if LSN_LIKELY( m_psbSystem->GetRom() ) {
@@ -2044,6 +1952,9 @@ namespace lsn {
 		else {
 			m_oOptions.veoVideoExport = LSN_VIDEO_EXPORT_OPTIONS();
 		}
+		if ( ui32Version >= 3 ) {
+			if ( !LoadVideoFilterSettings( ui32Version, _sFile, m_oOptions.vfoGlobalFilters ) ) { return false; }
+		}
 
 		return true;
 	}
@@ -2106,6 +2017,7 @@ namespace lsn {
 		if ( !_sFile.WriteStringU16( m_oOptions.wsPatchOutFolder ) ) { return false; }
 
 		if ( !SaveVideoExportSettings( _sFile, m_oOptions.veoVideoExport ) ) { return false; }
+		if ( !SaveVideoFilterSettings( _sFile, m_oOptions.vfoGlobalFilters ) ) { return false; }
 
 		return true;
 	}
@@ -2776,6 +2688,312 @@ namespace lsn {
 			if ( !_sFile.Write( foThis.bUseAltQuality ) ) { return false; }
 			if ( !_sFile.Write( foThis.bLossless ) ) { return false; }
 		}
+		return true;
+	}
+
+	/**
+	 * Reads a floating-point value and stores it only if it is finite.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _tValue The value to update.  It is left unchanged if the stored value is not finite.
+	 * \return Returns true if the value was read.
+	 * \tparam _tType The floating-point type to read.
+	 */
+	template <typename _tType>
+	static bool ReadFiniteSetting( CStream &_sFile, _tType &_tValue ) {
+		_tType tTmp;
+		if ( !_sFile.Read( tTmp ) ) { return false; }
+		if ( std::isfinite( tTmp ) ) { _tValue = tTmp; }
+		return true;
+	}
+
+	/**
+	 * Reads an integer value and stores it only if it is within a given inclusive range.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _tValue The value to update.  It is left unchanged if the stored value is out of range.
+	 * \param _i64Min The minimum allowed value.
+	 * \param _i64Max The maximum allowed value.
+	 * \return Returns true if the value was read.
+	 * \tparam _tStored The type of the value as stored in the file.
+	 * \tparam _tType The type of the value to update.
+	 */
+	template <typename _tStored, typename _tType>
+	static bool ReadRangedSetting( CStream &_sFile, _tType &_tValue, int64_t _i64Min, int64_t _i64Max ) {
+		_tStored tTmp;
+		if ( !_sFile.Read( tTmp ) ) { return false; }
+		if ( int64_t( tTmp ) >= _i64Min && int64_t( tTmp ) <= _i64Max ) { _tValue = _tType( tTmp ); }
+		return true;
+	}
+
+	/**
+	 * Reads a Boolean value.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _bValue Holds the returned value.
+	 * \return Returns true if the value was read.
+	 */
+	static bool ReadBoolSetting( CStream &_sFile, bool &_bValue ) {
+		uint8_t ui8Tmp;
+		if ( !_sFile.Read( ui8Tmp ) ) { return false; }
+		_bValue = ui8Tmp != 0;
+		return true;
+	}
+
+	/**
+	 * Loads the settings of every filter for every region.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _vfoOptions The filter settings into which to load the settings data.  Values that are missing or invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadVideoFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_VIDEO_FILTER_OPTIONS &_vfoOptions ) {
+		// Each region is stored by its LSN_PPU_METRICS value; regions added later are left at their defaults and regions that no longer
+		//	exist are skipped.
+		uint32_t ui32Total;
+		if ( !_sFile.ReadUi32( ui32Total ) ) { return false; }
+		if ( ui32Total > 64 ) { return false; }
+		for ( uint32_t I = 0; I < ui32Total; ++I ) {
+			LSN_FILTER_REGION_OPTIONS froTmp = LSN_FILTER_REGION_OPTIONS::Defaults( LSN_PPU_METRICS( I < LSN_PM_CONSOLE_TOTAL ? I : 0 ) );
+			LSN_FILTER_REGION_OPTIONS & froDst = I < LSN_PM_CONSOLE_TOTAL ? _vfoOptions.froRegions[I] : froTmp;
+			if ( !LoadFilterRegionSettings( _ui32Version, _sFile, froDst ) ) { return false; }
+		}
+		return true;
+	}
+
+	/**
+	 * Saves the settings of every filter for every region.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _vfoOptions The filter settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveVideoFilterSettings( CStream &_sFile, const LSN_VIDEO_FILTER_OPTIONS &_vfoOptions ) {
+		if ( !_sFile.WriteUi32( uint32_t( LSN_PM_CONSOLE_TOTAL ) ) ) { return false; }
+		for ( size_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
+			if ( !SaveFilterRegionSettings( _sFile, _vfoOptions.froRegions[I] ) ) { return false; }
+		}
+		return true;
+	}
+
+	/**
+	 * Loads the settings of every filter for a single region.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _froOptions The filter settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadFilterRegionSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_FILTER_REGION_OPTIONS &_froOptions ) {
+		if ( !ReadBoolSetting( _sFile, _froOptions.bUseGlobal ) ) { return false; }
+
+		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
+
+		if ( !LoadBlarggFilterSettings( _sFile, _froOptions.boBlarggNtsc ) ) { return false; }
+		if ( !LoadBlarggFilterSettings( _sFile, _froOptions.boBlarggPal ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoBlargg ) ) { return false; }
+
+		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscCpu ) ) { return false; }
+		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscGpu ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLmpNtsc ) ) { return false; }
+		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalCpu ) ) { return false; }
+		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalGpu ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLmpPal ) ) { return false; }
+
+		if ( !LoadLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroCpu ) ) { return false; }
+		if ( !LoadLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroGpu ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLSpiro ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings of every filter for a single region.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _froOptions The filter settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveFilterRegionSettings( CStream &_sFile, const LSN_FILTER_REGION_OPTIONS &_froOptions ) {
+		if ( !_sFile.Write( uint8_t( _froOptions.bUseGlobal ? 1 : 0 ) ) ) { return false; }
+
+		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
+
+		if ( !SaveBlarggFilterSettings( _sFile, _froOptions.boBlarggNtsc ) ) { return false; }
+		if ( !SaveBlarggFilterSettings( _sFile, _froOptions.boBlarggPal ) ) { return false; }
+		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoBlargg ) ) { return false; }
+
+		if ( !SaveLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscCpu ) ) { return false; }
+		if ( !SaveLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscGpu ) ) { return false; }
+		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoLmpNtsc ) ) { return false; }
+		if ( !SaveLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalCpu ) ) { return false; }
+		if ( !SaveLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalGpu ) ) { return false; }
+		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoLmpPal ) ) { return false; }
+
+		if ( !SaveLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroCpu ) ) { return false; }
+		if ( !SaveLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroGpu ) ) { return false; }
+		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoLSpiro ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads the settings shared by all GPU filters.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _gfoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadGpuFilterSettings( CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.gGamma, 0, int64_t( CNesPalette::LSN_G_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32VertSharpness, 1, 32 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32HorSharpness, 1, 32 ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _gfoOptions.bHighQualityResampler ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _gfoOptions.bPhosphorDecay ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorDecayLevel ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorDecayPeriod ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings shared by all GPU filters.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _gfoOptions The settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveGpuFilterSettings( CStream &_sFile, const LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		if ( !_sFile.Write( uint32_t( _gfoOptions.gGamma ) ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.ui32VertSharpness ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.ui32HorSharpness ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _gfoOptions.bHighQualityResampler ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _gfoOptions.bPhosphorDecay ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fPhosphorDecayLevel ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fPhosphorDecayPeriod ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads the settings of a Blargg filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _boOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadBlarggFilterSettings( CStream &_sFile, LSN_BLARGG_OPTIONS &_boOptions ) {
+		for ( double * pdThis : { &_boOptions.dHue, &_boOptions.dSaturation, &_boOptions.dContrast, &_boOptions.dBrightness, &_boOptions.dSharpness,
+			&_boOptions.dGamma, &_boOptions.dResolution, &_boOptions.dArtifacts, &_boOptions.dFringing, &_boOptions.dBleed } ) {
+			if ( !ReadFiniteSetting( _sFile, (*pdThis) ) ) { return false; }
+		}
+		if ( !ReadBoolSetting( _sFile, _boOptions.bMergeFields ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings of a Blargg filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _boOptions The settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveBlarggFilterSettings( CStream &_sFile, const LSN_BLARGG_OPTIONS &_boOptions ) {
+		for ( double dThis : { _boOptions.dHue, _boOptions.dSaturation, _boOptions.dContrast, _boOptions.dBrightness, _boOptions.dSharpness,
+			_boOptions.dGamma, _boOptions.dResolution, _boOptions.dArtifacts, _boOptions.dFringing, _boOptions.dBleed } ) {
+			if ( !_sFile.Write( dThis ) ) { return false; }
+		}
+		if ( !_sFile.Write( uint8_t( _boOptions.bMergeFields ? 1 : 0 ) ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads the settings of an LMP88959 filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _lsOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadLmp88959FilterSettings( CStream &_sFile, LSN_LMP88959_SETTINGS &_lsOptions ) {
+		for ( int32_t * pi32This : { &_lsOptions.i32Hue, &_lsOptions.i32Brightness, &_lsOptions.i32Contrast, &_lsOptions.i32Saturation,
+			&_lsOptions.i32BlackPoint, &_lsOptions.i32WhitePoint, &_lsOptions.i32Noise } ) {
+			if ( !ReadRangedSetting<int32_t>( _sFile, (*pi32This), -100000, 100000 ) ) { return false; }
+		}
+		if ( !ReadBoolSetting( _sFile, _lsOptions.bBlend ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsOptions.ui32BorderColor, 0, 0x3F ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _lsOptions.bChromaCorrection ) ) { return false; }
+		if ( !ReadRangedSetting<int32_t>( _sFile, _lsOptions.i32YOffset, -64, 64 ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings of an LMP88959 filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _lsOptions The settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveLmp88959FilterSettings( CStream &_sFile, const LSN_LMP88959_SETTINGS &_lsOptions ) {
+		for ( int32_t i32This : { _lsOptions.i32Hue, _lsOptions.i32Brightness, _lsOptions.i32Contrast, _lsOptions.i32Saturation,
+			_lsOptions.i32BlackPoint, _lsOptions.i32WhitePoint, _lsOptions.i32Noise } ) {
+			if ( !_sFile.Write( i32This ) ) { return false; }
+		}
+		if ( !_sFile.Write( uint8_t( _lsOptions.bBlend ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( _lsOptions.ui32BorderColor ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _lsOptions.bChromaCorrection ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( _lsOptions.i32YOffset ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Loads the settings of an L. Spiro filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _lsoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadLSpiroFilterSettings( CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions ) {
+		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16WidthScale, 1, 64 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ui32KernelSizeY, 1, 128 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ui32KernelSizeChroma, 1, 128 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ffFilterY, 0, int64_t( LSN_FF_FUNC_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterYParms[0] ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterYParms[1] ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ffFilterChroma, 0, int64_t( LSN_FF_FUNC_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[0] ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[1] ) ) { return false; }
+		for ( float * pfThis : { &_lsoOptions.fHue, &_lsoOptions.fGamma, &_lsoOptions.fBrightness, &_lsoOptions.fSaturation, &_lsoOptions.fBlackLevel,
+			&_lsoOptions.fWhiteLevel, &_lsoOptions.fBleed, &_lsoOptions.fPhosphorDecayPeriod, &_lsoOptions.fPhosphorDecayLevel } ) {
+			if ( !ReadFiniteSetting( _sFile, (*pfThis) ) ) { return false; }
+		}
+		if ( !ReadRangedSetting<uint8_t>( _sFile, _lsoOptions.cfCombFilter, 0, int64_t( CLSpiroPalFilterBase::LSN_CF_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fCombWeight ) ) { return false; }
+		_lsoOptions.fCombWeight = std::clamp( _lsoOptions.fCombWeight, 0.0f, 1.0f );
+		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16PixelToSignal, 1, 64 ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings of an L. Spiro filter.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _lsoOptions The settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveLSpiroFilterSettings( CStream &_sFile, const LSN_LSPIRO_OPTIONS &_lsoOptions ) {
+		if ( !_sFile.Write( _lsoOptions.ui16WidthScale ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.ui32KernelSizeY ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.ui32KernelSizeChroma ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( _lsoOptions.ffFilterY ) ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fFilterYParms[0] ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fFilterYParms[1] ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( _lsoOptions.ffFilterChroma ) ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fFilterChromaParms[0] ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fFilterChromaParms[1] ) ) { return false; }
+		for ( float fThis : { _lsoOptions.fHue, _lsoOptions.fGamma, _lsoOptions.fBrightness, _lsoOptions.fSaturation, _lsoOptions.fBlackLevel,
+			_lsoOptions.fWhiteLevel, _lsoOptions.fBleed, _lsoOptions.fPhosphorDecayPeriod, _lsoOptions.fPhosphorDecayLevel } ) {
+			if ( !_sFile.Write( fThis ) ) { return false; }
+		}
+		if ( !_sFile.Write( uint8_t( _lsoOptions.cfCombFilter ) ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fCombWeight ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.ui16PixelToSignal ) ) { return false; }
 		return true;
 	}
 

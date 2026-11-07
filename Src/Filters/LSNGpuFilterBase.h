@@ -147,6 +147,48 @@ namespace lsn {
 		 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
 		 */
 		virtual void										SetHueOffset( float /*_fHueOffset*/ ) {}
+
+		/**
+		 * Sets the vertical sharpness factor (how much the image is scaled vertically before the final resampling).
+		 *
+		 * \param _ui32Factor The vertical sharpness (at least 1).
+		 */
+		virtual void										SetVertSharpness( uint32_t _ui32Factor ) = 0;
+
+		/**
+		 * Gets the vertical sharpness factor.
+		 *
+		 * \return Returns the vertical sharpness factor.
+		 */
+		virtual uint32_t									GetVertSharpness() const = 0;
+
+		/**
+		 * Sets the horizontal sharpness factor (how much the image is scaled horizontally before the final resampling).
+		 *
+		 * \param _ui32Factor The horizontal sharpness (at least 1).
+		 */
+		virtual void										SetHorSharpness( uint32_t _ui32Factor ) = 0;
+
+		/**
+		 * Gets the horizontal sharpness factor.
+		 *
+		 * \return Returns the horizontal sharpness factor.
+		 */
+		virtual uint32_t									GetHorSharpness() const = 0;
+
+		/**
+		 * Sets whether the final composite render uses the high-quality 2-pass resampler.
+		 *
+		 * \param _bUse If true, the high-quality resampler is used.
+		 */
+		virtual void										SetUseHighQualityResampler( bool _bUse ) = 0;
+
+		/**
+		 * Gets whether the final composite render uses the high-quality 2-pass resampler.
+		 *
+		 * \return Returns true if the high-quality resampler is used.
+		 */
+		virtual bool										GetUseHighQualityResampler() const = 0;
 		
 		/**
 		 * Enables or disables the phosphor decay effect.
@@ -197,6 +239,20 @@ namespace lsn {
 			m_fPhosphorDecayRateRed = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.45f, m_fFps ));
 			m_fPhosphorDecayRateBlue = static_cast<float>(CUtilities::DecayMultiplier( m_fInitPhosphorDecay, 0.001f, m_fPhosphorDecayTime * 0.25f, m_fFps ));
 		}
+
+		/**
+		 * Gets the phosphor decay time.
+		 *
+		 * \return Returns the time it takes the phosphors to decay to 0.001.
+		 */
+		inline float										GetPhosphorDecayPeriod() const { return m_fPhosphorDecayTime; }
+
+		/**
+		 * Gets the initial phosphor decay level.
+		 *
+		 * \return Returns the strength of the phosphor decay.
+		 */
+		inline float										GetPhosphorDecayLevel() const { return m_fInitPhosphorDecay; }
 
 		/**
 		 * Gets the default phosphor decay intensity.

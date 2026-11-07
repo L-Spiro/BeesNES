@@ -41,6 +41,31 @@ namespace lsn {
 
 	// == Functions.
 	/**
+	 * Sets the user-adjustable settings of the filter.  They are applied immediately and again whenever the filter is initialized.
+	 *
+	 * \param _lsSettings The settings to apply.
+	 */
+	void CPalCrtFullFilter::SetSettings( const LSN_LMP88959_SETTINGS &_lsSettings ) {
+		m_lsSettings = _lsSettings;
+		ApplySettings();
+	}
+
+	/**
+	 * Copies m_lsSettings into the CRT structures.
+	 */
+	void CPalCrtFullFilter::ApplySettings() {
+		m_nsSettings.hue = m_lsSettings.i32Hue;
+		m_nnCrtPal.brightness = m_lsSettings.i32Brightness;
+		m_nnCrtPal.contrast = m_lsSettings.i32Contrast;
+		m_nnCrtPal.saturation = m_lsSettings.i32Saturation;
+		m_nnCrtPal.black_point = m_lsSettings.i32BlackPoint;
+		m_nnCrtPal.white_point = m_lsSettings.i32WhitePoint;
+		m_nnCrtPal.blend = m_lsSettings.bBlend ? 1 : 0;
+		m_nnCrtPal.chroma_correction = m_lsSettings.bChromaCorrection ? 1 : 0;
+		m_nsSettings.yoffset = m_lsSettings.i32YOffset;
+	}
+
+	/**
 	 * Sets the basic parameters for the filter.
 	 *
 	 * \param _stBuffers The number of render targets to create.
@@ -95,15 +120,7 @@ namespace lsn {
 		m_nsSettings.yoffset = 7;*/
 		
 		//m_nnCrtPal.hue = 23;
-		m_nnCrtPal.brightness = 4;
-		m_nnCrtPal.contrast = 180;
-		m_nnCrtPal.saturation = 17;
-		m_nnCrtPal.black_point = 4;
-		m_nnCrtPal.white_point = 75;
-		m_nnCrtPal.blend = 1;
-
-		m_nnCrtPal.chroma_correction = 1;
-		m_nsSettings.yoffset = 7;
+		ApplySettings();
 		
 
 		/** 
@@ -162,7 +179,7 @@ namespace lsn {
 			}
 		}
 
-		::pal_demodulate( &m_nnCrtPal, 8 );
+		::pal_demodulate( &m_nnCrtPal, m_lsSettings.i32Noise );
 		_ui32Width = m_ui32FinalWidth;
 		_ui32Height = m_ui32FinalHeight;
 		_ui32Stride = m_ui32FinalStride;

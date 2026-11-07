@@ -139,28 +139,28 @@ namespace lsn {
 		 *
 		 * \param _ui32Factor The multiplier for the vertical dimension before resampling.
 		 */
-		inline void												SetVertSharpness( uint32_t _ui32Factor ) { m_ui32VertSharpness = std::max<uint32_t>( 1, _ui32Factor ); }
+		virtual void												SetVertSharpness( uint32_t _ui32Factor ) override { m_ui32VertSharpness = std::max<uint32_t>( 1, _ui32Factor ); }
 		
 		/**
 		 * Gets the vertical sharpness factor.
 		 *
 		 * \return Returns the vertical sharpness factor.
 		 */
-		inline uint32_t											GetVertSharpness() const { return m_ui32VertSharpness; }
+		virtual uint32_t											GetVertSharpness() const override { return m_ui32VertSharpness; }
 		
 		/**
 		 * Sets the horizontal sharpness factor.
 		 *
 		 * \param _ui32Factor The multiplier for the horizontal dimension before resampling.
 		 */
-		inline void												SetHorSharpness( uint32_t _ui32Factor ) { m_ui32HorSharness = std::max<uint32_t>( 1, _ui32Factor ); }
+		virtual void												SetHorSharpness( uint32_t _ui32Factor ) override { m_ui32HorSharness = std::max<uint32_t>( 1, _ui32Factor ); }
 		
 		/**
 		 * Gets the horizontal sharpness factor.
 		 *
 		 * \return Returns the horizontal sharpness factor.
 		 */
-		inline uint32_t											GetHorSharpness() const { return m_ui32HorSharness; }
+		virtual uint32_t											GetHorSharpness() const override { return m_ui32HorSharness; }
 
 		/**
 		 * Gets the effective vertical sharpness factor limited by the target window height.
@@ -194,14 +194,14 @@ namespace lsn {
 		 *
 		 * \param _bUse If true, enables the high-quality resampler.
 		 */
-		inline void												SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+		virtual void												SetUseHighQualityResampler( bool _bUse ) override { m_bUseHighQualityResampler = _bUse; }
 		
 		/**
 		 * Gets whether the high-quality resampler is enabled.
 		 *
 		 * \return Returns true if the high-quality resampler is enabled.
 		 */
-		inline bool												GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+		virtual bool												GetUseHighQualityResampler() const override { return m_bUseHighQualityResampler; }
 
 		/**
 		 * Determines the optimal convolution filter based on the target resolution scaling.

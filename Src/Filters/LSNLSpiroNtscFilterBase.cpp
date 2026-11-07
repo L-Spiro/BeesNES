@@ -589,7 +589,7 @@ namespace lsn {
 	void CLSpiroNtscFilterBase::GenFilterKernel( uint32_t _ui32Width ) {
 		//double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilter[I] = m_pfFilterFunc( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilter[I] = CUtilities::FilterFunc( m_ffFilterFunc, I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f, m_fFilterFuncParms[0], m_fFilterFuncParms[1] );
 			//dSum += m_fFilter[I];
 		}
 		CUtilities::BakeBleedIntoKernel( m_fFilter, _ui32Width, m_fBleed );
@@ -623,7 +623,7 @@ namespace lsn {
 	void CLSpiroNtscFilterBase::GenFilterKernelY( uint32_t _ui32Width ) {
 		//double dSum = 0.0;
 		for ( size_t I = 0; I < _ui32Width; ++I ) {
-			m_fFilterY[I] = m_pfFilterFuncY( I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f );
+			m_fFilterY[I] = CUtilities::FilterFunc( m_ffFilterFuncY, I / (_ui32Width - 1.0f) * _ui32Width - (_ui32Width / 2.0f), _ui32Width / 2.0f, m_fFilterFuncParmsY[0], m_fFilterFuncParmsY[1] );
 			//dSum += m_fFilterY[I];
 		}
 		CUtilities::BakeBleedIntoKernel( m_fFilterY, _ui32Width, m_fBleed );

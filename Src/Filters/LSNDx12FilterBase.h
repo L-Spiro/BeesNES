@@ -133,13 +133,13 @@ namespace lsn {
 		 *
 		 * \param _ui32Factor The vertical sharpness.
 		 */
-		inline void												SetVertSharpness( uint32_t _ui32Factor ) { m_ui32VertSharpness = std::max<uint32_t>( 1, _ui32Factor ); }
+		virtual void												SetVertSharpness( uint32_t _ui32Factor ) override { m_ui32VertSharpness = std::max<uint32_t>( 1, _ui32Factor ); }
 
 		/**
 		 * \brief Gets the current vertical sharpness factor.
 		 * \return Returns the vertical sharpness factor.
 		 */
-		inline uint32_t											GetVertSharpness() const { return m_ui32VertSharpness; }
+		virtual uint32_t											GetVertSharpness() const override { return m_ui32VertSharpness; }
 
 		/**
 		 * \brief Updates the horizontal sharpness factor (integer scale).
@@ -148,13 +148,13 @@ namespace lsn {
 		 *
 		 * \param _ui32Factor The horizontal sharpness.
 		 */
-		inline void												SetHorSharpness( uint32_t _ui32Factor ) { m_ui32HorSharness = std::max<uint32_t>( 1, _ui32Factor ); }
+		virtual void												SetHorSharpness( uint32_t _ui32Factor ) override { m_ui32HorSharness = std::max<uint32_t>( 1, _ui32Factor ); }
 
 		/**
 		 * \brief Gets the current horizontal sharpness factor.
 		 * \return Returns the horizontal sharpness factor.
 		 */
-		inline uint32_t											GetHorSharpness() const { return m_ui32HorSharness; }
+		virtual uint32_t											GetHorSharpness() const override { return m_ui32HorSharness; }
 
 		/**
 		 * Gets the actual vertical sharpness.  Mipmaps are used when the display image is small enough.
@@ -184,13 +184,13 @@ namespace lsn {
 		 * Sets whether the filter should use the high-quality 2-pass resampler for the final composite render.
 		 * \param _bUse If true, CDirectX12Resampler is used.
 		 **/
-		inline void												SetUseHighQualityResampler( bool _bUse ) { m_bUseHighQualityResampler = _bUse; }
+		virtual void												SetUseHighQualityResampler( bool _bUse ) override { m_bUseHighQualityResampler = _bUse; }
 
 		/**
 		 * Gets whether the filter is configured to use the high-quality resampler.
 		 * \return Returns true if CDirectX12Resampler is enabled.
 		 **/
-		inline bool												GetUseHighQualityResampler() const { return m_bUseHighQualityResampler; }
+		virtual bool												GetUseHighQualityResampler() const override { return m_bUseHighQualityResampler; }
 
 		/**
 		 * Gets the convolution sampler to use for resampling.

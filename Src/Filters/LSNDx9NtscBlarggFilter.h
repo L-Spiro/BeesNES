@@ -52,6 +52,21 @@ namespace lsn {
 		virtual void										SetHueOffset( float _fHueOffset ) override;
 
 		/**
+		 * Sets all of the settings of the filter (hue, saturation, contrast, brightness, sharpness, gamma, resolution, artifacts, fringing, bleed,
+		 *	and field merging).  The pointer members (decoder matrix and palettes) are ignored.  The tables are regenerated.
+		 *
+		 * \param _nsSetup The settings to apply.
+		 */
+		void												SetSetup( const nes_ntsc_setup_t &_nsSetup );
+
+		/**
+		 * Gets the settings of the filter (see SetSetup()).
+		 *
+		 * \return Returns the settings of the filter.
+		 */
+		inline const nes_ntsc_setup_t &						GetSetup() const { return m_nsSetup; }
+
+		/**
 		 * Tells the filter that rendering to the source buffer has completed and that it should filter the results.  The final buffer, along with
 		 *	its width, height, bit-depth, and stride, are returned.
 		 *

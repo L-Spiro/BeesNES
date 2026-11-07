@@ -30,6 +30,21 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Sets all of the settings of the filter (hue, saturation, contrast, brightness, sharpness, gamma, resolution, artifacts, fringing, bleed,
+		 *	and field merging).  The pointer members (decoder matrix and palettes) are ignored.  The tables are regenerated.
+		 *
+		 * \param _nsSetup The settings to apply.
+		 */
+		void												SetSetup( const nes_ntsc_setup_t &_nsSetup );
+
+		/**
+		 * Gets the settings of the filter (see SetSetup()).
+		 *
+		 * \return Returns the settings of the filter.
+		 */
+		inline const nes_ntsc_setup_t &						GetSetup() const { return m_nsSetup; }
+
+		/**
 		 * Sets the basic parameters for the filter.
 		 *
 		 * \param _stBuffers The number of render targets to create.
@@ -87,6 +102,8 @@ namespace lsn {
 		// == Members.
 		/** The Blargg PAL emulation. */
 		nes_ntsc_t											m_nnBlarggNtsc;
+		/** The settings used to initialize m_nnBlarggNtsc. */
+		nes_ntsc_setup_t									m_nsSetup;
 		/** The filtered output buffer. */
 		std::vector<uint8_t>								m_vFilteredOutput;
 		/** The final stride. */
