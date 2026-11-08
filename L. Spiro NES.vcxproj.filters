@@ -259,6 +259,12 @@
     <Filter Include="Source Files\Windows\Audio">
       <UniqueIdentifier>{06863381-3f29-44b9-a3cd-3d6c86fa7561}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\VideoOptions">
+      <UniqueIdentifier>{4bff6b63-6840-406c-a0f8-13c7907198cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\VideoOptions">
+      <UniqueIdentifier>{21582fcd-1a24-4818-84f4-1c928bf5bf80}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Wav">
       <UniqueIdentifier>{973d3474-13d3-4002-b28f-f7aa2cbe709c}</UniqueIdentifier>
     </Filter>
@@ -920,6 +926,21 @@
     </ClInclude>
     <ClInclude Include="Src\System\LSNBussable.h">
       <Filter>Header Files\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
     </ClInclude>
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h">
       <Filter>Header Files\Windows\Audio</Filter>
@@ -1729,6 +1750,21 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Patch\LSNPatchWindow.cpp">
       <Filter>Source Files\Windows\Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp">
       <Filter>Source Files\Windows\Audio</Filter>

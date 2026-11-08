@@ -83,6 +83,7 @@
 #define LSN_VIDEO_FILTER_PALN_L_SPIRO										PAL-&N (Argentina Famiclone) (L. Spiro)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL										NTSC-M (LSN_NES) (LMP&88959)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL										PAL-I (PAL-A LSN_NES) (LMP88&959)
+#define LSN_VIDEO_FILTER_DENDY_CRT_FULL										PAL-D/&K (Dendy Famiclone) (LMP88959)
 #define LSN_VIDEO_FILTER_AUTO_CRT_FULL										NTSC/PAL Auto (LMP889&59)
 #define LSN_VIDEO_FILTER_AUTO_LSPIRO										NTSC/PAL &Auto (L. Spiro)
 
@@ -91,6 +92,7 @@
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL_DX9_UPSCALE							NTSC-M (LSN_NES) (LMP&88959) (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_NTSC_J_CRT_FULL_DX9_UPSCALE						NTSC-J (LSN_FAMICOM) (LM&P88959) (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL_DX9_UPSCALE							PAL-I (PAL-A LSN_NES) (LMP88&959) (LSN_MICROSOFT_DIRECT3D_9)
+#define LSN_VIDEO_FILTER_DENDY_CRT_FULL_DX9_UPSCALE							PAL-D/&K (Dendy Famiclone) (LMP88959) (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX9_UPSCALE							NTSC-M (LSN_NES) (&L. Spiro) (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_J_DX9_UPSCALE							NTSC-&J (LSN_FAMICOM) (L. Spiro) (LSN_MICROSOFT_DIRECT3D_9)
 #define LSN_VIDEO_FILTER_LSPIRO_PAL_DX9_UPSCALE								PAL-&I (PAL-A LSN_NES) (L. Spiro) (LSN_MICROSOFT_DIRECT3D_9)
@@ -105,6 +107,7 @@
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL_DX12_UPSCALE							NTSC-M (LSN_NES) (LMP&8812512) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_NTSC_J_CRT_FULL_DX12_UPSCALE						NTSC-J (LSN_FAMICOM) (LM&P88959) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL_DX12_UPSCALE							PAL-I (PAL-A LSN_NES) (LMP88&12512) (LSN_MICROSOFT_DIRECT3D_12)
+#define LSN_VIDEO_FILTER_DENDY_CRT_FULL_DX12_UPSCALE							PAL-D/&K (Dendy Famiclone) (LMP88959) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_DX12_UPSCALE							NTSC-M (LSN_NES) (&L. Spiro) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_J_DX12_UPSCALE							NTSC-&J (LSN_FAMICOM) (L. Spiro) (LSN_MICROSOFT_DIRECT3D_12)
 #define LSN_VIDEO_FILTER_LSPIRO_PAL_DX12_UPSCALE							PAL-&I (PAL-A LSN_NES) (L. Spiro) (LSN_MICROSOFT_DIRECT3D_12)
@@ -119,6 +122,7 @@
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL_VULKAN_UPSCALE						NTSC-M (LSN_NES) (LMP&88959) (LSN_VULKAN__1)
 #define LSN_VIDEO_FILTER_NTSC_J_CRT_FULL_VULKAN_UPSCALE						NTSC-J (LSN_FAMICOM) (LM&P88959) (LSN_VULKAN__1)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL_VULKAN_UPSCALE						PAL-I (PAL-A LSN_NES) (LMP88&959) (LSN_VULKAN__1)
+#define LSN_VIDEO_FILTER_DENDY_CRT_FULL_VULKAN_UPSCALE						PAL-D/&K (Dendy Famiclone) (LMP88959) (LSN_VULKAN__1)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_VULKAN_UPSCALE							NTSC-M (LSN_NES) (&L. Spiro) (LSN_VULKAN__1)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_J_VULKAN_UPSCALE						NTSC-&J (LSN_FAMICOM) (L. Spiro) (LSN_VULKAN__1)
 #define LSN_VIDEO_FILTER_LSPIRO_PAL_VULKAN_UPSCALE							PAL-&I (PAL-A LSN_NES) (L. Spiro) (LSN_VULKAN__1)
@@ -131,6 +135,7 @@
 #define LSN_VIDEO_FILTER_NTSC_BLARGG_METAL_UPSCALE							NTSC-M (LSN_NES) (Blar&gg) (LSN_METAL_)
 #define LSN_VIDEO_FILTER_NTSC_CRT_FULL_METAL_UPSCALE						NTSC-M (LSN_NES) (LMP&88959) (LSN_METAL_)
 #define LSN_VIDEO_FILTER_PAL_CRT_FULL_METAL_UPSCALE							PAL-I (PAL-A LSN_NES) (LMP88&959) (LSN_METAL_)
+#define LSN_VIDEO_FILTER_DENDY_CRT_FULL_METAL_UPSCALE							PAL-D/&K (Dendy Famiclone) (LMP88959) (LSN_METAL_)
 #define LSN_VIDEO_FILTER_LSPIRO_NTSC_METAL_UPSCALE							NTSC-M (LSN_NES) (&L. Spiro) (LSN_METAL_)
 #define LSN_VIDEO_FILTER_LSPIRO_PAL_METAL_UPSCALE							PAL-&I (PAL-A LSN_NES) (L. Spiro) (LSN_METAL_)
 #define LSN_VIDEO_FILTER_LSPIRO_DENDY_METAL_UPSCALE							PAL-&D/K (Dendy Famiclone) (L. Spiro) (LSN_METAL_)
@@ -869,6 +874,232 @@
 #define LSN_VR_ERR_END_BEFORE_START										The end frame must be larger than the start frame.
 #define LSN_VR_ERR_DURATION												The duration must be a number of seconds larger than 0 (such as {}).
 #define LSN_VR_ERR_FFMPEG												FFmpeg could not be found at \u201C{}\u201D.  Enter the path of ffmpeg.exe (or of the folder that contains it).  Leave it blank to search for FFmpeg.
+
+// Video Options.
+#define LSN_STR_VO_TITLE															Video Options
+#define LSN_STR_VO_HOST_MACHINE														Host Machine
+#define LSN_STR_VO_GLOBAL_SETTINGS													Global Settings
+#define LSN_STR_VO_PERGAME_SETTINGS													Per-Game Settings
+#define LSN_STR_VO_TAB_PALETTE														Palette
+#define LSN_STR_VO_TAB_BLARGG														Blargg
+#define LSN_STR_VO_TAB_LSPIRO_NTSC													L. Spiro NTSC
+#define LSN_STR_VO_TAB_LSPIRO_PAL													L. Spiro PAL
+#define LSN_STR_VO_TAB_LMP_NTSC														LMP88959 NTSC
+#define LSN_STR_VO_TAB_LMP_PAL														LMP88959 PAL
+#define LSN_STR_VO_REGIONAL_PRESET													Regional Preset:
+#define LSN_STR_VO_RESTORE_DEFAULTS													Restore Defaults
+#define LSN_STR_VO_REGION_NTSC_M													NTSC-M
+#define LSN_STR_VO_REGION_NTSC_J													NTSC-J
+#define LSN_STR_VO_REGION_PAL_I														PAL-I
+#define LSN_STR_VO_REGION_PAL_DK													PAL-D/K
+#define LSN_STR_VO_REGION_PAL_M														PAL-M
+#define LSN_STR_VO_REGION_PAL_N														PAL-N
+
+// Video Options:  groups.
+#define LSN_STR_VO_GROUP_DISPLAY													Display
+#define LSN_STR_VO_GROUP_COLOR_CORRECTION											Color Correction
+#define LSN_STR_VO_GROUP_PHOSPHOR_DECAY												Phosphor Decay
+#define LSN_STR_VO_GROUP_INTERNAL_SCALING											Internal Scaling
+#define LSN_STR_VO_GROUP_CONVOLUTION												Convolution
+#define LSN_STR_VO_GROUP_PALETTE													Palette
+#define LSN_STR_VO_GROUP_BLARGG														Blargg NTSC
+#define LSN_STR_VO_GROUP_STANDARD													Standard Settings
+#define LSN_STR_VO_GROUP_DEEP														Deep Internals
+#define LSN_STR_VO_GROUP_NOISE														Noise
+#define LSN_STR_VO_GROUP_SW_PHOSPHOR												Software Phosphor Decay
+#define LSN_STR_VO_GROUP_LMP														Settings
+
+// Video Options:  labels.
+#define LSN_STR_VO_MONITOR_COLOR_SPACE												Monitor Color Space:
+#define LSN_STR_VO_MONITOR_GAMMA													Monitor Gamma:
+#define LSN_STR_VO_WHITE_ADAPTATION													White-Point Adaptation:
+#define LSN_STR_VO_GAMUT															Out-of-Gamut Handling:
+#define LSN_STR_VO_OUTPUT_RANGE														Output Range:
+#define LSN_STR_VO_TV_PRESET														TV Preset:
+#define LSN_STR_VO_COLOR_SPACE														Color Space:
+#define LSN_STR_VO_GAMMA															Gamma:
+#define LSN_STR_VO_CRT_WHITE														CRT White:
+#define LSN_STR_VO_CRT_BRIGHTNESS													CRT Brightness:
+#define LSN_STR_VO_ENABLED															Enabled
+#define LSN_STR_VO_BASE_LEVEL														Base Level:
+#define LSN_STR_VO_TIME																Time:
+#define LSN_STR_VO_RED_MULTIPLIER													Red Multiplier (%):
+#define LSN_STR_VO_BLUE_MULTIPLIER													Blue Multiplier (%):
+#define LSN_STR_VO_SCALE_X															X:
+#define LSN_STR_VO_SCALE_Y															Y:
+#define LSN_STR_VO_DYNAMIC															Dynamic
+#define LSN_STR_VO_LOW_FILTER														Low Filter:
+#define LSN_STR_VO_MEDIUM_FILTER													Medium Filter:
+#define LSN_STR_VO_HIGH_FILTER														High Filter:
+#define LSN_STR_VO_MAX_FILTER														Max Filter:
+#define LSN_STR_VO_LOAD																Load:
+#define LSN_STR_VO_SHOW_COLOR_INDICES												Show Color Indices
+#define LSN_STR_VO_HUE																Hue (Degrees):
+#define LSN_STR_VO_HUE_OFFSET														Hue Offset (Degrees):
+#define LSN_STR_VO_BRIGHTNESS														Brightness:
+#define LSN_STR_VO_CONTRAST															Contrast:
+#define LSN_STR_VO_SATURATION														Saturation:
+#define LSN_STR_VO_WHITE_LEVEL														White Level:
+#define LSN_STR_VO_BLACK_LEVEL														Black Level:
+#define LSN_STR_VO_BLARGG_GAMMA														Gamma (Software):
+#define LSN_STR_VO_SHARPNESS														Sharpness:
+#define LSN_STR_VO_FRINGING															Fringing:
+#define LSN_STR_VO_BLEED															Bleed:
+#define LSN_STR_VO_ARTIFACTS														Artifacts:
+#define LSN_STR_VO_MERGE_FIELDS														Merge Fields
+#define LSN_STR_VO_CHROMA_FILTER													Chrominance Filter:
+#define LSN_STR_VO_CHROMA_PARM0														Chrominance Parameter 1:
+#define LSN_STR_VO_CHROMA_PARM1														Chrominance Parameter 2:
+#define LSN_STR_VO_CHROMA_KERNEL													Chrominance Kernel Size:
+#define LSN_STR_VO_LUMA_FILTER														Luminance Filter:
+#define LSN_STR_VO_LUMA_PARM0														Luminance Parameter 1:
+#define LSN_STR_VO_LUMA_PARM1														Luminance Parameter 2:
+#define LSN_STR_VO_LUMA_KERNEL														Luminance Kernel Size:
+#define LSN_STR_VO_VERTICAL_COMB													Vertical Comb:
+#define LSN_STR_VO_NOISE_TYPE														Type:
+#define LSN_STR_VO_NOISE_AMOUNT														Amount:
+#define LSN_STR_VO_NOISE															Noise:
+#define LSN_STR_VO_BLEND															Blend
+#define LSN_STR_VO_VSYNC															V-Sync
+#define LSN_STR_VO_HSYNC															H-Sync
+#define LSN_STR_VO_CHROMA_CORRECTION												Chroma Correction
+
+// Video Options:  combo-box entries.
+#define LSN_STR_VO_CUSTOM															Custom
+#define LSN_STR_VO_NONE																None
+#define LSN_STR_VO_GAMMA_AUTO														Automatic
+#define LSN_STR_VO_GAMMA_CRT1														CRT 1
+#define LSN_STR_VO_GAMMA_CRT2														CRT 2
+#define LSN_STR_VO_GAMMA_SRGB														sRGB
+#define LSN_STR_VO_GAMMA_SMPTE170M													SMPTE 170M
+#define LSN_STR_VO_GAMMA_DCIP3														DCI-P3
+#define LSN_STR_VO_GAMMA_ADOBERGB													Adobe RGB
+#define LSN_STR_VO_GAMMA_SMPTE240M													SMPTE 240M
+#define LSN_STR_VO_GAMMA_POW_1_96													Power 1.96
+#define LSN_STR_VO_GAMMA_POW_2_0													Power 2.0
+#define LSN_STR_VO_GAMMA_POW_2_2													Power 2.2
+#define LSN_STR_VO_GAMMA_POW_2_35													Power 2.35
+#define LSN_STR_VO_GAMMA_POW_2_4													Power 2.4
+#define LSN_STR_VO_GAMMA_POW_2_5													Power 2.5
+#define LSN_STR_VO_GAMMA_POW_2_7													Power 2.7
+#define LSN_STR_VO_GAMMA_POW_2_8													Power 2.8
+#define LSN_STR_VO_WA_BRADFORD														Bradford
+#define LSN_STR_VO_WA_VON_KRIES														Von Kries
+#define LSN_STR_VO_WA_XYZ_SCALING													XYZ Scaling
+#define LSN_STR_VO_WA_CAT02															CAT02
+#define LSN_STR_VO_GM_CLIP															Clip
+#define LSN_STR_VO_GM_PRESERVE_HUE													Preserve Hue
+#define LSN_STR_VO_OR_FULL															Full (0-255)
+#define LSN_STR_VO_OR_LIMITED														Limited (16-235)
+#define LSN_STR_VO_NT_CUSTOM														Custom Amount
+#define LSN_STR_VO_NT_PHYSICAL														Physics-Based
+#define LSN_STR_VO_CF_DELAY_LINE													1H Chroma Delay Line
+#define LSN_STR_VO_CF_3_LINE														2H (3-Line) Chroma Comb
+#define LSN_STR_VO_FF_BOX															Box
+#define LSN_STR_VO_FF_LANCZOS														Lanczos
+#define LSN_STR_VO_FF_KAISER														Kaiser
+#define LSN_STR_VO_FF_BLACKMAN														Blackman
+#define LSN_STR_VO_FF_GAUSSIAN														Gaussian
+#define LSN_STR_VO_FF_CARDINAL_SPLINE_UNIFORM										Cardinal Spline Uniform
+#define LSN_STR_VO_FF_BARTLETT														Bartlett
+#define LSN_STR_VO_FF_CRT_HUMP														CRT Hump
+#define LSN_STR_VO_RF_POINT															Point
+#define LSN_STR_VO_RF_LINEAR														Linear
+#define LSN_STR_VO_RF_QUADRATICSHARP												Quadratic Sharp
+#define LSN_STR_VO_RF_QUADRATIC														Quadratic
+#define LSN_STR_VO_RF_QUADRATICAPPROX												Quadratic Approximate
+#define LSN_STR_VO_RF_QUADRATICMIX													Quadratic Mix
+#define LSN_STR_VO_RF_KAISER														Kaiser
+#define LSN_STR_VO_RF_LANCZOS2														Lanczos2
+#define LSN_STR_VO_RF_LANCZOS3														Lanczos3
+#define LSN_STR_VO_RF_LANCZOS4														Lanczos4
+#define LSN_STR_VO_RF_LANCZOS6														Lanczos6
+#define LSN_STR_VO_RF_LANCZOS8														Lanczos8
+#define LSN_STR_VO_RF_LANCZOS12														Lanczos12
+#define LSN_STR_VO_RF_LANCZOS64														Lanczos64
+#define LSN_STR_VO_RF_MITCHELL														Mitchell
+#define LSN_STR_VO_RF_ROBIDOUX														Robidoux
+#define LSN_STR_VO_RF_ROBIDOUXSHARP													Robidoux Sharp
+#define LSN_STR_VO_RF_ROBIDOUXSOFT													Robidoux Soft
+#define LSN_STR_VO_RF_CATMULLROM													Catmull-Rom
+#define LSN_STR_VO_RF_BSPLINE														B-Spline
+#define LSN_STR_VO_RF_ADOBEBICUBIC													Adobe Bicubic
+#define LSN_STR_VO_RF_CARDINALSPLINEUNIFORM											Cardinal Spline Uniform
+#define LSN_STR_VO_RF_HERMITE														Hermite
+#define LSN_STR_VO_RF_HAMMING														Hamming
+#define LSN_STR_VO_RF_HANNING														Hanning
+#define LSN_STR_VO_RF_BLACKMAN														Blackman
+#define LSN_STR_VO_RF_JINC															Jinc
+#define LSN_STR_VO_RF_GAUSSIANSHARP													Gaussian Sharp
+#define LSN_STR_VO_RF_GAUSSIAN														Gaussian
+#define LSN_STR_VO_RF_BELL															Bell
+#define LSN_STR_VO_PAL_STANDARD_NTSC												Standard NTSC
+#define LSN_STR_VO_PAL_STANDARD_PAL													Standard PAL
+#define LSN_STR_VO_PAL_TOSHIBA														Toshiba CF2005 (1985)
+#define LSN_STR_VO_PAL_PANASONIC													Panasonic CT36D30B (2000)
+#define LSN_STR_VO_PAL_FROM_FILE													From File\u2026
+#define LSN_STR_VO_PAL_TYPES														Palette Files (*.pal, *.fpal)\0*.pal;*.fpal\0All Files (*.*)\0*.*\0\0
+
+// Video Options:  tool tips.
+#define LSN_STR_VO_TT_MONITOR_COLOR_SPACE											Select your monitor\u2019s color space.  sRGB is the most common on Microsoft\u00AE Windows\u00AE.
+#define LSN_STR_VO_TT_MONITOR_GAMMA													Select your monitor\u2019s gamma curve.  sRGB is the most common on Microsoft\u00AE Windows\u00AE.
+#define LSN_STR_VO_TT_WHITE_ADAPTATION												How the white point of the emulated CRT is mapped to the white point of your monitor.  None keeps the CRT\u2019s own white (such as the bluish white of Japanese televisions), as it looked on the original screen.  Bradford (the most common), Von Kries, XYZ Scaling, and CAT02 turn the CRT\u2019s white into your monitor\u2019s white, the way your eyes would adapt to it.
+#define LSN_STR_VO_TT_GAMUT															How colors that your monitor cannot show are brought into its range.  Preserve Hue desaturates such a color toward gray just enough to fit, keeping its hue.  Clip clamps each color channel separately, which keeps more saturation but can shift the hue.
+#define LSN_STR_VO_TT_OUTPUT_RANGE													The range of the values sent to your monitor.  PC monitors use Full (0-255).  Use Limited (16-235) only for a television or capture device that expects video levels; the wrong range makes blacks gray or crushes the shadows.  Applies only to GPU filters.
+#define LSN_STR_VO_TT_TV_PRESET														Select a physical television to model.  This fills in the color space, the hue offset, and the saturation with the values of that television.
+#define LSN_STR_VO_TT_COLOR_SPACE													Select the CRT\u2019s color space.
+#define LSN_STR_VO_TT_GAMMA															Select the CRT\u2019s gamma curve.
+#define LSN_STR_VO_TT_CRT_WHITE														The white level (Lw) of the CRT 1 gamma curve.  1.0 is the standard white level.
+#define LSN_STR_VO_TT_CRT_BRIGHTNESS												The brightness (black lift, B) of the CRT 1 gamma curve.  Higher values raise the darkest shades.
+#define LSN_STR_VO_TT_PHOSPHOR_ENABLED												Emulates the afterglow of the CRT\u2019s phosphors, which leaves a fading trail behind moving objects.
+#define LSN_STR_VO_TT_BASE_LEVEL													The maximum phosphor decay level.
+#define LSN_STR_VO_TT_TIME															The amount of time it takes to decay away in seconds.
+#define LSN_STR_VO_TT_RED_MULTIPLIER												The red multiplier, typically around 45%.
+#define LSN_STR_VO_TT_BLUE_MULTIPLIER												The blue multiplier, typically around 25%.
+#define LSN_STR_VO_TT_SCALE_X														Internal scaling helps create a blocky pixelated look. Set to 1 for a smooth interpolation between neighboring pixels.
+#define LSN_STR_VO_TT_SCALE_Y														Setting the Y to a higher value, such as 4 or 5, while keeping X at 1, can create a mild scanline effect.
+#define LSN_STR_VO_TT_DYNAMIC														Scaling will be set to one level higher than the X and Y resolutions, maxed to the values set above.
+#define LSN_STR_VO_TT_CONVOLUTION													Hardware bilinear filtering produces a poor result at low resolutions. Vertical/horizontal lines won\u2019t necessarily appear the same widths/heights as patterns repeat across the screen. Using hardware bilinear filtering doesn\u2019t fully eliminate this aliasing, and produces a blurry result.  Convolution can eliminate nearly all aliasing at low resolutions and keep the image sharp.
+#define LSN_STR_VO_TT_LOW_FILTER													The convolution filter to use when the screen resolution is below 2.5\u00D7 the console\u2019s native resolution. Ultra-sharp filters such as Cardinal Spline Uniform, Kaiser, and Lanczos2 are recommended for blocky pixelated filters or sharp CRT screen effects, or moderately sharp filters such as Robidoux Sharp or Robidoux for low-end/blurry-screened CRT effects.
+#define LSN_STR_VO_TT_MEDIUM_FILTER													The convolution filter to use when the screen resolution is above or equal to 2.5\u00D7 and below 3.5\u00D7 the console\u2019s native resolution. Robidoux Sharp is a good choice for sharper results, while Robidoux and Robidoux Soft are good for low-end/blurry-screened CRT effects.
+#define LSN_STR_VO_TT_HIGH_FILTER													The convolution filter to use when the screen resolution is above or equal to 3.5\u00D7 and below 4.5\u00D7 the console\u2019s native resolution. At these scales, sharpening filters are no longer necessary, and can be expensive, so Linear is a good universal option that is also more efficient to run than most other filters.
+#define LSN_STR_VO_TT_MAX_FILTER													The convolution filter to use when the screen resolution is above or equal to 4.5\u00D7. At these resolutions, hardware bilinear filtering eliminates aliasing well enough that convolution is no longer necessary (and can cause major performance problems). It is recommended to keep this as None unless you are looking for the highest-quality screenshots or movie exports you can get.
+#define LSN_STR_VO_TT_LOAD															Select one of the built-in palettes, or select From File\u2026 to load a .pal or .fpal palette file.  The built-in palettes also select the CRT gamma curve that goes with them.
+#define LSN_STR_VO_TT_PALETTE_DISPLAY												The colors of the loaded palette.  Scroll down to see the rest of a 512-entry palette.
+#define LSN_STR_VO_TT_SHOW_COLOR_INDICES											Shows the index of each color on top of it in the palette display.
+#define LSN_STR_VO_TT_HUE															Rotates every color around the color wheel, in degrees, like the Tint control of a television.
+#define LSN_STR_VO_TT_HUE_OFFSET													An extra hue rotation, in degrees, added to Hue.  TV presets fill this in with the hue rotation of the decoder of that television.
+#define LSN_STR_VO_TT_BRIGHTNESS													Raises or lowers the brightness of the whole picture.
+#define LSN_STR_VO_TT_CONTRAST														The gain of the picture around middle gray.  Higher values make the darks darker and the lights lighter.
+#define LSN_STR_VO_TT_SATURATION													The strength of the colors.  Lower values move the picture toward black and white.
+#define LSN_STR_VO_TT_WHITE_LEVEL													The signal level shown as full white.  Lower values brighten the picture but can clip the brightest shades.
+#define LSN_STR_VO_TT_BLACK_LEVEL													The signal level shown as black.  Higher values darken the shadows but can crush them to black.
+#define LSN_STR_VO_TT_BLARGG_GAMMA													The gamma adjustment of Blargg\u2019s software filter (the GPU versions use the Gamma setting under Color Correction instead).  0 is the standard.
+#define LSN_STR_VO_TT_SHARPNESS														The sharpness of edges.  Negative values soften the picture and positive values sharpen it.
+#define LSN_STR_VO_TT_FRINGING														The amount of color fringing:  colored edges caused by luma leaking into the chroma signal.
+#define LSN_STR_VO_TT_BLARGG_BLEED													The amount of color bleeding:  chroma spreading sideways past the edges of objects.
+#define LSN_STR_VO_TT_ARTIFACTS														The amount of dot crawl and rainbow artifacts:  chroma leaking into the luma signal.
+#define LSN_STR_VO_TT_MERGE_FIELDS													Blends the 2 fields with alternating artifact patterns to remove the flicker they cause, at the cost of slightly blurrier artifacts.
+#define LSN_STR_VO_TT_LSPIRO_BLEED													How far colors smear sideways into neighboring pixels.
+#define LSN_STR_VO_TT_CHROMA_FILTER													The filter that extracts the color (chrominance) signal from the composite signal.  Sharper filters keep color edges crisp but can ring; softer filters blur color edges.
+#define LSN_STR_VO_TT_FILTER_PARMS													Lanczos:  the window (in lobes) is Parameter 1 \u00F7 Parameter 2.  CRT Hump:  the width of the notch is Parameter 1 \u00F7 200 and the power is Parameter 2 \u00F7 100.  The other filters have no parameters.
+#define LSN_STR_VO_TT_CHROMA_KERNEL													The number of signal samples the chrominance filter spans.  Larger kernels are more accurate but slower to run.
+#define LSN_STR_VO_TT_LUMA_FILTER													The filter that extracts the brightness (luminance) signal from the composite signal.  Sharper filters keep details crisp but can ring; softer filters blur details.
+#define LSN_STR_VO_TT_LUMA_KERNEL													The number of signal samples the luminance filter spans.  Larger kernels are more accurate but slower to run.
+#define LSN_STR_VO_TT_VERTICAL_COMB													How the chroma of neighboring lines is combined.  None decodes each line on its own (simple PAL) and shows Hanover bars.  1H Chroma Delay Line averages each line with the line above (standard PAL).  2H (3-Line) Chroma Comb averages each line with the lines above and below.
+#define LSN_STR_VO_TT_NOISE_TYPE													The signal noise.  None adds no noise.  Custom Amount adds Gaussian noise of the amount set below.  Physics-Based models the thermal noise of the circuitry and will read your host machine\u2019s actual CPU temperature\u2014and base the noise levels off that\u2014which requires that BeesNES be run with administrator privileges.
+#define LSN_STR_VO_TT_NOISE_AMOUNT													The standard deviation of the Custom Amount noise, relative to the full signal range.  0.0225 is a typical amount.
+#define LSN_STR_VO_TT_SW_BASE_LEVEL													The maximum phosphor decay level of the software filter (the GPU versions use the Phosphor Decay settings under Common instead).
+#define LSN_STR_VO_TT_SW_TIME														The amount of time it takes the phosphors of the software filter to decay away in seconds.
+#define LSN_STR_VO_TT_LMP_NOISE														The amount of signal noise.
+#define LSN_STR_VO_TT_BLEND															Blends each new field onto the previous image, which smooths out flicker.
+#define LSN_STR_VO_TT_VSYNC															Locks the picture onto the vertical sync pulse.  When off, the picture rolls, as on a television whose vertical hold is out of adjustment.
+#define LSN_STR_VO_TT_HSYNC															Locks each line onto the horizontal sync pulse.  When off, the lines drift sideways, as on a television whose horizontal hold is out of adjustment.
+#define LSN_STR_VO_TT_CHROMA_CORRECTION												Removes the Hanover bars of PAL by cancelling the phase error of the chroma between lines, as PAL televisions do.
+#define LSN_STR_VO_TT_RESTORE_DEFAULTS												Restores the default settings of this filter for the selected regional preset.
+#define LSN_STR_VO_TT_RESTORE_CONV_DEFAULTS											Restores the default convolution settings of this filter for the selected regional preset.
+#define LSN_STR_VO_TT_RESTORE_HOST_DEFAULTS											Restores the default settings of your monitor.
+#define LSN_STR_VO_TT_REGIONAL_PRESET												Select the region whose settings to edit.  Each region keeps its own settings for this filter.
 
 // General.
 #define LSN_ERROR															Error

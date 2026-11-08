@@ -22,6 +22,9 @@
 #include "../Patch/LSNPatchWindow.h"
 #include "../Patch/LSNPatchWindowTopPage.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
+#include "../VideoOptions/LSNVideoOptionsPage.h"
+#include "../VideoOptions/LSNVideoOptionsSettingsPage.h"
+#include "../VideoOptions/LSNVideoOptionsWindow.h"
 #include "../VideoRecording/LSNVideoRecordingWindow.h"
 #include "../WavEditor/LSNWavEditorFileSettingsPage.h"
 #include "../WavEditor/LSNWavEditorFilesPage.h"
@@ -103,6 +106,16 @@ namespace lsn {
 
 			case LSN_LT_VIDEO_RECORDING_DIALOG : {
 				return new CVideoRecordingWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+
+			case LSN_LT_VIDEO_OPTIONS_DIALOG : {
+				return new CVideoOptionsWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_VIDEO_OPTIONS_SETTINGS_PAGE : {
+				return new CVideoOptionsSettingsPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_VIDEO_OPTIONS_FIELD_PAGE : {
+				return new CVideoOptionsPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

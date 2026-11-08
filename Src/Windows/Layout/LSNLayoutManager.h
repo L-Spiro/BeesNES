@@ -46,6 +46,10 @@ namespace lsn {
 		LSN_LT_CHEAT_HOTKEYS,
 
 		LSN_LT_VIDEO_RECORDING_DIALOG,
+
+		LSN_LT_VIDEO_OPTIONS_DIALOG,
+		LSN_LT_VIDEO_OPTIONS_SETTINGS_PAGE,
+		LSN_LT_VIDEO_OPTIONS_FIELD_PAGE,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

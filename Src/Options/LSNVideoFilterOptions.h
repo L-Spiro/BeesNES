@@ -18,10 +18,45 @@
 #include "../Filters/nes_ntsc/nes_ntsc.h"
 #include "../Utilities/LSNUtilities.h"
 
+#include <algorithm>
 #include <numbers>
 
 
 namespace lsn {
+
+	/**
+	 * Struct LSN_VIDEO_LIMITS
+	 * \brief The limits of settings that break a filter outside of them.
+	 *
+	 * Description: The limits of settings that break a filter outside of them.  The phosphors decay from their starting level to 0.001
+	 *	over the decay time, so a starting level at or below 0.001 never decays (or grows without bound) and a time of 0 divides by 0.
+	 */
+	struct LSN_VIDEO_LIMITS {
+		static constexpr float								fMinPhosphorLevel = 0.002f;									/**< The lowest starting phosphor level. */
+		static constexpr float								fMaxPhosphorLevel = 1.0f;									/**< The highest starting phosphor level. */
+		static constexpr float								fMinPhosphorTime = 0.001f;									/**< The shortest phosphor decay time, in seconds. */
+		static constexpr float								fMaxPhosphorTime = 60.0f;									/**< The longest phosphor decay time, in seconds. */
+		static constexpr float								fMinPhosphorMultiplier = 0.01f;								/**< The lowest red/blue phosphor decay-time multiplier. */
+		static constexpr float								fMaxPhosphorMultiplier = 10.0f;								/**< The highest red/blue phosphor decay-time multiplier. */
+		static constexpr float								fMinCrt1White = 0.01f;										/**< The lowest white level of the CRT1 curve. */
+		static constexpr float								fMaxCrt1White = 10.0f;										/**< The highest white level of the CRT1 curve. */
+		static constexpr float								fMinCrt1Brightness = -0.3f;									/**< The lowest brightness of the CRT1 curve (it breaks at -0.35). */
+		static constexpr float								fMaxCrt1Brightness = 1.0f;									/**< The highest brightness of the CRT1 curve. */
+		static constexpr float								fMaxBleed = 0.99f;											/**< The highest L. Spiro bleed (it must stay below 1). */
+
+
+		// == Functions.
+		/**
+		 * Brings the phosphor settings into their valid ranges.
+		 *
+		 * \param _fLevel The starting level to clamp.
+		 * \param _fTime The decay time to clamp.
+		 */
+		static inline void									ClampPhosphor( float &_fLevel, float &_fTime ) {
+			_fLevel = std::clamp( _fLevel, fMinPhosphorLevel, fMaxPhosphorLevel );
+			_fTime = std::clamp( _fTime, fMinPhosphorTime, fMaxPhosphorTime );
+		}
+	};
 
 	/**
 	 * Struct LSN_GPU_FILTER_OPTIONS
@@ -185,11 +220,10 @@ namespace lsn {
 	 * Description: The settings of every filter for a single region.  Each filter has presets only for the regions it can handle:
 	 *	palette (every region), Blargg (NTSC-M and NTSC-J), L. Spiro NTSC (NTSC-M and NTSC-J), L. Spiro PAL (PAL-I, PAL-D/K, PAL-M, and
 	 *	PAL-N), LMP88959 NTSC (NTSC-M and NTSC-J), and LMP88959 PAL (PAL-I and PAL-D/K).  A filter object made for one region (the
-	 *	L. Spiro filters, and the NTSC-J GPU filters) uses the settings of that region.  A filter object shared by several regions uses
-	 *	the preset nearest the active region:  the palette uses the active region; the software Blargg and LMP88959 NTSC filters and the
-	 *	NTSC-M GPU ones use NTSC-J when it is active, otherwise NTSC-M (the GPU NTSC-M objects always NTSC-M); the LMP88959 PAL filters use
-	 *	PAL-D/K (Dendy) when it is active, otherwise PAL-I; and the software L. Spiro NTSC filter uses NTSC-J when it is active, otherwise
-	 *	NTSC-M.  The fields of filters that have no preset for a region are unused in that region.
+	 *	L. Spiro filters, the NTSC-J GPU filters, and the PAL-I and PAL-D/K LMP88959 filters) uses the settings of that region.  A filter
+	 *	object shared by several regions uses the preset nearest the active region:  the palette uses the active region; the software
+	 *	Blargg, LMP88959 NTSC, and L. Spiro NTSC filters use NTSC-J when it is active, otherwise NTSC-M.  The fields of filters that have no
+	 *	preset for a region are unused in that region.
 	 */
 	struct LSN_FILTER_REGION_OPTIONS {
 		bool												bUseGlobal = true;											/**< Use the global settings rather than these (per-game settings only). */

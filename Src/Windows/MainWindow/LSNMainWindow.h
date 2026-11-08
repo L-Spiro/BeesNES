@@ -369,6 +369,11 @@ namespace lsn {
 		 **/
 		void									ShowVideoRecordingSettings();
 
+		/**
+		 * Applies the video options (filters, palettes, and host display) to the emulator.  Used by the Video Options dialog for live previews.
+		 **/
+		void									ApplyVideoOptions();
+
 
 	protected :
 		// == Enumerations.

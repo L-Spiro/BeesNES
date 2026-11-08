@@ -60,6 +60,7 @@ namespace lsn {
 			LSN_WEWI_NONE										= 0,	// CWavEditorWindowLayout::LSN_WAV_EDITOR_WINDOW_IDS
 			LSN_CWI_NONE										= 0,	// CCheatsWindowLayout::LSN_CHEATS_WINDOW_IDS
 			LSN_VRWI_NONE										= 0,	// CVideoRecordingWindowLayout::LSN_VIDEO_RECORDING_WINDOW_IDS
+			LSN_VOWI_NONE										= 0,	// CVideoOptionsWindowLayout (the Video Options dialog).
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -751,6 +752,23 @@ namespace lsn {
 			LSN_VRWI_OK,
 			LSN_VRWI_DEFAULTS,
 			LSN_VRWI_CANCEL,
+
+			// CVideoOptionsWindowLayout (the Video Options dialog).
+			LSN_VOWI_DIALOG,
+			LSN_VOWI_TAB,
+			LSN_VOWI_OK,
+			LSN_VOWI_CANCEL,
+			LSN_VOWI_SETTINGS_PAGE,
+			LSN_VOWI_SETTINGS_TAB,
+			LSN_VOWI_FIELD_PAGE,
+			LSN_VOWI_PRESET_LABEL,
+			LSN_VOWI_PRESET_COMBO,
+			LSN_VOWI_DEFAULTS,
+			LSN_VOWI_CONV_DEFAULTS,
+			LSN_VOWI_GROUP_FIRST,
+			LSN_VOWI_GROUP_LAST									= LSN_VOWI_GROUP_FIRST + 31,
+			LSN_VOWI_FIELD_FIRST,
+			LSN_VOWI_FIELD_LAST									= LSN_VOWI_FIELD_FIRST + 511,	// 4 per CVideoOptionsFields::LSN_VIDEO_FIELD (label, control, description, and separator).
 		};
 #endif	// #if defined( LSN_WINDOWS )
 

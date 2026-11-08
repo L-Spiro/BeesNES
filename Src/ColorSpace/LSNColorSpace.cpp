@@ -112,10 +112,10 @@ namespace lsn {
 
 	/** The hue rotation of the Toshiba CF2005.  patchy68k gives it as -0.39 (https://forums.nesdev.org/viewtopic.php?p=302438), a value for
 	 *	gamutthingy (https://github.com/ChthonVII/gamutthingy), whose hue knob (--crt-hue-knob) is a global rotation of the demodulation
-	 *	axes in degrees.  The L. Spiro filters take radians and their hue also rotates the demodulation axes, in the same direction. */
-#define LSN_TOSHIBA_CF2005_HUE					float( -0.39 * std::numbers::pi / 180.0 )
+	 *	axes in degrees.  My filters take radians and their hue also rotates the demodulation axes, in the same direction. */
+#define LSN_TOSHIBA_CF2005_HUE				float( -0.39 * std::numbers::pi / 180.0 )
 
-	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {									/**< The information about each color space, in LSN_COLOR_SPACE order. */
+	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {				/**< The information about each color space, in LSN_COLOR_SPACE order. */
 		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,	false },
 		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,	false },
 		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,	false },
@@ -326,6 +326,41 @@ namespace lsn {
 	}
 
 	/**
+	 * Converts a linear color from one color space to another and brings it into the gamut of the destination, exactly as the
+	 *	shader code from ShaderStatement() does.  Used to bake the color-space conversion into palettes.
+	 *
+	 * \param _cmMatrix The color-space conversion (see ConversionMatrix()).  The identity matrix changes nothing.
+	 * \param _pfLuma The luminance coefficients of the destination color space (see LuminanceCoefficients()), or nullptr for sRGB.
+	 * \param _gmGamutMapping How out-of-gamut colors are handled.
+	 * \param _pdRgb The linear red, green, and blue values to convert in place.
+	 */
+	void CColorSpace::ConvertLinear( const LSN_COLOR_MATRIX &_cmMatrix, const float * _pfLuma, LSN_GAMUT_MAPPING _gmGamutMapping, double * _pdRgb ) {
+		if ( !_pdRgb || _cmMatrix.IsIdentity() ) { return; }
+		const double dIn[3] = { _pdRgb[0], _pdRgb[1], _pdRgb[2] };
+		for ( size_t I = 0; I < 3; ++I ) {
+			_pdRgb[I] = double( _cmMatrix.fM[I][0] ) * dIn[0] + double( _cmMatrix.fM[I][1] ) * dIn[1] + double( _cmMatrix.fM[I][2] ) * dIn[2];
+		}
+		if ( _gmGamutMapping == LSN_GM_CLIP ) {
+			for ( size_t I = 0; I < 3; ++I ) { _pdRgb[I] = std::clamp( _pdRgb[I], 0.0, 1.0 ); }
+			return;
+		}
+		static const float fSrgbLuma[3] = { 2.12639006e-01f, 7.15168679e-01f, 7.21923187e-02f };
+		const float * pfLuma = _pfLuma ? _pfLuma : fSrgbLuma;
+		// Gamut mapping:  move toward the luminance just far enough that every channel fits (see ShaderStatement()).
+		const double dY = std::clamp( double( pfLuma[0] ) * _pdRgb[0] + double( pfLuma[1] ) * _pdRgb[1] + double( pfLuma[2] ) * _pdRgb[2], 0.0, 1.0 );
+		double dT = 1.0;
+		for ( size_t I = 0; I < 3; ++I ) {
+			const double dD = _pdRgb[I] - dY;
+			const double dThisT = (dD >= 0.0) ? ((1.0 - dY) / std::max( dD, 1.0e-6 )) : (dY / std::max( -dD, 1.0e-6 ));
+			dT = std::min( dT, dThisT );
+		}
+		dT = std::clamp( dT, 0.0, 1.0 );
+		for ( size_t I = 0; I < 3; ++I ) {
+			_pdRgb[I] = std::clamp( dY + (_pdRgb[I] - dY) * dT, 0.0, 1.0 );
+		}
+	}
+
+	/**
 	 * Gets the luminance coefficients of a color space (the Y row of its RGB-to-XYZ matrix).
 	 *
 	 * \param _cspColorSpace The color space.
@@ -401,22 +436,6 @@ namespace lsn {
 		// Encode with the monitor's curve.
 		switch ( _otTransform.gGamma ) {
 			case CNesPalette::LSN_G_NONE : { break; }
-			case CNesPalette::LSN_G_CRT1 : {
-				// CUtilities::LinearToCrtProper() with its default white (1.0) and brightness (0.0181 * 8.0).
-				constexpr double dLw = 1.0, dB = 0.0181 * 8.0, dAlpha1 = 2.6, dAlpha2 = 3.0, dVc = 0.35;
-				const double dK = dLw / std::pow( 1.0 + dB, dAlpha1 );
-				const double dSplit = std::pow( dVc + dB, dAlpha1 );
-				const double dLow = std::pow( dVc + dB, dAlpha1 - dAlpha2 );
-				sRet += "        c.rgb = c.rgb * " + aNum( 1.0 / dK ) + ";\n"
-					"        vOtS = step( " + aSplat( dSplit ) + ", c.rgb );\n"
-					"        c.rgb = (" + sVec3 + "( 1.0, 1.0, 1.0 ) - vOtS) * pow( c.rgb * " + aNum( 1.0 / dLow ) + ", " + aSplat( 1.0 / dAlpha2 ) + " ) + vOtS * pow( c.rgb, " + aSplat( 1.0 / dAlpha1 ) + " ) - " + aSplat( dB ) + ";\n";
-				break;
-			}
-			case CNesPalette::LSN_G_CRT2 : {
-				// The toe of this curve cannot be inverted in closed form (see CUtilities::LinearToCrtProper2()); its power part is used for the whole range.
-				sRet += aPow( 2.31 );
-				break;
-			}
 			case CNesPalette::LSN_G_SMPTE170M : {
 				sRet += aPiecewise( 0.0180539685108078128139563744980, 4.5, 1.09929682680944297568093048767, 0.45 );
 				break;
@@ -436,7 +455,8 @@ namespace lsn {
 			case CNesPalette::LSN_G_POW_2_7 :		{ sRet += aPow( 2.7 ); break; }
 			case CNesPalette::LSN_G_POW_2_8 :		{ sRet += aPow( 2.8 ); break; }
 			default : {
-				// sRGB (and automatic).
+				// sRGB (and automatic).  The CRT curves are not monitor curves (and LSN_G_CRT2 cannot be inverted in real time), so they
+				//	also land here.
 				sRet += aPiecewise( 0.0030399346397784318338231024370, 12.9232101807878549948327417951, 1.055, 1.0 / 2.4 );
 			}
 		}

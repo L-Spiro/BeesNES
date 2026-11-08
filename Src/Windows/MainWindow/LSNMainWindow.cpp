@@ -25,6 +25,7 @@
 #include "../../Utilities/LSNScopedNoSubnormals.h"
 #include "../../Utilities/LSNUtilities.h"
 #include "../Audio/LSNAudioOptionsWindowLayout.h"
+#include "../VideoOptions/LSNVideoOptionsWindowLayout.h"
 #include "../Cheats/LSNCheatsWindowLayout.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -548,6 +549,10 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL_DX9 );
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_DENDY_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_DENDY_CRT_FULL_DX9 );
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_LSPIRO_UPSCALED : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_LSPIRONTSC_DX9 );
 				break;
@@ -634,6 +639,10 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL_DX12 );
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_DENDY_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_DENDY_CRT_FULL_DX12 );
+				break;
+			}
 			
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 );
@@ -695,6 +704,10 @@ namespace lsn {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 );
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_DENDY_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_DENDY_CRT_FULL_VULKAN1 );
+				break;
+			}
 			
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_AUTO_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_AUTO_CRT_FULL_VULKAN1 );
@@ -736,6 +749,10 @@ namespace lsn {
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_CRT_FULL : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_PAL_CRT_FULL );
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DENDY_CRT_FULL : {
+				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_DENDY_CRT_FULL );
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_AUTO_CRT_FULL : {
@@ -810,6 +827,14 @@ namespace lsn {
 				if ( iRet ) {
 					m_bnEmulator.ApplyAudioOptions();
 				}
+				break;
+			}
+			case CMainWindowLayout::LSN_MWMI_VIDEO : {
+				CVideoOptionsWindowLayout::LSN_VIDEO_OPTIONS_DATA vodData;
+				vodData.poOptions = &m_bnEmulator.Options();
+				vodData.pmwMainWindow = this;
+				vodData.pmActiveRegion = m_bnEmulator.GetSystem() ? m_bnEmulator.GetCurPpuRegion() : LSN_PM_NTSC_M;
+				CVideoOptionsWindowLayout::CreateVideoOptionsDialog( this, vodData );
 				break;
 			}
 		}
@@ -1645,6 +1670,11 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_DENDY_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_DENDY_CRT_FULL_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_LSPIRO_UPSCALED : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_LSPIRONTSC_DX9 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
@@ -1751,6 +1781,11 @@ namespace lsn {
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_DENDY_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_DENDY_CRT_FULL_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
 				
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX12_AUTO_CRT_FULL : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_AUTO_CRT_FULL_DX12 ? MFS_CHECKED : MFS_UNCHECKED ) };
@@ -1824,6 +1859,11 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_PAL_CRT_FULL : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_CRT_FULL_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_VULKAN1_DENDY_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_DENDY_CRT_FULL_VULKAN1 ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -1920,6 +1960,11 @@ namespace lsn {
 				}
 				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_PAL_CRT_FULL : {
 					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_PAL_CRT_FULL ? MFS_CHECKED : MFS_UNCHECKED ) };
+					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
+					break;
+				}
+				case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DENDY_CRT_FULL : {
+					MENUITEMINFOW miiInfo = { .cbSize = sizeof( MENUITEMINFOW ), .fMask = MIIM_STATE, .fState = UINT( m_bnEmulator.GetCurFilter() == CFilterBase::LSN_F_DENDY_CRT_FULL ? MFS_CHECKED : MFS_UNCHECKED ) };
 					::SetMenuItemInfoW( _hMenu, uiId, FALSE, &miiInfo );
 					break;
 				}
@@ -2353,6 +2398,19 @@ namespace lsn {
 	void CMainWindow::ShowVideoRecordingSettings() {
 		CVideoRecordingWindowLayout::CreateVideoRecordingDialog( this, m_bnEmulator.Options().veoVideoExport, m_bnEmulator.ConsoleFrameRate(),
 			CBeesNes::DefaultMoviesFolder() );
+	}
+
+	/**
+	 * Applies the video options (filters, palettes, and host display) to the emulator.  Used by the Video Options dialog for live previews.
+	 **/
+	void CMainWindow::ApplyVideoOptions() {
+		// The emulation thread is stopped meanwhile so that it is not in the middle of a frame.
+		bool bWasRunning = m_ptThread.get() != nullptr;
+		StopThread();
+		m_bnEmulator.ApplyFilterOptions();
+		m_bnEmulator.ApplyPaletteOptions();
+		if ( bWasRunning ) { StartThread(); }
+		::InvalidateRect( Wnd(), NULL, FALSE );
 	}
 
 	/**

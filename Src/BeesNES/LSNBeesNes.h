@@ -182,8 +182,8 @@ namespace lsn {
 		 * Applies the filter options (see FilterOptions()) and the host-display options to every filter.  A filter object made for one region
 		 *	(the L. Spiro filters and the NTSC-J GPU filters) receives the settings of that region.  A filter object shared by several regions
 		 *	receives the preset nearest the active region (m_pmSystem; see LSN_FILTER_REGION_OPTIONS).  Some settings reallocate buffers or
-		 *	regenerate tables, so this should not be called while a frame is being filtered or rendered.  The palette's CRT1 parameters and
-		 *	the monitor gamma also affect the software palette, which ApplyPaletteOptions() rebuilds.
+		 *	regenerate tables, so this should not be called while a frame is being filtered or rendered.  The palette's color space and CRT1
+		 *	parameters and the host-display settings are baked into the palettes, which ApplyPaletteOptions() rebuilds.
 		 */
 		void									ApplyFilterOptions();
 
@@ -677,11 +677,22 @@ namespace lsn {
 		static std::wstring						DefaultCheatsFolder();
 
 		/**
-		 * Applies the current palette.
+		 * Applies the current palette:  loads it, bakes its CRT gamma curve, its CRT color space, and the monitor settings into it, and
+		 *	sends it to the software palette and to the GPU palette filters (see BakedPalette() and UpdateGpuPalette()).
 		 * 
 		 * \return Returns true if a palette was opened.
 		 **/
 		bool									ApplyPaletteOptions();
+
+		/**
+		 * Gets the loaded palette with the CRT gamma curve (and its CRT1 parameters), the CRT color space, and (optionally) the monitor
+		 *	gamma curve baked in, so that the palette filters need no gamma or color-space pass at run time.
+		 * 
+		 * \param _bEncode If true, the colors are encoded with the monitor gamma curve (for the software palette); otherwise they are
+		 *	left in linear light (for the GPU palette filters, which encode them at the end of their pipelines).
+		 * \return Returns the 512 colors of the palette in the color space of the monitor, or an empty vector if no palette is loaded.
+		 **/
+		CNesPalette::PaletteF64					BakedPalette( bool _bEncode );
 
 		/**
 		 * Gets the default folder for palettes.
@@ -784,7 +795,8 @@ namespace lsn {
 		CNesPalette::LSN_GAMMA					PaletteMonitorGamma() const { return m_gMonitorGamma; }
 
 		/**
-		 * Updates the GPU palette for GPU-enabled palette rendering.
+		 * Updates the GPU palette for GPU-enabled palette rendering.  The palette is sent in linear light with its CRT gamma curve and
+		 *	color space baked in (see BakedPalette()).
 		 **/
 		void									UpdateGpuPalette();
 
@@ -903,7 +915,8 @@ namespace lsn {
 		CNtscCrtFullFilter						m_ncfEmmirNtscFullFilter;
 		/** EMMIR (LMP88959)'s PAL-CRT filter. */
 		CPalCrtFullFilter						m_ncfEmmirPalFullFilter;
-		/** Blargg's NTSC filter (ad-hoc PAL-inated). */
+		/** The EMMIR (LMP88959) PAL-CRT (full) filter with the PAL-D/K (Dendy) preset. */
+		CPalCrtFullFilter						m_ncfEmmirDendyFullFilter;
 #ifdef LSN_DX9
 		/** Direct3D 9 palette filter. */
 		CDx9PaletteFilter						m_d9pfDx9Palette;
@@ -913,6 +926,8 @@ namespace lsn {
 		CDx9NtscCrtFullFilter					m_d9ncfDx9EmmirNtscFullFilter;
 		/** Direct3D 9 LMP88959 PAL CTR filter. */
 		CDx9PalCrtFullFilter					m_d9ncfDx9EmmirPalFullFilter;
+		/** The EMMIR (LMP88959) PAL-CRT (full) filter with the PAL-D/K (Dendy) preset. */
+		CDx9PalCrtFullFilter					m_d9ncfDx9EmmirDendyFullFilter;
 		/** Direct3D 9 L. Spiro NTSC filter. */
 		CDx9NtscLSpiroFilter					m_d9nlsfDx9LSpiroNtsc;
 		/** Direct3D 9 L. Spiro PAL filter. */
@@ -939,6 +954,8 @@ namespace lsn {
 		CDx12NtscCrtFullFilter					m_d12ncfDx12EmmirNtscFullFilter;
 		/** Direct3D 12 LMP88959 PAL CTR filter. */
 		CDx12PalCrtFullFilter					m_d12ncfDx12EmmirPalFullFilter;
+		/** The EMMIR (LMP88959) PAL-CRT (full) filter with the PAL-D/K (Dendy) preset. */
+		CDx12PalCrtFullFilter					m_d12ncfDx12EmmirDendyFullFilter;
 		/** Direct3D 12 L. Spiro NTSC filter. */
 		CDx12NtscLSpiroFilter					m_d12nlsfDx12LSpiroNtsc;
 		/** Direct3D 12 L. Spiro PAL filter. */
@@ -965,6 +982,8 @@ namespace lsn {
 		CVulkanNtscCrtFullFilter				m_vncfVulkanEmmirNtscFullFilter;
 		/** Vulkan 1 LMP88959 PAL CTR filter. */
 		CVulkanPalCrtFullFilter					m_vncfVulkanEmmirPalFullFilter;
+		/** The EMMIR (LMP88959) PAL-CRT (full) filter with the PAL-D/K (Dendy) preset. */
+		CVulkanPalCrtFullFilter					m_vncfVulkanEmmirDendyFullFilter;
 		/** Vulkan 1 L. Spiro NTSC filter. */
 		CVulkanNtscLSpiroFilter					m_vnlsfVulkanLSpiroNtsc;
 		/** Vulkan 1 L. Spiro PAL filter. */

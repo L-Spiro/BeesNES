@@ -92,6 +92,17 @@ namespace lsn {
 		};
 
 		/**
+		 * Determines whether a gamma curve can be used as the monitor's curve.  The CRT curves model CRT televisions, not monitors (and
+		 *	LSN_G_CRT2 cannot be inverted in real time), and LSN_G_AUTO is not a curve.
+		 *
+		 * \param _gGamma The curve to test.
+		 * \return Returns true if the curve can be used as the monitor's curve.
+		 */
+		static constexpr bool											IsMonitorGamma( CNesPalette::LSN_GAMMA _gGamma ) {
+			return _gGamma != CNesPalette::LSN_G_CRT1 && _gGamma != CNesPalette::LSN_G_CRT2 && _gGamma != CNesPalette::LSN_G_AUTO && _gGamma < CNesPalette::LSN_G_TOTAL;
+		}
+
+		/**
 		 * Struct LSN_DISPLAY_SETTINGS
 		 * \brief The settings of the host display (the PC monitor).
 		 *
@@ -99,7 +110,7 @@ namespace lsn {
 		 */
 		struct LSN_DISPLAY_SETTINGS {
 			LSN_COLOR_SPACE												cspColorSpace = LSN_CSP_SRGB;			/**< The color space of the monitor. */
-			CNesPalette::LSN_GAMMA										gGamma = CNesPalette::LSN_G_sRGB;		/**< The gamma curve of the monitor. */
+			CNesPalette::LSN_GAMMA										gGamma = CNesPalette::LSN_G_sRGB;		/**< The gamma curve of the monitor (never LSN_G_CRT1 or LSN_G_CRT2; see IsMonitorGamma()). */
 			LSN_WHITE_ADAPTATION										waWhiteAdaptation = LSN_WA_NONE;		/**< How source white points are adapted to the white point of the monitor. */
 			LSN_GAMUT_MAPPING											gmGamutMapping = LSN_GM_PRESERVE_HUE;	/**< How out-of-gamut colors are handled. */
 			LSN_OUTPUT_RANGE											orOutputRange = LSN_OR_FULL;			/**< The range of the output values. */
@@ -284,6 +295,17 @@ namespace lsn {
 		 * \param _pfLuma Holds the returned 3 coefficients.
 		 */
 		static void															LuminanceCoefficients( LSN_COLOR_SPACE _cspColorSpace, float * _pfLuma );
+
+		/**
+		 * Converts a linear color from one color space to another and brings it into the gamut of the destination, exactly as the
+		 *	shader code from ShaderStatement() does.  Used to bake the color-space conversion into palettes.
+		 *
+		 * \param _cmMatrix The color-space conversion (see ConversionMatrix()).  The identity matrix changes nothing.
+		 * \param _pfLuma The luminance coefficients of the destination color space (see LuminanceCoefficients()), or nullptr for sRGB.
+		 * \param _gmGamutMapping How out-of-gamut colors are handled.
+		 * \param _pdRgb The linear red, green, and blue values to convert in place.
+		 */
+		static void															ConvertLinear( const LSN_COLOR_MATRIX &_cmMatrix, const float * _pfLuma, LSN_GAMUT_MAPPING _gmGamutMapping, double * _pdRgb );
 
 		/**
 		 * Creates the shader code of the gamma pass:  the CRT gamma curve (sign-preserving if there is a color-space conversion), then
