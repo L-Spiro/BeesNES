@@ -419,28 +419,28 @@ namespace lsn {
 
 		// == GPU filters.  The L. Spiro filters are called through their bases because they inherit two sets of similarly named functions.
 #define LSN_APPLY_GPU_FILTERS( PALETTE, BLARGG_NTSC, BLARGG_NTSC_J, LMP_NTSC, LMP_NTSC_J, LMP_PAL, LSPIRO_NTSC, LSPIRO_NTSC_J, LSPIRO_PAL, LSPIRO_DENDY, LSPIRO_PALM, LSPIRO_PALN )		\
-		ApplyGpuFilterOptions( PALETTE, froActive.gfoPalette );																									\
-		for ( auto pbfThis : { &BLARGG_NTSC, &BLARGG_NTSC_J } ) {																								\
-			(*pbfThis).SetSetup( froActive.boBlarggNtsc.ToSetup() );																								\
-			ApplyGpuFilterOptions( (*pbfThis), froActive.gfoBlargg );																							\
-		}																																						\
-		for ( auto pcfThis : { &LMP_NTSC, &LMP_NTSC_J } ) {																										\
-			(*pcfThis).SetSettings( froActive.lsLmpNtscGpu );																									\
-			ApplyGpuFilterOptions( (*pcfThis), froActive.gfoLmpNtsc );																							\
-		}																																						\
-		LMP_PAL.SetSettings( froActive.lsLmpPalGpu );																											\
-		ApplyGpuFilterOptions( LMP_PAL, froActive.gfoLmpPal );																									\
-		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC), froNtscM.lsoLSpiroGpu, false );												\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC), froNtscM.gfoLSpiro );																\
-		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC_J), froNtscJ.lsoLSpiroGpu, false );											\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC_J), froNtscJ.gfoLSpiro );																\
-		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PAL), froPal.lsoLSpiroGpu, false );													\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PAL), froPal.gfoLSpiro );																	\
-		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_DENDY), froDendy.lsoLSpiroGpu, false );												\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_DENDY), froDendy.gfoLSpiro );																\
-		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALM), froPalM.lsoLSpiroGpu, false );													\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALM), froPalM.gfoLSpiro );																	\
-		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALN), froPalN.lsoLSpiroGpu, false );													\
+		ApplyGpuFilterOptions( PALETTE, froActive.gfoPalette );																															\
+		for ( auto pbfThis : { &BLARGG_NTSC, &BLARGG_NTSC_J } ) {																														\
+			(*pbfThis).SetSetup( froActive.boBlarggNtsc.ToSetup() );																													\
+			ApplyGpuFilterOptions( (*pbfThis), froActive.gfoBlargg );																													\
+		}																																												\
+		for ( auto pcfThis : { &LMP_NTSC, &LMP_NTSC_J } ) {																																\
+			(*pcfThis).SetSettings( froActive.lsLmpNtscGpu );																															\
+			ApplyGpuFilterOptions( (*pcfThis), froActive.gfoLmpNtsc );																													\
+		}																																												\
+		LMP_PAL.SetSettings( froActive.lsLmpPalGpu );																																	\
+		ApplyGpuFilterOptions( LMP_PAL, froActive.gfoLmpPal );																															\
+		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC), froNtscM.lsoLSpiroGpu, false );																			\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC), froNtscM.gfoLSpiro );																						\
+		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC_J), froNtscJ.lsoLSpiroGpu, false );																		\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC_J), froNtscJ.gfoLSpiro );																						\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PAL), froPal.lsoLSpiroGpu, false );																				\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PAL), froPal.gfoLSpiro );																							\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_DENDY), froDendy.lsoLSpiroGpu, false );																			\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_DENDY), froDendy.gfoLSpiro );																						\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALM), froPalM.lsoLSpiroGpu, false );																			\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALM), froPalM.gfoLSpiro );																							\
+		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALN), froPalN.lsoLSpiroGpu, false );																			\
 		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALN), froPalN.gfoLSpiro );
 
 #ifdef LSN_DX9
