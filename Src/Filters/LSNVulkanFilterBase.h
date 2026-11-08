@@ -169,6 +169,7 @@ namespace lsn {
 		 * \return Returns the clamped vertical sharpness factor.
 		 */
 		inline uint32_t											GetActualVertSharpness( uint32_t _uiOutH ) const {
+			if ( !m_bDynamicScaling ) { return GetVertSharpness(); }
 			return m_ui32RsrcH ? std::min<uint32_t>( static_cast<uint32_t>(std::ceil( _uiOutH / double( m_ui32RsrcH ) )), GetVertSharpness() ) : 1;
 		}
 		
@@ -179,6 +180,7 @@ namespace lsn {
 		 * \return Returns the clamped horizontal sharpness factor.
 		 */
 		inline uint32_t											GetActualHorSharpness( uint32_t _uiOutW ) const {
+			if ( !m_bDynamicScaling ) { return GetHorSharpness(); }
 			return m_ui32RsrcW ? std::min<uint32_t>( static_cast<uint32_t>(std::ceil( _uiOutW / double( m_ui32RsrcW ) )), GetHorSharpness() ) : 1;
 		}
 
@@ -212,10 +214,7 @@ namespace lsn {
 		 */
 		virtual inline CResamplerBase::LSN_FILTER_FUNCS			GetPreferredConvolutionFilter( uint32_t _ui32Width, uint32_t _ui32Height ) {
 			float fResolutionFactor = std::min( static_cast<float>(_ui32Width) / static_cast<float>(m_ui32RsrcW ? m_ui32RsrcW : 256), static_cast<float>(_ui32Height) / static_cast<float>(m_ui32RsrcH ? m_ui32RsrcH : 240) );
-			if ( fResolutionFactor < 2.5 ) { return CResamplerBase::LSN_FF_CARDINALSPLINEUNIFORM; }
-			if ( fResolutionFactor < 3.5 ) { return CResamplerBase::LSN_FF_ROBIDOUXSHARP; }
-			if ( fResolutionFactor < 4.5 ) { return CResamplerBase::LSN_FF_LINEAR; }
-			return CResamplerBase::LSN_FF_TOTAL;
+			return ConvolutionFilterForScale( fResolutionFactor );
 		}
 
 	protected :

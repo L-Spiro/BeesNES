@@ -9,6 +9,8 @@
 #ifdef LSN_VULKAN1
 
 #include "LSNVulkanTextureRenderer.h"
+
+#include <string>
 #include <cstring>
 
 namespace lsn {
@@ -91,35 +93,43 @@ namespace lsn {
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
+	 * \param _otTransform The conversion to the values sent to the monitor (the target has an sRGB format).
 	 * \return Returns true if the shaders are ready.
 	 **/
-	bool CVulkanTextureRenderer::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
+	bool CVulkanTextureRenderer::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform ) {
 		if LSN_UNLIKELY( !_pvkDevice ) { return false; }
-		if ( m_ppShader.get() && m_ppShader->Get() ) { return true; }
+		if ( m_ppShader.get() && m_ppShader->Get() ) {
+			if ( m_otShader == _otTransform ) { return true; }
+			m_ppShader->Reset();
+		}
+		m_otShader = _otTransform;
 
 
-		VkDescriptorSetLayoutBinding dslbBinding = {};
-		dslbBinding.binding = 0;
-		dslbBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		dslbBinding.descriptorCount = 1;
-		dslbBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		dslbBinding.pImmutableSamplers = nullptr;
+		// The layouts survive pipeline rebuilds (descriptor sets were allocated with them).
+		if ( !m_pdslDescriptorSetLayout.get() || !m_pdslDescriptorSetLayout->Get() || !m_pplPipelineLayout.get() || !m_pplPipelineLayout->Get() ) {
+			VkDescriptorSetLayoutBinding dslbBinding = {};
+			dslbBinding.binding = 0;
+			dslbBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			dslbBinding.descriptorCount = 1;
+			dslbBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+			dslbBinding.pImmutableSamplers = nullptr;
 
-		VkDescriptorSetLayoutCreateInfo dslciLayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-		dslciLayoutInfo.bindingCount = 1;
-		dslciLayoutInfo.pBindings = &dslbBinding;
+			VkDescriptorSetLayoutCreateInfo dslciLayoutInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+			dslciLayoutInfo.bindingCount = 1;
+			dslciLayoutInfo.pBindings = &dslbBinding;
 
-		m_pdslDescriptorSetLayout = std::make_unique<CVulkanDescriptorSetLayout>();
-		if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
+			m_pdslDescriptorSetLayout = std::make_unique<CVulkanDescriptorSetLayout>();
+			if ( !m_pdslDescriptorSetLayout->CreateDescriptorSetLayout( _pvkDevice->GetDevice(), &dslciLayoutInfo ) ) { return false; }
 
 
-		VkDescriptorSetLayout layouts[] = { m_pdslDescriptorSetLayout->Get() };
-		VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-		plciLayoutInfo.setLayoutCount = 1;
-		plciLayoutInfo.pSetLayouts = layouts;
+			VkDescriptorSetLayout layouts[] = { m_pdslDescriptorSetLayout->Get() };
+			VkPipelineLayoutCreateInfo plciLayoutInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+			plciLayoutInfo.setLayoutCount = 1;
+			plciLayoutInfo.pSetLayouts = layouts;
 
-		m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
-		if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
+			m_pplPipelineLayout = std::make_unique<CVulkanPipelineLayout>();
+			if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
+		}
 
 		static const char * kVsGlsl =
 			"#version 450\n"
@@ -131,17 +141,19 @@ namespace lsn {
 			"    outTex = inTex;\n"
 			"}\n";
 
-		static const char * kPsGlsl =
+		const std::string sPsGlsl = std::string(
 			"#version 450\n"
 			"layout(binding = 0) uniform sampler2D tTex;\n"
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    outColor = texture(tTex, inTex);\n"
+			"    vec4 c = texture(tTex, inTex);\n" ) +
+			"    " + CColorSpace::OutputTransformStatement( _otTransform, false ) +
+			"    outColor = c;\n"
 			"}\n";
 
 		std::vector<uint32_t> vVert, vFrag;
-		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || !CVulkan::CompileGlslToSpirv( kPsGlsl, "fragment", vFrag ) ) { return false; }
+		if ( !CVulkan::CompileGlslToSpirv( kVsGlsl, "vertex", vVert ) || !CVulkan::CompileGlslToSpirv( sPsGlsl.c_str(), "fragment", vFrag ) ) { return false; }
 
 		CVulkan::LSN_SHADER_MODULE smVert, smFrag;
 		if ( !CVulkan::LoadSpirv( _pvkDevice, vVert, smVert ) || !CVulkan::LoadSpirv( _pvkDevice, vFrag, smFrag ) ) { return false; }

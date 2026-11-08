@@ -38,8 +38,7 @@ namespace lsn {
 		m_pplPipelineLayout.reset();
 		m_pdslDescriptorSetLayout.reset();
 
-		m_gShaderGamma = CNesPalette::LSN_G_NONE;
-		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
+		m_gpShaderPass = CColorSpace::LSN_GAMMA_PASS();
 	}
 
 	/**
@@ -91,21 +90,19 @@ namespace lsn {
 	 * 
 	 * \param _pvkDevice The Vulkan device.
 	 * \param _rpRenderPass The render pass that the pipeline will execute within.
-	 * \param _gGamma The specific gamma curve to hard-code into the generated shader.
-	 * \param _cmColorSpace The color-space conversion matrix to hard-code into the generated shader (skipped if it is the identity matrix).
+	 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 	 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CVulkanTextureGamma::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
+	bool CVulkanTextureGamma::EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, const CColorSpace::LSN_GAMMA_PASS &_gpPass, VkFormat /*_fFormat*/, const std::vector<uint32_t> &/*_vSpirvVert*/, const std::vector<uint32_t> &/*_vSpirvFrag*/ ) {
 		if LSN_UNLIKELY( !_pvkDevice || !_rpRenderPass ) { return false; }
 		if ( m_ppShader.get() && m_ppShader->Get() ) {
-			if ( m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace ) { return true; }
+			if ( m_gpShaderPass == _gpPass ) { return true; }
 			m_ppShader->Reset();
 		}
-		m_gShaderGamma = _gGamma;
-		m_cmShaderColorSpace = _cmColorSpace;
+		m_gpShaderPass = _gpPass;
 
 		if ( !m_pdslDescriptorSetLayout.get() ) {
 			VkDescriptorSetLayoutBinding dslbBinding = {};
@@ -134,27 +131,6 @@ namespace lsn {
 			if ( !m_pplPipelineLayout->CreatePipelineLayout( _pvkDevice->GetDevice(), &plciLayoutInfo ) ) { return false; }
 		}
 
-		std::string sGammaCall = "c.rgb";
-		switch ( _gGamma ) {
-			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, vec3( 1.96 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, vec3( 2.0 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, vec3( 2.2222220897674560546875 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, vec3( 2.35 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, vec3( 2.4 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, vec3( 2.5 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, vec3( 2.7 ) )"; break; }
-			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, vec3( 2.8 ) )"; break; }
-			default : { break; }
-		}
-		// With a color-space conversion, out-of-gamut (negative) inputs must survive the gamma curve (it would make them NaN).
-		if ( !_cmColorSpace.IsIdentity() ) { sGammaCall = CColorSpace::SignedGammaCall( sGammaCall ); }
 
 		static const char * kVsGlsl =
 			"#version 450\n"
@@ -207,6 +183,7 @@ namespace lsn {
 			"}\n"
 			"float CrtProperToLinear(float v) { return CrtProperToLinear(v, 1.0, 0.0181 * 8.0); }\n"
 			"vec3 CrtProperToLinear3(vec3 c) { return vec3(CrtProperToLinear(c.r), CrtProperToLinear(c.g), CrtProperToLinear(c.b)); }\n"
+			"vec3 CrtProperToLinear3(vec3 c, float Lw, float B) { return vec3(CrtProperToLinear(c.r, Lw, B), CrtProperToLinear(c.g, Lw, B), CrtProperToLinear(c.b, Lw, B)); }\n"
 			"\n"
 			"float CrtProper2ToLinear(float v) {\n"
 			"    const float Alpha = 0.1115721959217312597711924126997473649680614471435546875;\n"
@@ -227,9 +204,8 @@ namespace lsn {
 			"layout(location = 0) in vec2 inTex;\n"
 			"layout(location = 0) out vec4 outColor;\n"
 			"void main() {\n"
-			"    vec4 c = texture(tTex, inTex);\n"
-			"    c.rgb = " + sGammaCall + ";\n"
-			"    " + CColorSpace::ShaderStatement( _cmColorSpace, false ) +
+			"    vec4 c = texture(tTex, inTex);\n" +
+			CColorSpace::GammaPassStatements( _gpPass, false ) +
 			"    outColor = c;\n"
 			"}\n";
 

@@ -55,13 +55,12 @@ namespace lsn {
 		 * \param _ui32SrcW The width of the source texture.
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
-		 * \param _gGamma The gamma curve to apply.
-		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+		 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 		 * \param _fTargetFormat The format of the RTV this shader will output to.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude = nullptr );
+		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const CColorSpace::LSN_GAMMA_PASS &_gpPass, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude = nullptr );
 
 
 	protected :
@@ -81,10 +80,8 @@ namespace lsn {
 		/** The root signature. */
 		std::unique_ptr<CDirectX12RootSignature>				m_prsRootSignature;
 
-		/** The current gamma setting used to compile the shader. */
-		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
-		/** The color-space conversion matrix used to compile the shader. */
-		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
+		/** The parameters used to compile the shader. */
+		CColorSpace::LSN_GAMMA_PASS								m_gpShaderPass;
 		/** The format of the generated render target texture. */
 		DXGI_FORMAT												m_fFormat = DXGI_FORMAT_UNKNOWN;
 
@@ -101,13 +98,12 @@ namespace lsn {
 		 * Ensures the Pipeline State Object is compiled with the correct gamma function.
 		 * 
 		 * \param _pd12dDevice The Direct3D 12 device.
-		 * \param _gGamma The gamma curve to apply.
-		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+		 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _piInclude Optional #include handler for shader compilation.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
+		bool													EnsureShader( CDirectX12Device * _pd12dDevice, const CColorSpace::LSN_GAMMA_PASS &_gpPass, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.

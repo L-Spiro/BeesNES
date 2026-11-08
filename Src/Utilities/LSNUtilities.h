@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <cwctype>
 #include <fenv.h>
 #include <filesystem>
@@ -2825,6 +2826,17 @@ namespace lsn {
 			m_fLastNoiseParm = _fStdDev;
 			m_fLastNoiseBlackLevel = _fBlackLevel;
 			m_fLastNoiseWhiteLevel = _fWhiteLevel;
+		}
+
+		/**
+		 * \brief Fills the noise buffers with silence (no noise).
+		 **/
+		static inline void									ClearNoise() {
+			std::memset( m_fNoiseBuffers, 0, sizeof( m_fNoiseBuffers ) );
+			m_bNoiseIsGaussian = true;
+			m_fLastNoiseParm = 0.0f;
+			m_fLastNoiseBlackLevel = 0.0f;
+			m_fLastNoiseWhiteLevel = 1.0f;
 		}
 
 		/**

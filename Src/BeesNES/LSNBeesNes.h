@@ -34,7 +34,6 @@
 #include "../Filters/LSNNtscBlarggFilter.h"
 #include "../Filters/LSNNtscCrtFullFilter.h"
 #include "../Filters/LSNNtscLSpiroFilter.h"
-#include "../Filters/LSNPalBlarggFilter.h"
 #include "../Filters/LSNPalCrtFullFilter.h"
 #include "../Filters/LSNPalLSpiroFilter.h"
 #include "../Filters/LSNRgb24Filter.h"
@@ -180,12 +179,19 @@ namespace lsn {
 		const LSN_FILTER_REGION_OPTIONS &		FilterOptions( LSN_PPU_METRICS _pmRegion ) const;
 
 		/**
-		 * Applies the filter options (see FilterOptions()) to every filter.  Palette, Blargg, and LMP88959 filters receive the settings of the
-		 *	active region (m_pmSystem); each L. Spiro filter is made for a single region and receives the settings of that region (the software
-		 *	NTSC L. Spiro filter serves both NTSC-M and NTSC-J and receives the settings of whichever is active).  Some settings reallocate
-		 *	buffers or regenerate tables, so this should not be called while a frame is being filtered or rendered.
+		 * Applies the filter options (see FilterOptions()) and the host-display options to every filter.  A filter object made for one region
+		 *	(the L. Spiro filters and the NTSC-J GPU filters) receives the settings of that region.  A filter object shared by several regions
+		 *	receives the preset nearest the active region (m_pmSystem; see LSN_FILTER_REGION_OPTIONS).  Some settings reallocate buffers or
+		 *	regenerate tables, so this should not be called while a frame is being filtered or rendered.  The palette's CRT1 parameters and
+		 *	the monitor gamma also affect the software palette, which ApplyPaletteOptions() rebuilds.
 		 */
 		void									ApplyFilterOptions();
+
+		/**
+		 * Fills the signal-noise buffers (shared by all L. Spiro filters) according to the settings of the selected filter.  If the selected
+		 *	filter is not an L. Spiro filter, nothing changes.
+		 */
+		void									UpdateNoise();
 
 		/**
 		 * Gets the screen scale.
@@ -898,7 +904,6 @@ namespace lsn {
 		/** EMMIR (LMP88959)'s PAL-CRT filter. */
 		CPalCrtFullFilter						m_ncfEmmirPalFullFilter;
 		/** Blargg's NTSC filter (ad-hoc PAL-inated). */
-		CPalBlarggFilter						m_nbfBlarggPalFilter;
 #ifdef LSN_DX9
 		/** Direct3D 9 palette filter. */
 		CDx9PaletteFilter						m_d9pfDx9Palette;
@@ -1427,12 +1432,40 @@ namespace lsn {
 		static bool								SaveLSpiroFilterSettings( CStream &_sFile, const LSN_LSPIRO_OPTIONS &_lsoOptions );
 
 		/**
-		 * Applies the settings shared by all GPU filters to a GPU filter.
+		 * Applies the settings shared by all GPU filters (and the host-display settings) to a GPU filter.
 		 *
 		 * \param _gfbFilter The filter to which to apply the settings.
 		 * \param _gfoOptions The settings to apply.
+		 * \param _dsDisplay The settings of the host display.
 		 */
-		static void								ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions );
+		static void								ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions, const CColorSpace::LSN_DISPLAY_SETTINGS &_dsDisplay );
+
+		/**
+		 * Gets the L. Spiro settings that apply to a filter object, if it is one of the L. Spiro filters.
+		 *
+		 * \param _pfbFilter The filter object.
+		 * \return Returns the L. Spiro settings of the filter or nullptr if it is not an L. Spiro filter.
+		 */
+		const LSN_LSPIRO_OPTIONS *				LSpiroOptionsOfFilter( const CFilterBase * _pfbFilter ) const;
+
+		/**
+		 * Loads the settings of the host display.
+		 *
+		 * \param _ui32Version The file version.
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _hdoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+		 * \return Returns true if the settings data was loaded.
+		 */
+		static bool								LoadHostDisplaySettings( uint32_t _ui32Version, CStream &_sFile, LSN_HOST_DISPLAY_OPTIONS &_hdoOptions );
+
+		/**
+		 * Saves the settings of the host display.
+		 *
+		 * \param _sFile The in-memory stream of the settings file.
+		 * \param _hdoOptions The settings to write to the settings data.
+		 * \return Returns true if the settings data was saved.
+		 */
+		static bool								SaveHostDisplaySettings( CStream &_sFile, const LSN_HOST_DISPLAY_OPTIONS &_hdoOptions );
 
 		/**
 		 * Applies L. Spiro settings to an L. Spiro NTSC filter.

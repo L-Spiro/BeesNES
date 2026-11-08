@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "LSNDirectX12Device.h"
 #include "LSNDirectX12Resource.h"
 #include "LSNDirectX12PipelineState.h"
@@ -56,9 +57,10 @@ namespace lsn {
 		 * \param _bClear If true, clears the destination surface to black before rendering.
 		 * \param _bSrgb Set to true if the destination RTV was created with an _SRGB format.
 		 * \param _piInclude Optional #include handler for shader compilation.
+		 * \param _otTransform The conversion to the values sent to the monitor (only applied when _bSrgb is true).
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false, ID3DInclude * _piInclude = nullptr );
+		bool													Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false, ID3DInclude * _piInclude = nullptr, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform = CColorSpace::LSN_OUTPUT_TRANSFORM() );
 
 
 	protected :
@@ -79,6 +81,8 @@ namespace lsn {
 
 		/** The current target format used to compile the PSO. */
 		DXGI_FORMAT												m_fPsoFormat = DXGI_FORMAT_UNKNOWN;
+		/** The output transform compiled into m_ppsCopy. */
+		CColorSpace::LSN_OUTPUT_TRANSFORM						m_otPso;
 
 		// == Functions.
 		/**
@@ -95,9 +99,10 @@ namespace lsn {
 		 * \param _pd12dDevice The Direct3D 12 device.
 		 * \param _fTargetFormat The format of the RTV this shader will output to.
 		 * \param _piInclude Optional #include handler for shader compilation.
+		 * \param _otTransform The conversion to the values sent to the monitor.
 		 * \return Returns true if the shaders are ready.
 		 **/
-		bool													EnsureShaders( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude );
+		bool													EnsureShaders( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded d3dcompiler_47.dll.

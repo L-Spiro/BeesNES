@@ -39,8 +39,7 @@ namespace lsn {
 		if LSN_LIKELY( m_vbQuad.get() && m_vbQuad->Get() ) { m_vbQuad->Reset(); }
 		m_vbQuad.reset();
 		m_psShader.reset();
-		m_gShaderGamma = CNesPalette::LSN_G_NONE;
-		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
+		m_gpShaderPass = CColorSpace::LSN_GAMMA_PASS();
 	}
 
 	/**
@@ -51,15 +50,14 @@ namespace lsn {
 	 * \param _ui32SrcW The width of the source texture.
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _prtDst The destination render target.
-	 * \param _gGamma The gamma curve to apply.
-	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+	 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX9TextureGamma::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace ) {
+	bool CDirectX9TextureGamma::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, const CColorSpace::LSN_GAMMA_PASS &_gpPass ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_prtDst || !_ui32SrcW || !_ui32SrcH ) { return false; }
 
 		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice, _gGamma, _cmColorSpace ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pdx9dDevice, _gpPass ) ) { return false; }
 
 		IDirect3DDevice9 * pd3d9dDevice = _pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
@@ -126,46 +124,22 @@ namespace lsn {
 	 * Ensures the pixel shader is compiled with the correct gamma function.
 	 * 
 	 * \param _pdx9dDevice The Direct3D 9 device.
-	 * \param _gGamma The gamma curve to apply.
-	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+	 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX9TextureGamma::EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace ) {
-		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace ) { return true; }
+	bool CDirectX9TextureGamma::EnsureShader( CDirectX9Device * _pdx9dDevice, const CColorSpace::LSN_GAMMA_PASS &_gpPass ) {
+		if LSN_LIKELY( m_psShader.get() && m_psShader->Valid() && m_gpShaderPass == _gpPass ) { return true; }
 
 		m_psShader = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
-		m_gShaderGamma = _gGamma;
-		m_cmShaderColorSpace = _cmColorSpace;
+		m_gpShaderPass = _gpPass;
 
-		std::string sGammaCall = "c.rgb";
-		switch ( _gGamma ) {
-			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb, 1.0, 0.0181 * 8.0 )"; break; }
-			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
-			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
-			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.22222222222222232090871330001391470432281494140625 )"; break; }
-			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, 2.35 )"; break; }
-			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, 2.4 )"; break; }
-			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, 2.5 )"; break; }
-			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, 2.7 )"; break; }
-			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
-			default : { break; }
-		}
-		// With a color-space conversion, out-of-gamut (negative) inputs must survive the gamma curve (it would make them NaN).
-		if ( !_cmColorSpace.IsIdentity() ) { sGammaCall = CColorSpace::SignedGammaCall( sGammaCall ); }
 
 		std::string sShaderSrc =
 			"#include \"LSNGamma.hlsl\"\n"
 			"sampler2D sSrc : register( s0 );\n"
 			"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
-			"    float4 c = tex2D( sSrc, uv );\n"
-			"    c.rgb = " + sGammaCall + ";\n"
-			"    " + CColorSpace::ShaderStatement( _cmColorSpace, true ) +
+			"    float4 c = tex2D( sSrc, uv );\n" +
+			CColorSpace::GammaPassStatements( _gpPass, true ) +
 			"    return c;\n"
 			"}\n";
 

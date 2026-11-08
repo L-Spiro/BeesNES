@@ -21,6 +21,11 @@ namespace lsn {
 	// == Members.
 	CDx12NtscBlarggFilter::CDx12NtscBlarggFilter() :
 		m_ui32FinalStride( 0 ) {
+		// The convolution filters this filter looks best with (the options normally replace these).
+		SetConvolutionFilter( LSN_CB_LOW, CResamplerBase::LSN_FF_ROBIDOUX );
+		SetConvolutionFilter( LSN_CB_MEDIUM, CResamplerBase::LSN_FF_LINEAR );
+		SetConvolutionFilter( LSN_CB_HIGH, CResamplerBase::LSN_FF_LINEAR );
+		SetConvolutionFilter( LSN_CB_MAX, CResamplerBase::LSN_FF_TOTAL );
 		nes_ntsc_setup_t nsTmp = nes_ntsc_composite;
 		nsTmp.artifacts = 0.62;
 		nsTmp.bleed = 0.0;

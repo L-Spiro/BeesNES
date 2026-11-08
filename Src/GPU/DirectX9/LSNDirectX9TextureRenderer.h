@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "LSNDirectX9Device.h"
 #include "LSNDirectX9PixelShader.h"
 #include "LSNDirectX9VertexBuffer.h"
@@ -48,9 +49,10 @@ namespace lsn {
 		 * \param _fGamma The PC monitor's gamma parameter.
 		 * \param _bClear If true, clears the destination surface to black before rendering.
 		 * \param _bSrgb Enable or disable hardware sRGB conversion.
+		 * \param _otTransform The conversion to the values sent to the monitor (only applied when _bSrgb is true).
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false );
+		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear = true, bool _bSrgb = false, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform = CColorSpace::LSN_OUTPUT_TRANSFORM() );
 
 
 	protected :
@@ -59,6 +61,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9VertexBuffer>					m_pvbQuad;
 		/** The copy/gamma pixel shader. */
 		std::unique_ptr<CDirectX9PixelShader>					m_ppsCopy;
+		/** The output transform compiled into m_ppsCopy. */
+		CColorSpace::LSN_OUTPUT_TRANSFORM						m_otShader;
 
 
 		// == Functions.
@@ -66,9 +70,10 @@ namespace lsn {
 		 * Ensures the vertex buffer and pixel shaders are created.
 		 * 
 		 * \param _pdx9dDevice The Direct3D 9 device.
+		 * \param _otTransform The conversion to the values sent to the monitor.
 		 * \return Returns true if resources are ready.
 		 **/
-		bool													EnsureResources( CDirectX9Device * _pdx9dDevice );
+		bool													EnsureResources( CDirectX9Device * _pdx9dDevice, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded D3DX.

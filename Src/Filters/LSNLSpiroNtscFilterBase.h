@@ -161,6 +161,14 @@ namespace lsn {
 		void												SetSaturation( float _fSat );
 
 		/**
+		 * Sets the contrast:  a gain around the middle of the signal range (0.5), applied to luma and chroma alike.  1.0 leaves the
+		 *	picture unchanged.
+		 * 
+		 * \param _fContrast The contrast to set.
+		 **/
+		void												SetContrast( float _fContrast );
+
+		/**
 		 * Sets the black level.
 		 * 
 		 * \param _fBlack The black level to set.
@@ -267,6 +275,13 @@ namespace lsn {
 		 * \return Returns the saturation.
 		 **/
 		inline float										GetSaturation() const { return m_fSaturationSetting; }
+
+		/**
+		 * Gets the contrast.
+		 * 
+		 * \return Returns the contrast.
+		 **/
+		inline float										GetContrast() const { return m_fContrastSetting; }
 
 		/**
 		 * Gets the black level.
@@ -425,6 +440,7 @@ namespace lsn {
 		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
 		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
+		float												m_fContrastSetting = 1.0f;							/**< The contrast setting (a gain around 0.5). */
 		float												m_fBlackSetting = 0.312f;							/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;							/**< White level. */
 		float												m_fPhosphorDecayRateGreen = 0.95f;					/**< Phosphor decay rate.  RGB: 0.94999969005584716796875f, PAL-M (Brazil Famiclone): 0.949946105480194091796875f. */

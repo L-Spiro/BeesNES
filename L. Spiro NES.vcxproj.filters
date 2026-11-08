@@ -567,9 +567,6 @@
     <ClInclude Include="Src\Filters\LSNRgb24Filter.h">
       <Filter>Header Files\Filters</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Filters\LSNPalBlarggFilter.h">
-      <Filter>Header Files\Filters</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Input\LSNDirectInput8.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
@@ -1497,9 +1494,6 @@
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Filters\LSNRgb24Filter.cpp">
-      <Filter>Source Files\Filters</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Filters\LSNPalBlarggFilter.cpp">
       <Filter>Source Files\Filters</Filter>
     </ClCompile>
     <ClCompile Include="Src\Input\LSNDirectInput8.cpp">

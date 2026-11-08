@@ -45,6 +45,7 @@ namespace lsn {
 
 		LSN_VIDEO_FILTER_OPTIONS							vfoGlobalFilters;											/**< Global filter settings (for every region). */
 		LSN_VIDEO_FILTER_OPTIONS							vfoThisGameFilters;											/**< This game's filter settings (for every region; each region's bUseGlobal selects the global settings instead). */
+		LSN_HOST_DISPLAY_OPTIONS							hdoHostDisplay;												/**< The settings of the host machine's display (global only). */
 
 		LSN_WAV_EDITOR_WINDOW_OPTIONS						wewoWavEditorWindow;										/**< Settings related to the WAV Editor window/UI. */
 

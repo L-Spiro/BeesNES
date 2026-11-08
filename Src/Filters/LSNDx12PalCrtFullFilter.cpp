@@ -25,6 +25,11 @@ namespace lsn {
 	// == Members.
 	CDx12PalCrtFullFilter::CDx12PalCrtFullFilter() :
 		m_ui32FinalStride( 0 ) {
+		// The convolution filters this filter looks best with (the options normally replace these).
+		SetConvolutionFilter( LSN_CB_LOW, CResamplerBase::LSN_FF_ROBIDOUX );
+		SetConvolutionFilter( LSN_CB_MEDIUM, CResamplerBase::LSN_FF_ROBIDOUXSOFT );
+		SetConvolutionFilter( LSN_CB_HIGH, CResamplerBase::LSN_FF_LINEAR );
+		SetConvolutionFilter( LSN_CB_MAX, CResamplerBase::LSN_FF_TOTAL );
 		int iPhases[4] = { 0, 16, 0, -16 };
 		std::memcpy( m_iPhaseRef, iPhases, sizeof( iPhases ) );
 

@@ -57,6 +57,8 @@ namespace lsn {
 	 */
 	void CNtscCrtFullFilter::ApplySettings() {
 		m_nnCrtNtsc.hue = m_lsSettings.i32Hue;
+		m_nnCrtNtsc.do_vsync = m_lsSettings.bVSync;
+		m_nnCrtNtsc.do_hsync = m_lsSettings.bHSync;
 		m_nnCrtNtsc.brightness = m_lsSettings.i32Brightness;
 		m_nnCrtNtsc.contrast = m_lsSettings.i32Contrast;
 		m_nnCrtNtsc.saturation = m_lsSettings.i32Saturation;
@@ -110,8 +112,6 @@ namespace lsn {
 		m_nnCrtNtsc.white_point = 85;
 		m_nnCrtNtsc.blend = 1;*/
 
-		m_nnCrtNtsc.do_vsync = true;
-		m_nnCrtNtsc.do_hsync = true;
 		ApplySettings();
 
 		/** 

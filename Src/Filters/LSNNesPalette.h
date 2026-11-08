@@ -96,6 +96,17 @@ namespace lsn {
 		bool										sRgbFlag() const { return m_bApplySrgb; }
 
 		/**
+		 * Sets the parameters of the LSN_G_CRT1 CRT gamma curve.
+		 * 
+		 * \param _dWhite The white level (Lw).
+		 * \param _dBrightness The brightness (black lift, B).
+		 **/
+		inline void									SetCrt1Parms( double _dWhite, double _dBrightness ) {
+			m_dCrt1White = _dWhite;
+			m_dCrt1Brightness = _dBrightness;
+		}
+
+		/**
 		 * Gets a constant reference to the loaded palette.
 		 * 
 		 * \return Returns a constant reference to the loaded palette.
@@ -187,6 +198,8 @@ namespace lsn {
 		PaletteF64									m_p64Palette;							/**< The loaded palette. */
 		std::filesystem::path						m_pPath;								/**< The path to the loaded palette. */
 		bool										m_bApplySrgb = false;					/**< Apply sRGB curves? */
+		double										m_dCrt1White = 1.0;						/**< The white level (Lw) of the LSN_G_CRT1 CRT curve. */
+		double										m_dCrt1Brightness = 0.0181 * 8.0;		/**< The brightness (black lift, B) of the LSN_G_CRT1 CRT curve. */
 	};
 
 }	// namespace lsn

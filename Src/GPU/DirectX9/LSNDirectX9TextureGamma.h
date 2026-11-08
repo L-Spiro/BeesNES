@@ -51,11 +51,10 @@ namespace lsn {
 		 * \param _ui32SrcW The width of the source texture.
 		 * \param _ui32SrcH The height of the source texture.
 		 * \param _prtDst The destination render target.
-		 * \param _gGamma The gamma curve to apply.
-		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+		 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 		 * \return Returns true on success.
 		 **/
-		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace );
+		bool													Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, CDirectX9RenderTarget * _prtDst, const CColorSpace::LSN_GAMMA_PASS &_gpPass );
 
 
 	protected :
@@ -64,10 +63,8 @@ namespace lsn {
 		std::unique_ptr<CDirectX9VertexBuffer>					m_vbQuad;
 		/** The pixel shader for gamma correction. */
 		std::unique_ptr<CDirectX9PixelShader>					m_psShader;
-		/** The current gamma setting used to compile the shader. */
-		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
-		/** The color-space conversion matrix used to compile the shader. */
-		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
+		/** The parameters used to compile the shader. */
+		CColorSpace::LSN_GAMMA_PASS								m_gpShaderPass;
 
 
 		// == Functions.
@@ -83,11 +80,10 @@ namespace lsn {
 		 * Ensures the pixel shader is compiled with the correct gamma function.
 		 * 
 		 * \param _pdx9dDevice The Direct3D 9 device.
-		 * \param _gGamma The gamma curve to apply.
-		 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+		 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShader( CDirectX9Device * _pdx9dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace );
+		bool													EnsureShader( CDirectX9Device * _pdx9dDevice, const CColorSpace::LSN_GAMMA_PASS &_gpPass );
 
 		/**
 		 * Compiles an HLSL pixel shader using dynamically loaded D3DX.

@@ -9,6 +9,8 @@
  */
 
 #include "LSNDirectX12TextureRenderer.h"
+
+#include <string>
 #include "LSNDirectX12DiskInclude.h"
 
 namespace lsn {
@@ -56,9 +58,10 @@ namespace lsn {
 	 * \param _bClear If true, clears the destination surface to black before rendering.
 	 * \param _bSrgb Set to true if the destination RTV was created with an _SRGB format.
 	 * \param _piInclude Optional #include handler for shader compilation.
+	 * \param _otTransform The conversion to the values sent to the monitor (only applied when _bSrgb is true).
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TextureRenderer::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, ID3DInclude * _piInclude ) {
+	bool CDirectX12TextureRenderer::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, ID3D12Resource * _p12rDst, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, ID3DInclude * _piInclude, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform ) {
 		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_p12rDst ) { return false; }
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice ) ) { return false; }
 
@@ -66,7 +69,7 @@ namespace lsn {
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
 
 		const DXGI_FORMAT fTargetFormat = _bSrgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-		if LSN_UNLIKELY( !EnsureShaders( _pd12dDevice, fTargetFormat, _piInclude ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShaders( _pd12dDevice, fTargetFormat, _piInclude, _bSrgb ? _otTransform : CColorSpace::LSN_OUTPUT_TRANSFORM() ) ) { return false; }
 
 		// Write Source SRV into local heap.
 		D3D12_CPU_DESCRIPTOR_HANDLE hSrvCpu = m_dhSrvHeap->Get()->GetCPUDescriptorHandleForHeapStart();
@@ -172,14 +175,16 @@ namespace lsn {
 	 * \param _pd12dDevice The Direct3D 12 device.
 	 * \param _fTargetFormat The format of the RTV this shader will output to.
 	 * \param _piInclude Optional #include handler for shader compilation.
+	 * \param _otTransform The conversion to the values sent to the monitor.
 	 * \return Returns true if the shaders are ready.
 	 **/
-	bool CDirectX12TextureRenderer::EnsureShaders( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
-		if LSN_LIKELY( m_ppsCopy.get() && m_ppsCopy->Get() && m_fPsoFormat == _fTargetFormat ) { return true; }
+	bool CDirectX12TextureRenderer::EnsureShaders( CDirectX12Device * _pd12dDevice, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform ) {
+		if LSN_LIKELY( m_ppsCopy.get() && m_ppsCopy->Get() && m_fPsoFormat == _fTargetFormat && m_otPso == _otTransform ) { return true; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		m_ppsCopy = std::make_unique<CDirectX12PipelineState>();
 		m_fPsoFormat = _fTargetFormat;
+		m_otPso = _otTransform;
 
 		if ( !m_prsRootSignature.get() ) {
 			m_prsRootSignature = std::make_unique<CDirectX12RootSignature>();
@@ -223,14 +228,16 @@ namespace lsn {
 			"    return output;\n"
 			"}\n";
 
-		static const char * kPsCopyHlsl =
+		const std::string sPsCopyHlsl = std::string(
 			"Texture2D tSrc : register(t0);\n"
 			"SamplerState sLinear : register(s0);\n"
 			"cbuffer PSConstants : register(b0) { float4 c0; };\n"
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
 			"  float4 c = tSrc.Sample(sLinear, input.Tex);\n"
-			"  return saturate(c);\n"
+			"  c = saturate(c);\n" ) +
+			"    " + CColorSpace::OutputTransformStatement( _otTransform, true ) +
+			"  return c;\n"
 			"}\n";
 
 		CDirectX12DiskInclude diDefaultInclude( CDirectX12DiskInclude::GetExeShadersDir() );
@@ -238,7 +245,7 @@ namespace lsn {
 
 		std::vector<uint8_t> vBcVs, vBcCopy;
 		if ( !CompileHlsl( _pd12dDevice, kVsHlsl, "main", "vs_5_0", vBcVs, pInc ) ||
-			 !CompileHlsl( _pd12dDevice, kPsCopyHlsl, "main", "ps_5_0", vBcCopy, pInc ) ) {
+			 !CompileHlsl( _pd12dDevice, sPsCopyHlsl.c_str(), "main", "ps_5_0", vBcCopy, pInc ) ) {
 			return false;
 		}
 

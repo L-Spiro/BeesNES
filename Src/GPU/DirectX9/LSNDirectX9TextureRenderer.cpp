@@ -10,6 +10,9 @@
 
 #include "LSNDirectX9TextureRenderer.h"
 
+#include <iterator>
+#include <string>
+
 namespace lsn {
 
 #pragma pack( push, 1 )
@@ -47,11 +50,12 @@ namespace lsn {
 	 * \param _fGamma The PC monitor's gamma parameter.
 	 * \param _bClear If true, clears the destination surface to black before rendering.
 	 * \param _bSrgb Enable or disable hardware sRGB conversion.
+	 * \param _otTransform The conversion to the values sent to the monitor (only applied when _bSrgb is true).
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX9TextureRenderer::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb ) {
+	bool CDirectX9TextureRenderer::Render( CDirectX9Device * _pdx9dDevice, IDirect3DTexture9 * _ptSrc, IDirect3DSurface9 * _psDst, const lsw::LSW_RECT &_rOutput, float _fGamma, bool _bClear, bool _bSrgb, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform ) {
 		if LSN_UNLIKELY( !_pdx9dDevice || !_ptSrc || !_psDst ) { return false; }
-		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureResources( _pdx9dDevice, _bSrgb ? _otTransform : CColorSpace::LSN_OUTPUT_TRANSFORM() ) ) { return false; }
 
 		IDirect3DDevice9 * pd3d9dDevice = _pdx9dDevice->GetDirectX9Device();
 		if LSN_UNLIKELY( !pd3d9dDevice ) { return false; }
@@ -112,9 +116,10 @@ namespace lsn {
 	 * Ensures the vertex buffer and pixel shaders are created.
 	 * 
 	 * \param _pdx9dDevice The Direct3D 9 device.
+	 * \param _otTransform The conversion to the values sent to the monitor.
 	 * \return Returns true if resources are ready.
 	 **/
-	bool CDirectX9TextureRenderer::EnsureResources( CDirectX9Device * _pdx9dDevice ) {
+	bool CDirectX9TextureRenderer::EnsureResources( CDirectX9Device * _pdx9dDevice, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform ) {
 		if LSN_UNLIKELY( !m_pvbQuad.get() || !m_pvbQuad->Valid() ) {
 			m_pvbQuad = std::make_unique<CDirectX9VertexBuffer>( _pdx9dDevice );
 			if ( !m_pvbQuad->CreateVertexBuffer( sizeof( LSN_XYZRHWTEX1 ) * 4, D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, LSN_FVF_XYZRHWTEX1, D3DPOOL_DEFAULT ) ) { return false; }
@@ -124,17 +129,28 @@ namespace lsn {
 			m_ppsCopy = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
 		}
 
-		if LSN_UNLIKELY( !m_ppsCopy->Valid() ) {
-			static const char * kPsCopyHlsl =
+		if LSN_UNLIKELY( !m_ppsCopy->Valid() || m_otShader != _otTransform ) {
+			m_ppsCopy = std::make_unique<CDirectX9PixelShader>( _pdx9dDevice );
+			m_otShader = _otTransform;
+			const std::string sPsCopyHlsl = std::string(
 				"sampler2D sSrc : register( s0 );\n"
 				"float4 c0 : register( c0 );\n" // c0.x = gamma parameter (for future curves)
 				"float4 main( float2 uv : TEXCOORD0 ) : COLOR {\n"
 				"  float4 c = tex2D( sSrc, uv );\n"
-				"  return saturate( c );\n"
+				"  c = saturate( c );\n" ) +
+				"    " + CColorSpace::OutputTransformStatement( _otTransform, true ) +
+				"  return c;\n"
 				"}\n";
 
+			// The output transform can exceed the ps_2_0 instruction limit, so fall back to the extended 2.x profiles.
+			static const char * pcProfiles[] = { "ps_2_0", "ps_2_b", "ps_2_a" };
 			std::vector<DWORD> vBc;
-			if ( !CompileHlslPs( kPsCopyHlsl, "main", "ps_2_0", vBc ) ) { return false; }
+			bool bCompiled = false;
+			for ( size_t I = 0; I < std::size( pcProfiles ) && !bCompiled; ++I ) {
+				vBc.clear();
+				bCompiled = CompileHlslPs( sPsCopyHlsl.c_str(), "main", pcProfiles[I], vBc );
+			}
+			if ( !bCompiled ) { return false; }
 			if ( !m_ppsCopy->CreateFromByteCode( vBc.data(), vBc.size() ) ) { return false; }
 		}
 

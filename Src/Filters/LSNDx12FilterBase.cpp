@@ -267,7 +267,7 @@ namespace lsn {
 
 			D3D12_CPU_DESCRIPTOR_HANDLE hGammaRtv = m_dhGammaRtv->Get()->GetCPUDescriptorHandleForHeapStart();
 
-			if ( m_tgGamma.Render( _pdx12dDevice, _pgclCommandList, prScaleSource, _ui32NativeW, _ui32NativeH, hGammaRtv, effGamma, m_cmColorSpace, fmtRt ) ) {
+			if ( m_tgGamma.Render( _pdx12dDevice, _pgclCommandList, prScaleSource, _ui32NativeW, _ui32NativeH, hGammaRtv, GammaPass( effGamma ), fmtRt ) ) {
 				prScaleSource = m_rtGamma.get();
 			}
 
@@ -357,18 +357,18 @@ namespace lsn {
 					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 					_pgclCommandList->Get()->ResourceBarrier( 1, rbResampled );
 
-					m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_rtResampled.get(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
+					m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_rtResampled.get(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true, nullptr, OutputTransform() );
 				}
 				else {
 					// Fallback to scaler if the 2-pass resampler aborts.
 					rbResampled[0] = { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE, { m_rtResampled->Get(), D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE } };
 					_pgclCommandList->Get()->ResourceBarrier( 1, rbResampled );
 
-					m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
+					m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true, nullptr, OutputTransform() );
 				}
 			}
 			else {
-				m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true );
+				m_trRenderer.Render( _pdx12dDevice, _pgclCommandList, m_tpsScaler.GetTexture(), rBackBuffer.Get(), hBackRtv, _rOutput, 1.0f, false, true, nullptr, OutputTransform() );
 			}
 
 			if ( m_pcbCapture ) {

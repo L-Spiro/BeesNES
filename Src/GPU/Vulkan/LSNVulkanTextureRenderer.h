@@ -11,6 +11,7 @@
 #ifdef LSN_VULKAN1
 
 #include "../../LSNLSpiroNes.h"
+#include "../../ColorSpace/LSNColorSpace.h"
 #include "LSNVulkanDevice.h"
 #include "LSNVulkanBuffer.h"
 #include "LSNVulkanDeviceMemory.h"
@@ -59,9 +60,10 @@ namespace lsn {
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 		 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
+		 * \param _otTransform The conversion to the values sent to the monitor (the target has an sRGB format).
 		 * \return Returns true if the shaders are ready.
 		 **/
-		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat _fFormat, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag );
+		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, VkFormat _fFormat, const std::vector<uint32_t> &_vSpirvVert, const std::vector<uint32_t> &_vSpirvFrag, const CColorSpace::LSN_OUTPUT_TRANSFORM &_otTransform = CColorSpace::LSN_OUTPUT_TRANSFORM() );
 
 		/**
 		 * Renders the texture to the surface.
@@ -92,6 +94,7 @@ namespace lsn {
 		std::unique_ptr<CVulkanPipeline>						m_ppShader;
 		std::unique_ptr<CVulkanPipelineLayout>					m_pplPipelineLayout;
 		std::unique_ptr<CVulkanDescriptorSetLayout>				m_pdslDescriptorSetLayout;
+		CColorSpace::LSN_OUTPUT_TRANSFORM						m_otShader;							/**< The output transform compiled into m_ppShader. */
 
 	};
 

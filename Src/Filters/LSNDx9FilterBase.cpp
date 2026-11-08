@@ -232,7 +232,7 @@ namespace lsn {
 		// --- PASS 1: GAMMA ---
 		CNesPalette::LSN_GAMMA effGamma = GetEffectiveGamma();
 		if ( NeedsGammaPass( effGamma ) ) {
-			if ( m_tgGamma.Render( _pdx9dDevice, ptScaleSource, _ui32NativeW, _ui32NativeH, m_rtGamma.get(), effGamma, m_cmColorSpace ) ) {
+			if ( m_tgGamma.Render( _pdx9dDevice, ptScaleSource, _ui32NativeW, _ui32NativeH, m_rtGamma.get(), GammaPass( effGamma ) ) ) {
 				ptScaleSource = m_rtGamma->Texture()->Get();
 			}
 		}
@@ -272,14 +272,14 @@ namespace lsn {
 				}
 
 				if ( m_rtResampled->Valid() && m_rsResampler.Render( _pdx9dDevice, m_tpsScaler.GetTexture()->Get(), m_tpsScaler.GetWidth(), m_tpsScaler.GetHeight(), m_rtResampled.get(), ui32DstW, ui32DstH ) ) {
-					m_trRenderer.Render( _pdx9dDevice, m_rtResampled->Texture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+					m_trRenderer.Render( _pdx9dDevice, m_rtResampled->Texture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true, OutputTransform() );
 				}
 				else {
-					m_trRenderer.Render( _pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+					m_trRenderer.Render( _pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true, OutputTransform() );
 				}
 			}
 			else {
-				m_trRenderer.Render( _pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true );
+				m_trRenderer.Render( _pdx9dDevice, m_tpsScaler.GetTexture()->Get(), psBackBuffer, _rOutput, 1.0f, false, true, OutputTransform() );
 			}
 			
 			psBackBuffer->Release();

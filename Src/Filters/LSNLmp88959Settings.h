@@ -30,6 +30,8 @@ namespace lsn {
 		int32_t												i32Noise = 8;												/**< The amount of signal noise. */
 		bool												bBlend = true;												/**< If true, each new field is blended onto the previous image. */
 		uint32_t											ui32BorderColor = 0x22;										/**< The border color (a PPU palette index; NTSC only). */
+		bool												bVSync = true;												/**< If true, the monitor locks onto the vertical sync pulse (NTSC only; otherwise the picture rolls). */
+		bool												bHSync = true;												/**< If true, the monitor locks onto the horizontal sync pulse (NTSC only; otherwise the picture tears sideways). */
 		bool												bChromaCorrection = true;									/**< Hanover-bar correction (PAL only). */
 		int32_t												i32YOffset = 7;												/**< The vertical offset of the image, in lines (PAL only). */
 

@@ -21,6 +21,18 @@
 
 namespace lsn {
 
+	/** The tag that starts the video-filter section of the settings files ("LSVF"). */
+	static constexpr uint32_t LSN_VIDEO_FILTER_SECTION_TAG = 0x4656534C;
+
+	/** The layout version of the video-filter section of the settings files. */
+	static constexpr uint32_t LSN_VIDEO_FILTER_SECTION_VERSION = 2;
+
+	/** The tag that starts the host-display section of the settings file ("LSHD"). */
+	static constexpr uint32_t LSN_HOST_DISPLAY_SECTION_TAG = 0x4448534C;
+
+	/** The layout version of the host-display section of the settings file. */
+	static constexpr uint32_t LSN_HOST_DISPLAY_SECTION_VERSION = 1;
+
 	/** The raw WAV stream. */
 	CWavFile CBeesNes::m_wfRawStream;
 	
@@ -188,7 +200,6 @@ namespace lsn {
 		m_nbfLSpiroPalMFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_nbfLSpiroPalNFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_nbfBlarggNtscFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
-		m_nbfBlarggPalFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirNtscFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 		m_ncfEmmirPalFullFilter.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 
@@ -240,30 +251,8 @@ namespace lsn {
 		m_vplsfVulkanLSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_VULKAN1
 
-		// The NTSC-J (Famicom) GPU filters convert from the color space of a Japanese television (with its hue rotation).  Only GPU filters
-		//	have NTSC-J versions because the color-space conversion is too heavy to run on the CPU in real time.
-		{
-			const CColorSpace::LSN_COLOR_MATRIX cmNtscJ = CColorSpace::ConversionMatrix( CColorSpace::LSN_CSP_TOSHIBA_CF2005 );
-			const float fNtscJHue = CColorSpace::HueOffset( CColorSpace::LSN_CSP_TOSHIBA_CF2005 );
-			CGpuFilterBase * pgfbNtscJ[] = {
-#ifdef LSN_DX9
-				&m_d9nbfDx9BlarggNtscJFilter, &m_d9ncfDx9EmmirNtscJFullFilter, &m_d9nlsfDx9LSpiroNtscJ,
-#endif	// #ifdef LSN_DX9
-#ifdef LSN_DX12
-				&m_d12nbfDx12BlarggNtscJFilter, &m_d12ncfDx12EmmirNtscJFullFilter, &m_d12nlsfDx12LSpiroNtscJ,
-#endif	// #ifdef LSN_DX12
-#ifdef LSN_VULKAN1
-				&m_vnbfVulkanBlarggNtscJFilter, &m_vncfVulkanEmmirNtscJFullFilter, &m_vnlsfVulkanLSpiroNtscJ,
-#endif	// #ifdef LSN_VULKAN1
-				nullptr,
-			};
-			for ( auto pgfbThis : pgfbNtscJ ) {
-				if ( pgfbThis ) {
-					pgfbThis->SetColorSpace( cmNtscJ );
-					pgfbThis->SetHueOffset( fNtscJHue );
-				}
-			}
-		}
+		// The NTSC-J (Famicom) GPU filters get the color space of a Japanese television (with its hue rotation) from their default options
+		//	(see LSN_FILTER_REGION_OPTIONS::Defaults()), which ApplyFilterOptions() applied above.
 
 		UpdateCurrentSystem();
 	}
@@ -391,27 +380,32 @@ namespace lsn {
 	}
 
 	/**
-	 * Applies the filter options (see FilterOptions()) to every filter.  Palette, Blargg, and LMP88959 filters receive the settings of the
-	 *	active region (m_pmSystem); each L. Spiro filter is made for a single region and receives the settings of that region (the software
-	 *	NTSC L. Spiro filter serves both NTSC-M and NTSC-J and receives the settings of whichever is active).  Some settings reallocate
-	 *	buffers or regenerate tables, so this should not be called while a frame is being filtered or rendered.
+	 * Applies the filter options (see FilterOptions()) and the host-display options to every filter.  A filter object made for one region
+	 *	(the L. Spiro filters and the NTSC-J GPU filters) receives the settings of that region.  A filter object shared by several regions
+	 *	receives the preset nearest the active region (m_pmSystem; see LSN_FILTER_REGION_OPTIONS).  Some settings reallocate buffers or
+	 *	regenerate tables, so this should not be called while a frame is being filtered or rendered.  The palette's CRT1 parameters and
+	 *	the monitor gamma also affect the software palette, which ApplyPaletteOptions() rebuilds.
 	 */
 	void CBeesNes::ApplyFilterOptions() {
 		const LSN_PPU_METRICS pmActive = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M;
+		const LSN_PPU_METRICS pmNtsc = (pmActive == LSN_PM_NTSC_J) ? LSN_PM_NTSC_J : LSN_PM_NTSC_M;
+		const LSN_PPU_METRICS pmLmpPal = (pmActive == LSN_PM_DENDY) ? LSN_PM_DENDY : LSN_PM_PAL;
 		const LSN_FILTER_REGION_OPTIONS & froActive = FilterOptions( pmActive );
+		const LSN_FILTER_REGION_OPTIONS & froNtsc = FilterOptions( pmNtsc );
+		const LSN_FILTER_REGION_OPTIONS & froLmpPal = FilterOptions( pmLmpPal );
 		const LSN_FILTER_REGION_OPTIONS & froNtscM = FilterOptions( LSN_PM_NTSC_M );
 		const LSN_FILTER_REGION_OPTIONS & froNtscJ = FilterOptions( LSN_PM_NTSC_J );
 		const LSN_FILTER_REGION_OPTIONS & froPal = FilterOptions( LSN_PM_PAL );
 		const LSN_FILTER_REGION_OPTIONS & froDendy = FilterOptions( LSN_PM_DENDY );
 		const LSN_FILTER_REGION_OPTIONS & froPalM = FilterOptions( LSN_PM_PALM );
 		const LSN_FILTER_REGION_OPTIONS & froPalN = FilterOptions( LSN_PM_PALN );
+		const CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = m_oOptions.hdoHostDisplay.dsDisplay;
 
 		// == Software filters.
-		m_nbfBlarggNtscFilter.SetSetup( froActive.boBlarggNtsc.ToSetup() );
-		m_nbfBlarggPalFilter.SetSetup( froActive.boBlarggPal.ToSetup() );
-		m_ncfEmmirNtscFullFilter.SetSettings( froActive.lsLmpNtscCpu );
-		m_ncfEmmirPalFullFilter.SetSettings( froActive.lsLmpPalCpu );
-		ApplyLSpiroOptions( m_nbfLSpiroNtscFilter, (pmActive == LSN_PM_NTSC_J ? froNtscJ : froNtscM).lsoLSpiroCpu, true );
+		m_nbfBlarggNtscFilter.SetSetup( froNtsc.boBlarggNtsc.ToSetup() );
+		m_ncfEmmirNtscFullFilter.SetSettings( froNtsc.lsLmpNtscCpu );
+		m_ncfEmmirPalFullFilter.SetSettings( froLmpPal.lsLmpPalCpu );
+		ApplyLSpiroOptions( m_nbfLSpiroNtscFilter, froNtsc.lsoLSpiroCpu, true );
 		ApplyLSpiroOptions( m_nbfLSpiroPalFilter, froPal.lsoLSpiroCpu, true );
 		ApplyLSpiroOptions( m_nbfLSpiroDendyFilter, froDendy.lsoLSpiroCpu, true );
 		ApplyLSpiroOptions( m_nbfLSpiroPalMFilter, froPalM.lsoLSpiroCpu, true );
@@ -419,29 +413,29 @@ namespace lsn {
 
 		// == GPU filters.  The L. Spiro filters are called through their bases because they inherit two sets of similarly named functions.
 #define LSN_APPLY_GPU_FILTERS( PALETTE, BLARGG_NTSC, BLARGG_NTSC_J, LMP_NTSC, LMP_NTSC_J, LMP_PAL, LSPIRO_NTSC, LSPIRO_NTSC_J, LSPIRO_PAL, LSPIRO_DENDY, LSPIRO_PALM, LSPIRO_PALN )		\
-		ApplyGpuFilterOptions( PALETTE, froActive.gfoPalette );																															\
-		for ( auto pbfThis : { &BLARGG_NTSC, &BLARGG_NTSC_J } ) {																														\
-			(*pbfThis).SetSetup( froActive.boBlarggNtsc.ToSetup() );																													\
-			ApplyGpuFilterOptions( (*pbfThis), froActive.gfoBlargg );																													\
-		}																																												\
-		for ( auto pcfThis : { &LMP_NTSC, &LMP_NTSC_J } ) {																																\
-			(*pcfThis).SetSettings( froActive.lsLmpNtscGpu );																															\
-			ApplyGpuFilterOptions( (*pcfThis), froActive.gfoLmpNtsc );																													\
-		}																																												\
-		LMP_PAL.SetSettings( froActive.lsLmpPalGpu );																																	\
-		ApplyGpuFilterOptions( LMP_PAL, froActive.gfoLmpPal );																															\
+		ApplyGpuFilterOptions( PALETTE, froActive.gfoPalette, dsDisplay );																												\
+		BLARGG_NTSC.SetSetup( froNtscM.boBlarggNtsc.ToSetup() );																														\
+		ApplyGpuFilterOptions( BLARGG_NTSC, froNtscM.gfoBlargg, dsDisplay );																											\
+		BLARGG_NTSC_J.SetSetup( froNtscJ.boBlarggNtsc.ToSetup() );																														\
+		ApplyGpuFilterOptions( BLARGG_NTSC_J, froNtscJ.gfoBlargg, dsDisplay );																											\
+		LMP_NTSC.SetSettings( froNtscM.lsLmpNtscGpu );																																	\
+		ApplyGpuFilterOptions( LMP_NTSC, froNtscM.gfoLmpNtsc, dsDisplay );																												\
+		LMP_NTSC_J.SetSettings( froNtscJ.lsLmpNtscGpu );																																\
+		ApplyGpuFilterOptions( LMP_NTSC_J, froNtscJ.gfoLmpNtsc, dsDisplay );																											\
+		LMP_PAL.SetSettings( froLmpPal.lsLmpPalGpu );																																	\
+		ApplyGpuFilterOptions( LMP_PAL, froLmpPal.gfoLmpPal, dsDisplay );																												\
 		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC), froNtscM.lsoLSpiroGpu, false );																			\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC), froNtscM.gfoLSpiro );																						\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC), froNtscM.gfoLSpiro, dsDisplay );																				\
 		ApplyLSpiroOptions( static_cast<CLSpiroNtscFilterBase &>(LSPIRO_NTSC_J), froNtscJ.lsoLSpiroGpu, false );																		\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC_J), froNtscJ.gfoLSpiro );																						\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_NTSC_J), froNtscJ.gfoLSpiro, dsDisplay );																			\
 		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PAL), froPal.lsoLSpiroGpu, false );																				\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PAL), froPal.gfoLSpiro );																							\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PAL), froPal.gfoLSpiro, dsDisplay );																				\
 		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_DENDY), froDendy.lsoLSpiroGpu, false );																			\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_DENDY), froDendy.gfoLSpiro );																						\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_DENDY), froDendy.gfoLSpiro, dsDisplay );																			\
 		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALM), froPalM.lsoLSpiroGpu, false );																			\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALM), froPalM.gfoLSpiro );																							\
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALM), froPalM.gfoLSpiro, dsDisplay );																				\
 		ApplyLSpiroOptions( static_cast<CLSpiroPalFilterBase &>(LSPIRO_PALN), froPalN.lsoLSpiroGpu, false );																			\
-		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALN), froPalN.gfoLSpiro );
+		ApplyGpuFilterOptions( static_cast<CGpuFilterBase &>(LSPIRO_PALN), froPalN.gfoLSpiro, dsDisplay );
 
 #ifdef LSN_DX9
 		LSN_APPLY_GPU_FILTERS( m_d9pfDx9Palette, m_d9nbfDx9BlarggNtscFilter, m_d9nbfDx9BlarggNtscJFilter,
@@ -459,22 +453,117 @@ namespace lsn {
 			m_vnlsfVulkanLSpiroNtsc, m_vnlsfVulkanLSpiroNtscJ, m_vplsfVulkanLSpiroPal, m_vplsfVulkanLSpiroDendy, m_vplsfVulkanLSpiroPalM, m_vplsfVulkanLSpiroPalN )
 #endif	// #ifdef LSN_VULKAN1
 #undef LSN_APPLY_GPU_FILTERS
+
+		UpdateNoise();
 	}
 
 	/**
-	 * Applies the settings shared by all GPU filters to a GPU filter.
+	 * Gets the L. Spiro settings that apply to a filter object, if it is one of the L. Spiro filters.
+	 *
+	 * \param _pfbFilter The filter object.
+	 * \return Returns the L. Spiro settings of the filter or nullptr if it is not an L. Spiro filter.
+	 */
+	const LSN_LSPIRO_OPTIONS * CBeesNes::LSpiroOptionsOfFilter( const CFilterBase * _pfbFilter ) const {
+		if ( !_pfbFilter ) { return nullptr; }
+		const LSN_PPU_METRICS pmActive = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M;
+		const LSN_PPU_METRICS pmNtsc = (pmActive == LSN_PM_NTSC_J) ? LSN_PM_NTSC_J : LSN_PM_NTSC_M;
+		/** A filter and the region whose settings it uses. */
+		struct LSN_FILTER_REGION {
+			const CFilterBase *								pfbFilter;									/**< The filter. */
+			LSN_PPU_METRICS									pmRegion;									/**< The region whose settings it uses. */
+			bool											bGpu;										/**< If true, the GPU settings apply. */
+		};
+		const LSN_FILTER_REGION frFilters[] = {
+			{ &m_nbfLSpiroNtscFilter, pmNtsc, false },
+			{ &m_nbfLSpiroPalFilter, LSN_PM_PAL, false },
+			{ &m_nbfLSpiroDendyFilter, LSN_PM_DENDY, false },
+			{ &m_nbfLSpiroPalMFilter, LSN_PM_PALM, false },
+			{ &m_nbfLSpiroPalNFilter, LSN_PM_PALN, false },
+#ifdef LSN_DX9
+			{ &m_d9nlsfDx9LSpiroNtsc, LSN_PM_NTSC_M, true },
+			{ &m_d9nlsfDx9LSpiroNtscJ, LSN_PM_NTSC_J, true },
+			{ &m_d9plsfDx9LSpiroPal, LSN_PM_PAL, true },
+			{ &m_d9plsfDx9LSpiroDendy, LSN_PM_DENDY, true },
+			{ &m_d9plsfDx9LSpiroPalM, LSN_PM_PALM, true },
+			{ &m_d9plsfDx9LSpiroPalN, LSN_PM_PALN, true },
+#endif	// #ifdef LSN_DX9
+#ifdef LSN_DX12
+			{ &m_d12nlsfDx12LSpiroNtsc, LSN_PM_NTSC_M, true },
+			{ &m_d12nlsfDx12LSpiroNtscJ, LSN_PM_NTSC_J, true },
+			{ &m_d12plsfDx12LSpiroPal, LSN_PM_PAL, true },
+			{ &m_d12plsfDx12LSpiroDendy, LSN_PM_DENDY, true },
+			{ &m_d12plsfDx12LSpiroPalM, LSN_PM_PALM, true },
+			{ &m_d12plsfDx12LSpiroPalN, LSN_PM_PALN, true },
+#endif	// #ifdef LSN_DX12
+#ifdef LSN_VULKAN1
+			{ &m_vnlsfVulkanLSpiroNtsc, LSN_PM_NTSC_M, true },
+			{ &m_vnlsfVulkanLSpiroNtscJ, LSN_PM_NTSC_J, true },
+			{ &m_vplsfVulkanLSpiroPal, LSN_PM_PAL, true },
+			{ &m_vplsfVulkanLSpiroDendy, LSN_PM_DENDY, true },
+			{ &m_vplsfVulkanLSpiroPalM, LSN_PM_PALM, true },
+			{ &m_vplsfVulkanLSpiroPalN, LSN_PM_PALN, true },
+#endif	// #ifdef LSN_VULKAN1
+		};
+		for ( const auto & frThis : frFilters ) {
+			if ( frThis.pfbFilter == _pfbFilter ) {
+				const LSN_FILTER_REGION_OPTIONS & froOptions = FilterOptions( frThis.pmRegion );
+				return frThis.bGpu ? &froOptions.lsoLSpiroGpu : &froOptions.lsoLSpiroCpu;
+			}
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Fills the signal-noise buffers (shared by all L. Spiro filters) according to the settings of the selected filter.  If the selected
+	 *	filter is not an L. Spiro filter, nothing changes.
+	 */
+	void CBeesNes::UpdateNoise() {
+		if ( size_t( m_oOptions.fFilter ) >= CFilterBase::LSN_F_TOTAL ) { return; }
+		// Before the first system is created (during construction), the region is the default system's.
+		const LSN_PPU_METRICS pmRegion = (m_psbSystem && m_psbSystem->GetDisplayClient()) ? GetCurPpuRegion() : m_pmSystem;
+		if ( size_t( pmRegion ) >= LSN_PM_CONSOLE_TOTAL ) { return; }
+		const LSN_LSPIRO_OPTIONS * plsoOptions = LSpiroOptionsOfFilter( m_pfbFilterTable[m_oOptions.fFilter][pmRegion] );
+		if ( !plsoOptions ) { return; }
+		switch ( plsoOptions->ntNoiseType ) {
+			case LSN_NT_CUSTOM : {
+				if ( plsoOptions->fNoiseAmount > 0.0f ) { CUtilities::GenGaussianNoise( plsoOptions->fNoiseAmount ); }
+				else { CUtilities::ClearNoise(); }
+				break;
+			}
+			case LSN_NT_PHYSICAL : {
+				CUtilities::GenThermalNoise( m_trTemperatureReader.FilteredTemperature() );
+				break;
+			}
+			default : {
+				CUtilities::ClearNoise();
+			}
+		}
+	}
+
+	/**
+	 * Applies the settings shared by all GPU filters (and the host-display settings) to a GPU filter.
 	 *
 	 * \param _gfbFilter The filter to which to apply the settings.
 	 * \param _gfoOptions The settings to apply.
+	 * \param _dsDisplay The settings of the host display.
 	 */
-	void CBeesNes::ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+	void CBeesNes::ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions, const CColorSpace::LSN_DISPLAY_SETTINGS &_dsDisplay ) {
+		_gfbFilter.SetDisplaySettings( _dsDisplay );
+		_gfbFilter.SetColorSpace( _gfoOptions.cspColorSpace );
+		_gfbFilter.SetHueOffset( _gfoOptions.fHueOffset );
 		_gfbFilter.SetGamma( _gfoOptions.gGamma );
-		_gfbFilter.SetVertSharpness( _gfoOptions.ui32VertSharpness );
-		_gfbFilter.SetHorSharpness( _gfoOptions.ui32HorSharpness );
-		_gfbFilter.SetUseHighQualityResampler( _gfoOptions.bHighQualityResampler );
+		_gfbFilter.SetCrt1Parms( _gfoOptions.fCrt1White, _gfoOptions.fCrt1Brightness );
 		_gfbFilter.SetPhosphorDecayEnable( _gfoOptions.bPhosphorDecay );
 		_gfbFilter.SetPhosphorDecayLevel( _gfoOptions.fPhosphorDecayLevel );
 		_gfbFilter.SetPhosphorDecayPeriod( _gfoOptions.fPhosphorDecayPeriod );
+		_gfbFilter.SetPhosphorDecayMultipliers( _gfoOptions.fPhosphorRedMultiplier, _gfoOptions.fPhosphorBlueMultiplier );
+		_gfbFilter.SetVertSharpness( _gfoOptions.ui32VertSharpness );
+		_gfbFilter.SetHorSharpness( _gfoOptions.ui32HorSharpness );
+		_gfbFilter.SetDynamicScaling( _gfoOptions.bDynamicScaling );
+		_gfbFilter.SetUseHighQualityResampler( _gfoOptions.bHighQualityResampler );
+		for ( uint32_t I = 0; I < CGpuFilterBase::LSN_CB_TOTAL; ++I ) {
+			_gfbFilter.SetConvolutionFilter( CGpuFilterBase::LSN_CONVOLUTION_BAND( I ), _gfoOptions.ffConvolution[I] );
+		}
 	}
 
 	/**
@@ -495,6 +584,7 @@ namespace lsn {
 		_lsnfbFilter.SetHue( _lsoOptions.fHue );
 		_lsnfbFilter.SetBrightness( _lsoOptions.fBrightness );
 		_lsnfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		_lsnfbFilter.SetContrast( _lsoOptions.fContrast );
 		_lsnfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
 		_lsnfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
 		if ( _bSoftware ) {
@@ -524,6 +614,7 @@ namespace lsn {
 		_lspfbFilter.SetHue( _lsoOptions.fHue );
 		_lspfbFilter.SetBrightness( _lsoOptions.fBrightness );
 		_lspfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		_lspfbFilter.SetContrast( _lsoOptions.fContrast );
 		_lspfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
 		_lspfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
 		if ( _bSoftware ) {
@@ -539,6 +630,7 @@ namespace lsn {
 	 */
 	void CBeesNes::SetCurFilter( CFilterBase::LSN_FILTERS _fFilter ) {
 		if ( m_oOptions.fFilter != _fFilter || !m_bHaveSetFilter ) {
+
 			CFilterBase * pfbPrev = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
 			m_oOptions.fFilter = _fFilter;
 			m_cfartCurFilterAndTargets.pfbNextFilter = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
@@ -565,6 +657,8 @@ namespace lsn {
 					}
 				}
 			}
+			// The noise follows the settings of the selected filter.
+			UpdateNoise();
 		}
 	}
 
@@ -1305,7 +1399,13 @@ namespace lsn {
 			}
 			// Success path.  Put the palette where it needs to go.
 			std::memcpy( m_gCrtGamma, ppoOptions->gCrtGamma, sizeof( m_gCrtGamma ) );
-			m_gMonitorGamma = ppoOptions->gMonitorGamma;
+			// The monitor's gamma curve is a host-display setting (LSN_PALETTE_OPTIONS::gMonitorGamma is no longer used).
+			m_gMonitorGamma = m_oOptions.hdoHostDisplay.dsDisplay.gGamma;
+			// The CRT1 curve's parameters come from the palette filter's settings.
+			{
+				const LSN_GPU_FILTER_OPTIONS & gfoPalette = FilterOptions( m_pmSystem ).gfoPalette;
+				m_npPalette.SetCrt1Parms( gfoPalette.fCrt1White, gfoPalette.fCrt1Brightness );
+			}
 
 			lsn::LSN_PALETTE * ppPal = m_psbSystem->Palette();
 			bool bRet = true;
@@ -1864,8 +1964,7 @@ namespace lsn {
 		ApplyAudioOptions();
 		ApplyPaletteOptions();
 		
-		//CUtilities::GenGaussianNoise( 0.0225f/*, SystemBlackLevel( m_pmSystem ), SystemWhiteLevel( m_pmSystem )*/ );
-		CUtilities::GenThermalNoise( m_trTemperatureReader.FilteredTemperature() );
+		UpdateNoise();
 	}
 
 	/**
@@ -1954,6 +2053,7 @@ namespace lsn {
 		}
 		if ( ui32Version >= 3 ) {
 			if ( !LoadVideoFilterSettings( ui32Version, _sFile, m_oOptions.vfoGlobalFilters ) ) { return false; }
+			if ( !LoadHostDisplaySettings( ui32Version, _sFile, m_oOptions.hdoHostDisplay ) ) { return false; }
 		}
 
 		return true;
@@ -2018,6 +2118,7 @@ namespace lsn {
 
 		if ( !SaveVideoExportSettings( _sFile, m_oOptions.veoVideoExport ) ) { return false; }
 		if ( !SaveVideoFilterSettings( _sFile, m_oOptions.vfoGlobalFilters ) ) { return false; }
+		if ( !SaveHostDisplaySettings( _sFile, m_oOptions.hdoHostDisplay ) ) { return false; }
 
 		return true;
 	}
@@ -2749,6 +2850,14 @@ namespace lsn {
 	 * \return Returns true if the settings data was loaded.
 	 */
 	bool CBeesNes::LoadVideoFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_VIDEO_FILTER_OPTIONS &_vfoOptions ) {
+		// The section starts with a tag and its own version.  Data without the tag was written before the current layout and is ignored
+		//	(the defaults remain).
+		uint32_t ui32Tag, ui32SectionVersion;
+		if ( !_sFile.ReadUi32( ui32Tag ) ) { return false; }
+		if ( ui32Tag != LSN_VIDEO_FILTER_SECTION_TAG ) { return true; }
+		if ( !_sFile.ReadUi32( ui32SectionVersion ) ) { return false; }
+		if ( ui32SectionVersion != LSN_VIDEO_FILTER_SECTION_VERSION ) { return true; }
+
 		// Each region is stored by its LSN_PPU_METRICS value; regions added later are left at their defaults and regions that no longer
 		//	exist are skipped.
 		uint32_t ui32Total;
@@ -2770,6 +2879,8 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SaveVideoFilterSettings( CStream &_sFile, const LSN_VIDEO_FILTER_OPTIONS &_vfoOptions ) {
+		if ( !_sFile.WriteUi32( LSN_VIDEO_FILTER_SECTION_TAG ) ) { return false; }
+		if ( !_sFile.WriteUi32( LSN_VIDEO_FILTER_SECTION_VERSION ) ) { return false; }
 		if ( !_sFile.WriteUi32( uint32_t( LSN_PM_CONSOLE_TOTAL ) ) ) { return false; }
 		for ( size_t I = 0; I < LSN_PM_CONSOLE_TOTAL; ++I ) {
 			if ( !SaveFilterRegionSettings( _sFile, _vfoOptions.froRegions[I] ) ) { return false; }
@@ -2791,7 +2902,6 @@ namespace lsn {
 		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
 
 		if ( !LoadBlarggFilterSettings( _sFile, _froOptions.boBlarggNtsc ) ) { return false; }
-		if ( !LoadBlarggFilterSettings( _sFile, _froOptions.boBlarggPal ) ) { return false; }
 		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoBlargg ) ) { return false; }
 
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscCpu ) ) { return false; }
@@ -2820,7 +2930,6 @@ namespace lsn {
 		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
 
 		if ( !SaveBlarggFilterSettings( _sFile, _froOptions.boBlarggNtsc ) ) { return false; }
-		if ( !SaveBlarggFilterSettings( _sFile, _froOptions.boBlarggPal ) ) { return false; }
 		if ( !SaveGpuFilterSettings( _sFile, _froOptions.gfoBlargg ) ) { return false; }
 
 		if ( !SaveLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscCpu ) ) { return false; }
@@ -2844,15 +2953,27 @@ namespace lsn {
 	 * \return Returns true if the settings data was loaded.
 	 */
 	bool CBeesNes::LoadGpuFilterSettings( CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.cspColorSpace, 0, int64_t( CColorSpace::LSN_CSP_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fHueOffset ) ) { return false; }
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.gGamma, 0, int64_t( CNesPalette::LSN_G_TOTAL ) - 1 ) ) { return false; }
-		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32VertSharpness, 1, 32 ) ) { return false; }
-		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32HorSharpness, 1, 32 ) ) { return false; }
-		if ( !ReadBoolSetting( _sFile, _gfoOptions.bHighQualityResampler ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fCrt1White ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fCrt1Brightness ) ) { return false; }
 		if ( !ReadBoolSetting( _sFile, _gfoOptions.bPhosphorDecay ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorDecayLevel ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorDecayPeriod ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorRedMultiplier ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fPhosphorBlueMultiplier ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32VertSharpness, 1, 32 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.ui32HorSharpness, 1, 32 ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _gfoOptions.bDynamicScaling ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _gfoOptions.bHighQualityResampler ) ) { return false; }
+		for ( auto & ffThis : _gfoOptions.ffConvolution ) {
+			// LSN_FF_TOTAL (none) is valid.
+			if ( !ReadRangedSetting<uint32_t>( _sFile, ffThis, 0, int64_t( CResamplerBase::LSN_FF_TOTAL ) ) ) { return false; }
+		}
 		return true;
 	}
+
 
 	/**
 	 * Saves the settings shared by all GPU filters.
@@ -2862,15 +2983,26 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SaveGpuFilterSettings( CStream &_sFile, const LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		if ( !_sFile.Write( uint32_t( _gfoOptions.cspColorSpace ) ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fHueOffset ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( _gfoOptions.gGamma ) ) ) { return false; }
-		if ( !_sFile.Write( _gfoOptions.ui32VertSharpness ) ) { return false; }
-		if ( !_sFile.Write( _gfoOptions.ui32HorSharpness ) ) { return false; }
-		if ( !_sFile.Write( uint8_t( _gfoOptions.bHighQualityResampler ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fCrt1White ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fCrt1Brightness ) ) { return false; }
 		if ( !_sFile.Write( uint8_t( _gfoOptions.bPhosphorDecay ? 1 : 0 ) ) ) { return false; }
 		if ( !_sFile.Write( _gfoOptions.fPhosphorDecayLevel ) ) { return false; }
 		if ( !_sFile.Write( _gfoOptions.fPhosphorDecayPeriod ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fPhosphorRedMultiplier ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.fPhosphorBlueMultiplier ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.ui32VertSharpness ) ) { return false; }
+		if ( !_sFile.Write( _gfoOptions.ui32HorSharpness ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _gfoOptions.bDynamicScaling ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _gfoOptions.bHighQualityResampler ? 1 : 0 ) ) ) { return false; }
+		for ( auto ffThis : _gfoOptions.ffConvolution ) {
+			if ( !_sFile.Write( uint32_t( ffThis ) ) ) { return false; }
+		}
 		return true;
 	}
+
 
 	/**
 	 * Loads the settings of a Blargg filter.
@@ -2918,6 +3050,8 @@ namespace lsn {
 		}
 		if ( !ReadBoolSetting( _sFile, _lsOptions.bBlend ) ) { return false; }
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsOptions.ui32BorderColor, 0, 0x3F ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _lsOptions.bVSync ) ) { return false; }
+		if ( !ReadBoolSetting( _sFile, _lsOptions.bHSync ) ) { return false; }
 		if ( !ReadBoolSetting( _sFile, _lsOptions.bChromaCorrection ) ) { return false; }
 		if ( !ReadRangedSetting<int32_t>( _sFile, _lsOptions.i32YOffset, -64, 64 ) ) { return false; }
 		return true;
@@ -2937,6 +3071,8 @@ namespace lsn {
 		}
 		if ( !_sFile.Write( uint8_t( _lsOptions.bBlend ? 1 : 0 ) ) ) { return false; }
 		if ( !_sFile.Write( _lsOptions.ui32BorderColor ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _lsOptions.bVSync ? 1 : 0 ) ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _lsOptions.bHSync ? 1 : 0 ) ) ) { return false; }
 		if ( !_sFile.Write( uint8_t( _lsOptions.bChromaCorrection ? 1 : 0 ) ) ) { return false; }
 		if ( !_sFile.Write( _lsOptions.i32YOffset ) ) { return false; }
 		return true;
@@ -2959,7 +3095,7 @@ namespace lsn {
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ffFilterChroma, 0, int64_t( LSN_FF_FUNC_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[0] ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[1] ) ) { return false; }
-		for ( float * pfThis : { &_lsoOptions.fHue, &_lsoOptions.fGamma, &_lsoOptions.fBrightness, &_lsoOptions.fSaturation, &_lsoOptions.fBlackLevel,
+		for ( float * pfThis : { &_lsoOptions.fHue, &_lsoOptions.fGamma, &_lsoOptions.fBrightness, &_lsoOptions.fSaturation, &_lsoOptions.fContrast, &_lsoOptions.fBlackLevel,
 			&_lsoOptions.fWhiteLevel, &_lsoOptions.fBleed, &_lsoOptions.fPhosphorDecayPeriod, &_lsoOptions.fPhosphorDecayLevel } ) {
 			if ( !ReadFiniteSetting( _sFile, (*pfThis) ) ) { return false; }
 		}
@@ -2967,6 +3103,9 @@ namespace lsn {
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fCombWeight ) ) { return false; }
 		_lsoOptions.fCombWeight = std::clamp( _lsoOptions.fCombWeight, 0.0f, 1.0f );
 		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16PixelToSignal, 1, 64 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ntNoiseType, 0, int64_t( LSN_NT_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fNoiseAmount ) ) { return false; }
+		_lsoOptions.fNoiseAmount = std::max( _lsoOptions.fNoiseAmount, 0.0f );
 		return true;
 	}
 
@@ -2987,15 +3126,60 @@ namespace lsn {
 		if ( !_sFile.Write( uint32_t( _lsoOptions.ffFilterChroma ) ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.fFilterChromaParms[0] ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.fFilterChromaParms[1] ) ) { return false; }
-		for ( float fThis : { _lsoOptions.fHue, _lsoOptions.fGamma, _lsoOptions.fBrightness, _lsoOptions.fSaturation, _lsoOptions.fBlackLevel,
+		for ( float fThis : { _lsoOptions.fHue, _lsoOptions.fGamma, _lsoOptions.fBrightness, _lsoOptions.fSaturation, _lsoOptions.fContrast, _lsoOptions.fBlackLevel,
 			_lsoOptions.fWhiteLevel, _lsoOptions.fBleed, _lsoOptions.fPhosphorDecayPeriod, _lsoOptions.fPhosphorDecayLevel } ) {
 			if ( !_sFile.Write( fThis ) ) { return false; }
 		}
 		if ( !_sFile.Write( uint8_t( _lsoOptions.cfCombFilter ) ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.fCombWeight ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.ui16PixelToSignal ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( _lsoOptions.ntNoiseType ) ) ) { return false; }
+		if ( !_sFile.Write( _lsoOptions.fNoiseAmount ) ) { return false; }
 		return true;
 	}
+	/**
+	 * Loads the settings of the host display.
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _hdoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
+	 * \return Returns true if the settings data was loaded.
+	 */
+	bool CBeesNes::LoadHostDisplaySettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_HOST_DISPLAY_OPTIONS &_hdoOptions ) {
+		uint32_t ui32Tag, ui32SectionVersion;
+		if ( !_sFile.ReadUi32( ui32Tag ) ) { return false; }
+		if ( ui32Tag != LSN_HOST_DISPLAY_SECTION_TAG ) { return true; }
+		if ( !_sFile.ReadUi32( ui32SectionVersion ) ) { return false; }
+		if ( ui32SectionVersion != LSN_HOST_DISPLAY_SECTION_VERSION ) { return true; }
+
+		CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _hdoOptions.dsDisplay;
+		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.cspColorSpace, 0, int64_t( CColorSpace::LSN_CSP_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.gGamma, 0, int64_t( CNesPalette::LSN_G_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.waWhiteAdaptation, 0, int64_t( CColorSpace::LSN_WA_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.gmGamutMapping, 0, int64_t( CColorSpace::LSN_GM_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.orOutputRange, 0, int64_t( CColorSpace::LSN_OR_TOTAL ) - 1 ) ) { return false; }
+		return true;
+	}
+
+	/**
+	 * Saves the settings of the host display.
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _hdoOptions The settings to write to the settings data.
+	 * \return Returns true if the settings data was saved.
+	 */
+	bool CBeesNes::SaveHostDisplaySettings( CStream &_sFile, const LSN_HOST_DISPLAY_OPTIONS &_hdoOptions ) {
+		if ( !_sFile.WriteUi32( LSN_HOST_DISPLAY_SECTION_TAG ) ) { return false; }
+		if ( !_sFile.WriteUi32( LSN_HOST_DISPLAY_SECTION_VERSION ) ) { return false; }
+		const CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _hdoOptions.dsDisplay;
+		if ( !_sFile.Write( uint32_t( dsDisplay.cspColorSpace ) ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( dsDisplay.gGamma ) ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( dsDisplay.waWhiteAdaptation ) ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( dsDisplay.gmGamutMapping ) ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( dsDisplay.orOutputRange ) ) ) { return false; }
+		return true;
+	}
+
 
 	/**
 	 * Adds or move to the top a given file path.

@@ -43,8 +43,7 @@ namespace lsn {
 		m_dhSrvHeap.reset();
 		m_dhSamplerHeap.reset();
 
-		m_gShaderGamma = CNesPalette::LSN_G_NONE;
-		m_cmShaderColorSpace = CColorSpace::LSN_COLOR_MATRIX();
+		m_gpShaderPass = CColorSpace::LSN_GAMMA_PASS();
 		m_fFormat = DXGI_FORMAT_UNKNOWN;
 	}
 
@@ -57,17 +56,16 @@ namespace lsn {
 	 * \param _ui32SrcW The width of the source texture.
 	 * \param _ui32SrcH The height of the source texture.
 	 * \param _cdhRtv The CPU descriptor handle pointing to the destination render target view.
-	 * \param _gGamma The gamma curve to apply.
-	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+	 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 	 * \param _fTargetFormat The format of the RTV this shader will output to.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true on success.
 	 **/
-	bool CDirectX12TextureGamma::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
+	bool CDirectX12TextureGamma::Render( CDirectX12Device * _pd12dDevice, CDirectX12GraphicsCommandList * _pgclCommandList, CDirectX12Resource * _prSrc, uint32_t _ui32SrcW, uint32_t _ui32SrcH, D3D12_CPU_DESCRIPTOR_HANDLE _cdhRtv, const CColorSpace::LSN_GAMMA_PASS &_gpPass, DXGI_FORMAT _fTargetFormat, ID3DInclude * _piInclude ) {
 		if LSN_UNLIKELY( !_pd12dDevice || !_pgclCommandList || !_prSrc || !_ui32SrcW || !_ui32SrcH ) { return false; }
 
 		if LSN_UNLIKELY( !EnsureResources( _pd12dDevice ) ) { return false; }
-		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gGamma, _cmColorSpace, _fTargetFormat, _piInclude ) ) { return false; }
+		if LSN_UNLIKELY( !EnsureShader( _pd12dDevice, _gpPass, _fTargetFormat, _piInclude ) ) { return false; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		ID3D12GraphicsCommandList * pCommandList = _pgclCommandList->Get();
@@ -165,19 +163,17 @@ namespace lsn {
 	 * Ensures the Pipeline State Object is compiled with the correct gamma function.
 	 * 
 	 * \param _pd12dDevice The Direct3D 12 device.
-	 * \param _gGamma The gamma curve to apply.
-	 * \param _cmColorSpace The color-space conversion matrix to apply after the gamma curve (skipped if it is the identity matrix).
+	 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 	 * \param _fFormat The target format for the pipeline.
 	 * \param _piInclude Optional #include handler for shader compilation.
 	 * \return Returns true if the shader is ready.
 	 **/
-	bool CDirectX12TextureGamma::EnsureShader( CDirectX12Device * _pd12dDevice, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
-		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gShaderGamma == _gGamma && m_cmShaderColorSpace == _cmColorSpace && m_fFormat == _fFormat ) { return true; }
+	bool CDirectX12TextureGamma::EnsureShader( CDirectX12Device * _pd12dDevice, const CColorSpace::LSN_GAMMA_PASS &_gpPass, DXGI_FORMAT _fFormat, ID3DInclude * _piInclude ) {
+		if LSN_LIKELY( m_ppsShader.get() && m_ppsShader->Get() && m_gpShaderPass == _gpPass && m_fFormat == _fFormat ) { return true; }
 
 		ID3D12Device * pd12Device = _pd12dDevice->GetDevice();
 		m_ppsShader = std::make_unique<CDirectX12PipelineState>();
-		m_gShaderGamma = _gGamma;
-		m_cmShaderColorSpace = _cmColorSpace;
+		m_gpShaderPass = _gpPass;
 		m_fFormat = _fFormat;
 
 		if ( !m_prsRootSignature.get() ) {
@@ -206,27 +202,6 @@ namespace lsn {
 			if ( !m_prsRootSignature->CreateRootSignature( pd12Device, 0, pbSig->GetBufferPointer(), pbSig->GetBufferSize() ) ) { return false; }
 		}
 
-		std::string sGammaCall = "c.rgb";
-		switch ( _gGamma ) {
-			case CNesPalette::LSN_G_CRT1 :			{ sGammaCall = "CrtProperToLinear3( c.rgb, 1.0, 0.0181 * 8.0 )"; break; }
-			case CNesPalette::LSN_G_CRT2 :			{ sGammaCall = "CrtProper2ToLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_sRGB :			{ sGammaCall = "sRGBtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE170M :		{ sGammaCall = "SMPTE170MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_DCIP3 :			{ sGammaCall = "DCIP3toLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_ADOBERGB :		{ sGammaCall = "AdobeRGBtoLinear3( c.rgb )"; break; }
-			case CNesPalette::LSN_G_SMPTE240M :		{ sGammaCall = "SMPTE240MtoLinear3_Precise( c.rgb )"; break; }
-			case CNesPalette::LSN_G_POW_1_96 :		{ sGammaCall = "pow( c.rgb, 1.96 )"; break; }
-			case CNesPalette::LSN_G_POW_2_0 :		{ sGammaCall = "pow( c.rgb, 2.0 )"; break; }
-			case CNesPalette::LSN_G_POW_2_2 :		{ sGammaCall = "pow( c.rgb, 2.2222220897674560546875 )"; break; }
-			case CNesPalette::LSN_G_POW_2_35 :		{ sGammaCall = "pow( c.rgb, 2.35 )"; break; }
-			case CNesPalette::LSN_G_POW_2_4 :		{ sGammaCall = "pow( c.rgb, 2.4 )"; break; }
-			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = "pow( c.rgb, 2.5 )"; break; }
-			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = "pow( c.rgb, 2.7 )"; break; }
-			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = "pow( c.rgb, 2.8 )"; break; }
-			default : { break; }
-		}
-		// With a color-space conversion, out-of-gamut (negative) inputs must survive the gamma curve (it would make them NaN).
-		if ( !_cmColorSpace.IsIdentity() ) { sGammaCall = CColorSpace::SignedGammaCall( sGammaCall ); }
 
 		static const char * kVsHlsl =
 			"cbuffer VSConstants : register(b0) { float2 TargetSize; float2 Padding; };\n"
@@ -247,9 +222,8 @@ namespace lsn {
 			"SamplerState sPoint : register(s0);\n"
 			"struct PS_INPUT { float4 Pos : SV_POSITION; float2 Tex : TEXCOORD0; };\n"
 			"float4 main(PS_INPUT input) : SV_TARGET {\n"
-			"    float4 c = tSrc.Sample(sPoint, input.Tex);\n"
-			"    c.rgb = " + sGammaCall + ";\n"
-			"    " + CColorSpace::ShaderStatement( _cmColorSpace, true ) +
+			"    float4 c = tSrc.Sample(sPoint, input.Tex);\n" +
+			CColorSpace::GammaPassStatements( _gpPass, true ) +
 			"    return c;\n"
 			"}\n";
 

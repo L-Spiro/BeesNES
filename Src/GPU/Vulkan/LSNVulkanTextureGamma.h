@@ -60,14 +60,13 @@ namespace lsn {
 		 * 
 		 * \param _pvkDevice The Vulkan device.
 		 * \param _rpRenderPass The render pass that the pipeline will execute within.
-		 * \param _gGamma The specific gamma curve to hard-code into the generated shader.
-		 * \param _cmColorSpace The color-space conversion matrix to hard-code into the generated shader (skipped if it is the identity matrix).
+		 * \param _gpPass The parameters of the pass (the gamma curve, the color-space conversion, and the gamut mapping).
 		 * \param _fFormat The target format for the pipeline.
 		 * \param _vSpirvVert The SPIR-V byte code for the vertex shader.
 		 * \param _vSpirvFrag The SPIR-V byte code for the fragment shader.
 		 * \return Returns true if the shader is ready.
 		 **/
-		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, CNesPalette::LSN_GAMMA _gGamma, const CColorSpace::LSN_COLOR_MATRIX &_cmColorSpace, VkFormat _fFormat = VK_FORMAT_UNDEFINED, const std::vector<uint32_t> &_vSpirvVert = std::vector<uint32_t>(), const std::vector<uint32_t> &_vSpirvFrag = std::vector<uint32_t>() );
+		bool													EnsureShaders( CVulkanDevice * _pvkDevice, VkRenderPass _rpRenderPass, const CColorSpace::LSN_GAMMA_PASS &_gpPass, VkFormat _fFormat = VK_FORMAT_UNDEFINED, const std::vector<uint32_t> &_vSpirvVert = std::vector<uint32_t>(), const std::vector<uint32_t> &_vSpirvFrag = std::vector<uint32_t>() );
 
 		/**
 		 * Renders the texture to the surface.
@@ -113,10 +112,10 @@ namespace lsn {
 		std::unique_ptr<CVulkanDescriptorSetLayout>				m_pdslDescriptorSetLayout;
 
 		/** The currently compiled shader gamma curve. */
-		CNesPalette::LSN_GAMMA									m_gShaderGamma = CNesPalette::LSN_G_NONE;
 
 		/** The currently compiled color-space conversion matrix. */
-		CColorSpace::LSN_COLOR_MATRIX							m_cmShaderColorSpace;
+		/** The parameters used to compile the shader. */
+		CColorSpace::LSN_GAMMA_PASS								m_gpShaderPass;
 
 	};
 

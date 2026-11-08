@@ -224,6 +224,17 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the contrast:  a gain around the middle of the signal range (0.5), applied to luma and chroma alike.  1.0 leaves the
+	 *	picture unchanged.
+	 * 
+	 * \param _fContrast The contrast to set.
+	 **/
+	void CLSpiroNtscFilterBase::SetContrast( float _fContrast ) {
+		m_fContrastSetting = _fContrast;
+		GenPhaseTables( m_fHueSetting + m_fHueOffset );
+	}
+
+	/**
 	 * Sets the black level.
 	 * 
 	 * \param _fBlack The black level to set.
@@ -409,7 +420,9 @@ namespace lsn {
 			}
 		}
 
-		float fBrightness = LSN_FINAL_BRIGHT;
+		// Contrast is a gain around 0.5:  Y' = (Y * Brightness - 0.5) * Contrast + 0.5.
+		float fBrightness = LSN_FINAL_BRIGHT * m_fContrastSetting;
+		float fLumaOffset = 0.5f * (1.0f - m_fContrastSetting);
 		const int16_t i16HalfLeft = int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
 		const int16_t i16HalfRight = int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
 		const int16_t i16HalfLeftY = int16_t( std::floorf( m_ui32FilterKernelSizeY / 2.0f ) );
@@ -518,7 +531,8 @@ namespace lsn {
 					++K;
 				}
 			}
-			(*_pfDstY++) *= fBrightness;
+			(*_pfDstY) = (*_pfDstY) * fBrightness + fLumaOffset;
+			++_pfDstY;
 			++_pfDstI;
 			++_pfDstQ;
 		}
@@ -534,8 +548,8 @@ namespace lsn {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
 			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue, &dSin, &dCos );
-			dCos *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
-			dSin *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * 2.0;
+			dCos *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * m_fContrastSetting * 2.0;
+			dSin *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * m_fContrastSetting * 2.0;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
