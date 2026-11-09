@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <string>
 
+#include "../../../resource.h"
+
 
 namespace lsn {
 
@@ -35,6 +37,10 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CVideoOptionsWindow::InitDialog() {
 		Parent::InitDialog();
+
+		SetIcons( reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_VIDEO_SETTINGS_16 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )),
+			reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_VIDEO_SETTINGS_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT )) );
+
 		if ( !m_pvodData || !m_pvodData->poOptions ) { return LSW_H_CONTINUE; }
 		LSW_SETREDRAW srRedraw( this );
 

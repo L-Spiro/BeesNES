@@ -1051,7 +1051,7 @@
 #define LSN_STR_VO_TT_GAMMA															Select the CRT\u2019s gamma curve.
 #define LSN_STR_VO_TT_CRT_WHITE														The white level (Lw) of the CRT 1 gamma curve.  1.0 is the standard white level.
 #define LSN_STR_VO_TT_CRT_BRIGHTNESS												The brightness (black lift, B) of the CRT 1 gamma curve.  Higher values raise the darkest shades.
-#define LSN_STR_VO_TT_PHOSPHOR_ENABLED												Emulates the afterglow of the CRT\u2019s phosphors, which leaves a fading trail behind moving objects.
+#define LSN_STR_VO_TT_PHOSPHOR_ENABLED												Emulates the afterglow of the CRT\u2019s phosphors, which leaves a fading trail behind moving objects. On the L. Spiro filters, this also turns the phosphor decay of the software filter on or off (its level and time are under Software Phosphor Decay).
 #define LSN_STR_VO_TT_BASE_LEVEL													The maximum phosphor decay level.
 #define LSN_STR_VO_TT_TIME															The amount of time it takes to decay away in seconds.
 #define LSN_STR_VO_TT_RED_MULTIPLIER												The red multiplier, typically around 45%.

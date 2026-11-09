@@ -102,7 +102,7 @@ namespace lsn {
 	void CPalLSpiroFilter::FilterFrame( const uint8_t * _pui8Pixels, uint64_t _ui64RenderStartCycle ) {
 		// If there are no worker threads, render the whole frame on the calling thread.
 		if LSN_UNLIKELY( !m_vThreads.size() ) {
-			RenderScanlineRange( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+			RenderScanlineRangeSoftware( _pui8Pixels, 0, m_ui16Height, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
 			return;
 		}
 
@@ -140,7 +140,7 @@ namespace lsn {
 		const uint16_t ui16Lines = m_ui16Height;
 		const uint16_t ui16Start = 0;
 		const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * 1U) / uint32_t( stThreads ) );
-		RenderScanlinePhase( _rpPhase, _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+		RenderScanlinePhaseSoftware( _rpPhase, _pui8Pixels, ui16Start, ui16End, _ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
 
 		// Wait for all worker threads.
 		std::unique_lock<std::mutex> ulLock( m_mThreadMutex );
@@ -256,7 +256,7 @@ namespace lsn {
 			const uint16_t ui16Start = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx )) / uint32_t( jJob.stThreads ) );
 			const uint16_t ui16End = uint16_t( (uint32_t( ui16Lines ) * uint32_t( _stThreadIdx + 1 )) / uint32_t( jJob.stThreads ) );
 			if ( ui16End > ui16Start ) {
-				RenderScanlinePhase( jJob.rpPhase, jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
+				RenderScanlinePhaseSoftware( jJob.rpPhase, jJob.pui8Pixels, ui16Start, ui16End, jJob.ui64RenderStartCycle, m_vRgbBuffer.data(), m_ui16ScaledWidth * 4 );
 			}
 
 			if ( m_ui32WorkersRemaining.fetch_sub( 1 ) == 1 ) {

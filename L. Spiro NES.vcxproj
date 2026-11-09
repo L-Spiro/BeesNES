@@ -2465,6 +2465,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-bee-64.png" />
     <Image Include="Resources\icons8-broken-shield-16.ico" />
     <Image Include="Resources\icons8-broken-shield-32.ico" />
+    <Image Include="Resources\icons8-colored-pencils-16.ico" />
+    <Image Include="Resources\icons8-colored-pencils-32.ico" />
     <Image Include="Resources\icons8-delete-16.bmp" />
     <Image Include="Resources\icons8-delete-24.bmp" />
     <Image Include="Resources\icons8-down-radio-waves-24.bmp" />
@@ -2498,6 +2500,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-up-radio-waves-24.bmp" />
     <Image Include="Resources\icons8-video-camera-16.ico" />
     <Image Include="Resources\icons8-video-camera-32.ico" />
+    <Image Include="Resources\icons8-crayons-16.ico" />
+    <Image Include="Resources\icons8-crayons-32.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc" />

@@ -2409,6 +2409,10 @@ namespace lsn {
 		StopThread();
 		m_bnEmulator.ApplyFilterOptions();
 		m_bnEmulator.ApplyPaletteOptions();
+		{
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			m_bnEmulator.DirtyRender();
+		}
 		if ( bWasRunning ) { StartThread(); }
 		::InvalidateRect( Wnd(), NULL, FALSE );
 	}

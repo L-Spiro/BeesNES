@@ -396,8 +396,6 @@ namespace lsn {
 		bool												m_bUse16BitInitialTarget = true;
 		/** Toggles whether the high-quality 2-pass CDirectX9Resampler handles final scaling. */
 		bool												m_bUseHighQualityResampler = true;
-		/** Enable phosphor decay? */
-		bool												m_bEnablePhosphorDecay = true;
 
 		// == Capture ==
 		/** The system-memory copy of the back buffer, for capturing. */

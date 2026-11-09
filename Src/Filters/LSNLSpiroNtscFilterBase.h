@@ -354,6 +354,20 @@ namespace lsn {
 		}
 
 		/**
+		 * Enables or disables the phosphor decay of the software filter (the GPU filters have their own; see CGpuFilterBase).
+		 * 
+		 * \param _bEnable If true, the software filter simulates phosphor decay.
+		 **/
+		inline void											SetSoftwarePhosphorDecay( bool _bEnable ) { m_bSoftwarePhosphorDecay = _bEnable; }
+
+		/**
+		 * Gets whether the software filter simulates phosphor decay.
+		 * 
+		 * \return Returns true if the software filter simulates phosphor decay.
+		 **/
+		inline bool											GetSoftwarePhosphorDecay() const { return m_bSoftwarePhosphorDecay; }
+
+		/**
 		 * Sets the initial phosphor decay level.
 		 * 
 		 * \param _fLevel The strength of the phosphor decay.
@@ -418,6 +432,7 @@ namespace lsn {
 		uint32_t											m_ui32FilterKernelSizeY = 12;						/**< The kernel size for the Y gather during YIQ creation. */
 		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;									/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;										/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
+		uint32_t											m_ui32SignalPad = 0;								/**< The number of signals (a multiple of 16) before and after each scanline in m_vSignalBuffer, filled with the edge pixels. */
 		std::vector<simd_4>									m_vY;												/**< The YIQ Y buffer. */
 		std::vector<simd_4>									m_vI;												/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;												/**< The YIQ Q buffer. */
@@ -448,6 +463,7 @@ namespace lsn {
 		float												m_fPhosphorDecayRateBlue = 0.95f * 0.85f;			/**< Blue phosphor decay rate. */
 		float												m_fInitPhosphorDecay = 0.25f;						/**< Initial phosphor decay. */
 		float												m_fPhosphorDecayTime = 1.79113161563873291015625f;	/**< The time it takes for the phosphors to decay to 0.001. */
+		bool												m_bSoftwarePhosphorDecay = true;					/**< If true, the software filter simulates phosphor decay. */
 
 
 		// == Functions.
@@ -493,6 +509,18 @@ namespace lsn {
 		 **/
 		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Renders a range of scanlines for the software filter, with or without phosphor decay (see SetSoftwarePhosphorDecay()).
+		 * 
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End Index of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		inline void											RenderScanlineRangeSoftware( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
 
 		/**
 		 * Generates the phase sin/cos tables.
@@ -1370,6 +1398,21 @@ namespace lsn {
 				++pfQ;
 			}
 		}
+	}
+
+	/**
+	 * Renders a range of scanlines for the software filter, with or without phosphor decay (see SetSoftwarePhosphorDecay()).
+	 * 
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End Index of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	inline void CLSpiroNtscFilterBase::RenderScanlineRangeSoftware( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		if ( m_bSoftwarePhosphorDecay ) { RenderScanlineRange<true, true>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
+		else { RenderScanlineRange<true, false>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
 	}
 
 }	// namespace lsn

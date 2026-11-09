@@ -268,13 +268,30 @@ namespace lsn {
 		float * pfSignalStart = m_vSignalStart[_sRowIdx];
 		float * pfSignals = pfSignalStart;
 		for ( uint16_t I = 0; I < m_ui16Width; ++I ) {
-			PixelToNtscSignals( pfSignals, (*_pui16Pixels++), uint16_t( _ui16Cycle + I * 8 ) );
+			PixelToNtscSignals( pfSignals, _pui16Pixels[I], uint16_t( _ui16Cycle + I * 8 ) );
 			pfSignals += 8;
 		}
 
+		// The kernels reach past both ends of the scanline, so the signal continues past them (with the edge pixels, in phase) far
+		//	enough for the largest kernel.  Without this, the kernels would read whatever was in the padding.
+		const int32_t i32Signals = int32_t( m_ui16Width * 8 );
+		const int32_t i32Pad = int32_t( m_ui32SignalPad );
+		if LSN_LIKELY( m_ui16Width ) {
+			// Keeps the phase positive (a multiple of 12 at least as large as the padding).
+			const int32_t i32PadPhase = (i32Pad + 11) / 12 * 12;
+			const uint16_t ui16Left = _pui16Pixels[0];
+			const uint16_t ui16Right = _pui16Pixels[m_ui16Width-1];
+			for ( int32_t S = -i32Pad; S < 0; ++S ) {
+				pfSignalStart[S] = IndexToNtscSignal( ui16Left, uint16_t( _ui16Cycle + i32PadPhase + S ) );
+			}
+			for ( int32_t S = i32Signals; S < i32Signals + i32Pad; ++S ) {
+				pfSignalStart[S] = IndexToNtscSignal( ui16Right, uint16_t( _ui16Cycle + i32PadPhase + S ) );
+			}
+		}
+
 		// Add noise.
-		pfSignals = pfSignalStart;
-		float * pfSignalEnd = pfSignals + m_ui16Width * 8;
+		pfSignals = pfSignalStart - i32Pad;
+		float * pfSignalEnd = pfSignalStart + i32Signals + i32Pad;
 		// Prefetch the middle of the buffer.
 		LSN_PREFETCH_LINE( pfSignals + m_ui16Width * 4 );
 #ifdef __AVX512F__
@@ -341,7 +358,7 @@ namespace lsn {
 		
 		if ( !m_bPreProcessNormalization ) {
 			// Normalize.
-			pfSignals = pfSignalStart;
+			pfSignals = pfSignalStart - i32Pad;
 			// Prefetch the middle of the buffer.
 			LSN_PREFETCH_LINE( pfSignals + m_ui16Width * 4 );
 			
@@ -675,13 +692,17 @@ namespace lsn {
 	bool CLSpiroNtscFilterBase::AllocYiqBuffers( uint16_t _ui16W, uint16_t _ui16H, uint16_t _ui16Scale ) {
 		try {
 			// Buffer size:
-			// [ui32Kernel/2][m_ui16Width*8][ui32Kernel/2][Padding for Alignment to 64 Bytes]
+			// [Padding][Signals][Padding][Slack for Alignment to 64 Bytes]
+			// The padding covers half of the largest kernel plus a pixel (the kernels are centered on the middles of the pixels), in whole
+			//	64-byte blocks so that the noise and normalization passes can run over it in blocks of 16.
 			const uint32_t ui32Kernel = std::max( m_ui32FilterKernelSize, m_ui32FilterKernelSizeY );
-			size_t sRowSize = LSN_PM_NTSC_M_RENDER_WIDTH * 8 + ui32Kernel + 16;
-			m_vSignalBuffer.resize( sRowSize * _ui16H );
+			m_ui32SignalPad = ((ui32Kernel >> 1) + (ui32Kernel & 1) + uint32_t( 8 ) + 15) / 16 * 16;
+			size_t sRowSize = LSN_PM_NTSC_M_RENDER_WIDTH * 8 + m_ui32SignalPad * 2 + 16;
+			// Cleared so that nothing from a previous layout is left behind.
+			m_vSignalBuffer.assign( sRowSize * _ui16H, 0.0f );
 			m_vSignalStart.resize( _ui16H );
 			for ( uint16_t H = 0; H < _ui16H; ++H ) {
-				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + ((ui32Kernel >> 1) + (ui32Kernel & 1)) );
+				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32SignalPad);
 				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
 			}

@@ -94,6 +94,10 @@ IDI_RECORDING_SETTINGS_16 ICON                    "Resources\\icons8-video-camer
 
 IDI_RECORDING_SETTINGS_32 ICON                    "Resources\\icons8-video-camera-32.ico"
 
+IDI_VIDEO_SETTINGS_32   ICON                    "Resources\\icons8-colored-pencils-32.ico"
+
+IDI_VIDEO_SETTINGS_16   ICON                    "Resources\\icons8-colored-pencils-16.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

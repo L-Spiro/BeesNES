@@ -420,6 +420,11 @@ namespace lsn {
 		ApplyLSpiroOptions( m_nbfLSpiroDendyFilter, froDendy.lsoLSpiroCpu, true );
 		ApplyLSpiroOptions( m_nbfLSpiroPalMFilter, froPalM.lsoLSpiroCpu, true );
 		ApplyLSpiroOptions( m_nbfLSpiroPalNFilter, froPalN.lsoLSpiroCpu, true );
+		m_nbfLSpiroNtscFilter.SetSoftwarePhosphorDecay( froNtsc.gfoLSpiro.bPhosphorDecay );
+		m_nbfLSpiroPalFilter.SetSoftwarePhosphorDecay( froPal.gfoLSpiro.bPhosphorDecay );
+		m_nbfLSpiroDendyFilter.SetSoftwarePhosphorDecay( froDendy.gfoLSpiro.bPhosphorDecay );
+		m_nbfLSpiroPalMFilter.SetSoftwarePhosphorDecay( froPalM.gfoLSpiro.bPhosphorDecay );
+		m_nbfLSpiroPalNFilter.SetSoftwarePhosphorDecay( froPalN.gfoLSpiro.bPhosphorDecay );
 
 		// == GPU filters.  My filters are called through their bases because they inherit two sets of similarly named functions.
 		//	The palette has its CRT gamma curve and color space baked in (see BakedPalette()), so the palette filters get the monitor's color

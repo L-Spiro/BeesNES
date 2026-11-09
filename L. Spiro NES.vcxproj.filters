@@ -2246,6 +2246,18 @@
     <Image Include="Resources\icons8-video-camera-32.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\icons8-crayons-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-crayons-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-colored-pencils-32.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\icons8-colored-pencils-16.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="L. Spiro NES.rc">
