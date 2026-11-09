@@ -73,8 +73,8 @@ namespace lsn {
 	enum LSN_FILTER_FUNC : uint32_t {
 		LSN_FF_BOX,											/**< Box.  The parameters are unused. */
 		LSN_FF_LANCZOSX,									/**< Lanczos with (parameter 0 / parameter 1) lobes. */
-		LSN_FF_KAISER,										/**< Kaiser.  The parameters are unused. */
-		LSN_FF_BLACKMAN,									/**< Blackman.  The parameters are unused. */
+		LSN_FF_KAISER,										/**< Kaiser with beta = parameter 0 / 100.  Parameter 1 is unused. */
+		LSN_FF_BLACKMAN,									/**< Blackman-windowed sinc with its cut-off at parameter 0 Hz for a signal of parameter 1 Hz. */
 		LSN_FF_GAUSSIANX,									/**< Gaussian.  The parameters are unused. */
 		LSN_FF_CARDINAL_SPLINE_UNIFORM,						/**< Cardinal spline (uniform).  The parameters are unused. */
 		LSN_FF_BARTLETT,									/**< Bartlett.  The parameters are unused. */
@@ -2231,38 +2231,40 @@ namespace lsn {
 		}
 
 		/**
-		 * The Kaiser filter function.
+		 * The Kaiser filter function.  The window's shape is set by beta:  0 is a rectangular window, and larger values taper it more
+		 *	(lowering the side lobes and widening the main lobe).  A beta of 4.1226 (_fParm0 = 412.26) matches the original fixed window.
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
-		 * \param _fParm0 Unused.
+		 * \param _fParm0 Beta times 100.
 		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									KaiserFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
+		static inline float									KaiserFilterFunc( float _fT, float _fWidth, float _fParm0, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				static const float fAtt = 40.0f;
-				static const double dAlpha = std::exp( std::log( 0.58417 * (fAtt - 20.96) ) * 0.4 ) + 0.07886 * (fAtt - 20.96);
-				return static_cast<float>(Clean( Sinc( _fT ) * KaiserHelper( dAlpha, double( _fWidth ), _fT ) ));
+			if ( _fT <= _fWidth ) {
+				const double dBeta = std::fabs( double( _fParm0 ) / 100.0 );
+				return static_cast<float>(Clean( Sinc( _fT ) * KaiserHelper( dBeta, double( _fWidth ), _fT ) ));
 			}
 			return 0.0f;
 		}
 
 		/**
-		 * The Blackman filter function.
+		 * The Blackman filter function:  a low-pass windowed sinc whose cut-off is given in Hz for a signal sampled at a given rate in Hz.
+		 *	If either is not positive, the cut-off is the Nyquist frequency.
 		 *
-		 * \param _fT The value to filter.
+		 * \param _fT The value to filter (in samples of the signal).
 		 * \param _fWidth The size of the filter kernel.
-		 * \param _fParm0 Unused.
-		 * \param _fParm1 Unused.
+		 * \param _fParm0 The cut-off frequency, in Hz.
+		 * \param _fParm1 The sample rate of the signal, in Hz.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									BlackmanFilterFunc( float _fT, float _fWidth, float /*_fParm0*/, float /*_fParm1*/ ) {
+		static inline float									BlackmanFilterFunc( float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
 			_fT = std::fabsf( _fT );
-			if ( _fT <= std::ceil( _fWidth ) ) {
-				_fT = float( std::pow( _fT / _fWidth, 16.0 ) * _fWidth );
-				return Clean( Sinc( _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) );
+			if ( _fT <= _fWidth ) {
+				// The cut-off as a fraction of the sample rate (0.5 = Nyquist).
+				const double dCutOff = (_fParm0 > 0.0f && _fParm1 > 0.0f) ? std::min( double( _fParm0 ) / double( _fParm1 ), 0.5 ) : 0.5;
+				return static_cast<float>(Clean( Sinc( 2.0 * dCutOff * _fT ) * BlackmanWindow( _fT / double( _fWidth ) ) ));
 			}
 			return 0.0f;
 		}

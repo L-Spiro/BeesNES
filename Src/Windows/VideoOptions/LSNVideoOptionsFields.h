@@ -109,6 +109,7 @@ namespace lsn {
 
 			// L. Spiro.
 			LSN_VF_LSPIRO_BLEED,																				/**< The L. Spiro bleed. */
+			LSN_VF_DEEP_PRESET,																					/**< The Deep Internals preset (fills other fields; holds no value of its own). */
 			LSN_VF_CHROMA_FILTER,																				/**< The chrominance filter. */
 			LSN_VF_CHROMA_PARM0,																				/**< The first chrominance filter parameter. */
 			LSN_VF_CHROMA_PARM1,																				/**< The second chrominance filter parameter. */
@@ -118,6 +119,7 @@ namespace lsn {
 			LSN_VF_LUMA_PARM1,																					/**< The second luminance filter parameter. */
 			LSN_VF_LUMA_KERNEL,																					/**< The luminance kernel size. */
 			LSN_VF_VERTICAL_COMB,																				/**< The vertical comb filter (PAL only). */
+			LSN_VF_NTSC_COMB,																					/**< The vertical comb filter (NTSC only). */
 			LSN_VF_NOISE_TYPE,																					/**< The noise type. */
 			LSN_VF_NOISE_AMOUNT,																				/**< The custom noise amount. */
 			LSN_VF_SW_PHOSPHOR_LEVEL,																			/**< The software phosphor decay base level. */

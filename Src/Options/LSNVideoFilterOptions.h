@@ -13,6 +13,7 @@
 #include "../ColorSpace/LSNColorSpace.h"
 #include "../Filters/LSNGpuFilterBase.h"
 #include "../Filters/LSNLmp88959Settings.h"
+#include "../Filters/LSNLSpiroNtscFilterBase.h"
 #include "../Filters/LSNLSpiroPalFilterBase.h"
 #include "../Filters/LSNNesPalette.h"
 #include "../Filters/nes_ntsc/nes_ntsc.h"
@@ -206,6 +207,7 @@ namespace lsn {
 		float												fPhosphorDecayPeriod = 1.79113161563873291015625f;			/**< The time it takes the phosphors to decay to 0.001 (software only). */
 		float												fPhosphorDecayLevel = 0.25f;								/**< The initial phosphor decay level (software only). */
 		CLSpiroPalFilterBase::LSN_COMB_FILTER				cfCombFilter = CLSpiroPalFilterBase::LSN_CF_NONE;			/**< The vertical comb filter (PAL only). */
+		CLSpiroNtscFilterBase::LSN_COMB_FILTER				cfNtscCombFilter = CLSpiroNtscFilterBase::LSN_CF_NONE;		/**< The vertical comb filter (NTSC only). */
 		float												fCombWeight = 0.5f;											/**< The share of each line's chroma taken from its neighbors (PAL only). */
 		uint16_t											ui16PixelToSignal = 10;										/**< How many signals each pixel generates (PAL only). */
 		LSN_NOISE_TYPE										ntNoiseType = LSN_NT_PHYSICAL;								/**< The kind of signal noise. */

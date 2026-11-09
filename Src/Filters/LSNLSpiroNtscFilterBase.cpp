@@ -265,6 +265,18 @@ namespace lsn {
 	 * \param _sRowIdx The scanline index.
 	 **/
 	void CLSpiroNtscFilterBase::ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
+		GenerateSignals( _pui16Pixels, _ui16Cycle, _sRowIdx );
+		ConvolveScanline( _pfDstY, _pfDstI, _pfDstQ, _ui16Cycle, m_vSignalStart[_sRowIdx], m_vSignalStart[_sRowIdx] );
+	}
+
+	/**
+	 * Generates the composite signals of a scanline (with its padding, noise, and normalization) into m_vSignalStart[_sRowIdx].
+	 * 
+	 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
+	 * \param _ui16Cycle The cycle count at the start of the scanline.
+	 * \param _sRowIdx The scanline index.
+	 **/
+	void CLSpiroNtscFilterBase::GenerateSignals( const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx ) {
 		float * pfSignalStart = m_vSignalStart[_sRowIdx];
 		float * pfSignals = pfSignalStart;
 		for ( uint16_t I = 0; I < m_ui16Width; ++I ) {
@@ -436,7 +448,19 @@ namespace lsn {
 				++pfSignals;
 			}
 		}
+	}
 
+	/**
+	 * Decodes the signals of a scanline to YIQ values.
+	 * 
+	 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
+	 * \param _pfDstI The destination for where to begin storing the YIQ I values.  Must be aligned to a 16-byte boundary.
+	 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
+	 * \param _ui16Cycle The cycle count at the start of the scanline.
+	 * \param _pfLuma The signals from which the Y values are filtered (the first signal of the scanline, with padding on both sides).
+	 * \param _pfChroma The signals from which the I and Q values are demodulated (the first signal of the scanline, with padding on both sides).
+	 **/
+	void CLSpiroNtscFilterBase::ConvolveScanline( float * _pfDstY, float * _pfDstI, float * _pfDstQ, uint16_t _ui16Cycle, float * _pfLuma, float * _pfChroma ) {
 		// Contrast is a gain around 0.5:  Y' = (Y * Brightness - 0.5) * Contrast + 0.5.
 		float fBrightness = LSN_FINAL_BRIGHT * m_fContrastSetting;
 		float fLumaOffset = 0.5f * (1.0f - m_fContrastSetting);
@@ -464,22 +488,22 @@ namespace lsn {
 				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
 					while ( i16End - J >= 16 ) {
 						// Can do 16 at a time.
-						Convolution16_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
+						Convolution16_Fma( &_pfChroma[J], J - i16Start, (_ui16Cycle + (12 * 16) + J) % 12, mCos, mSin );
 						J += 16;
 					}
 					while ( i16EndY - K >= 16 ) {
-						Convolution16Y_Fma( &pfSignalStart[K], K - i16StartY, mSig );
+						Convolution16Y_Fma( &_pfLuma[K], K - i16StartY, mSig );
 						K += 16;
 					}
 				}
 				else {
 					while ( i16End - J >= 16 ) {
 						// Can do 16 at a time.
-						Convolution16( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
+						Convolution16( &_pfChroma[J], J - i16Start, (_ui16Cycle + (12 * 16) + J) % 12, mCos, mSin );
 						J += 16;
 					}
 					while ( i16EndY - K >= 16 ) {
-						Convolution16Y( &pfSignalStart[K], K - i16StartY, mSig );
+						Convolution16Y( &_pfLuma[K], K - i16StartY, mSig );
 						K += 16;
 					}
 				}
@@ -494,22 +518,22 @@ namespace lsn {
 				if LSN_LIKELY( CUtilities::IsFmaSupported() ) {
 					while ( i16End - J >= 8 ) {
 						// Can do 8 at a time.
-						Convolution8_Fma( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
+						Convolution8_Fma( &_pfChroma[J], J - i16Start, (_ui16Cycle + (12 * 16) + J) % 12, mCos, mSin );
 						J += 8;
 					}
 					while ( i16EndY - K >= 8 ) {
-						Convolution8Y_Fma( &pfSignalStart[K], K - i16StartY, mSig );
+						Convolution8Y_Fma( &_pfLuma[K], K - i16StartY, mSig );
 						K += 8;
 					}
 				}
 				else {
 					while ( i16End - J >= 8 ) {
 						// Can do 8 at a time.
-						Convolution8( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
+						Convolution8( &_pfChroma[J], J - i16Start, (_ui16Cycle + (12 * 16) + J) % 12, mCos, mSin );
 						J += 8;
 					}
 					while ( i16EndY - K >= 8 ) {
-						Convolution8Y( &pfSignalStart[K], K - i16StartY, mSig );
+						Convolution8Y( &_pfLuma[K], K - i16StartY, mSig );
 						K += 8;
 					}
 				}
@@ -523,11 +547,11 @@ namespace lsn {
 				__m128 mSin = _mm_set1_ps( 0.0f ), mCos = _mm_set1_ps( 0.0f ), mSig = _mm_set1_ps( 0.0f );
 				while ( i16End - J >= 4 ) {
 					// Can do 4 at a time.
-					Convolution4( &pfSignalStart[J], J - i16Start, (_ui16Cycle + (12 * 4) + J) % 12, mCos, mSin );
+					Convolution4( &_pfChroma[J], J - i16Start, (_ui16Cycle + (12 * 16) + J) % 12, mCos, mSin );
 					J += 4;
 				}
 				while ( i16EndY - K >= 4 ) {
-					Convolution4Y( &pfSignalStart[K], K - i16StartY, mSig );
+					Convolution4Y( &_pfLuma[K], K - i16StartY, mSig );
 					K += 4;
 				}
 				(*_pfDstI) += CUtilities::HorizontalSum( mCos );
@@ -537,14 +561,14 @@ namespace lsn {
 #endif	// #ifdef __SSE4_1__
 			{
 				while ( i16End - J >= 1 ) {
-					size_t sIdx = (_ui16Cycle + (12 * 4) + J) % 12;
-					float fLevel = pfSignalStart[J] * m_fFilter[J-i16Start];
+					size_t sIdx = (_ui16Cycle + (12 * 16) + J) % 12;
+					float fLevel = _pfChroma[J] * m_fFilter[J-i16Start];
 					(*_pfDstI) += m_fPhaseCosTable[sIdx] * fLevel;
 					(*_pfDstQ) += m_fPhaseSinTable[sIdx] * fLevel;
 					++J;
 				}
 				while ( i16EndY - K >= 1 ) {
-					(*_pfDstY) += pfSignalStart[K] * m_fFilterY[K-i16StartY];
+					(*_pfDstY) += _pfLuma[K] * m_fFilterY[K-i16StartY];
 					++K;
 				}
 			}
@@ -553,6 +577,113 @@ namespace lsn {
 			++_pfDstI;
 			++_pfDstQ;
 		}
+	}
+
+	/**
+	 * Separates the luma and chroma of a scanline with the vertical comb filter, from the generated signals of the scanline and its
+	 *	neighbors into m_vLumaStart[_sRowIdx] and m_vChromaStart[_sRowIdx].  Every scanline must have been generated first.
+	 * 
+	 * \param _sRowIdx The scanline index.
+	 **/
+	void CLSpiroNtscFilterBase::CombScanline( size_t _sRowIdx ) {
+		const size_t sRows = m_vSignalStart.size();
+		if LSN_UNLIKELY( _sRowIdx >= sRows || _sRowIdx >= m_vLumaStart.size() || _sRowIdx >= m_vChromaStart.size() ) { return; }
+		// The range covered by the kernels:  the scanline and its padding.
+		const int32_t i32Lo = -int32_t( m_ui32SignalPad );
+		const int32_t i32Hi = int32_t( m_ui16Width * 8 ) + int32_t( m_ui32SignalPad );
+		const float * pfCur = m_vSignalStart[_sRowIdx];
+		float * pfLuma = m_vLumaStart[_sRowIdx];
+		float * pfChroma = m_vChromaStart[_sRowIdx];
+
+		// A 1H delay is 227.5 subcarrier cycles (2,730 signals) but an NES line is 2,728 signals long, so the line above lines up 2
+		//	signals to the left (and the line below 2 to the right), where its chroma is inverted.  A missing neighbor (at the top or bottom
+		//	of the picture) is replaced by the other one.
+		const bool bUp = _sRowIdx > 0;
+		const bool bDown = _sRowIdx + 1 < sRows;
+		const float * pfUp = bUp ? m_vSignalStart[_sRowIdx-1] : (bDown ? m_vSignalStart[_sRowIdx+1] : pfCur);
+		const int32_t i32UpOff = bUp ? -2 : (bDown ? 2 : 0);
+		const float * pfDown = bDown ? m_vSignalStart[_sRowIdx+1] : (bUp ? m_vSignalStart[_sRowIdx-1] : pfCur);
+		const int32_t i32DownOff = bDown ? 2 : (bUp ? -2 : 0);
+		auto Clamp = [i32Lo, i32Hi]( int32_t _i32Idx ) { return std::clamp( _i32Idx, i32Lo, i32Hi - 1 ); };
+		// The average over one subcarrier cycle (12 signals), which removes the chroma and keeps the luma.
+		auto CycleMean = [&Clamp]( const float * _pfSrc, int32_t _i32Idx ) {
+			float fSum = 0.0f;
+			for ( int32_t T = -6; T < 6; ++T ) { fSum += _pfSrc[Clamp( _i32Idx + T )]; }
+			return fSum * (1.0f / 12.0f);
+		};
+
+		// Pass 1:  the combed chroma (scaled by how much of it is used) into pfChroma and the share of the uncombed signal into pfLuma.
+		constexpr float fMatch = 0.05f;			// Neighboring luma within this of the line combs fully.
+		constexpr float fMismatch = 0.15f;		// Neighboring luma beyond this on both sides is not combed.
+		for ( int32_t S = i32Lo; S < i32Hi; ++S ) {
+			const float fCur = pfCur[S];
+			const float fUp = pfUp[Clamp( S + i32UpOff )];
+			const float fDown = pfDown[Clamp( S + i32DownOff )];
+			float fComb = 0.0f, fUncombed = 0.0f;
+			switch ( m_cfCombFilter ) {
+				case LSN_CF_2_LINE : {
+					fComb = (fCur - fUp) * 0.5f;
+					break;
+				}
+				case LSN_CF_3_LINE : {
+					fComb = (2.0f * fCur - fUp - fDown) * 0.25f;
+					break;
+				}
+				case LSN_CF_ADAPTIVE_3_LINE : {
+					// Comb with the neighbor whose luma matches better (in proportion), and fall back to no comb where neither matches.
+					const float fMean = CycleMean( pfCur, S );
+					const float fDiffUp = std::fabs( fMean - CycleMean( pfUp, S + i32UpOff ) );
+					const float fDiffDown = std::fabs( fMean - CycleMean( pfDown, S + i32DownOff ) );
+					const float fUpper = (fCur - fUp) * 0.5f;
+					const float fLower = (fCur - fDown) * 0.5f;
+					const float fTotal = fDiffUp + fDiffDown;
+					fComb = (fTotal < 1.0e-6f) ? ((fUpper + fLower) * 0.5f) : ((fDiffDown * fUpper + fDiffUp * fLower) / fTotal);
+					const float fNoComb = std::clamp( (std::min( fDiffUp, fDiffDown ) - fMatch) / (fMismatch - fMatch), 0.0f, 1.0f );
+					fComb *= 1.0f - fNoComb;
+					fUncombed = fNoComb * fCur;
+					break;
+				}
+				default : {}
+			}
+			pfChroma[S] = fComb;
+			pfLuma[S] = fUncombed;
+		}
+
+		// Pass 2:  keep only the chroma band of the combed chroma (removing what is below the subcarrier, which is vertical luma detail),
+		//	then luma = signal - chroma and chroma = chroma + the uncombed share of the signal.  The window reads combed chroma that has
+		//	already been overwritten to its left, so those values are kept in a small ring.
+		float fRing[8] = {};
+		for ( int32_t S = i32Lo; S < i32Hi; ++S ) {
+			float fSum = 0.0f;
+			for ( int32_t T = -6; T < 6; ++T ) {
+				const int32_t i32Idx = Clamp( S + T );
+				fSum += (i32Idx < S) ? fRing[i32Idx&7] : pfChroma[i32Idx];
+			}
+			const float fComb = pfChroma[S];
+			fRing[S&7] = fComb;
+			const float fChroma = fComb - fSum * (1.0f / 12.0f);
+			const float fCur = pfCur[S];
+			pfChroma[S] = fChroma + pfLuma[S];
+			pfLuma[S] = fCur - fChroma;
+		}
+	}
+
+	/**
+	 * Sets the vertical comb filter.
+	 * 
+	 * \param _cfFilter The comb filter to use.  LSN_CF_NONE disables comb filtering.
+	 * \return Returns true if the memory for the internal buffer(s) was allocated.
+	 **/
+	bool CLSpiroNtscFilterBase::SetCombFilter( LSN_COMB_FILTER _cfFilter ) {
+		if ( _cfFilter >= LSN_CF_TOTAL ) { _cfFilter = LSN_CF_NONE; }
+		if ( _cfFilter == m_cfCombFilter ) { return true; }
+		LSN_COMB_FILTER cfBackup = m_cfCombFilter;
+		m_cfCombFilter = _cfFilter;
+		if ( !AllocYiqBuffers( m_ui16Width, m_ui16Height, m_ui16WidthScale ) ) {
+			m_cfCombFilter = cfBackup;
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -705,6 +836,24 @@ namespace lsn {
 				uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vSignalBuffer.data() + (sRowSize * H) + m_ui32SignalPad);
 				uiptrStart = (uiptrStart + 63) / 64 * 64;
 				m_vSignalStart[H] = reinterpret_cast<float *>(uiptrStart);
+			}
+
+			// The combed luma and chroma, laid out the same way (only with a comb filter).
+			if ( CombFilterEnabled() ) {
+				m_vCombBuffer.assign( sRowSize * _ui16H * 2, 0.0f );
+				m_vLumaStart.resize( _ui16H );
+				m_vChromaStart.resize( _ui16H );
+				for ( uint16_t H = 0; H < _ui16H; ++H ) {
+					uintptr_t uiptrStart = reinterpret_cast<uintptr_t>(m_vCombBuffer.data() + (sRowSize * H) + m_ui32SignalPad);
+					m_vLumaStart[H] = reinterpret_cast<float *>((uiptrStart + 63) / 64 * 64);
+					uiptrStart = reinterpret_cast<uintptr_t>(m_vCombBuffer.data() + (sRowSize * (H + size_t( _ui16H ))) + m_ui32SignalPad);
+					m_vChromaStart[H] = reinterpret_cast<float *>((uiptrStart + 63) / 64 * 64);
+				}
+			}
+			else {
+				m_vCombBuffer = std::vector<float, CAlignmentAllocator<float>>();
+				m_vLumaStart.clear();
+				m_vChromaStart.clear();
 			}
 
 

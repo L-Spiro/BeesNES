@@ -43,11 +43,56 @@ namespace lsn {
 			LSN_SRGB_RES									= 512,
 		};
 
+		/**
+		 * Vertical (line) comb filters that separate the composite signal into luma and chroma, as in NTSC televisions.  NTSC's subcarrier
+		 *	runs 227.5 cycles per line, so a line delay of exactly 1H inverts the chroma of the line before:  adding the lines cancels the
+		 *	chroma and subtracting them cancels the luma.  The NES's lines are 227 1/3 cycles long, so a 1H delay lines each sample up with
+		 *	the sample 2 signals (a quarter of a pixel) to its left on the line before (and to its right on the line after), whose chroma is
+		 *	inverted.  The combed chroma is band-limited around the subcarrier before it is subtracted from the luma, so that only the chroma
+		 *	band loses vertical detail (as in sets with "vertical detail" restoration).  Each is non-recursive:  only uncombed lines are combined.
+		 */
+		enum LSN_COMB_FILTER : uint8_t {
+			LSN_CF_NONE										= 0,												/**< No comb filter:  the luma and chroma are separated only by the Y and chroma filters (notch/band-pass sets). */
+			LSN_CF_2_LINE,																						/**< 2-line (1H delay) comb:  chroma = (line - line above) / 2 (early-1980s analog glass/CCD delay-line sets). */
+			LSN_CF_3_LINE,																						/**< 3-line (2H delay) comb:  chroma = (2 * line - line above - line below) / 4 (late-1980s and 1990s digital sets). */
+			LSN_CF_ADAPTIVE_3_LINE,																				/**< Adaptive 3-line (2D) comb:  combs with whichever neighboring line matches better and falls back to no comb where neither matches (1990s high-end sets). */
+			LSN_CF_TOTAL																						/**< The number of comb filters. */
+		};
+
+		/** The parts of a frame render that can be split across a barrier. */
+		enum LSN_RENDER_PHASE : uint8_t {
+			LSN_RP_FULL										= 0,												/**< Generate, decode, and convert each scanline (a comb filter needs the range to cover the whole frame). */
+			LSN_RP_SIGNAL,																						/**< Generate the composite signals of the scanlines only. */
+			LSN_RP_DECODE,																						/**< Comb (if enabled), decode, and convert the generated scanlines to the output. */
+		};
+
 
 		// == Types.
 
 
 		// == Functions.
+		/**
+		 * Sets the vertical comb filter.
+		 * 
+		 * \param _cfFilter The comb filter to use.  LSN_CF_NONE disables comb filtering.
+		 * \return Returns true if the memory for the internal buffer(s) was allocated.
+		 **/
+		bool												SetCombFilter( LSN_COMB_FILTER _cfFilter );
+
+		/**
+		 * Gets the vertical comb filter.
+		 * 
+		 * \return Returns the vertical comb filter.
+		 **/
+		inline LSN_COMB_FILTER								GetCombFilter() const { return m_cfCombFilter; }
+
+		/**
+		 * Determines whether a vertical comb filter is enabled.
+		 * 
+		 * \return Returns true if a vertical comb filter is enabled.
+		 **/
+		inline bool											CombFilterEnabled() const { return m_cfCombFilter != LSN_CF_NONE; }
+
 		/**
 		 * Sets the filter kernel size for both Y and chroma.
 		 * 
@@ -433,6 +478,10 @@ namespace lsn {
 		std::vector<float, CAlignmentAllocator<float>>		m_vSignalBuffer;									/**< The intermediate signal buffer for a single scanline. */
 		std::vector<float *>								m_vSignalStart;										/**< Points into m_vSignalBuffer.data() at the first location that is both >= to (LSN_MAX_FILTER_SIZE/2) floats and aligned to a 64-byte address. */
 		uint32_t											m_ui32SignalPad = 0;								/**< The number of signals (a multiple of 16) before and after each scanline in m_vSignalBuffer, filled with the edge pixels. */
+		std::vector<float, CAlignmentAllocator<float>>		m_vCombBuffer;										/**< The combed luma and chroma signals (laid out as m_vSignalBuffer, twice), allocated only with a comb filter. */
+		std::vector<float *>								m_vLumaStart;										/**< The start of each scanline's combed luma signals (as m_vSignalStart). */
+		std::vector<float *>								m_vChromaStart;										/**< The start of each scanline's combed chroma signals (as m_vSignalStart). */
+		LSN_COMB_FILTER										m_cfCombFilter = LSN_CF_NONE;						/**< The vertical comb filter. */
 		std::vector<simd_4>									m_vY;												/**< The YIQ Y buffer. */
 		std::vector<simd_4>									m_vI;												/**< The YIQ I buffer. */
 		std::vector<simd_4>									m_vQ;												/**< The YIQ Q buffer. */
@@ -498,6 +547,35 @@ namespace lsn {
 		void												ScanlineToYiq( float * _pfDstY, float * _pfDstI, float * _pfDstQ, const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx );
 
 		/**
+		 * Generates the composite signals of a scanline (with its padding, noise, and normalization) into m_vSignalStart[_sRowIdx].
+		 * 
+		 * \param _pui16Pixels The start of the 9-bit PPU output for this scanline.
+		 * \param _ui16Cycle The cycle count at the start of the scanline.
+		 * \param _sRowIdx The scanline index.
+		 **/
+		void												GenerateSignals( const uint16_t * _pui16Pixels, uint16_t _ui16Cycle, size_t _sRowIdx );
+
+		/**
+		 * Decodes the signals of a scanline to YIQ values.
+		 * 
+		 * \param _pfDstY The destination for where to begin storing the YIQ Y values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstI The destination for where to begin storing the YIQ I values.  Must be aligned to a 16-byte boundary.
+		 * \param _pfDstQ The destination for where to begin storing the YIQ Q values.  Must be aligned to a 16-byte boundary.
+		 * \param _ui16Cycle The cycle count at the start of the scanline.
+		 * \param _pfLuma The signals from which the Y values are filtered (the first signal of the scanline, with padding on both sides).
+		 * \param _pfChroma The signals from which the I and Q values are demodulated (the first signal of the scanline, with padding on both sides).
+		 **/
+		void												ConvolveScanline( float * _pfDstY, float * _pfDstI, float * _pfDstQ, uint16_t _ui16Cycle, float * _pfLuma, float * _pfChroma );
+
+		/**
+		 * Separates the luma and chroma of a scanline with the vertical comb filter, from the generated signals of the scanline and its
+		 *	neighbors into m_vLumaStart[_sRowIdx] and m_vChromaStart[_sRowIdx].  Every scanline must have been generated first.
+		 * 
+		 * \param _sRowIdx The scanline index.
+		 **/
+		void												CombScanline( size_t _sRowIdx );
+
+		/**
 		 * Renders a range of scanlines.
 		 * 
 		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
@@ -509,6 +587,34 @@ namespace lsn {
 		 **/
 		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
 		void												RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Renders one phase of a range of scanlines.  With a comb filter, every scanline must finish LSN_RP_SIGNAL before any scanline starts
+		 *	LSN_RP_DECODE, because combing reads the neighboring scanlines.
+		 * 
+		 * \param _rpPhase The phase to render.
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End Index of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		template <bool _bStoreToInt = true, bool _bPhosphorDecay = true>
+		void												RenderScanlinePhase( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
+
+		/**
+		 * Renders one phase of a range of scanlines for the software filter, with or without phosphor decay (see SetSoftwarePhosphorDecay()).
+		 * 
+		 * \param _rpPhase The phase to render.
+		 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+		 * \param _ui16Start Index of the first scanline to render.
+		 * \param _ui16End Index of the end scanline.
+		 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+		 * \param _pui8Dst Pointers to the start of the destination buffer.
+		 * \param _sPitch The pitch of the rows in the scanline buffer.
+		 **/
+		inline void											RenderScanlinePhaseSoftware( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch );
 
 		/**
 		 * Renders a range of scanlines for the software filter, with or without phosphor decay (see SetSoftwarePhosphorDecay()).
@@ -737,6 +843,12 @@ namespace lsn {
 	 **/
 	template <bool _bStoreToInt, bool _bPhosphorDecay>
 	void CLSpiroNtscFilterBase::RenderScanlineRange( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		if LSN_UNLIKELY( CombFilterEnabled() ) {
+			// Combing reads the neighboring scanlines, so the whole range is generated first.
+			RenderScanlinePhase<_bStoreToInt, _bPhosphorDecay>( LSN_RP_SIGNAL, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			RenderScanlinePhase<_bStoreToInt, _bPhosphorDecay>( LSN_RP_DECODE, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			return;
+		}
 		float * pfY = reinterpret_cast<float *>(m_vY.data());
 		float * pfI = reinterpret_cast<float *>(m_vI.data());
 		float * pfQ = reinterpret_cast<float *>(m_vQ.data());
@@ -751,6 +863,53 @@ namespace lsn {
 			pfY += sYiqStride;
 			pfI += sYiqStride;
 			pfQ += sYiqStride;
+		}
+	}
+
+	/**
+	 * Renders one phase of a range of scanlines.  With a comb filter, every scanline must finish LSN_RP_SIGNAL before any scanline starts
+	 *	LSN_RP_DECODE, because combing reads the neighboring scanlines.
+	 * 
+	 * \param _rpPhase The phase to render.
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End Index of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	template <bool _bStoreToInt, bool _bPhosphorDecay>
+	void CLSpiroNtscFilterBase::RenderScanlinePhase( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		switch ( _rpPhase ) {
+			case LSN_RP_SIGNAL : {
+				for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+					const uint16_t * pui6PixelRow = reinterpret_cast<const uint16_t *>(_pui8Pixels + (m_ui16Width * sizeof( uint16_t )) * H);
+					GenerateSignals( pui6PixelRow, uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_M_DOTS_X * H) * 8) % 12 ), H );
+				}
+				break;
+			}
+			case LSN_RP_DECODE : {
+				const size_t sYiqStride = m_ui16ScaledWidth;
+				const bool bComb = CombFilterEnabled() && m_vLumaStart.size() >= _ui16End && m_vChromaStart.size() >= _ui16End;
+				for ( uint16_t H = _ui16Start; H < _ui16End; ++H ) {
+					float * pfY = reinterpret_cast<float *>(m_vY.data()) + sYiqStride * H;
+					float * pfI = reinterpret_cast<float *>(m_vI.data()) + sYiqStride * H;
+					float * pfQ = reinterpret_cast<float *>(m_vQ.data()) + sYiqStride * H;
+					const uint16_t ui16Cycle = uint16_t( ((_ui64RenderStartCycle + LSN_PM_NTSC_M_DOTS_X * H) * 8) % 12 );
+					if LSN_LIKELY( bComb ) {
+						CombScanline( H );
+						ConvolveScanline( pfY, pfI, pfQ, ui16Cycle, m_vLumaStart[H], m_vChromaStart[H] );
+					}
+					else {
+						ConvolveScanline( pfY, pfI, pfQ, ui16Cycle, m_vSignalStart[H], m_vSignalStart[H] );
+					}
+					ConvertYiqToBgra<_bStoreToInt, _bPhosphorDecay>( H, _pui8Dst, _sPitch );
+				}
+				break;
+			}
+			default : {
+				RenderScanlineRange<_bStoreToInt, _bPhosphorDecay>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch );
+			}
 		}
 	}
 
@@ -1413,6 +1572,22 @@ namespace lsn {
 	inline void CLSpiroNtscFilterBase::RenderScanlineRangeSoftware( const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
 		if ( m_bSoftwarePhosphorDecay ) { RenderScanlineRange<true, true>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
 		else { RenderScanlineRange<true, false>( _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
+	}
+
+	/**
+	 * Renders one phase of a range of scanlines for the software filter, with or without phosphor decay (see SetSoftwarePhosphorDecay()).
+	 * 
+	 * \param _rpPhase The phase to render.
+	 * \param _pui8Pixels The input array of 9-bit PPU outputs.
+	 * \param _ui16Start Index of the first scanline to render.
+	 * \param _ui16End Index of the end scanline.
+	 * \param _ui64RenderStartCycle The PPU cycle at the start of the frame being rendered.
+	 * \param _pui8Dst Pointers to the start of the destination buffer.
+	 * \param _sPitch The pitch of the rows in the scanline buffer.
+	 **/
+	inline void CLSpiroNtscFilterBase::RenderScanlinePhaseSoftware( LSN_RENDER_PHASE _rpPhase, const uint8_t * _pui8Pixels, uint16_t _ui16Start, uint16_t _ui16End, uint64_t _ui64RenderStartCycle, uint8_t * _pui8Dst, size_t _sPitch ) {
+		if ( m_bSoftwarePhosphorDecay ) { RenderScanlinePhase<true, true>( _rpPhase, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
+		else { RenderScanlinePhase<true, false>( _rpPhase, _pui8Pixels, _ui16Start, _ui16End, _ui64RenderStartCycle, _pui8Dst, _sPitch ); }
 	}
 
 }	// namespace lsn

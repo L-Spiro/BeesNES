@@ -13,6 +13,7 @@
 #include "../../BeesNES/LSNBeesNes.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../WinUtilities/LSNWinUtilities.h"
+#include "../../Options/LSNLSpiroPresets.h"
 
 #include <algorithm>
 #include <cmath>
@@ -87,6 +88,7 @@ namespace lsn {
 
 		// L. Spiro.
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_BLEED ),					reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_LSPIRO_BLEED )) },
+		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_DEEP_PRESET ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_DEEP_PRESET )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_CHROMA_FILTER ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_CHROMA_FILTER )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_CHROMA_PARM0 ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_FILTER_PARMS )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_CHROMA_PARM1 ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_FILTER_PARMS )) },
@@ -96,6 +98,7 @@ namespace lsn {
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_LUMA_PARM1 ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_FILTER_PARMS )) },
 		{ CVideoOptionsFields::LSN_VFT_INT,			LSN_LSTR( LSN_STR_VO_LUMA_KERNEL ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_LUMA_KERNEL )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_VERTICAL_COMB ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_VERTICAL_COMB )) },
+		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_VERTICAL_COMB ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_NTSC_COMB )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_NOISE_TYPE ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_NOISE_TYPE )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_NOISE_AMOUNT ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_NOISE_AMOUNT )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_BASE_LEVEL ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_SW_BASE_LEVEL )) },
@@ -153,12 +156,14 @@ namespace lsn {
 	};
 	/** The L. Spiro NTSC deep-internals fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfLSpiroNtscDeep[] = {
+		CVideoOptionsFields::LSN_VF_DEEP_PRESET,
 		CVideoOptionsFields::LSN_VF_CHROMA_FILTER, CVideoOptionsFields::LSN_VF_CHROMA_PARM0, CVideoOptionsFields::LSN_VF_CHROMA_PARM1,
 		CVideoOptionsFields::LSN_VF_CHROMA_KERNEL, CVideoOptionsFields::LSN_VF_LUMA_FILTER, CVideoOptionsFields::LSN_VF_LUMA_PARM0,
-		CVideoOptionsFields::LSN_VF_LUMA_PARM1, CVideoOptionsFields::LSN_VF_LUMA_KERNEL,
+		CVideoOptionsFields::LSN_VF_LUMA_PARM1, CVideoOptionsFields::LSN_VF_LUMA_KERNEL, CVideoOptionsFields::LSN_VF_NTSC_COMB,
 	};
 	/** The L. Spiro PAL deep-internals fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfLSpiroPalDeep[] = {
+		CVideoOptionsFields::LSN_VF_DEEP_PRESET,
 		CVideoOptionsFields::LSN_VF_CHROMA_FILTER, CVideoOptionsFields::LSN_VF_CHROMA_PARM0, CVideoOptionsFields::LSN_VF_CHROMA_PARM1,
 		CVideoOptionsFields::LSN_VF_CHROMA_KERNEL, CVideoOptionsFields::LSN_VF_LUMA_FILTER, CVideoOptionsFields::LSN_VF_LUMA_PARM0,
 		CVideoOptionsFields::LSN_VF_LUMA_PARM1, CVideoOptionsFields::LSN_VF_LUMA_KERNEL, CVideoOptionsFields::LSN_VF_VERTICAL_COMB,
@@ -397,13 +402,13 @@ namespace lsn {
 	}
 
 	/**
-	 * Determines whether an L. Spiro kernel function uses its 2 parameters.
+	 * Determines whether the settings being edited are those of the L. Spiro PAL filter.
 	 *
-	 * \param _ffFunc The kernel function.
-	 * \return Returns true if the kernel function uses its parameters.
+	 * \param _ftTarget The settings being edited.
+	 * \return Returns true if the page is the L. Spiro PAL page.
 	 */
-	static inline bool										KernelHasParms( LSN_FILTER_FUNC _ffFunc ) {
-		return _ffFunc == LSN_FF_LANCZOSX || _ffFunc == LSN_FF_CRT_HUMP;
+	static inline bool										IsLSpiroPal( const CVideoOptionsFields::LSN_FIELD_TARGET &_ftTarget ) {
+		return _ftTarget.vpkKind == CVideoOptionsFields::LSN_VPK_LSPIRO_PAL;
 	}
 
 	/**
@@ -650,6 +655,23 @@ namespace lsn {
 				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_CF_3_LINE ), CLSpiroPalFilterBase::LSN_CF_3_LINE );
 				break;
 			}
+			case LSN_VF_NTSC_COMB : {
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NONE ), CLSpiroNtscFilterBase::LSN_CF_NONE );
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NCF_2_LINE ), CLSpiroNtscFilterBase::LSN_CF_2_LINE );
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NCF_3_LINE ), CLSpiroNtscFilterBase::LSN_CF_3_LINE );
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NCF_ADAPTIVE ), CLSpiroNtscFilterBase::LSN_CF_ADAPTIVE_3_LINE );
+				break;
+			}
+			case LSN_VF_DEEP_PRESET : {
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_CUSTOM ), -1 );
+				size_t sTotal = 0;
+				const LSN_LSPIRO_DEEP_PRESET * pldpPresets = CLSpiroPresets::DeepPresets( sTotal );
+				const bool bPal = IsLSpiroPal( _ftTarget );
+				for ( size_t I = 0; I < sTotal; ++I ) {
+					if ( pldpPresets[I].bPal == bPal ) { AddEntry( _pcbCombo, pldpPresets[I].pwcName, LPARAM( I ) ); }
+				}
+				break;
+			}
 			case LSN_VF_NOISE_TYPE : {
 				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NONE ), LSN_NT_NONE );
 				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_NT_CUSTOM ), LSN_NT_CUSTOM );
@@ -772,6 +794,21 @@ namespace lsn {
 					case LSN_VF_LUMA_PARM1 : { _dValue = lsoLSpiro.fFilterYParms[1]; return true; }
 					case LSN_VF_LUMA_KERNEL : { _dValue = lsoLSpiro.ui32KernelSizeY; return true; }
 					case LSN_VF_VERTICAL_COMB : { _dValue = lsoLSpiro.cfCombFilter; return true; }
+					case LSN_VF_NTSC_COMB : { _dValue = lsoLSpiro.cfNtscCombFilter; return true; }
+					case LSN_VF_DEEP_PRESET : {
+						// The first preset that matches, or Custom.
+						_dValue = -1.0;
+						size_t sTotal = 0;
+						const LSN_LSPIRO_DEEP_PRESET * pldpPresets = CLSpiroPresets::DeepPresets( sTotal );
+						const bool bPal = vpkKind == LSN_VPK_LSPIRO_PAL;
+						for ( size_t I = 0; I < sTotal; ++I ) {
+							if ( pldpPresets[I].bPal == bPal && CLSpiroPresets::Matches( pldpPresets[I], lsoLSpiro ) ) {
+								_dValue = double( I );
+								break;
+							}
+						}
+						return true;
+					}
 					case LSN_VF_NOISE_TYPE : { _dValue = lsoLSpiro.ntNoiseType; return true; }
 					case LSN_VF_NOISE_AMOUNT : { _dValue = lsoLSpiro.fNoiseAmount; return true; }
 					// The software phosphor decay exists only in the software settings.
@@ -941,9 +978,11 @@ namespace lsn {
 			}
 			case LSN_VPK_LSPIRO_NTSC : {}			LSN_FALLTHROUGH
 			case LSN_VPK_LSPIRO_PAL : {
+				const bool bPal = vpkKind == LSN_VPK_LSPIRO_PAL;
 				// Both the software and the GPU settings are set.
 				for ( LSN_LSPIRO_OPTIONS * plsoThis : { &froOptions.lsoLSpiroCpu, &froOptions.lsoLSpiroGpu } ) {
 					LSN_LSPIRO_OPTIONS & lsoLSpiro = (*plsoThis);
+					const double dSignalHz = CLSpiroPresets::SignalHz( bPal, lsoLSpiro.ui16PixelToSignal );
 					switch ( _vfField ) {
 						case LSN_VF_HUE : { lsoLSpiro.fHue = float( _dValue * dDegToRad ); break; }
 						case LSN_VF_BRIGHTNESS : { lsoLSpiro.fBrightness = fValue; break; }
@@ -954,7 +993,11 @@ namespace lsn {
 						case LSN_VF_LSPIRO_BLEED : { lsoLSpiro.fBleed = fValue; break; }
 						case LSN_VF_CHROMA_FILTER : {
 							if ( ui32Enum >= LSN_FF_FUNC_TOTAL ) { return false; }
-							lsoLSpiro.ffFilterChroma = LSN_FILTER_FUNC( ui32Enum );
+							if ( lsoLSpiro.ffFilterChroma != LSN_FILTER_FUNC( ui32Enum ) ) {
+								// The parameters mean different things to each function.
+								lsoLSpiro.ffFilterChroma = LSN_FILTER_FUNC( ui32Enum );
+								CLSpiroPresets::DefaultKernelParms( lsoLSpiro.ffFilterChroma, false, dSignalHz, lsoLSpiro.fFilterChromaParms );
+							}
 							break;
 						}
 						case LSN_VF_CHROMA_PARM0 : { lsoLSpiro.fFilterChromaParms[0] = fValue; break; }
@@ -962,7 +1005,11 @@ namespace lsn {
 						case LSN_VF_CHROMA_KERNEL : { lsoLSpiro.ui32KernelSizeChroma = uint32_t( std::clamp( i32Value, 1, 128 ) ); break; }
 						case LSN_VF_LUMA_FILTER : {
 							if ( ui32Enum >= LSN_FF_FUNC_TOTAL ) { return false; }
-							lsoLSpiro.ffFilterY = LSN_FILTER_FUNC( ui32Enum );
+							if ( lsoLSpiro.ffFilterY != LSN_FILTER_FUNC( ui32Enum ) ) {
+								// The parameters mean different things to each function.
+								lsoLSpiro.ffFilterY = LSN_FILTER_FUNC( ui32Enum );
+								CLSpiroPresets::DefaultKernelParms( lsoLSpiro.ffFilterY, true, dSignalHz, lsoLSpiro.fFilterYParms );
+							}
 							break;
 						}
 						case LSN_VF_LUMA_PARM0 : { lsoLSpiro.fFilterYParms[0] = fValue; break; }
@@ -971,6 +1018,19 @@ namespace lsn {
 						case LSN_VF_VERTICAL_COMB : {
 							if ( ui32Enum >= CLSpiroPalFilterBase::LSN_CF_TOTAL ) { return false; }
 							lsoLSpiro.cfCombFilter = CLSpiroPalFilterBase::LSN_COMB_FILTER( ui32Enum );
+							break;
+						}
+						case LSN_VF_NTSC_COMB : {
+							if ( ui32Enum >= CLSpiroNtscFilterBase::LSN_CF_TOTAL ) { return false; }
+							lsoLSpiro.cfNtscCombFilter = CLSpiroNtscFilterBase::LSN_COMB_FILTER( ui32Enum );
+							break;
+						}
+						case LSN_VF_DEEP_PRESET : {
+							// Custom changes nothing.
+							size_t sTotal = 0;
+							const LSN_LSPIRO_DEEP_PRESET * pldpPresets = CLSpiroPresets::DeepPresets( sTotal );
+							if ( _dValue < 0.0 || ui32Enum >= sTotal || pldpPresets[ui32Enum].bPal != bPal ) { return true; }
+							CLSpiroPresets::Apply( pldpPresets[ui32Enum], lsoLSpiro );
 							break;
 						}
 						case LSN_VF_NOISE_TYPE : {
@@ -1043,13 +1103,17 @@ namespace lsn {
 			case LSN_VF_CONV_MAX : {
 				return GetValue( LSN_VF_CONV_ENABLED, _ftTarget, dValue ) && dValue != 0.0;
 			}
-			case LSN_VF_CHROMA_PARM0 : {}			LSN_FALLTHROUGH
-			case LSN_VF_CHROMA_PARM1 : {
-				return GetValue( LSN_VF_CHROMA_FILTER, _ftTarget, dValue ) && KernelHasParms( LSN_FILTER_FUNC( dValue ) );
+			case LSN_VF_CHROMA_PARM0 : {
+				return GetValue( LSN_VF_CHROMA_FILTER, _ftTarget, dValue ) && CLSpiroPresets::KernelParmCount( LSN_FILTER_FUNC( dValue ) ) >= 1;
 			}
-			case LSN_VF_LUMA_PARM0 : {}				LSN_FALLTHROUGH
+			case LSN_VF_CHROMA_PARM1 : {
+				return GetValue( LSN_VF_CHROMA_FILTER, _ftTarget, dValue ) && CLSpiroPresets::KernelParmCount( LSN_FILTER_FUNC( dValue ) ) >= 2;
+			}
+			case LSN_VF_LUMA_PARM0 : {
+				return GetValue( LSN_VF_LUMA_FILTER, _ftTarget, dValue ) && CLSpiroPresets::KernelParmCount( LSN_FILTER_FUNC( dValue ) ) >= 1;
+			}
 			case LSN_VF_LUMA_PARM1 : {
-				return GetValue( LSN_VF_LUMA_FILTER, _ftTarget, dValue ) && KernelHasParms( LSN_FILTER_FUNC( dValue ) );
+				return GetValue( LSN_VF_LUMA_FILTER, _ftTarget, dValue ) && CLSpiroPresets::KernelParmCount( LSN_FILTER_FUNC( dValue ) ) >= 2;
 			}
 			case LSN_VF_NOISE_AMOUNT : {
 				return GetValue( LSN_VF_NOISE_TYPE, _ftTarget, dValue ) && LSN_NOISE_TYPE( dValue ) == LSN_NT_CUSTOM;

@@ -33,7 +33,7 @@ EXP 					([Ee][-+]?[0-9]+)
 "null"					{ return yy::CJsonParser::token::LSON_VNULL; }
 [ \t\r\n]+				{ }
 \"(\\.|[^\\"])*\"		{ return yy::CJsonParser::token::LSON_STRING; }
-[0-9]+\.?[0-9]*{EXP}?	{ return yy::CJsonParser::token::LSON_DECIMAL; }
+-?[0-9]+\.?[0-9]*{EXP}?	{ return yy::CJsonParser::token::LSON_DECIMAL; }
 .						{ }
 
 %%

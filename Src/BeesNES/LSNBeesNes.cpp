@@ -598,6 +598,7 @@ namespace lsn {
 		_lsnfbFilter.SetWidthScale( _lsoOptions.ui16WidthScale );
 		_lsnfbFilter.SetKernelSizeY( _lsoOptions.ui32KernelSizeY );
 		_lsnfbFilter.SetKernelSizeChroma( _lsoOptions.ui32KernelSizeChroma );
+		_lsnfbFilter.SetCombFilter( _lsoOptions.cfNtscCombFilter );
 		_lsnfbFilter.SetBleed( _lsoOptions.fBleed );
 		_lsnfbFilter.SetFilterFuncY( _lsoOptions.ffFilterY, _lsoOptions.fFilterYParms[0], _lsoOptions.fFilterYParms[1] );
 		_lsnfbFilter.SetFilterFuncChroma( _lsoOptions.ffFilterChroma, _lsoOptions.fFilterChromaParms[0], _lsoOptions.fFilterChromaParms[1] );
@@ -3183,6 +3184,7 @@ namespace lsn {
 		LSN_VIDEO_LIMITS::ClampPhosphor( _lsoOptions.fPhosphorDecayLevel, _lsoOptions.fPhosphorDecayPeriod );
 		_lsoOptions.fBleed = std::clamp( _lsoOptions.fBleed, 0.0f, LSN_VIDEO_LIMITS::fMaxBleed );
 		if ( !ReadRangedSetting<uint8_t>( _sFile, _lsoOptions.cfCombFilter, 0, int64_t( CLSpiroPalFilterBase::LSN_CF_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadRangedSetting<uint8_t>( _sFile, _lsoOptions.cfNtscCombFilter, 0, int64_t( CLSpiroNtscFilterBase::LSN_CF_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fCombWeight ) ) { return false; }
 		_lsoOptions.fCombWeight = std::clamp( _lsoOptions.fCombWeight, 0.0f, 1.0f );
 		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16PixelToSignal, 1, 64 ) ) { return false; }
@@ -3214,6 +3216,7 @@ namespace lsn {
 			if ( !_sFile.Write( fThis ) ) { return false; }
 		}
 		if ( !_sFile.Write( uint8_t( _lsoOptions.cfCombFilter ) ) ) { return false; }
+		if ( !_sFile.Write( uint8_t( _lsoOptions.cfNtscCombFilter ) ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.fCombWeight ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.ui16PixelToSignal ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( _lsoOptions.ntNoiseType ) ) ) { return false; }

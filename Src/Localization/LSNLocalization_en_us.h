@@ -956,6 +956,7 @@
 #define LSN_STR_VO_LUMA_PARM1														Luminance Parameter 2:
 #define LSN_STR_VO_LUMA_KERNEL														Luminance Kernel Size:
 #define LSN_STR_VO_VERTICAL_COMB													Vertical Comb:
+#define LSN_STR_VO_DEEP_PRESET														Preset:
 #define LSN_STR_VO_NOISE_TYPE														Type:
 #define LSN_STR_VO_NOISE_AMOUNT														Amount:
 #define LSN_STR_VO_NOISE															Noise:
@@ -995,6 +996,17 @@
 #define LSN_STR_VO_NT_PHYSICAL														Physics-Based
 #define LSN_STR_VO_CF_DELAY_LINE													1H Chroma Delay Line
 #define LSN_STR_VO_CF_3_LINE														2H (3-Line) Chroma Comb
+#define LSN_STR_VO_NCF_2_LINE														2-Line (1H) Comb
+#define LSN_STR_VO_NCF_3_LINE														3-Line (2H) Comb
+#define LSN_STR_VO_NCF_ADAPTIVE														Adaptive 3-Line (2D) Comb
+#define LSN_STR_VO_DP_LSPIRO_NTSC													L. Spiro NTSC Sharp
+#define LSN_STR_VO_DP_LSPIRO_NTSC_2													L. Spiro NTSC Slightly Sharp
+#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT												L. Spiro NTSC Soft
+#define LSN_STR_VO_DP_FAST															Fast (Box)
+#define LSN_STR_VO_DP_PAL_I															PAL-I
+#define LSN_STR_VO_DP_PAL_DK														PAL-D/K (Dendy)
+#define LSN_STR_VO_DP_PAL_M															PAL-M
+#define LSN_STR_VO_DP_PAL_N															PAL-N
 #define LSN_STR_VO_FF_BOX															Box
 #define LSN_STR_VO_FF_LANCZOS														Lanczos
 #define LSN_STR_VO_FF_KAISER														Kaiser
@@ -1082,11 +1094,13 @@
 #define LSN_STR_VO_TT_MERGE_FIELDS													Blends the 2 fields with alternating artifact patterns to remove the flicker they cause, at the cost of slightly blurrier artifacts.
 #define LSN_STR_VO_TT_LSPIRO_BLEED													How far colors smear sideways into neighboring pixels.
 #define LSN_STR_VO_TT_CHROMA_FILTER													The filter that extracts the color (chrominance) signal from the composite signal.  Sharper filters keep color edges crisp but can ring; softer filters blur color edges.
-#define LSN_STR_VO_TT_FILTER_PARMS													Lanczos:  the window (in lobes) is Parameter 1 \u00F7 Parameter 2.  CRT Hump:  the width of the notch is Parameter 1 \u00F7 200 and the power is Parameter 2 \u00F7 100.  The other filters have no parameters.
+#define LSN_STR_VO_TT_FILTER_PARMS													Lanczos:  the window (in lobes) is Parameter 1 \u00F7 Parameter 2.  Kaiser:  \u03B2 is Parameter 1 \u00F7 100 (0 is a rectangular window; larger values taper the window more, trading sharpness for less ringing; 412.26 matches the original window).  Blackman:  Parameter 1 is the cut-off frequency in Hz and Parameter 2 is the rate of the signal in Hz (42954545 for NTSC; 5320342.5 times the signals per pixel for PAL).  CRT Hump:  the width of the notch is Parameter 1 \u00F7 200 and the power is Parameter 2 \u00F7 100.  The other filters have no parameters.  Selecting a filter fills in its default parameters.
 #define LSN_STR_VO_TT_CHROMA_KERNEL													The number of signal samples the chrominance filter spans.  Larger kernels are more accurate but slower to run.
 #define LSN_STR_VO_TT_LUMA_FILTER													The filter that extracts the brightness (luminance) signal from the composite signal.  Sharper filters keep details crisp but can ring; softer filters blur details.
 #define LSN_STR_VO_TT_LUMA_KERNEL													The number of signal samples the luminance filter spans.  Larger kernels are more accurate but slower to run.
 #define LSN_STR_VO_TT_VERTICAL_COMB													How the chroma of neighboring lines is combined.  None decodes each line on its own (simple PAL) and shows Hanover bars.  1H Chroma Delay Line averages each line with the line above (standard PAL).  2H (3-Line) Chroma Comb averages each line with the lines above and below.
+#define LSN_STR_VO_TT_NTSC_COMB														How the luminance and chrominance are separated using neighboring lines, as in NTSC televisions.  None uses only the luminance and chrominance filters (notch and band-pass sets), which leaves dot crawl and rainbow artifacts.  2-Line (1H) Comb subtracts the line above (early-1980s sets with glass or CCD delay lines).  3-Line (2H) Comb uses the lines above and below (late-1980s and 1990s digital sets).  Adaptive 3-Line (2D) Comb combs with whichever neighboring line matches better and does not comb where neither matches (1990s high-end sets).  Combing removes most dot crawl but can leave hanging dots and blurred color at vertical color changes.
+#define LSN_STR_VO_TT_DEEP_PRESET													Fills in the Deep Internals (the filters, their parameters, their kernel sizes, and the vertical comb filter) with a tested combination.  Shows Custom when the settings match no preset.
 #define LSN_STR_VO_TT_NOISE_TYPE													The signal noise.  None adds no noise.  Custom Amount adds Gaussian noise of the amount set below.  Physics-Based models the thermal noise of the circuitry and will read your host machine\u2019s actual CPU temperature\u2014and base the noise levels off that\u2014which requires that BeesNES be run with administrator privileges.
 #define LSN_STR_VO_TT_NOISE_AMOUNT													The standard deviation of the Custom Amount noise, relative to the full signal range.  0.0225 is a typical amount.
 #define LSN_STR_VO_TT_SW_BASE_LEVEL													The maximum phosphor decay level of the software filter (the GPU versions use the Phosphor Decay settings under Common instead).

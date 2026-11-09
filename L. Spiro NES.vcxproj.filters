@@ -642,6 +642,9 @@
     <ClInclude Include="Src\Options\LSNVideoFilterOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Options\LSNLSpiroPresets.h">
+      <Filter>Header Files\Options</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Options\LSNInputOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
