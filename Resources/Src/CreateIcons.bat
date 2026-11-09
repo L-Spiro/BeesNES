@@ -283,3 +283,7 @@ SurfaceLevel2.exe -file "icons8-search-16.png" -outfile "..\icons8-search-16.bmp
 SurfaceLevel2.exe -file "icons8-video-camera-48.png" -outfile "..\icons8-video-camera-48.ico" -icon -fit 48 48
 SurfaceLevel2.exe -file "icons8-video-camera-32.png" -outfile "..\icons8-video-camera-32.ico" -icon -fit 32 32
 SurfaceLevel2.exe -file "icons8-video-camera-16.png" -outfile "..\icons8-video-camera-16.ico" -icon -fit 16 16
+
+SurfaceLevel2.exe -file "icons8-colored-pencils-48.png" -outfile "..\icons8-colored-pencils-48.ico" -icon -fit 48 48
+SurfaceLevel2.exe -file "icons8-colored-pencils-32.png" -outfile "..\icons8-colored-pencils-32.ico" -icon -fit 32 32
+SurfaceLevel2.exe -file "icons8-colored-pencils-16.png" -outfile "..\icons8-colored-pencils-16.ico" -icon -fit 16 16
