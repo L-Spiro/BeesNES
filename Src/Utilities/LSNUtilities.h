@@ -72,13 +72,13 @@ namespace lsn {
 	 *	the function.  These values are saved in the settings, so new functions must be added to the end. */
 	enum LSN_FILTER_FUNC : uint32_t {
 		LSN_FF_BOX,											/**< Box.  The parameters are unused. */
-		LSN_FF_LANCZOSX,									/**< Lanczos with (parameter 0 / parameter 1) lobes. */
-		LSN_FF_KAISER,										/**< Kaiser with beta = parameter 0 / 100.  Parameter 1 is unused. */
+		LSN_FF_LANCZOSX,									/**< Lanczos with parameter 0 lobes.  Parameter 1 is unused. */
+		LSN_FF_KAISER,										/**< A Kaiser window spanning the kernel with beta = parameter 0.  Parameter 1 is unused. */
 		LSN_FF_BLACKMAN,									/**< Blackman-windowed sinc with its cut-off at parameter 0 Hz for a signal of parameter 1 Hz. */
 		LSN_FF_GAUSSIANX,									/**< Gaussian.  The parameters are unused. */
 		LSN_FF_CARDINAL_SPLINE_UNIFORM,						/**< Cardinal spline (uniform).  The parameters are unused. */
 		LSN_FF_BARTLETT,									/**< Bartlett.  The parameters are unused. */
-		LSN_FF_CRT_HUMP,									/**< A flat middle (parameter 0 = its width times 100) with fall-offs (parameter 1 = their power times 100). */
+		LSN_FF_CRT_HUMP,									/**< A flat middle (parameter 0 = its width in signals) with fall-offs (parameter 1 = their power). */
 		LSN_FF_FUNC_TOTAL,									/**< The number of filter-kernel functions. */
 	};
 
@@ -2211,18 +2211,17 @@ namespace lsn {
 		}
 
 		/**
-		 * The Lanczos filter function.  The lobe count is _fParm0 / _fParm1 (for example, 99 and 40 give 2.475 lobes).
+		 * The Lanczos filter function.  The kernel spans _fParm0 lobes (for example, 2.475).
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
-		 * \param _fParm0 The numerator of the lobe count.
-		 * \param _fParm1 The denominator of the lobe count.
+		 * \param _fParm0 The number of lobes.  Values at or below 0 use 1.
+		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
-		static inline float									LanczosXFilterFunc( float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
-			if ( _fParm1 == 0.0f ) { return 0.0f; }
+		static inline float									LanczosXFilterFunc( float _fT, float _fWidth, float _fParm0, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
-			const float fW = _fParm0 / _fParm1;
+			const float fW = (_fParm0 > 0.0f) ? _fParm0 : 1.0f;
 			_fT = _fT / _fWidth * fW;
 			if ( _fT <= fW ) {
 				return static_cast<float>(Clean( Sinc( _fT ) * Sinc( _fT / fW ) ));
@@ -2231,20 +2230,20 @@ namespace lsn {
 		}
 
 		/**
-		 * The Kaiser filter function.  The window's shape is set by beta:  0 is a rectangular window, and larger values taper it more
-		 *	(lowering the side lobes and widening the main lobe).  A beta of 4.1226 (_fParm0 = 412.26) matches the original fixed window.
+		 * The Kaiser filter function:  a Kaiser window spanning the kernel.  Its shape is set by beta:  0 is flat (a box), and larger values
+		 *	make it narrower and smoother (softer, with less ringing); 5 is close to a Hamming window and 8.6 to a Blackman window.  (It was a
+		 *	Kaiser-windowed sinc whose sinc was only 1 signal wide, so the window, and therefore beta, made almost no difference.)
 		 *
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
-		 * \param _fParm0 Beta times 100.
+		 * \param _fParm0 Beta.
 		 * \param _fParm1 Unused.
 		 * \return Returns the filtered value.
 		 */
 		static inline float									KaiserFilterFunc( float _fT, float _fWidth, float _fParm0, float /*_fParm1*/ ) {
 			_fT = std::fabsf( _fT );
 			if ( _fT <= _fWidth ) {
-				const double dBeta = std::fabs( double( _fParm0 ) / 100.0 );
-				return static_cast<float>(Clean( Sinc( _fT ) * KaiserHelper( dBeta, double( _fWidth ), _fT ) ));
+				return static_cast<float>(Clean( KaiserHelper( std::fabs( double( _fParm0 ) ), double( _fWidth ), _fT ) ));
 			}
 			return 0.0f;
 		}
@@ -2337,17 +2336,17 @@ namespace lsn {
 		 * 
 		 * \param _fT The value to filter.
 		 * \param _fWidth The size of the filter kernel.
-		 * \param _fParm0 The width of the flat middle, times 100.
-		 * \param _fParm1 The power of the fall-off, times 100.
+		 * \param _fParm0 The width of the flat middle, in signals.
+		 * \param _fParm1 The power of the fall-off (1 is linear).
 		 * \return Returns the filtered value.
 		 **/
 		static inline float									CrtHumpFunc( float _fT, float _fWidth, float _fParm0, float _fParm1 ) {
 			_fT = std::fabsf( _fT );
-			const double dNotchW = double( _fParm0 ) / (2.0 * 100.0);
+			const double dNotchW = double( _fParm0 ) / 2.0;
 			if ( _fT <= dNotchW ) { return 1.0f; }
 			double dTmp = _fT - dNotchW;
 			double dNorm = dTmp / (_fWidth - dNotchW);
-			return float( std::pow( 1.0 - std::min( dNorm, 1.0 ), (_fParm1 / 100.0) ) );
+			return float( std::pow( 1.0 - std::min( dNorm, 1.0 ), double( _fParm1 ) ) );
 		}
 
 		/**

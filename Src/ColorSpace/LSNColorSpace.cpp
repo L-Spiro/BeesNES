@@ -113,22 +113,21 @@ namespace lsn {
 	/** The hue rotation of the Toshiba CF2005.  patchy68k gives it as -0.39 (https://forums.nesdev.org/viewtopic.php?p=302438), a value for
 	 *	gamutthingy (https://github.com/ChthonVII/gamutthingy), whose hue knob (--crt-hue-knob) is a global rotation of the demodulation
 	 *	axes in degrees.  My filters take radians and their hue also rotates the demodulation axes, in the same direction. */
-#define LSN_TOSHIBA_CF2005_HUE				float( -0.39 * std::numbers::pi / 180.0 )
 
 	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {				/**< The information about each color space, in LSN_COLOR_SPACE order. */
-		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,	false },
-		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,	false },
-		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,	false },
-		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",				0.0f,	1.0f,	false },
-		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",				0.0f,	1.0f,	false },
-		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",				0.0f,	1.0f,	false },
-		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",				0.0f,	1.0f,	false },
-		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",					0.0f,	1.0f,	false },
-		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",					0.0f,	1.0f,	false },
-		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",			LSN_TOSHIBA_CF2005_HUE,	1.1155f,	true },
-		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,	true },
-		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,	true },
-		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,	true },
+		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,		false },
+		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,		false },
+		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,		false },
+		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",				0.0f,	1.0f,		false },
+		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",				0.0f,	1.0f,		false },
+		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",				0.0f,	1.0f,		false },
+		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",				0.0f,	1.0f,		false },
+		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",					0.0f,	1.0f,		false },
+		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",					0.0f,	1.0f,		false },
+		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",			0.0f,	1.1155f,	true },
+		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,		true },
+		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,		true },
+		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,		true },
 	};
 
 	/**

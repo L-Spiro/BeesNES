@@ -2973,7 +2973,7 @@ namespace lsn {
 	 * \param _froOptions The filter settings into which to load the settings data.  Values that are invalid are left unchanged.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadFilterRegionSettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_FILTER_REGION_OPTIONS &_froOptions ) {
+	bool CBeesNes::LoadFilterRegionSettings( uint32_t _ui32Version, CStream &_sFile, LSN_FILTER_REGION_OPTIONS &_froOptions ) {
 		if ( !ReadBoolSetting( _sFile, _froOptions.bUseGlobal ) ) { return false; }
 
 		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
@@ -2988,8 +2988,8 @@ namespace lsn {
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalGpu ) ) { return false; }
 		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLmpPal ) ) { return false; }
 
-		if ( !LoadLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroCpu ) ) { return false; }
-		if ( !LoadLSpiroFilterSettings( _sFile, _froOptions.lsoLSpiroGpu ) ) { return false; }
+		if ( !LoadLSpiroFilterSettings( _ui32Version, _sFile, _froOptions.lsoLSpiroCpu ) ) { return false; }
+		if ( !LoadLSpiroFilterSettings( _ui32Version, _sFile, _froOptions.lsoLSpiroGpu ) ) { return false; }
 		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLSpiro ) ) { return false; }
 		return true;
 	}
@@ -3163,11 +3163,12 @@ namespace lsn {
 	/**
 	 * Loads the settings of an L. Spiro filter.
 	 *
+	 * \param _ui32Version The file version.
 	 * \param _sFile The in-memory stream of the settings file.
 	 * \param _lsoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadLSpiroFilterSettings( CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions ) {
+	bool CBeesNes::LoadLSpiroFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions ) {
 		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16WidthScale, 1, 64 ) ) { return false; }
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ui32KernelSizeY, 1, 128 ) ) { return false; }
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ui32KernelSizeChroma, 1, 128 ) ) { return false; }
@@ -3177,6 +3178,10 @@ namespace lsn {
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ffFilterChroma, 0, int64_t( LSN_FF_FUNC_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[0] ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fFilterChromaParms[1] ) ) { return false; }
+		if ( _ui32Version < LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS ) {
+			ConvertOldKernelParms( _lsoOptions.ffFilterY, _lsoOptions.fFilterYParms );
+			ConvertOldKernelParms( _lsoOptions.ffFilterChroma, _lsoOptions.fFilterChromaParms );
+		}
 		for ( float * pfThis : { &_lsoOptions.fHue, &_lsoOptions.fGamma, &_lsoOptions.fBrightness, &_lsoOptions.fSaturation, &_lsoOptions.fContrast, &_lsoOptions.fBlackLevel,
 			&_lsoOptions.fWhiteLevel, &_lsoOptions.fBleed, &_lsoOptions.fPhosphorDecayPeriod, &_lsoOptions.fPhosphorDecayLevel } ) {
 			if ( !ReadFiniteSetting( _sFile, (*pfThis) ) ) { return false; }
@@ -3192,6 +3197,34 @@ namespace lsn {
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fNoiseAmount ) ) { return false; }
 		_lsoOptions.fNoiseAmount = std::max( _lsoOptions.fNoiseAmount, 0.0f );
 		return true;
+	}
+
+	/**
+	 * Converts the parameters of a filter function saved by a settings version older than LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS
+	 *	(Lanczos:  lobes = parameter 0 / parameter 1; Kaiser:  beta = parameter 0 / 100; CRT Hump:  width = parameter 0 / 100 and
+	 *	power = parameter 1 / 100) to the values used directly.
+	 *
+	 * \param _ffFunc The filter function.
+	 * \param _pfParms The 2 parameters to convert.
+	 */
+	void CBeesNes::ConvertOldKernelParms( LSN_FILTER_FUNC _ffFunc, float * _pfParms ) {
+		switch ( _ffFunc ) {
+			case LSN_FF_LANCZOSX : {
+				_pfParms[0] = (_pfParms[1] != 0.0f) ? (_pfParms[0] / _pfParms[1]) : 3.0f;
+				_pfParms[1] = 0.0f;
+				break;
+			}
+			case LSN_FF_KAISER : {
+				_pfParms[0] /= 100.0f;
+				break;
+			}
+			case LSN_FF_CRT_HUMP : {
+				_pfParms[0] /= 100.0f;
+				_pfParms[1] /= 100.0f;
+				break;
+			}
+			default : {}
+		}
 	}
 
 	/**

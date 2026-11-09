@@ -59,9 +59,11 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			3
+#define LSN_BEESNES_SETTINGS_VERSION			4
 /** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
 #define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
+/** The first settings version in which the parameters of the filter functions are the values used directly (Lanczos lobes, Kaiser beta, etc.). */
+#define LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS	4
 
 namespace lsn {
 
@@ -1435,11 +1437,22 @@ namespace lsn {
 		/**
 		 * Loads the settings of an L. Spiro filter.
 		 *
+		 * \param _ui32Version The file version.
 		 * \param _sFile The in-memory stream of the settings file.
 		 * \param _lsoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
 		 * \return Returns true if the settings data was loaded.
 		 */
-		static bool								LoadLSpiroFilterSettings( CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions );
+		static bool								LoadLSpiroFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_LSPIRO_OPTIONS &_lsoOptions );
+
+		/**
+		 * Converts the parameters of a filter function saved by a settings version older than LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS
+		 *	(Lanczos:  lobes = parameter 0 / parameter 1; Kaiser:  beta = parameter 0 / 100; CRT Hump:  width = parameter 0 / 100 and
+		 *	power = parameter 1 / 100) to the values used directly.
+		 *
+		 * \param _ffFunc The filter function.
+		 * \param _pfParms The 2 parameters to convert.
+		 */
+		static void								ConvertOldKernelParms( LSN_FILTER_FUNC _ffFunc, float * _pfParms );
 
 		/**
 		 * Saves the settings of an L. Spiro filter.

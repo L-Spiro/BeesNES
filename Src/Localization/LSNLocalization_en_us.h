@@ -1002,6 +1002,7 @@
 #define LSN_STR_VO_DP_LSPIRO_NTSC													L. Spiro NTSC Sharp
 #define LSN_STR_VO_DP_LSPIRO_NTSC_2													L. Spiro NTSC Slightly Sharp
 #define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT												L. Spiro NTSC Soft
+#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2											L. Spiro NTSC Soft 2
 #define LSN_STR_VO_DP_FAST															Fast (Box)
 #define LSN_STR_VO_DP_PAL_I															PAL-I
 #define LSN_STR_VO_DP_PAL_DK														PAL-D/K (Dendy)
@@ -1094,7 +1095,7 @@
 #define LSN_STR_VO_TT_MERGE_FIELDS													Blends the 2 fields with alternating artifact patterns to remove the flicker they cause, at the cost of slightly blurrier artifacts.
 #define LSN_STR_VO_TT_LSPIRO_BLEED													How far colors smear sideways into neighboring pixels.
 #define LSN_STR_VO_TT_CHROMA_FILTER													The filter that extracts the color (chrominance) signal from the composite signal.  Sharper filters keep color edges crisp but can ring; softer filters blur color edges.
-#define LSN_STR_VO_TT_FILTER_PARMS													Lanczos:  the window (in lobes) is Parameter 1 \u00F7 Parameter 2.  Kaiser:  \u03B2 is Parameter 1 \u00F7 100 (0 is a rectangular window; larger values taper the window more, trading sharpness for less ringing; 412.26 matches the original window).  Blackman:  Parameter 1 is the cut-off frequency in Hz and Parameter 2 is the rate of the signal in Hz (42954545 for NTSC; 5320342.5 times the signals per pixel for PAL).  CRT Hump:  the width of the notch is Parameter 1 \u00F7 200 and the power is Parameter 2 \u00F7 100.  The other filters have no parameters.  Selecting a filter fills in its default parameters.
+#define LSN_STR_VO_TT_FILTER_PARMS													Lanczos:  Parameter 1 is the size of the window in lobes (it can be fractional, such as 2.475).  Kaiser:  Parameter 1 is \u03B2 (0 is a rectangular window; 5 is close to a Hamming window; 8.6 is close to a Blackman window; larger values taper the window more, trading sharpness for less ringing).  Blackman:  Parameter 1 is the cut-off frequency in Hz and Parameter 2 is the rate of the signal in Hz (42954545 for NTSC; 5320342.5 times the signals per pixel for PAL).  CRT Hump:  Parameter 1 is the width of the flat middle in signals and Parameter 2 is the power of the fall-offs (1 is linear).  The other filters have no parameters.  Selecting a filter fills in its default parameters.
 #define LSN_STR_VO_TT_CHROMA_KERNEL													The number of signal samples the chrominance filter spans.  Larger kernels are more accurate but slower to run.
 #define LSN_STR_VO_TT_LUMA_FILTER													The filter that extracts the brightness (luminance) signal from the composite signal.  Sharper filters keep details crisp but can ring; softer filters blur details.
 #define LSN_STR_VO_TT_LUMA_KERNEL													The number of signal samples the luminance filter spans.  Larger kernels are more accurate but slower to run.

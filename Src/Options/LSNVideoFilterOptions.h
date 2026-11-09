@@ -301,12 +301,12 @@ namespace lsn {
 					lsoCpu.ui16WidthScale = bAvx ? 10 : (bSse4 ? 5 : 2);
 					if ( bAvx ) {
 						lsoCpu.ui32KernelSizeY = lsoCpu.ui32KernelSizeChroma = 48;
-						lsoCpu.ffFilterY = LSN_FF_LANCZOSX; lsoCpu.fFilterYParms[0] = 5.0f; lsoCpu.fFilterYParms[1] = 2.0f;
+						lsoCpu.ffFilterY = LSN_FF_LANCZOSX; lsoCpu.fFilterYParms[0] = 2.5f; lsoCpu.fFilterYParms[1] = 0.0f;
 						lsoCpu.ffFilterChroma = LSN_FF_GAUSSIANX;
 					}
 					lsoGpu.ui16WidthScale = 10;
 					lsoGpu.ui32KernelSizeY = lsoGpu.ui32KernelSizeChroma = 48;
-					lsoGpu.ffFilterY = LSN_FF_LANCZOSX; lsoGpu.fFilterYParms[0] = 5.0f; lsoGpu.fFilterYParms[1] = 2.0f;
+					lsoGpu.ffFilterY = LSN_FF_LANCZOSX; lsoGpu.fFilterYParms[0] = 2.5f; lsoGpu.fFilterYParms[1] = 0.0f;
 					lsoGpu.ffFilterChroma = LSN_FF_GAUSSIANX;
 					break;
 				}
@@ -364,12 +364,12 @@ namespace lsn {
 					lsoCpu.ui16WidthScale = bAvx ? 8 : (bSse4 ? 4 : 2);
 					if ( bAvx ) {
 						lsoCpu.ui32KernelSizeY = lsoCpu.ui32KernelSizeChroma = 48;
-						lsoCpu.ffFilterY = LSN_FF_LANCZOSX; lsoCpu.fFilterYParms[0] = 99.0f; lsoCpu.fFilterYParms[1] = 40.0f;
+						lsoCpu.ffFilterY = LSN_FF_LANCZOSX; lsoCpu.fFilterYParms[0] = 99.0f / 40.0f; lsoCpu.fFilterYParms[1] = 0.0f;
 						lsoCpu.ffFilterChroma = LSN_FF_GAUSSIANX;
 					}
 					lsoGpu.ui16WidthScale = 8;
 					lsoGpu.ui32KernelSizeY = lsoGpu.ui32KernelSizeChroma = 48;
-					lsoGpu.ffFilterY = LSN_FF_LANCZOSX; lsoGpu.fFilterYParms[0] = 99.0f; lsoGpu.fFilterYParms[1] = 40.0f;
+					lsoGpu.ffFilterY = LSN_FF_LANCZOSX; lsoGpu.fFilterYParms[0] = 99.0f / 40.0f; lsoGpu.fFilterYParms[1] = 0.0f;
 					lsoGpu.ffFilterChroma = LSN_FF_GAUSSIANX;
 				}
 			}
