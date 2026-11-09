@@ -785,6 +785,13 @@
 #define LSN_STR_CSP_SONY_PVM_20M2U											Sony PVM-20M2U
 #define LSN_STR_CSP_SONY_PVM_20L2MDU										Sony PVM-20L2MDU
 #define LSN_STR_CSP_SONY_P22_TRINITRON										Sony Trinitron (P22)
+#define LSN_STR_CSP_TOSHIBA_1992											Toshiba TV (1992 Patent)
+#define LSN_STR_CSP_MATSUSHITA_1979											Matsushita TV (1979 Patent)
+#define LSN_STR_CSP_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM
+#define LSN_STR_CSP_SONY_GDM_17SE1											Sony GDM-17SE1 Trinitron Monitor
+#define LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705								Apple Multiple Scan 1705 Monitor
+#define LSN_STR_CSP_NEC_MULTISYNC_C400										NEC MultiSync C400 Monitor
+#define LSN_STR_CSP_KDS_VS19												KDS VS19 Monitor
 
 #define LSN_STR_PRORES_PROXY											Proxy
 #define LSN_STR_PRORES_LT												LT

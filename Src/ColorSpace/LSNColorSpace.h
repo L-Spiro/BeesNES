@@ -47,6 +47,13 @@ namespace lsn {
 			LSN_CSP_SONY_PVM_20M2U,																				/**< NTSC-J on a Sony PVM 20M2U. */
 			LSN_CSP_SONY_PVM_20L2MDU,																			/**< NTSC-J on a Sony PVM 20L2MDU. */
 			LSN_CSP_SONY_P22_TRINITRON,																			/**< NTSC-J on a Sony Trinitron (P22 phosphors). */
+			LSN_CSP_TOSHIBA_1992,																				/**< A typical Toshiba television (EBU-like P22 phosphors in a 1992 Toshiba patent) with a 9300K + 27 MPCD white point. */
+			LSN_CSP_MATSUSHITA_1979,																			/**< A typical Matsushita television (P22 phosphors in a 1979 Matsushita patent) with a 9300K + 27 MPCD white point. */
+			LSN_CSP_RCA_COLORTRAK,																				/**< An RCA ColorTrak Remote E13169GM (1989, US) as measured by patchy68k. */
+			LSN_CSP_SONY_GDM_17SE1,																				/**< A Sony GDM-17SE1 Trinitron monitor (1994) as measured by Bohnsack et al. */
+			LSN_CSP_APPLE_MULTIPLE_SCAN_1705,																	/**< An Apple Multiple Scan 1705 monitor (manufacturer data). */
+			LSN_CSP_NEC_MULTISYNC_C400,																			/**< An NEC MultiSync C400 monitor. */
+			LSN_CSP_KDS_VS19,																					/**< A KDS VS19 monitor. */
 			LSN_CSP_TOTAL,																						/**< The number of color spaces. */
 		};
 
@@ -76,6 +83,21 @@ namespace lsn {
 
 
 		// == Types.
+		/**
+		 * Struct LSN_CRT_DEMODULATOR
+		 * \brief The color-difference demodulation axes and gains of a television's decoder chip.
+		 *
+		 * Description: The color-difference demodulation axes and gains of a television's decoder chip.  Televisions did not decode R-Y,
+		 *	G-Y, and B-Y on the standard axes (90, 236, and 0 degrees with gains of 0.56, 0.34, and 1.0 relative to B-Y); their decoders moved
+		 *	the axes and changed the gains to correct for the phosphors and white point of the tube.  Angles are in degrees on the U/V
+		 *	plane (0 = +U = B-Y) and gains are relative to the B-Y gain.
+		 */
+		struct LSN_CRT_DEMODULATOR {
+			const char *												pcId;									/**< The name of the chip (and its mode). */
+			float														fAngles[3];								/**< The R-Y, G-Y, and B-Y demodulation angles, in degrees. */
+			float														fGains[3];								/**< The R-Y, G-Y, and B-Y gains, relative to the B-Y gain. */
+		};
+
 		/**
 		 * Struct LSN_COLOR_SPACE_DATA
 		 * \brief Information about a color space.
@@ -275,6 +297,14 @@ namespace lsn {
 		static LSN_COLOR_SPACE												FromId( const char * _pcId );
 
 		/**
+		 * Gets the table of television decoder chips (their demodulation axes and gains).
+		 *
+		 * \param _sTotal Holds the returned number of entries.
+		 * \return Returns the table of decoder chips.
+		 */
+		static const LSN_CRT_DEMODULATOR *									CrtDemodulators( size_t &_sTotal );
+
+		/**
 		 * Creates the matrix that converts linear RGB in one color space to linear RGB in another.  RGB is converted to CIE XYZ through the
 		 *	source primaries and back through the destination primaries.  White points are not adapted, so a source white that is bluer than
 		 *	the destination white stays bluer (as it was on the original screens).  If source white would then exceed 1.0 in any channel,
@@ -436,6 +466,15 @@ namespace lsn {
 		static float														m_fNtscJ_Sony_PVM_20L2MDU[8];		/**< Chromaticities and white point for NTSC-J ala Sony PVM 20L2MDU. */
 
 		static float														m_fNtscJ_Sony_P22_Trinitron[8];		/**< Chromaticities and white point for NTSC-J ala Sony Trinitron P22. */
+
+		// The following come from gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h), which cites the sources given with each.
+		static float														m_fToshiba1992[8];					/**< Chromaticities and white point for a typical Toshiba television (1992 Toshiba patent). */
+		static float														m_fMatsushita1979[8];				/**< Chromaticities and white point for a typical Matsushita television (1979 Matsushita patent). */
+		static float														m_fRcaColorTrak[8];					/**< Chromaticities and white point for an RCA ColorTrak Remote E13169GM as measured by patchy68k. */
+		static float														m_fSonyGdm17Se1[8];					/**< Chromaticities and white point for a Sony GDM-17SE1 Trinitron monitor as measured by Bohnsack et al. */
+		static float														m_fAppleMultipleScan1705[8];		/**< Chromaticities and white point for an Apple Multiple Scan 1705 monitor. */
+		static float														m_fNecMultiSyncC400[8];				/**< Chromaticities and white point for an NEC MultiSync C400 monitor. */
+		static float														m_fKdsVs19[8];						/**< Chromaticities and white point for a KDS VS19 monitor. */
 
 
 	protected :

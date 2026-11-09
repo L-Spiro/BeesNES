@@ -1062,6 +1062,79 @@ namespace lsn {
 	}
 
 	/**
+	 * Makes the filter set by SetCurFilter() current without waiting for the next frame (Swap()), so that a paused game shows the new
+	 *	filter (and the changes made to its settings).  The last frame is copied into the new filter's render targets, flipped if the
+	 *	filters want their input flipped differently.  Call only while the emulation thread is stopped or the game is paused, inside the
+	 *	same critical section/mutex as Render() and Swap().
+	 *
+	 * \return Returns true if a pending filter was made current.  Returns false if no filter is pending or if the new filter takes
+	 *	input that differs from the last frame (its format or size), in which case the change happens at the next Swap() as usual.
+	 **/
+	bool CBeesNes::CommitPendingFilter() {
+		LSN_CUR_FILTER_AND_RENDER_TARGET & cfartInfo = m_cfartCurFilterAndTargets;
+		CFilterBase * pfbOld = cfartInfo.pfbPrevFilter;					// The filter that rendered the last frame.
+		CFilterBase * pfbNew = cfartInfo.pfbNextFilter;
+		if ( !pfbOld || !pfbNew || !cfartInfo.pfbCurFilter || !cfartInfo.pui8CurRenderTarget || !GetDisplayClient() ) { return false; }
+		if ( pfbOld == pfbNew && cfartInfo.pfbCurFilter == pfbNew ) { return false; }
+
+		// The new filter must take the same input as the old one (the PPU writes the same frame for both).
+		if ( pfbOld->InputFormat() != pfbNew->InputFormat() ) { return false; }
+		if ( pfbOld->OutputStride() != pfbNew->OutputStride() || pfbOld->OutputHeight() != pfbNew->OutputHeight() ) { return false; }
+		if ( pfbOld->OutputWidth() != pfbNew->OutputWidth() || pfbOld->OutputBits() != pfbNew->OutputBits() ) { return false; }
+		const size_t sStride = pfbNew->OutputStride();
+		const size_t sRows = pfbNew->OutputHeight();
+		if ( !sStride || !sRows ) { return false; }
+
+		/**
+		 * Copies a frame from one render target to another, flipping it vertically if needed.
+		 *
+		 * \param _pui8Dst The destination render target.
+		 * \param _pui8Src The source render target.
+		 * \param _bFlip If true, the rows are copied in reverse order.
+		 */
+		auto aCopy = [sStride, sRows]( uint8_t * _pui8Dst, const uint8_t * _pui8Src, bool _bFlip ) {
+			if ( !_pui8Dst || !_pui8Src || _pui8Dst == _pui8Src ) { return; }
+			if ( !_bFlip ) {
+				std::memcpy( _pui8Dst, _pui8Src, sStride * sRows );
+				return;
+			}
+			for ( size_t Y = 0; Y < sRows; ++Y ) {
+				std::memcpy( _pui8Dst + Y * sStride, _pui8Src + (sRows - 1 - Y) * sStride, sStride );
+			}
+		};
+		const bool bFlip = pfbOld->FlipInput() != pfbNew->FlipInput();
+		uint8_t * pui8LastFrame = cfartInfo.pui8CurRenderTarget;
+
+		if ( cfartInfo.pfbCurFilter != pfbNew ) {
+			// The PPU writes to the old filter:  move the PPU (and the part of the frame it has written) to the new filter, as Swap() would.
+			CFilterBase * pfbPpuFilter = cfartInfo.pfbCurFilter;
+			cfartInfo.pfbCurFilter = pfbNew;
+			pfbNew->Swap();
+			if ( pfbNew->CurTarget() != pui8LastFrame ) {
+				aCopy( pfbNew->CurTarget(), pfbPpuFilter->CurTarget(), pfbPpuFilter->FlipInput() != pfbNew->FlipInput() );
+			}
+			GetDisplayClient()->SetRenderTarget( pfbNew->CurTarget(), pfbNew->OutputStride(), pfbNew->InputFormat(), pfbNew->FlipInput() );
+		}
+
+		// The last frame goes into a target of the new filter that the PPU is not writing (the same target if the filter has only one).
+		uint8_t * pui8Dst = pfbNew->NextTarget();
+		if ( pui8Dst != pui8LastFrame ) {
+			aCopy( pui8Dst, pui8LastFrame, bFlip );
+		}
+
+		cfartInfo.pfbPrevFilter = pfbNew;
+		cfartInfo.pui8CurRenderTarget = pui8Dst;
+		cfartInfo.ui16Bits = uint16_t( pfbNew->OutputBits() );
+		cfartInfo.ui32Width = pfbNew->OutputWidth();
+		cfartInfo.ui32Height = pfbNew->OutputHeight();
+		cfartInfo.ui32Stride = uint32_t( pfbNew->OutputStride() );
+		cfartInfo.bMirrored = pfbNew->FlipInput();
+		cfartInfo.pui8LastFilteredResult = nullptr;
+		cfartInfo.bDirty = true;
+		return true;
+	}
+
+	/**
 	 * Loads a ROM.
 	 *
 	 * \param _vRom The in-memory ROM file.

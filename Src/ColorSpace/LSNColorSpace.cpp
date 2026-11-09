@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstring>
 #include <format>
+#include <iterator>
 #include <numbers>
 
 namespace lsn {
@@ -110,6 +111,70 @@ namespace lsn {
 		0.2838f, 0.2984f
 	};
 
+	// The following come from gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h).
+	float CColorSpace::m_fToshiba1992[8] = {														/**< Chromaticities and white point for a typical Toshiba television (1992 Toshiba patent). */
+		// "The phosphor in a cathode ray tube (CRT) used in the typical television receiver":  https://patents.google.com/patent/US5301017A
+		0.657f, 0.338f,
+		0.297f, 0.609f,
+		0.148f, 0.054f,
+		// 9300K + 27 MPCD.
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fMatsushita1979[8] = {														/**< Chromaticities and white point for a typical Matsushita television (1979 Matsushita patent). */
+		// "Typical chromaticities of phosphors... in a recent television receiver":  https://patents.google.com/patent/US4167750A
+		0.631f, 0.347f,
+		0.268f, 0.585f,
+		0.150f, 0.071f,
+		// 9300K + 27 MPCD (paired with these phosphors in the patent).
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fRcaColorTrak[8] = {														/**< Chromaticities and white point for an RCA ColorTrak Remote E13169GM as measured by patchy68k. */
+		// 1989, US model.  https://github.com/ChthonVII/gamutthingy/issues/1#issuecomment-2672961597
+		0.623492333f, 0.343975233f,
+		0.312266967f, 0.590305267f,
+		0.153586233f, 0.064531667f,
+		// Measured (near D75).
+		0.301f, 0.308f
+	};
+
+	float CColorSpace::m_fSonyGdm17Se1[8] = {														/**< Chromaticities and white point for a Sony GDM-17SE1 Trinitron monitor as measured by Bohnsack et al. */
+		// 1994 model, measured in 1997.  https://www.scholars.northwestern.edu/en/publications/characteristics-of-the-sony-multiscan-17se-trinitron-color-graphi
+		0.6233f, 0.3390f,
+		0.2838f, 0.5895f,
+		0.1519f, 0.0669f,
+		// Measured (probably meant to be 9300K + 8 MPCD).
+		0.2836f, 0.2963f
+	};
+
+	float CColorSpace::m_fAppleMultipleScan1705[8] = {												/**< Chromaticities and white point for an Apple Multiple Scan 1705 monitor. */
+		// 1995-1997, manufacturer data (+/- 0.015).  https://til-2001.mirror.kb1max.com/techinfo.nsf/artnum/n24445/index.html
+		0.625f, 0.340f,
+		0.285f, 0.605f,
+		0.150f, 0.065f,
+		// 9300K + 8 MPCD (Judd MPCD, as measured by Yagishita et al.).
+		0.2838f, 0.2984f
+	};
+
+	float CColorSpace::m_fNecMultiSyncC400[8] = {													/**< Chromaticities and white point for an NEC MultiSync C400 monitor. */
+		// https://www.cs.ucf.edu/courses/cap5725/spring2003/Chromaticity.htm
+		0.610f, 0.350f,
+		0.307f, 0.595f,
+		0.150f, 0.065f,
+		// Measured (probably meant to be 9300K + 27 MPCD).
+		0.280f, 0.315f
+	};
+
+	float CColorSpace::m_fKdsVs19[8] = {															/**< Chromaticities and white point for a KDS VS19 monitor. */
+		// https://www.cs.ucf.edu/courses/cap5725/spring2003/Chromaticity.htm
+		0.625f, 0.340f,
+		0.285f, 0.605f,
+		0.150f, 0.065f,
+		// Measured (9300K + 27 MPCD).
+		0.281f, 0.311f
+	};
+
 	/** The hue rotation of the Toshiba CF2005.  patchy68k gives it as -0.39 (https://forums.nesdev.org/viewtopic.php?p=302438), a value for
 	 *	gamutthingy (https://github.com/ChthonVII/gamutthingy), whose hue knob (--crt-hue-knob) is a global rotation of the demodulation
 	 *	axes in degrees.  My filters take radians and their hue also rotates the demodulation axes, in the same direction. */
@@ -128,6 +193,13 @@ namespace lsn {
 		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,		true },
 		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,		true },
 		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,		true },
+		{ m_fToshiba1992,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_1992 ),					"toshiba_1992",				0.0f,	1.0f,		true },
+		{ m_fMatsushita1979,				LSN_LSTR( LSN_STR_CSP_MATSUSHITA_1979 ),				"matsushita_1979",			0.0f,	1.0f,		true },
+		{ m_fRcaColorTrak,					LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",	0.0f,	1.0f,		true },
+		{ m_fSonyGdm17Se1,					LSN_LSTR( LSN_STR_CSP_SONY_GDM_17SE1 ),					"sony_gdm_17se1",			0.0f,	1.0f,		false },
+		{ m_fAppleMultipleScan1705,			LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",	0.0f,	1.0f,		false },
+		{ m_fNecMultiSyncC400,				LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",		0.0f,	1.0f,		false },
+		{ m_fKdsVs19,						LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",					0.0f,	1.0f,		false },
 	};
 
 	/**
@@ -216,6 +288,45 @@ namespace lsn {
 			if ( std::strcmp( m_csdData[I].pcId, _pcId ) == 0 ) { return LSN_COLOR_SPACE( I ); }
 		}
 		return LSN_CSP_TOTAL;
+	}
+
+	/**
+	 * Gets the table of television decoder chips (their demodulation axes and gains).
+	 *
+	 * \param _sTotal Holds the returned number of entries.
+	 * \return Returns the table of decoder chips.
+	 */
+	const CColorSpace::LSN_CRT_DEMODULATOR * CColorSpace::CrtDemodulators( size_t &_sTotal ) {
+		// From gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h):  datasheets, and measurements by patchy68k.
+		static const LSN_CRT_DEMODULATOR s_cdTable[] = {
+			// ID								R-Y angle		G-Y angle		B-Y angle		R-Y gain					G-Y gain					B-Y gain
+			// == Sony.
+			{ "cxa1464as_jp",					{ 98.0f,		243.0f,			0.0f },			{ 0.78f,					0.31f,						1.0f } },		// Trinitron ~1993-1995.
+			{ "cxa1465as_us",					{ 114.0f,		255.0f,			0.0f },			{ 0.78f,					0.31f,						1.0f } },		// Trinitron ~1993-1995.
+			{ "cxa1870s_jp",					{ 96.0f,		240.0f,			0.0f },			{ 0.80f,					0.30f,						1.0f } },		// Trinitron ~1996.
+			{ "cxa1870s_us",					{ 105.0f,		252.0f,			0.0f },			{ 0.80f,					0.30f,						1.0f } },		// Trinitron ~1996.
+			{ "cxa2060bs_jp",					{ 95.0f,		236.0f,			0.0f },			{ 0.78f,					0.33f,						1.0f } },		// Trinitron PVM 1998.
+			{ "cxa2060bs_us",					{ 102.0f,		236.0f,			0.0f },			{ 0.78f,					0.30f,						1.0f } },		// Trinitron PVM 1998.
+			{ "cxa2060bs_pal",					{ 90.0f,		227.0f,			0.0f },			{ float( 0.492111 / 0.877283 ),	0.34f,				1.0f } },		// Trinitron PVM 1998.
+			{ "cxa2025as_jp",					{ 95.0f,		240.0f,			0.0f },			{ 0.78f,					0.30f,						1.0f } },		// Trinitron ~1997.
+			{ "cxa2025as_us",					{ 112.0f,		252.0f,			0.0f },			{ 0.83f,					0.30f,						1.0f } },		// Trinitron ~1997.
+			{ "cxa1213as",						{ 99.0f,		240.0f,			11.0f },		{ 0.77f,					0.30f,						1.0f } },		// Trinitron(?) ~1992.
+			// == Toshiba.
+			{ "ta7644bp",						{ 107.0f,		240.0f,			0.0f },			{ 0.95f,					0.31f,						1.0f } },		// Blackstripe CF2005 (1985), datasheet.
+			{ "ta7644bp_measured",				{ 108.9f,		243.3f,			0.0f },			{ 0.996f,					0.351f,						1.0f } },		// Blackstripe CF2005 (1985), measured by patchy68k (deteriorated unit).
+			{ "ta7698ap",						{ 105.0f,		235.0f,			0.0f },			{ 1.0f,						0.38f,						1.0f } },		// ~1988 (JVC TM-9U).
+			{ "ta8801an",						{ 95.0f,		240.0f,			0.0f },			{ 0.84f,					0.31f,						1.0f } },		// CF3272B (1993).
+			{ "ta8867an",						{ 112.0f,		237.0f,			0.0f },			{ 0.84f,					0.33f,						1.0f } },		// CE-20D10 (1994).
+			{ "ta8867bn",						{ 104.0f,		240.0f,			0.0f },			{ 0.91f,					0.31f,						1.0f } },
+			// == Others.
+			{ "tda8362",						{ 100.0f,		235.0f,			-10.0f },		{ 1.14f,					0.30f,						1.14f } },		// Hitachi CMT2187/2196/2198/2199.
+			{ "la7655n",						{ 105.0f,		240.0f,			0.0f },			{ 0.90f,					0.30f,						1.0f } },		// ~1989 (Mitsubishi?).
+			{ "rca_colortrak_e13169gm",			{ 94.5488524399f,	255.376054365f,	0.0f },		{ 0.806809988011f,			0.295471057738f,			1.0f } },		// Unknown chip, 1989, measured by patchy68k.
+			{ "panasonic_ct_36d30b",			{ 101.580982936f,	232.937328893f,	0.0f },		{ 0.91062624791989f,		0.388131199173125f,			1.0f } },		// Unknown chip, 2000, measured by patchy68k.
+			{ "matsushita_1979",				{ 100.0f,		237.0f,			0.0f },			{ float( 2.5 / 2.65 ),		float( 0.75 / 2.65 ),		1.0f } },		// 1979 Matsushita patent (US4167750A).
+		};
+		_sTotal = std::size( s_cdTable );
+		return s_cdTable;
 	}
 
 	/**

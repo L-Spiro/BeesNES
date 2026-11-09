@@ -336,6 +336,7 @@ namespace lsn {
 	 * \return Returns an LSW_HANDLED code.
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Command( WORD /*_wCtrlCode*/, WORD _wId, CWidget * /*_pwSrc*/ ) {
+		const CFilterBase::LSN_FILTERS fPrevFilter = m_bnEmulator.GetCurFilter();
 		if ( _wId >= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE ) {
 			_wId -= CMainWindowLayout::LSN_MWMI_SHOW_RECENT_BASE;
 			if ( _wId < m_bnEmulator.RecentFiles().size() ) {
@@ -837,6 +838,10 @@ namespace lsn {
 				CVideoOptionsWindowLayout::CreateVideoOptionsDialog( this, vodData );
 				break;
 			}
+		}
+		if ( m_bnEmulator.GetCurFilter() != fPrevFilter && m_bnEmulator.GetSystem() && m_bnEmulator.RomIsPaused() ) {
+			// Show the new filter right away (a paused game makes no new frames to switch filters on).
+			ApplyVideoOptions();
 		}
 		return LSW_H_CONTINUE;
 	}
@@ -2411,6 +2416,11 @@ namespace lsn {
 		m_bnEmulator.ApplyPaletteOptions();
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			// A paused game makes no new frames, so a filter changed while paused (for example from Vulkan to Direct3D 12) would never
+			//	become current and the changes would be drawn by the old filter (or not at all once it is deactivated).
+			if ( m_bnEmulator.GetSystem() && m_bnEmulator.RomIsPaused() ) {
+				m_bnEmulator.CommitPendingFilter();
+			}
 			m_bnEmulator.DirtyRender();
 		}
 		if ( bWasRunning ) { StartThread(); }

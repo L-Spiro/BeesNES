@@ -416,6 +416,17 @@ namespace lsn {
 		bool									SwapIsSafe();
 
 		/**
+		 * Makes the filter set by SetCurFilter() current without waiting for the next frame (Swap()), so that a paused game shows the new
+		 *	filter (and the changes made to its settings).  The last frame is copied into the new filter's render targets, flipped if the
+		 *	filters want their input flipped differently.  Call only while the emulation thread is stopped or the game is paused, inside the
+		 *	same critical section/mutex as Render() and Swap().
+		 *
+		 * \return Returns true if a pending filter was made current.  Returns false if no filter is pending or if the new filter takes
+		 *	input that differs from the last frame (its format or size), in which case the change happens at the next Swap() as usual.
+		 **/
+		bool									CommitPendingFilter();
+
+		/**
 		 * Dirties the render flag.  Allow re-rendering of the last frame.
 		 **/
 		void									DirtyRender() {
