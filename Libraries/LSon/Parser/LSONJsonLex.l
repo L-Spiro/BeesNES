@@ -1,4 +1,4 @@
-%option 				yylineno noyywrap 8bit nodefault
+%option 				noyywrap 8bit nodefault
 
 
 %{
