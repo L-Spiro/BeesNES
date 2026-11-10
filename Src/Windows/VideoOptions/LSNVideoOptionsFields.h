@@ -65,6 +65,7 @@ namespace lsn {
 			// Common:  color correction.
 			LSN_VF_TV_PRESET,																					/**< The TV preset (fills other fields; holds no value of its own). */
 			LSN_VF_COLOR_SPACE,																					/**< The CRT's color space. */
+			LSN_VF_DEMODULATOR,																					/**< The CRT's decoder chip (L. Spiro filters only). */
 			LSN_VF_GAMMA,																						/**< The CRT's gamma curve. */
 			LSN_VF_CRT_WHITE,																					/**< The white level of the CRT1 curve. */
 			LSN_VF_CRT_BRIGHTNESS,																				/**< The brightness of the CRT1 curve. */
@@ -272,7 +273,8 @@ namespace lsn {
 		static bool											IsEditable( LSN_VIDEO_FIELD _vfField, const LSN_FIELD_TARGET &_ftTarget );
 
 		/**
-		 * Applies a TV preset:  sets the color space, the hue offset, and the saturation (relative to the default saturation of the filter).
+		 * Applies a TV preset:  sets the color space, the hue offset, the saturation (relative to the default saturation of the filter), and
+		 *	(L. Spiro filters) the decoder chip.
 		 *
 		 * \param _cspPreset The color space that models the television.
 		 * \param _ftTarget The settings being edited.

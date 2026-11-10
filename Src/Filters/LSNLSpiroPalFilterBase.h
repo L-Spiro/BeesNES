@@ -199,6 +199,24 @@ namespace lsn {
 		inline float										HueOffset() const { return m_fHueOffset; }
 
 		/**
+		 * Sets the coefficients that convert the decoded Y'UV to R'G'B' (the decoder chip of the emulated television; see
+		 *	CColorSpace::DemodulatorMatrix()):  R' = Y' + _pfMatrix[0] * U + _pfMatrix[1] * V, G' = Y' + _pfMatrix[2] * U + _pfMatrix[3] * V,
+		 *	and B' = Y' + _pfMatrix[4] * U + _pfMatrix[5] * V.
+		 * 
+		 * \param _pfMatrix The 6 coefficients.
+		 **/
+		inline void											SetDemodulatorMatrix( const float * _pfMatrix ) {
+			for ( size_t I = 0; I < 6; ++I ) { m_fDemodMatrix[I] = _pfMatrix[I]; }
+		}
+
+		/**
+		 * Gets the coefficients that convert the decoded Y'UV to R'G'B' (see SetDemodulatorMatrix()).
+		 * 
+		 * \return Returns the 6 coefficients.
+		 **/
+		inline const float *								DemodulatorMatrix() const { return m_fDemodMatrix; }
+
+		/**
 		 * Sets the brightness.
 		 * 
 		 * \param _fBrightness The brightness to set.
@@ -524,6 +542,7 @@ namespace lsn {
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 0.0f;								/**< The hue. */
 		float												m_fHueOffset = 0.0f;								/**< An offset added to the hue (a color space's hue rotation), in radians. */
+		float												m_fDemodMatrix[6] = { 0.0f, 1.139883025203f, -0.394642233974f, -0.580621847591f, 2.032061872219f, 0.0f };	/**< The Y'UV-to-R'G'B' coefficients (R from U and V, G from U and V, B from U and V; see SetDemodulatorMatrix()). */
 		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
 		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
@@ -1221,6 +1240,12 @@ namespace lsn {
 				mPhosphorDecayG = _mm512_set1_ps( m_fPhosphorDecayRateGreen );
 				mPhosphorDecayB = _mm512_set1_ps( m_fPhosphorDecayRateBlue );
 			}
+			const __m512 mDemodRU = _mm512_set1_ps( m_fDemodMatrix[0] );
+			const __m512 mDemodRV = _mm512_set1_ps( m_fDemodMatrix[1] );
+			const __m512 mDemodGU = _mm512_set1_ps( m_fDemodMatrix[2] );
+			const __m512 mDemodGV = _mm512_set1_ps( m_fDemodMatrix[3] );
+			const __m512 mDemodBU = _mm512_set1_ps( m_fDemodMatrix[4] );
+			const __m512 mDemodBV = _mm512_set1_ps( m_fDemodMatrix[5] );
 			constexpr auto sRegSize = sizeof( __m512 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -1232,12 +1257,12 @@ namespace lsn {
 				__m512 mOldB = _mm512_load_ps( pfBlendBuffer + (sRegSize * 2) );
 
 				// Convert YUV to RGB.
-				// R = Y + (1.139883025203f * V)
-				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-				// B = Y + (2.032061872219f * U)
-				__m512 mR = _mm512_add_ps( mY, _mm512_mul_ps( mV, _mm512_set1_ps( 1.139883025203f ) ) );
-				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, _mm512_set1_ps( -0.394642233974f ) ), _mm512_mul_ps( mV, _mm512_set1_ps( -0.580621847591f ) ) ) );
-				__m512 mB = _mm512_add_ps( mY, _mm512_mul_ps( mU, _mm512_set1_ps( 2.032061872219f ) ) );
+				// R = Y + (m_fDemodMatrix[0] * U) + (m_fDemodMatrix[1] * V) (standard:  R = Y + 1.139883025203 * V)
+				// G = Y + (m_fDemodMatrix[2] * U) + (m_fDemodMatrix[3] * V) (standard:  G = Y - 0.394642233974 * U - 0.580621847591 * V)
+				// B = Y + (m_fDemodMatrix[4] * U) + (m_fDemodMatrix[5] * V) (standard:  B = Y + 2.032061872219 * U)
+				__m512 mR = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, mDemodRU ), _mm512_mul_ps( mV, mDemodRV ) ) );
+				__m512 mG = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, mDemodGU ), _mm512_mul_ps( mV, mDemodGV ) ) );
+				__m512 mB = _mm512_add_ps( mY, _mm512_add_ps( _mm512_mul_ps( mU, mDemodBU ), _mm512_mul_ps( mV, mDemodBV ) ) );
 
 				if constexpr ( _bPhosphorDecay ) {
 					mOldR = _mm512_mul_ps( mPhosphorDecayR, mOldR );
@@ -1321,6 +1346,12 @@ namespace lsn {
 				mPhosphorDecayG = _mm256_set1_ps( m_fPhosphorDecayRateGreen );
 				mPhosphorDecayB = _mm256_set1_ps( m_fPhosphorDecayRateBlue );
 			}
+			const __m256 mDemodRU = _mm256_set1_ps( m_fDemodMatrix[0] );
+			const __m256 mDemodRV = _mm256_set1_ps( m_fDemodMatrix[1] );
+			const __m256 mDemodGU = _mm256_set1_ps( m_fDemodMatrix[2] );
+			const __m256 mDemodGV = _mm256_set1_ps( m_fDemodMatrix[3] );
+			const __m256 mDemodBU = _mm256_set1_ps( m_fDemodMatrix[4] );
+			const __m256 mDemodBV = _mm256_set1_ps( m_fDemodMatrix[5] );
 			constexpr auto sRegSize = sizeof( __m256 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -1332,12 +1363,12 @@ namespace lsn {
 				__m256 mOldB = _mm256_load_ps( pfBlendBuffer + (sRegSize * 2) );
 
 				// Convert YUV to RGB.
-				// R = Y + (1.139883025203f * V)
-				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-				// B = Y + (2.032061872219f * U)
-				__m256 mR = _mm256_add_ps( mY, _mm256_mul_ps( mV, _mm256_set1_ps( 1.139883025203f ) ) );
-				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, _mm256_set1_ps( -0.394642233974f ) ), _mm256_mul_ps( mV, _mm256_set1_ps( -0.580621847591f ) ) ) );
-				__m256 mB = _mm256_add_ps( mY, _mm256_mul_ps( mU, _mm256_set1_ps( 2.032061872219f ) ) );
+				// R = Y + (m_fDemodMatrix[0] * U) + (m_fDemodMatrix[1] * V) (standard:  R = Y + 1.139883025203 * V)
+				// G = Y + (m_fDemodMatrix[2] * U) + (m_fDemodMatrix[3] * V) (standard:  G = Y - 0.394642233974 * U - 0.580621847591 * V)
+				// B = Y + (m_fDemodMatrix[4] * U) + (m_fDemodMatrix[5] * V) (standard:  B = Y + 2.032061872219 * U)
+				__m256 mR = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, mDemodRU ), _mm256_mul_ps( mV, mDemodRV ) ) );
+				__m256 mG = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, mDemodGU ), _mm256_mul_ps( mV, mDemodGV ) ) );
+				__m256 mB = _mm256_add_ps( mY, _mm256_add_ps( _mm256_mul_ps( mU, mDemodBU ), _mm256_mul_ps( mV, mDemodBV ) ) );
 
 				if constexpr ( _bPhosphorDecay ) {
 					mOldR = _mm256_mul_ps( mPhosphorDecayR, mOldR );
@@ -1430,6 +1461,12 @@ namespace lsn {
 				mPhosphorDecayG = _mm_set1_ps( m_fPhosphorDecayRateGreen );
 				mPhosphorDecayB = _mm_set1_ps( m_fPhosphorDecayRateBlue );
 			}
+			const __m128 mDemodRU = _mm_set1_ps( m_fDemodMatrix[0] );
+			const __m128 mDemodRV = _mm_set1_ps( m_fDemodMatrix[1] );
+			const __m128 mDemodGU = _mm_set1_ps( m_fDemodMatrix[2] );
+			const __m128 mDemodGV = _mm_set1_ps( m_fDemodMatrix[3] );
+			const __m128 mDemodBU = _mm_set1_ps( m_fDemodMatrix[4] );
+			const __m128 mDemodBV = _mm_set1_ps( m_fDemodMatrix[5] );
 			constexpr auto sRegSize = sizeof( __m128 ) / sizeof( float );
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; I += sRegSize ) {
 				// YIQ-to-YUV is just a matter of hue rotation, so it is handled in GenPhaseTables().
@@ -1441,12 +1478,12 @@ namespace lsn {
 				__m128 mOldB = _mm_load_ps( pfBlendBuffer + (sRegSize * 2) );
 
 				// Convert YUV to RGB.
-				// R = Y + (1.139883025203f * V)
-				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-				// B = Y + (2.032061872219f * U)
-				__m128 mR = _mm_add_ps( mY, _mm_mul_ps( mV, _mm_set1_ps( 1.139883025203f ) ) );
-				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, _mm_set1_ps( -0.394642233974f ) ), _mm_mul_ps( mV, _mm_set1_ps( -0.580621847591f ) ) ) );
-				__m128 mB = _mm_add_ps( mY, _mm_mul_ps( mU, _mm_set1_ps( 2.032061872219f ) ) );
+				// R = Y + (m_fDemodMatrix[0] * U) + (m_fDemodMatrix[1] * V) (standard:  R = Y + 1.139883025203 * V)
+				// G = Y + (m_fDemodMatrix[2] * U) + (m_fDemodMatrix[3] * V) (standard:  G = Y - 0.394642233974 * U - 0.580621847591 * V)
+				// B = Y + (m_fDemodMatrix[4] * U) + (m_fDemodMatrix[5] * V) (standard:  B = Y + 2.032061872219 * U)
+				__m128 mR = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, mDemodRU ), _mm_mul_ps( mV, mDemodRV ) ) );
+				__m128 mG = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, mDemodGU ), _mm_mul_ps( mV, mDemodGV ) ) );
+				__m128 mB = _mm_add_ps( mY, _mm_add_ps( _mm_mul_ps( mU, mDemodBU ), _mm_mul_ps( mV, mDemodBV ) ) );
 
 				if constexpr ( _bPhosphorDecay ) {
 					mOldR = _mm_mul_ps( mPhosphorDecayR, mOldR );
@@ -1542,12 +1579,12 @@ namespace lsn {
 		{
 			for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
 				// Convert YUV to RGB.
-				// R = Y + (1.139883025203f * V)
-				// G = Y + (-0.394642233974f * U) + (-0.580621847591f * V)
-				// B = Y + (2.032061872219f * U)
-				float fR = (*pfY) + (1.139883025203f * (*pfI));
-				float fG = (*pfY) + (-0.394642233974f * (*pfQ)) + (-0.580621847591f * (*pfI));
-				float fB = (*pfY) + (2.032061872219f * (*pfQ));
+				// R = Y + (m_fDemodMatrix[0] * U) + (m_fDemodMatrix[1] * V) (standard:  R = Y + 1.139883025203 * V)
+				// G = Y + (m_fDemodMatrix[2] * U) + (m_fDemodMatrix[3] * V) (standard:  G = Y - 0.394642233974 * U - 0.580621847591 * V)
+				// B = Y + (m_fDemodMatrix[4] * U) + (m_fDemodMatrix[5] * V) (standard:  B = Y + 2.032061872219 * U)
+				float fR = (*pfY) + (m_fDemodMatrix[0] * (*pfQ)) + (m_fDemodMatrix[1] * (*pfI));
+				float fG = (*pfY) + (m_fDemodMatrix[2] * (*pfQ)) + (m_fDemodMatrix[3] * (*pfI));
+				float fB = (*pfY) + (m_fDemodMatrix[4] * (*pfQ)) + (m_fDemodMatrix[5] * (*pfI));
 
 				// Scale and clamp. clamp( RGB * LSN_SRGB_RES - 1, 0, LSN_SRGB_RES - 1 ).
 				fR = std::clamp( fR * (uint32_t( LSN_SRGB_RES ) - 1.0f), 0.0f, (uint32_t( LSN_SRGB_RES ) - 1.0f) );

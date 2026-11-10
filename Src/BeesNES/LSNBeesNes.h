@@ -59,11 +59,13 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			4
+#define LSN_BEESNES_SETTINGS_VERSION			5
 /** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
 #define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
 /** The first settings version in which the parameters of the filter functions are the values used directly (Lanczos lobes, Kaiser beta, etc.). */
 #define LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS	4
+/** The first settings version that saves the decoder chip (demodulator) of the L. Spiro filters. */
+#define LSN_BEESNES_SETTINGS_VERSION_DEMODULATOR	5
 
 namespace lsn {
 

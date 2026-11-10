@@ -793,6 +793,29 @@
 #define LSN_STR_CSP_NEC_MULTISYNC_C400										NEC MultiSync C400 Monitor
 #define LSN_STR_CSP_KDS_VS19												KDS VS19 Monitor
 
+#define LSN_STR_DM_NONE														None (Standard)
+#define LSN_STR_DM_CXA1464AS_JP												Sony CXA1464AS (Japan, 1993)
+#define LSN_STR_DM_CXA1465AS_US												Sony CXA1465AS (US, 1993)
+#define LSN_STR_DM_CXA1870S_JP												Sony CXA1870S (Japan, 1996)
+#define LSN_STR_DM_CXA1870S_US												Sony CXA1870S (US, 1996)
+#define LSN_STR_DM_CXA2025AS_JP												Sony CXA2025AS (Japan, 1997)
+#define LSN_STR_DM_CXA2025AS_US												Sony CXA2025AS (US, 1997)
+#define LSN_STR_DM_CXA2060BS_JP												Sony CXA2060BS (Japan, PVM, 1998)
+#define LSN_STR_DM_CXA2060BS_US												Sony CXA2060BS (US, PVM, 1998)
+#define LSN_STR_DM_CXA2060BS_PAL											Sony CXA2060BS (PAL, PVM, 1998)
+#define LSN_STR_DM_CXA1213AS												Sony CXA1213AS (1992)
+#define LSN_STR_DM_TA7644BP													Toshiba TA7644BP (CF2005, 1985)
+#define LSN_STR_DM_TA7644BP_MEASURED										Toshiba TA7644BP (CF2005, Measured)
+#define LSN_STR_DM_TA7698AP													Toshiba TA7698AP (1988)
+#define LSN_STR_DM_TA8801AN													Toshiba TA8801AN (CF-3272B, 1993)
+#define LSN_STR_DM_TA8867AN													Toshiba TA8867AN (CE-20D10, 1994)
+#define LSN_STR_DM_TA8867BN													Toshiba TA8867BN
+#define LSN_STR_DM_TDA8362													Philips TDA8362 (Hitachi CMT2187)
+#define LSN_STR_DM_LA7655N													Sanyo LA7655N (1989)
+#define LSN_STR_DM_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM (Measured)
+#define LSN_STR_DM_PANASONIC_CT_36D30B										Panasonic CT-36D30B (Measured)
+#define LSN_STR_DM_MATSUSHITA_1979											Matsushita (1979 Patent)
+
 #define LSN_STR_PRORES_PROXY											Proxy
 #define LSN_STR_PRORES_LT												LT
 #define LSN_STR_PRORES_STANDARD											Standard
@@ -924,6 +947,7 @@
 #define LSN_STR_VO_OUTPUT_RANGE														Output Range:
 #define LSN_STR_VO_TV_PRESET														TV Preset:
 #define LSN_STR_VO_COLOR_SPACE														Color Space:
+#define LSN_STR_VO_DEMODULATOR														Demodulator:
 #define LSN_STR_VO_GAMMA															Gamma:
 #define LSN_STR_VO_CRT_WHITE														CRT White:
 #define LSN_STR_VO_CRT_BRIGHTNESS													CRT Brightness:
@@ -1068,6 +1092,7 @@
 #define LSN_STR_VO_TT_OUTPUT_RANGE													The range of the values sent to your monitor.  PC monitors use Full (0-255).  Use Limited (16-235) only for a television or capture device that expects video levels; the wrong range makes blacks gray or crushes the shadows.  Applies only to GPU filters.
 #define LSN_STR_VO_TT_TV_PRESET														Select a physical television to model.  This fills in the color space, the hue offset, and the saturation with the values of that television.
 #define LSN_STR_VO_TT_COLOR_SPACE													Select the CRT\u2019s color space.
+#define LSN_STR_VO_TT_DEMODULATOR													The decoder chip of the emulated television.  Televisions decoded the color-difference signals on moved axes with changed gains, which corrected the colors for their phosphors and white point (and gave each brand its look).  None decodes with the standard axes.  Selecting a TV Preset selects its decoder chip.
 #define LSN_STR_VO_TT_GAMMA															Select the CRT\u2019s gamma curve.
 #define LSN_STR_VO_TT_CRT_WHITE														The white level (Lw) of the CRT 1 gamma curve.  1.0 is the standard white level.
 #define LSN_STR_VO_TT_CRT_BRIGHTNESS												The brightness (black lift, B) of the CRT 1 gamma curve.  Higher values raise the darkest shades.

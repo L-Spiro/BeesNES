@@ -212,6 +212,7 @@ namespace lsn {
 		uint16_t											ui16PixelToSignal = 10;										/**< How many signals each pixel generates (PAL only). */
 		LSN_NOISE_TYPE										ntNoiseType = LSN_NT_PHYSICAL;								/**< The kind of signal noise. */
 		float												fNoiseAmount = 0.0225f;										/**< The standard deviation of the noise (LSN_NT_CUSTOM only). */
+		CColorSpace::LSN_DEMODULATOR						dmDemodulator = CColorSpace::LSN_DM_NONE;					/**< The decoder chip of the emulated television (its color correction). */
 	};
 
 

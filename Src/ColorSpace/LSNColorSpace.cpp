@@ -175,31 +175,55 @@ namespace lsn {
 		0.281f, 0.311f
 	};
 
-	/** The hue rotation of the Toshiba CF2005.  patchy68k gives it as -0.39 (https://forums.nesdev.org/viewtopic.php?p=302438), a value for
-	 *	gamutthingy (https://github.com/ChthonVII/gamutthingy), whose hue knob (--crt-hue-knob) is a global rotation of the demodulation
-	 *	axes in degrees.  My filters take radians and their hue also rotates the demodulation axes, in the same direction. */
-
 	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {				/**< The information about each color space, in LSN_COLOR_SPACE order. */
-		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,		false },
-		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,		false },
-		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,		false },
-		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",				0.0f,	1.0f,		false },
-		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",				0.0f,	1.0f,		false },
-		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",				0.0f,	1.0f,		false },
-		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",				0.0f,	1.0f,		false },
-		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",					0.0f,	1.0f,		false },
-		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",					0.0f,	1.0f,		false },
-		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",			0.0f,	1.1155f,	true },
-		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,		true },
-		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,		true },
-		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,		true },
-		{ m_fToshiba1992,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_1992 ),					"toshiba_1992",				0.0f,	1.0f,		true },
-		{ m_fMatsushita1979,				LSN_LSTR( LSN_STR_CSP_MATSUSHITA_1979 ),				"matsushita_1979",			0.0f,	1.0f,		true },
-		{ m_fRcaColorTrak,					LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",	0.0f,	1.0f,		true },
-		{ m_fSonyGdm17Se1,					LSN_LSTR( LSN_STR_CSP_SONY_GDM_17SE1 ),					"sony_gdm_17se1",			0.0f,	1.0f,		false },
-		{ m_fAppleMultipleScan1705,			LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",	0.0f,	1.0f,		false },
-		{ m_fNecMultiSyncC400,				LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",		0.0f,	1.0f,		false },
-		{ m_fKdsVs19,						LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",					0.0f,	1.0f,		false },
+		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",				0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",				0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",				0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",				0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",			0.0f,	1.1155f,	true,		LSN_DM_TA7644BP },
+		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,		true,		LSN_DM_CXA2060BS_US },
+		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,		true,		LSN_DM_CXA2060BS_US },
+		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,		true,		LSN_DM_CXA1464AS_JP },
+		{ m_fToshiba1992,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_1992 ),					"toshiba_1992",				0.0f,	1.0f,		true,		LSN_DM_TA8801AN },
+		{ m_fMatsushita1979,				LSN_LSTR( LSN_STR_CSP_MATSUSHITA_1979 ),				"matsushita_1979",			0.0f,	1.0f,		true,		LSN_DM_MATSUSHITA_1979 },
+		{ m_fRcaColorTrak,					LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",	0.0f,	1.0f,		true,		LSN_DM_RCA_COLORTRAK },
+		{ m_fSonyGdm17Se1,					LSN_LSTR( LSN_STR_CSP_SONY_GDM_17SE1 ),					"sony_gdm_17se1",			0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fAppleMultipleScan1705,			LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",	0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fNecMultiSyncC400,				LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",		0.0f,	1.0f,		false,		LSN_DM_NONE },
+		{ m_fKdsVs19,						LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+	};
+
+	/** The information about each decoder chip, in LSN_DEMODULATOR order.  From gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h):
+	 *	datasheets, and measurements by patchy68k.  LSN_DM_NONE lists the standard NTSC axes (DemodulatorMatrix() uses the exact standard coefficients for it). */
+	const CColorSpace::LSN_DEMODULATOR_DATA CColorSpace::m_ddDemodulators[LSN_DM_TOTAL] = {
+		// Name											ID							R-Y, G-Y, and B-Y angles				R-Y, G-Y, and B-Y gains
+		{ LSN_LSTR( LSN_STR_DM_NONE ),					"none",						{ 90.0f, 236.0f, 0.0f },				{ 0.56f, 0.34f, 1.0f } },
+		{ LSN_LSTR( LSN_STR_DM_CXA1464AS_JP ),			"cxa1464as_jp",				{ 98.0f, 243.0f, 0.0f },				{ 0.78f, 0.31f, 1.0f } },								// Trinitron ~1993-1995.
+		{ LSN_LSTR( LSN_STR_DM_CXA1465AS_US ),			"cxa1465as_us",				{ 114.0f, 255.0f, 0.0f },				{ 0.78f, 0.31f, 1.0f } },								// Trinitron ~1993-1995.
+		{ LSN_LSTR( LSN_STR_DM_CXA1870S_JP ),			"cxa1870s_jp",				{ 96.0f, 240.0f, 0.0f },				{ 0.80f, 0.30f, 1.0f } },								// Trinitron ~1996.
+		{ LSN_LSTR( LSN_STR_DM_CXA1870S_US ),			"cxa1870s_us",				{ 105.0f, 252.0f, 0.0f },				{ 0.80f, 0.30f, 1.0f } },								// Trinitron ~1996.
+		{ LSN_LSTR( LSN_STR_DM_CXA2025AS_JP ),			"cxa2025as_jp",				{ 95.0f, 240.0f, 0.0f },				{ 0.78f, 0.30f, 1.0f } },								// Trinitron ~1997.
+		{ LSN_LSTR( LSN_STR_DM_CXA2025AS_US ),			"cxa2025as_us",				{ 112.0f, 252.0f, 0.0f },				{ 0.83f, 0.30f, 1.0f } },								// Trinitron ~1997.
+		{ LSN_LSTR( LSN_STR_DM_CXA2060BS_JP ),			"cxa2060bs_jp",				{ 95.0f, 236.0f, 0.0f },				{ 0.78f, 0.33f, 1.0f } },								// Trinitron PVM ~1998.
+		{ LSN_LSTR( LSN_STR_DM_CXA2060BS_US ),			"cxa2060bs_us",				{ 102.0f, 236.0f, 0.0f },				{ 0.78f, 0.30f, 1.0f } },								// Trinitron PVM ~1998.
+		{ LSN_LSTR( LSN_STR_DM_CXA2060BS_PAL ),			"cxa2060bs_pal",			{ 90.0f, 227.0f, 0.0f },				{ float( 0.492111 / 0.877283 ), 0.34f, 1.0f } },		// Trinitron PVM ~1998.
+		{ LSN_LSTR( LSN_STR_DM_CXA1213AS ),				"cxa1213as",				{ 99.0f, 240.0f, 11.0f },				{ 0.77f, 0.30f, 1.0f } },								// Trinitron(?) ~1992.
+		{ LSN_LSTR( LSN_STR_DM_TA7644BP ),				"ta7644bp",					{ 107.0f, 240.0f, 0.0f },				{ 0.95f, 0.31f, 1.0f } },								// Blackstripe CF2005 (1985), datasheet.
+		{ LSN_LSTR( LSN_STR_DM_TA7644BP_MEASURED ),		"ta7644bp_measured",		{ 108.9f, 243.3f, 0.0f },				{ 0.996f, 0.351f, 1.0f } },								// Blackstripe CF2005 (1985), measured by patchy68k (deteriorated unit).
+		{ LSN_LSTR( LSN_STR_DM_TA7698AP ),				"ta7698ap",					{ 105.0f, 235.0f, 0.0f },				{ 1.0f, 0.38f, 1.0f } },								// ~1988 (JVC TM-9U).
+		{ LSN_LSTR( LSN_STR_DM_TA8801AN ),				"ta8801an",					{ 95.0f, 240.0f, 0.0f },				{ 0.84f, 0.31f, 1.0f } },								// CF-3272B (1993).
+		{ LSN_LSTR( LSN_STR_DM_TA8867AN ),				"ta8867an",					{ 112.0f, 237.0f, 0.0f },				{ 0.84f, 0.33f, 1.0f } },								// CE-20D10 (1994).
+		{ LSN_LSTR( LSN_STR_DM_TA8867BN ),				"ta8867bn",					{ 104.0f, 240.0f, 0.0f },				{ 0.91f, 0.31f, 1.0f } },
+		{ LSN_LSTR( LSN_STR_DM_TDA8362 ),				"tda8362",					{ 100.0f, 235.0f, -10.0f },				{ 1.14f, 0.30f, 1.14f } },								// Hitachi CMT2187/2196/2198/2199.
+		{ LSN_LSTR( LSN_STR_DM_LA7655N ),				"la7655n",					{ 105.0f, 240.0f, 0.0f },				{ 0.90f, 0.30f, 1.0f } },								// ~1989 (Mitsubishi?).
+		{ LSN_LSTR( LSN_STR_DM_RCA_COLORTRAK ),			"rca_colortrak_e13169gm",	{ 94.5488524399f, 255.376054365f, 0.0f },	{ 0.806809988011f, 0.295471057738f, 1.0f } },		// Unknown chip, 1989, measured by patchy68k.
+		{ LSN_LSTR( LSN_STR_DM_PANASONIC_CT_36D30B ),	"panasonic_ct_36d30b",		{ 101.580982936f, 232.937328893f, 0.0f },	{ 0.91062624791989f, 0.388131199173125f, 1.0f } },	// Unknown chip, 2000, measured by patchy68k.
+		{ LSN_LSTR( LSN_STR_DM_MATSUSHITA_1979 ),		"matsushita_1979",			{ 100.0f, 237.0f, 0.0f },				{ float( 2.5 / 2.65 ), float( 0.75 / 2.65 ), 1.0f } },	// 1979 Matsushita patent (US4167750A).
 	};
 
 	/**
@@ -277,6 +301,57 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets information about a television decoder chip.
+	 *
+	 * \param _dmDemodulator The decoder chip.
+	 * \return Returns the information about the decoder chip, or the information about LSN_DM_NONE if _dmDemodulator is invalid.
+	 */
+	const CColorSpace::LSN_DEMODULATOR_DATA & CColorSpace::Demodulator( LSN_DEMODULATOR _dmDemodulator ) {
+		return m_ddDemodulators[(_dmDemodulator < LSN_DM_TOTAL) ? _dmDemodulator : LSN_DM_NONE];
+	}
+
+	/**
+	 * Creates the coefficients that convert Y'UV to R'G'B' the way a television's decoder chip does (with its color correction):
+	 *	R' = Y' + _pfMatrix[0] * U + _pfMatrix[1] * V, G' = Y' + _pfMatrix[2] * U + _pfMatrix[3] * V, and
+	 *	B' = Y' + _pfMatrix[4] * U + _pfMatrix[5] * V.  The gains are denormalized as gamutthingy does by default:  the B-Y gain becomes
+	 *	1 / 0.492111 (renormalized to the U/V ellipse when the B-Y axis is off 0 degrees and its gain is not 1).
+	 *
+	 * \param _dmDemodulator The decoder chip.  LSN_DM_NONE gives the standard Y'UV-to-R'G'B' coefficients.
+	 * \param _pfMatrix Holds the 6 returned coefficients.
+	 */
+	void CColorSpace::DemodulatorMatrix( LSN_DEMODULATOR _dmDemodulator, float * _pfMatrix ) {
+		if ( _dmDemodulator >= LSN_DM_TOTAL || _dmDemodulator == LSN_DM_NONE ) {
+			// The standard coefficients (exactly what the filters used before decoder chips could be chosen).
+			_pfMatrix[0] = 0.0f;
+			_pfMatrix[1] = 1.139883025203f;
+			_pfMatrix[2] = -0.394642233974f;
+			_pfMatrix[3] = -0.580621847591f;
+			_pfMatrix[4] = 2.032061872219f;
+			_pfMatrix[5] = 0.0f;
+			return;
+		}
+		const LSN_DEMODULATOR_DATA & ddData = m_ddDemodulators[_dmDemodulator];
+		constexpr double dDegToRad = std::numbers::pi / 180.0;
+		constexpr double dUScale = 1.0 / 0.492111;					// B-Y = U / 0.492111.
+		constexpr double dVScale = 1.0 / 0.877283;					// R-Y = V / 0.877283.
+		const double dBlueAngle = ddData.fAngles[2] * dDegToRad;
+		const double dBlueGain = ddData.fGains[2];
+		double dNorm = dUScale;
+		if ( dBlueGain != 1.0 && dBlueAngle != 0.0 ) {
+			// The upscale factors form an ellipse with dUScale on the U axis and dVScale on the V axis; its radius at the B-Y angle becomes the B-Y gain.
+			const double dSin = std::sin( dBlueAngle ), dCos = std::cos( dBlueAngle );
+			const double dRadius = (dUScale * dVScale) / std::sqrt( (dUScale * dUScale * dSin * dSin) + (dVScale * dVScale * dCos * dCos) );
+			dNorm = dRadius / dBlueGain;
+		}
+		for ( size_t I = 0; I < 3; ++I ) {
+			const double dAngle = ddData.fAngles[I] * dDegToRad;
+			const double dGain = ddData.fGains[I] * dNorm;
+			_pfMatrix[I*2+0] = float( dGain * std::cos( dAngle ) );
+			_pfMatrix[I*2+1] = float( dGain * std::sin( dAngle ) );
+		}
+	}
+
+	/**
 	 * Finds a color space by the ID returned in LSN_COLOR_SPACE_DATA::pcId.
 	 *
 	 * \param _pcId The ID of the color space.
@@ -288,45 +363,6 @@ namespace lsn {
 			if ( std::strcmp( m_csdData[I].pcId, _pcId ) == 0 ) { return LSN_COLOR_SPACE( I ); }
 		}
 		return LSN_CSP_TOTAL;
-	}
-
-	/**
-	 * Gets the table of television decoder chips (their demodulation axes and gains).
-	 *
-	 * \param _sTotal Holds the returned number of entries.
-	 * \return Returns the table of decoder chips.
-	 */
-	const CColorSpace::LSN_CRT_DEMODULATOR * CColorSpace::CrtDemodulators( size_t &_sTotal ) {
-		// From gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h):  datasheets, and measurements by patchy68k.
-		static const LSN_CRT_DEMODULATOR s_cdTable[] = {
-			// ID								R-Y angle		G-Y angle		B-Y angle		R-Y gain					G-Y gain					B-Y gain
-			// == Sony.
-			{ "cxa1464as_jp",					{ 98.0f,		243.0f,			0.0f },			{ 0.78f,					0.31f,						1.0f } },		// Trinitron ~1993-1995.
-			{ "cxa1465as_us",					{ 114.0f,		255.0f,			0.0f },			{ 0.78f,					0.31f,						1.0f } },		// Trinitron ~1993-1995.
-			{ "cxa1870s_jp",					{ 96.0f,		240.0f,			0.0f },			{ 0.80f,					0.30f,						1.0f } },		// Trinitron ~1996.
-			{ "cxa1870s_us",					{ 105.0f,		252.0f,			0.0f },			{ 0.80f,					0.30f,						1.0f } },		// Trinitron ~1996.
-			{ "cxa2060bs_jp",					{ 95.0f,		236.0f,			0.0f },			{ 0.78f,					0.33f,						1.0f } },		// Trinitron PVM 1998.
-			{ "cxa2060bs_us",					{ 102.0f,		236.0f,			0.0f },			{ 0.78f,					0.30f,						1.0f } },		// Trinitron PVM 1998.
-			{ "cxa2060bs_pal",					{ 90.0f,		227.0f,			0.0f },			{ float( 0.492111 / 0.877283 ),	0.34f,				1.0f } },		// Trinitron PVM 1998.
-			{ "cxa2025as_jp",					{ 95.0f,		240.0f,			0.0f },			{ 0.78f,					0.30f,						1.0f } },		// Trinitron ~1997.
-			{ "cxa2025as_us",					{ 112.0f,		252.0f,			0.0f },			{ 0.83f,					0.30f,						1.0f } },		// Trinitron ~1997.
-			{ "cxa1213as",						{ 99.0f,		240.0f,			11.0f },		{ 0.77f,					0.30f,						1.0f } },		// Trinitron(?) ~1992.
-			// == Toshiba.
-			{ "ta7644bp",						{ 107.0f,		240.0f,			0.0f },			{ 0.95f,					0.31f,						1.0f } },		// Blackstripe CF2005 (1985), datasheet.
-			{ "ta7644bp_measured",				{ 108.9f,		243.3f,			0.0f },			{ 0.996f,					0.351f,						1.0f } },		// Blackstripe CF2005 (1985), measured by patchy68k (deteriorated unit).
-			{ "ta7698ap",						{ 105.0f,		235.0f,			0.0f },			{ 1.0f,						0.38f,						1.0f } },		// ~1988 (JVC TM-9U).
-			{ "ta8801an",						{ 95.0f,		240.0f,			0.0f },			{ 0.84f,					0.31f,						1.0f } },		// CF3272B (1993).
-			{ "ta8867an",						{ 112.0f,		237.0f,			0.0f },			{ 0.84f,					0.33f,						1.0f } },		// CE-20D10 (1994).
-			{ "ta8867bn",						{ 104.0f,		240.0f,			0.0f },			{ 0.91f,					0.31f,						1.0f } },
-			// == Others.
-			{ "tda8362",						{ 100.0f,		235.0f,			-10.0f },		{ 1.14f,					0.30f,						1.14f } },		// Hitachi CMT2187/2196/2198/2199.
-			{ "la7655n",						{ 105.0f,		240.0f,			0.0f },			{ 0.90f,					0.30f,						1.0f } },		// ~1989 (Mitsubishi?).
-			{ "rca_colortrak_e13169gm",			{ 94.5488524399f,	255.376054365f,	0.0f },		{ 0.806809988011f,			0.295471057738f,			1.0f } },		// Unknown chip, 1989, measured by patchy68k.
-			{ "panasonic_ct_36d30b",			{ 101.580982936f,	232.937328893f,	0.0f },		{ 0.91062624791989f,		0.388131199173125f,			1.0f } },		// Unknown chip, 2000, measured by patchy68k.
-			{ "matsushita_1979",				{ 100.0f,		237.0f,			0.0f },			{ float( 2.5 / 2.65 ),		float( 0.75 / 2.65 ),		1.0f } },		// 1979 Matsushita patent (US4167750A).
-		};
-		_sTotal = std::size( s_cdTable );
-		return s_cdTable;
 	}
 
 	/**

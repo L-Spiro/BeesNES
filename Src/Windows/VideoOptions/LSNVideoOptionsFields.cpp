@@ -44,6 +44,7 @@ namespace lsn {
 		// Common:  color correction.
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_TV_PRESET ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_TV_PRESET )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_COLOR_SPACE ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_COLOR_SPACE )) },
+		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_DEMODULATOR ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_DEMODULATOR )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_GAMMA ),					reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_GAMMA )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_CRT_WHITE ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_CRT_WHITE )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_CRT_BRIGHTNESS ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_CRT_BRIGHTNESS )) },
@@ -123,6 +124,11 @@ namespace lsn {
 		CVideoOptionsFields::LSN_VF_TV_PRESET, CVideoOptionsFields::LSN_VF_COLOR_SPACE, CVideoOptionsFields::LSN_VF_GAMMA,
 		CVideoOptionsFields::LSN_VF_CRT_WHITE, CVideoOptionsFields::LSN_VF_CRT_BRIGHTNESS,
 	};
+	/** The color-correction fields of the L. Spiro filters (which also emulate the decoder chip). */
+	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfColorCorrectionLSpiro[] = {
+		CVideoOptionsFields::LSN_VF_TV_PRESET, CVideoOptionsFields::LSN_VF_COLOR_SPACE, CVideoOptionsFields::LSN_VF_DEMODULATOR,
+		CVideoOptionsFields::LSN_VF_GAMMA, CVideoOptionsFields::LSN_VF_CRT_WHITE, CVideoOptionsFields::LSN_VF_CRT_BRIGHTNESS,
+	};
 	/** The phosphor-decay fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfPhosphor[] = {
 		CVideoOptionsFields::LSN_VF_PHOSPHOR_ENABLED, CVideoOptionsFields::LSN_VF_PHOSPHOR_LEVEL, CVideoOptionsFields::LSN_VF_PHOSPHOR_TIME,
@@ -197,6 +203,13 @@ namespace lsn {
 	/** The left column of the filter pages (the common settings). */
 	static const CVideoOptionsFields::LSN_FIELD_GROUP		s_fgCommon[] = {
 		{ LSN_LSTR( LSN_STR_VO_GROUP_COLOR_CORRECTION ),	s_vfColorCorrection,		std::size( s_vfColorCorrection ) },
+		{ LSN_LSTR( LSN_STR_VO_GROUP_PHOSPHOR_DECAY ),		s_vfPhosphor,				std::size( s_vfPhosphor ) },
+		{ LSN_LSTR( LSN_STR_VO_GROUP_INTERNAL_SCALING ),	s_vfScaling,				std::size( s_vfScaling ) },
+		{ LSN_LSTR( LSN_STR_VO_GROUP_CONVOLUTION ),			s_vfConvolution,			std::size( s_vfConvolution ),		CWinUtilities::LSN_VOWI_CONV_DEFAULTS },
+	};
+	/** The left column of the L. Spiro pages (the common settings with the decoder chip). */
+	static const CVideoOptionsFields::LSN_FIELD_GROUP		s_fgCommonLSpiro[] = {
+		{ LSN_LSTR( LSN_STR_VO_GROUP_COLOR_CORRECTION ),	s_vfColorCorrectionLSpiro,	std::size( s_vfColorCorrectionLSpiro ) },
 		{ LSN_LSTR( LSN_STR_VO_GROUP_PHOSPHOR_DECAY ),		s_vfPhosphor,				std::size( s_vfPhosphor ) },
 		{ LSN_LSTR( LSN_STR_VO_GROUP_INTERNAL_SCALING ),	s_vfScaling,				std::size( s_vfScaling ) },
 		{ LSN_LSTR( LSN_STR_VO_GROUP_CONVOLUTION ),			s_vfConvolution,			std::size( s_vfConvolution ),		CWinUtilities::LSN_VOWI_CONV_DEFAULTS },
@@ -469,6 +482,10 @@ namespace lsn {
 			_sTotal = std::size( s_fgHostLeft );
 			return s_fgHostLeft;
 		}
+		if ( _vpkKind == LSN_VPK_LSPIRO_NTSC || _vpkKind == LSN_VPK_LSPIRO_PAL ) {
+			_sTotal = std::size( s_fgCommonLSpiro );
+			return s_fgCommonLSpiro;
+		}
 		_sTotal = std::size( s_fgCommon );
 		return s_fgCommon;
 	}
@@ -608,6 +625,12 @@ namespace lsn {
 			case LSN_VF_OUTPUT_RANGE : {
 				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_OR_FULL ), CColorSpace::LSN_OR_FULL );
 				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_OR_LIMITED ), CColorSpace::LSN_OR_LIMITED );
+				break;
+			}
+			case LSN_VF_DEMODULATOR : {
+				for ( uint32_t I = 0; I < CColorSpace::LSN_DM_TOTAL; ++I ) {
+					AddEntry( _pcbCombo, CColorSpace::Demodulator( CColorSpace::LSN_DEMODULATOR( I ) ).pwcName, LPARAM( I ) );
+				}
 				break;
 			}
 			case LSN_VF_TV_PRESET : {
@@ -811,6 +834,7 @@ namespace lsn {
 					}
 					case LSN_VF_NOISE_TYPE : { _dValue = lsoLSpiro.ntNoiseType; return true; }
 					case LSN_VF_NOISE_AMOUNT : { _dValue = lsoLSpiro.fNoiseAmount; return true; }
+					case LSN_VF_DEMODULATOR : { _dValue = lsoLSpiro.dmDemodulator; return true; }
 					// The software phosphor decay exists only in the software settings.
 					case LSN_VF_SW_PHOSPHOR_LEVEL : { _dValue = froOptions.lsoLSpiroCpu.fPhosphorDecayLevel; return true; }
 					case LSN_VF_SW_PHOSPHOR_TIME : { _dValue = froOptions.lsoLSpiroCpu.fPhosphorDecayPeriod; return true; }
@@ -1039,6 +1063,11 @@ namespace lsn {
 							break;
 						}
 						case LSN_VF_NOISE_AMOUNT : { lsoLSpiro.fNoiseAmount = std::max( fValue, 0.0f ); break; }
+						case LSN_VF_DEMODULATOR : {
+							if ( ui32Enum >= CColorSpace::LSN_DM_TOTAL ) { return false; }
+							lsoLSpiro.dmDemodulator = CColorSpace::LSN_DEMODULATOR( ui32Enum );
+							break;
+						}
 						case LSN_VF_SW_PHOSPHOR_LEVEL : { lsoLSpiro.fPhosphorDecayLevel = fValue; break; }
 						case LSN_VF_SW_PHOSPHOR_TIME : { lsoLSpiro.fPhosphorDecayPeriod = fValue; break; }
 						default : { return false; }
@@ -1127,7 +1156,8 @@ namespace lsn {
 	}
 
 	/**
-	 * Applies a TV preset:  sets the color space, the hue offset, and the saturation (relative to the default saturation of the filter).
+	 * Applies a TV preset:  sets the color space, the hue offset, the saturation (relative to the default saturation of the filter), and
+	 *	(L. Spiro filters) the decoder chip.
 	 *
 	 * \param _cspPreset The color space that models the television.
 	 * \param _ftTarget The settings being edited.
@@ -1152,6 +1182,9 @@ namespace lsn {
 			case LSN_VPK_LSPIRO_PAL : {
 				froOptions.lsoLSpiroCpu.fSaturation = float( froDefaults.lsoLSpiroCpu.fSaturation * dSat );
 				froOptions.lsoLSpiroGpu.fSaturation = float( froDefaults.lsoLSpiroGpu.fSaturation * dSat );
+				// The decoder chip of the television.
+				froOptions.lsoLSpiroCpu.dmDemodulator = csdData.dmDemodulator;
+				froOptions.lsoLSpiroGpu.dmDemodulator = csdData.dmDemodulator;
 				break;
 			}
 			case LSN_VPK_LMP_NTSC : {

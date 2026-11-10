@@ -606,6 +606,11 @@ namespace lsn {
 		_lsnfbFilter.SetHue( _lsoOptions.fHue );
 		_lsnfbFilter.SetBrightness( _lsoOptions.fBrightness );
 		_lsnfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		{
+			float fDemod[6];
+			CColorSpace::DemodulatorMatrix( _lsoOptions.dmDemodulator, fDemod );
+			_lsnfbFilter.SetDemodulatorMatrix( fDemod );
+		}
 		_lsnfbFilter.SetContrast( _lsoOptions.fContrast );
 		_lsnfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
 		_lsnfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
@@ -636,6 +641,11 @@ namespace lsn {
 		_lspfbFilter.SetHue( _lsoOptions.fHue );
 		_lspfbFilter.SetBrightness( _lsoOptions.fBrightness );
 		_lspfbFilter.SetSaturation( _lsoOptions.fSaturation );
+		{
+			float fDemod[6];
+			CColorSpace::DemodulatorMatrix( _lsoOptions.dmDemodulator, fDemod );
+			_lspfbFilter.SetDemodulatorMatrix( fDemod );
+		}
 		_lspfbFilter.SetContrast( _lsoOptions.fContrast );
 		_lspfbFilter.SetBlackLevel( _lsoOptions.fBlackLevel );
 		_lspfbFilter.SetWhiteLevel( _lsoOptions.fWhiteLevel );
@@ -3269,6 +3279,9 @@ namespace lsn {
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ntNoiseType, 0, int64_t( LSN_NT_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fNoiseAmount ) ) { return false; }
 		_lsoOptions.fNoiseAmount = std::max( _lsoOptions.fNoiseAmount, 0.0f );
+		if ( _ui32Version >= LSN_BEESNES_SETTINGS_VERSION_DEMODULATOR ) {
+			if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.dmDemodulator, 0, int64_t( CColorSpace::LSN_DM_TOTAL ) - 1 ) ) { return false; }
+		}
 		return true;
 	}
 
@@ -3327,6 +3340,7 @@ namespace lsn {
 		if ( !_sFile.Write( _lsoOptions.ui16PixelToSignal ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( _lsoOptions.ntNoiseType ) ) ) { return false; }
 		if ( !_sFile.Write( _lsoOptions.fNoiseAmount ) ) { return false; }
+		if ( !_sFile.Write( uint32_t( _lsoOptions.dmDemodulator ) ) ) { return false; }
 		return true;
 	}
 	/**

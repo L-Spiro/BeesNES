@@ -57,6 +57,34 @@ namespace lsn {
 			LSN_CSP_TOTAL,																						/**< The number of color spaces. */
 		};
 
+		/** Television decoder chips (their color-difference demodulation axes and gains, which carried the television's color correction).
+		 *	Saved by number, so add new chips at the end. */
+		enum LSN_DEMODULATOR : uint32_t {
+			LSN_DM_NONE,																					/**< Standard decoding (no color correction). */
+			LSN_DM_CXA1464AS_JP,																			/**< Sony CXA1464AS (Japanese Trinitron televisions, about 1993 to 1995). */
+			LSN_DM_CXA1465AS_US,																			/**< Sony CXA1465AS (US Trinitron televisions, about 1993 to 1995). */
+			LSN_DM_CXA1870S_JP,																				/**< Sony CXA1870S in its Japanese mode (Trinitron televisions, about 1996). */
+			LSN_DM_CXA1870S_US,																				/**< Sony CXA1870S in its US mode (Trinitron televisions, about 1996). */
+			LSN_DM_CXA2025AS_JP,																			/**< Sony CXA2025AS in its Japanese mode (Trinitron televisions, about 1997). */
+			LSN_DM_CXA2025AS_US,																			/**< Sony CXA2025AS in its US mode (Trinitron televisions, about 1997). */
+			LSN_DM_CXA2060BS_JP,																			/**< Sony CXA2060BS in its Japanese mode (Trinitron PVM, about 1998). */
+			LSN_DM_CXA2060BS_US,																			/**< Sony CXA2060BS in its US mode (Trinitron PVM, about 1998). */
+			LSN_DM_CXA2060BS_PAL,																			/**< Sony CXA2060BS in its PAL mode (Trinitron PVM, about 1998). */
+			LSN_DM_CXA1213AS,																				/**< Sony CXA1213AS (probably Trinitron televisions, about 1992). */
+			LSN_DM_TA7644BP,																				/**< Toshiba TA7644BP (US Toshiba Blackstripe CF2005, 1985), datasheet. */
+			LSN_DM_TA7644BP_MEASURED,																		/**< Toshiba TA7644BP, derived from measurements of a deteriorated US Toshiba Blackstripe CF2005 by patchy68k. */
+			LSN_DM_TA7698AP,																				/**< Toshiba TA7698AP (1988; JVC TM-9U, probably Toshiba televisions). */
+			LSN_DM_TA8801AN,																				/**< Toshiba TA8801AN (Toshiba CF-3272B, 1993). */
+			LSN_DM_TA8867AN,																				/**< Toshiba TA8867AN (Toshiba CE-20D10, 1994). */
+			LSN_DM_TA8867BN,																				/**< Toshiba TA8867BN (probably Toshiba televisions). */
+			LSN_DM_TDA8362,																					/**< Philips TDA8362 (Hitachi CMT2187, CMT2196, CMT2198, and CMT2199). */
+			LSN_DM_LA7655N,																					/**< Sanyo LA7655N (about 1989, possibly Mitsubishi televisions). */
+			LSN_DM_RCA_COLORTRAK,																			/**< The unknown chip of an RCA ColorTrak Remote E13169GM (US, 1989), derived from measurements by patchy68k. */
+			LSN_DM_PANASONIC_CT_36D30B,																		/**< The unknown chip of a Panasonic CT-36D30B (US, 2000), derived from measurements by patchy68k. */
+			LSN_DM_MATSUSHITA_1979,																			/**< The demodulator of a 1979 Matsushita patent (US4167750A). */
+			LSN_DM_TOTAL,																					/**< The number of decoder chips. */
+		};
+
 		/** How the white point of the source is adapted to the white point of the display. */
 		enum LSN_WHITE_ADAPTATION : uint32_t {
 			LSN_WA_NONE,																						/**< No adaptation (the source white keeps its tint, as it did on the original screens). */
@@ -84,7 +112,7 @@ namespace lsn {
 
 		// == Types.
 		/**
-		 * Struct LSN_CRT_DEMODULATOR
+		 * Struct LSN_DEMODULATOR_DATA
 		 * \brief The color-difference demodulation axes and gains of a television's decoder chip.
 		 *
 		 * Description: The color-difference demodulation axes and gains of a television's decoder chip.  Televisions did not decode R-Y,
@@ -92,8 +120,9 @@ namespace lsn {
 		 *	the axes and changed the gains to correct for the phosphors and white point of the tube.  Angles are in degrees on the U/V
 		 *	plane (0 = +U = B-Y) and gains are relative to the B-Y gain.
 		 */
-		struct LSN_CRT_DEMODULATOR {
-			const char *												pcId;									/**< The name of the chip (and its mode). */
+		struct LSN_DEMODULATOR_DATA {
+			const wchar_t *												pwcName;								/**< The name shown to the user. */
+			const char *												pcId;									/**< A name that never changes. */
 			float														fAngles[3];								/**< The R-Y, G-Y, and B-Y demodulation angles, in degrees. */
 			float														fGains[3];								/**< The R-Y, G-Y, and B-Y gains, relative to the B-Y gain. */
 		};
@@ -111,6 +140,7 @@ namespace lsn {
 			float														fHueOffset;								/**< A hue rotation (in radians, the units of the L. Spiro filters' SetHue()) that goes with this color space when it is used as a TV preset.  Positive values rotate the demodulation axes forward (decoded colors turn clockwise on the U/V plane). */
 			float														fSaturation;							/**< A saturation factor (relative to each filter's own saturation) that goes with this color space when it is used as a TV preset. */
 			bool														bTvPreset;								/**< If true, this color space models a physical TV and is listed among the TV presets. */
+			LSN_DEMODULATOR												dmDemodulator;							/**< The decoder chip that goes with this color space when it is used as a TV preset. */
 		};
 
 		/**
@@ -297,12 +327,23 @@ namespace lsn {
 		static LSN_COLOR_SPACE												FromId( const char * _pcId );
 
 		/**
-		 * Gets the table of television decoder chips (their demodulation axes and gains).
+		 * Gets information about a television decoder chip.
 		 *
-		 * \param _sTotal Holds the returned number of entries.
-		 * \return Returns the table of decoder chips.
+		 * \param _dmDemodulator The decoder chip.
+		 * \return Returns the information about the decoder chip, or the information about LSN_DM_NONE if _dmDemodulator is invalid.
 		 */
-		static const LSN_CRT_DEMODULATOR *									CrtDemodulators( size_t &_sTotal );
+		static const LSN_DEMODULATOR_DATA &									Demodulator( LSN_DEMODULATOR _dmDemodulator );
+
+		/**
+		 * Creates the coefficients that convert Y'UV to R'G'B' the way a television's decoder chip does (with its color correction):
+		 *	R' = Y' + _pfMatrix[0] * U + _pfMatrix[1] * V, G' = Y' + _pfMatrix[2] * U + _pfMatrix[3] * V, and
+		 *	B' = Y' + _pfMatrix[4] * U + _pfMatrix[5] * V.  The gains are denormalized as gamutthingy does by default:  the B-Y gain becomes
+		 *	1 / 0.492111 (renormalized to the U/V ellipse when the B-Y axis is off 0 degrees and its gain is not 1).
+		 *
+		 * \param _dmDemodulator The decoder chip.  LSN_DM_NONE gives the standard Y'UV-to-R'G'B' coefficients.
+		 * \param _pfMatrix Holds the 6 returned coefficients.
+		 */
+		static void															DemodulatorMatrix( LSN_DEMODULATOR _dmDemodulator, float * _pfMatrix );
 
 		/**
 		 * Creates the matrix that converts linear RGB in one color space to linear RGB in another.  RGB is converted to CIE XYZ through the
@@ -480,6 +521,7 @@ namespace lsn {
 	protected :
 		// == Members.
 		static const LSN_COLOR_SPACE_DATA									m_csdData[LSN_CSP_TOTAL];			/**< The information about each color space, in LSN_COLOR_SPACE order. */
+		static const LSN_DEMODULATOR_DATA									m_ddDemodulators[LSN_DM_TOTAL];		/**< The information about each decoder chip, in LSN_DEMODULATOR order. */
 
 	};
 	
