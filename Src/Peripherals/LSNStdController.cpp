@@ -31,6 +31,7 @@ namespace lsn {
 		// Poll for all 8 buttons.
 		if ( m_bStrobe ) {
 			m_ui8Status = 0;
+			m_bMicrophone = false;
 			if ( !m_bPoll ) { return; }
 
 			{
@@ -93,6 +94,11 @@ namespace lsn {
 			LSN_POLLME( START );
 			LSN_POLLME( SELECT );
 #undef LSN_POLLME
+			if ( m_bFamicomController2 ) {
+				// The second controller of a Famicom has a microphone in place of Select and Start, which read as 0.
+				m_bMicrophone = (m_ui8Status & (LSN_IB_START | LSN_IB_SELECT)) != 0;
+				m_ui8Status &= ~uint8_t( LSN_IB_START | LSN_IB_SELECT );
+			}
 		}
 	}
 
@@ -102,6 +108,7 @@ namespace lsn {
 	void CStdController::Reset() {
 		m_ui8Status = 0;
 		m_bStrobe = false;
+		m_bMicrophone = false;
 		std::memset( m_ui8PrevStatus, 0, sizeof( m_ui8PrevStatus ) );
 
 		for ( size_t B = 0; B < LSN_B_TOTAL; ++B ) {

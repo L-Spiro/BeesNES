@@ -1352,11 +1352,19 @@ namespace lsn {
 	 * \param _bPoll If false, the inputs are not read and the peripherals report that nothing is pressed.
 	 **/
 	void CBeesNes::Write4016( uint8_t _ui8Value, bool _bPoll ) {
-		if LSN_LIKELY( m_vPeripherals[0].get() ) {
+		const bool bFamicom = m_pmSystem == LSN_PM_NTSC_J;
+		if LSN_LIKELY( m_vPeripherals.size() > 0 && m_vPeripherals[0].get() ) {
 			m_vPeripherals[0]->Write( _ui8Value, _bPoll );
 		}
-		if ( m_vPeripherals[1].get() ) {
+		if ( m_vPeripherals.size() > 1 && m_vPeripherals[1].get() ) {
+			m_vPeripherals[1]->SetFamicomController2( bFamicom );
 			m_vPeripherals[1]->Write( _ui8Value, _bPoll );
+		}
+		if ( bFamicom ) {
+			// Controllers 3 and 4 plug into the expansion port of a Famicom, which is strobed with the same OUT0 signal.
+			for ( size_t I = 2; I < m_vPeripherals.size() && I < 4; ++I ) {
+				if ( m_vPeripherals[I].get() ) { m_vPeripherals[I]->Write( _ui8Value, _bPoll ); }
+			}
 		}
 	}
 
@@ -1366,10 +1374,16 @@ namespace lsn {
 	  * \return Returns the value to be returned from reading register $4016.
 	  **/
 	uint8_t CBeesNes::Read4016() {
-		if LSN_LIKELY( m_vPeripherals[0].get() ) {
-			return m_vPeripherals[0]->Read();
+		uint8_t ui8Ret = 0;
+		if LSN_LIKELY( m_vPeripherals.size() > 0 && m_vPeripherals[0].get() ) {
+			ui8Ret = m_vPeripherals[0]->Read();
 		}
-		return 0;
+		if ( m_pmSystem == LSN_PM_NTSC_J ) {
+			// Famicom:  the microphone of the second controller is on D2, and controller 3 (on the expansion port) is on D1.
+			if ( m_vPeripherals.size() > 1 && m_vPeripherals[1].get() && m_vPeripherals[1]->Microphone() ) { ui8Ret |= 0b00000100; }
+			if ( m_vPeripherals.size() > 2 && m_vPeripherals[2].get() ) { ui8Ret |= uint8_t( (m_vPeripherals[2]->Read() & 1) << 1 ); }
+		}
+		return ui8Ret;
 	}
 
 	/**
@@ -1378,10 +1392,15 @@ namespace lsn {
 	  * \return Returns the value to be returned from reading register $4017.
 	  **/
 	uint8_t CBeesNes::Read4017() {
-		if ( m_vPeripherals[1].get() ) {
-			return m_vPeripherals[1]->Read();
+		uint8_t ui8Ret = 0;
+		if ( m_vPeripherals.size() > 1 && m_vPeripherals[1].get() ) {
+			ui8Ret = m_vPeripherals[1]->Read();
 		}
-		return 0;
+		if ( m_pmSystem == LSN_PM_NTSC_J ) {
+			// Famicom:  controller 4 (on the expansion port) is on D1.
+			if ( m_vPeripherals.size() > 3 && m_vPeripherals[3].get() ) { ui8Ret |= uint8_t( (m_vPeripherals[3]->Read() & 1) << 1 ); }
+		}
+		return ui8Ret;
 	}
 
 	/**

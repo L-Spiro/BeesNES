@@ -184,6 +184,16 @@ namespace lsn {
 		static const LSN_FIELD_INFO &						Info( LSN_VIDEO_FIELD _vfField );
 
 		/**
+		 * Gets the label of a field for the current settings.  The labels of the kernel parameters name what the selected filter function
+		 *	does with them (or say that they are unused); the other labels are fixed (Info()).
+		 *
+		 * \param _vfField The field.
+		 * \param _ftTarget The settings being edited.
+		 * \return Returns the label of the field.
+		 */
+		static const wchar_t *								Label( LSN_VIDEO_FIELD _vfField, const LSN_FIELD_TARGET &_ftTarget );
+
+		/**
 		 * Gets the groups shown in the left column of a page (the common settings, or the display settings of the Host Machine page).
 		 *
 		 * \param _vpkKind The kind of page.

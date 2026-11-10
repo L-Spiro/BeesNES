@@ -55,6 +55,12 @@ namespace lsn {
 		 */
 		void												Refresh();
 
+		/**
+		 * Reselects the entries of the combo boxes (without refilling them) and updates the labels that depend on the settings.  Used after
+		 *	a field is typed into, since combo boxes such as the Deep Internals preset reflect the typed values.
+		 */
+		void												RefreshDependents();
+
 
 	protected :
 		// == Members.

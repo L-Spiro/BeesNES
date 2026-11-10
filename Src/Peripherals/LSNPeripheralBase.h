@@ -143,6 +143,20 @@ namespace lsn {
 		virtual void									ControllerDetached() {}
 
 		/**
+		 * Sets whether the peripheral is the second controller of a Famicom (which has a microphone in place of Select and Start).
+		 *
+		 * \param _bFamicomController2 If true, the peripheral acts as the second controller of a Famicom.
+		 **/
+		virtual void									SetFamicomController2( bool /*_bFamicomController2*/ ) {}
+
+		/**
+		 * Gets the state of the microphone of the second controller of a Famicom, as of the last strobe ($4016 D2).
+		 *
+		 * \return Returns true if the microphone is picking up sound.
+		 **/
+		virtual bool									Microphone() const { return false; }
+
+		/**
 		 * Applies controller configurations to the perpheral.
 		 * 
 		 * \param _ieConfig The configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.

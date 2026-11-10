@@ -137,7 +137,7 @@ namespace lsn {
 				if ( CVideoOptionsFields::SetValue( vfField, ftTarget, static_cast<lsw::CCheckButton *>(_pwSrc)->IsChecked() ? 1.0 : 0.0 ) ) {
 					ApplyChanges();
 				}
-				UpdateEnabled();
+				RefreshDependents();
 				break;
 			}
 			case CVideoOptionsFields::LSN_VFT_FLOAT : {}		LSN_FALLTHROUGH
@@ -159,7 +159,7 @@ namespace lsn {
 						ApplyChanges();
 					}
 				}
-				UpdateEnabled();
+				RefreshDependents();
 				break;
 			}
 			default : {}
@@ -200,6 +200,31 @@ namespace lsn {
 			}
 		}
 		m_bUpdating = false;
+		RefreshDependents();
+	}
+
+	/**
+	 * Reselects the entries of the combo boxes (without refilling them) and updates the labels that depend on the settings.  Used after
+	 *	a field is typed into, since combo boxes such as the Deep Internals preset reflect the typed values.
+	 */
+	void CVideoOptionsPage::RefreshDependents() {
+		if ( !m_ppdData ) { return; }
+		const bool bWasUpdating = m_bUpdating;
+		m_bUpdating = true;
+		const CVideoOptionsFields::LSN_FIELD_TARGET ftTarget = Target();
+		for ( auto vfField : m_vFields ) {
+			if ( CVideoOptionsFields::Info( vfField ).vftType == CVideoOptionsFields::LSN_VFT_COMBO ) {
+				lsw::CComboBox * pcbCombo = static_cast<lsw::CComboBox *>(FindChild( CVideoOptionsWindowLayout::ControlId( vfField ) ));
+				double dValue = 0.0;
+				if ( pcbCombo && CVideoOptionsFields::GetValue( vfField, ftTarget, dValue ) && pcbCombo->GetCurSelItemData() != LPARAM( dValue ) ) {
+					pcbCombo->SetCurSelByItemData( LPARAM( dValue ) );
+				}
+			}
+			CWidget * pwLabel = FindChild( CVideoOptionsWindowLayout::LabelId( vfField ) );
+			const wchar_t * pwcLabel = CVideoOptionsFields::Label( vfField, ftTarget );
+			if ( pwLabel && pwcLabel && pwLabel->GetTextW() != pwcLabel ) { pwLabel->SetTextW( pwcLabel ); }
+		}
+		m_bUpdating = bWasUpdating;
 		UpdateEnabled();
 	}
 

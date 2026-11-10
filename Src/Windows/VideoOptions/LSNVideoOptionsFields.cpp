@@ -471,6 +471,48 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the label of a field for the current settings.  The labels of the kernel parameters name what the selected filter function
+	 *	does with them (or say that they are unused); the other labels are fixed (Info()).
+	 *
+	 * \param _vfField The field.
+	 * \param _ftTarget The settings being edited.
+	 * \return Returns the label of the field.
+	 */
+	const wchar_t * CVideoOptionsFields::Label( LSN_VIDEO_FIELD _vfField, const LSN_FIELD_TARGET &_ftTarget ) {
+		bool bLuma;
+		size_t sParm;
+		switch ( _vfField ) {
+			case LSN_VF_CHROMA_PARM0 : { bLuma = false; sParm = 0; break; }
+			case LSN_VF_CHROMA_PARM1 : { bLuma = false; sParm = 1; break; }
+			case LSN_VF_LUMA_PARM0 : { bLuma = true; sParm = 0; break; }
+			case LSN_VF_LUMA_PARM1 : { bLuma = true; sParm = 1; break; }
+			default : { return Info( _vfField ).pwcLabel; }
+		}
+		double dFunc = 0.0;
+		if ( !GetValue( bLuma ? LSN_VF_LUMA_FILTER : LSN_VF_CHROMA_FILTER, _ftTarget, dFunc ) ) { return Info( _vfField ).pwcLabel; }
+		switch ( LSN_FILTER_FUNC( uint32_t( dFunc ) ) ) {
+			case LSN_FF_LANCZOSX : {
+				if ( sParm == 0 ) { return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_LOBES ) : LSN_LSTR( LSN_STR_VO_CHROMA_LOBES ); }
+				break;
+			}
+			case LSN_FF_KAISER : {
+				if ( sParm == 0 ) { return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_BETA ) : LSN_LSTR( LSN_STR_VO_CHROMA_BETA ); }
+				break;
+			}
+			case LSN_FF_BLACKMAN : {
+				if ( sParm == 0 ) { return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_CUTOFF ) : LSN_LSTR( LSN_STR_VO_CHROMA_CUTOFF ); }
+				return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_SIGNAL_HZ ) : LSN_LSTR( LSN_STR_VO_CHROMA_SIGNAL_HZ );
+			}
+			case LSN_FF_CRT_HUMP : {
+				if ( sParm == 0 ) { return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_FLAT_WIDTH ) : LSN_LSTR( LSN_STR_VO_CHROMA_FLAT_WIDTH ); }
+				return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_POWER ) : LSN_LSTR( LSN_STR_VO_CHROMA_POWER );
+			}
+			default : {}
+		}
+		return bLuma ? LSN_LSTR( LSN_STR_VO_LUMA_UNUSED ) : LSN_LSTR( LSN_STR_VO_CHROMA_UNUSED );
+	}
+
+	/**
 	 * Gets the groups shown in the left column of a page (the common settings, or the display settings of the Host Machine page).
 	 *
 	 * \param _vpkKind The kind of page.

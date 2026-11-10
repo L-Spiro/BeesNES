@@ -84,7 +84,10 @@ namespace lsn {
 				FinishCpuCycle();
 				m_cCpu.ResetAnalog();
 				m_aApu.ResetAnalog();
-				m_pPpu.ResetAnalog();
+				// The Reset button of a Famicom resets only the CPU (its PPU's reset line is tied high).
+				if constexpr ( _cApu::ApuType() != unsigned( LSN_AT_NTSC_J ) ) {
+					m_pPpu.ResetAnalog();
+				}
 			}
 			else {
 				m_ui64LastRealTime = m_cClock.GetRealTick();
@@ -769,7 +772,10 @@ namespace lsn {
 		virtual void									ResetRom() override {
 			FinishCpuCycle();
 			m_cCpu.ResetAnalog();
-			m_pPpu.ResetAnalog();
+			// The Reset button of a Famicom resets only the CPU (its PPU's reset line is tied high).
+			if constexpr ( _cApu::ApuType() != unsigned( LSN_AT_NTSC_J ) ) {
+				m_pPpu.ResetAnalog();
+			}
 			m_aApu.ResetAnalog();
 		}
 

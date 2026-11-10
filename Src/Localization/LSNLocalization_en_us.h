@@ -985,6 +985,20 @@
 #define LSN_STR_VO_LUMA_FILTER														Luminance Filter:
 #define LSN_STR_VO_LUMA_PARM0														Luminance Parameter 1:
 #define LSN_STR_VO_LUMA_PARM1														Luminance Parameter 2:
+#define LSN_STR_VO_CHROMA_LOBES														Chrominance Lobes:
+#define LSN_STR_VO_CHROMA_BETA														Chrominance \u03B2:
+#define LSN_STR_VO_CHROMA_CUTOFF													Chrominance Cut-Off (Hz):
+#define LSN_STR_VO_CHROMA_SIGNAL_HZ													Chrominance Signal (Hz):
+#define LSN_STR_VO_CHROMA_FLAT_WIDTH												Chrominance Flat Width:
+#define LSN_STR_VO_CHROMA_POWER														Chrominance Power:
+#define LSN_STR_VO_CHROMA_UNUSED													Chrominance (Unused):
+#define LSN_STR_VO_LUMA_LOBES														Luminance Lobes:
+#define LSN_STR_VO_LUMA_BETA														Luminance \u03B2:
+#define LSN_STR_VO_LUMA_CUTOFF														Luminance Cut-Off (Hz):
+#define LSN_STR_VO_LUMA_SIGNAL_HZ													Luminance Signal (Hz):
+#define LSN_STR_VO_LUMA_FLAT_WIDTH													Luminance Flat Width:
+#define LSN_STR_VO_LUMA_POWER														Luminance Power:
+#define LSN_STR_VO_LUMA_UNUSED														Luminance (Unused):
 #define LSN_STR_VO_LUMA_KERNEL														Luminance Kernel Size:
 #define LSN_STR_VO_VERTICAL_COMB													Vertical Comb:
 #define LSN_STR_VO_DEEP_PRESET														Preset:
