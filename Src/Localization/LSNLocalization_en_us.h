@@ -1030,6 +1030,7 @@
 #define LSN_STR_VO_NCF_2_LINE														2-Line (1H) Comb
 #define LSN_STR_VO_NCF_3_LINE														3-Line (2H) Comb
 #define LSN_STR_VO_NCF_ADAPTIVE														Adaptive 3-Line (2D) Comb
+#define LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP										L. Spiro NTSC Very Sharp
 #define LSN_STR_VO_DP_LSPIRO_NTSC													L. Spiro NTSC Sharp
 #define LSN_STR_VO_DP_LSPIRO_NTSC_2													L. Spiro NTSC Slightly Sharp
 #define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT												L. Spiro NTSC Soft

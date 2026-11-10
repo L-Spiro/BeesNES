@@ -58,10 +58,11 @@ namespace lsn {
 			static const LSN_LSPIRO_DEEP_PRESET s_ldpPresets[] = {
 				// Name												PAL		Chroma											Kernel	Luma															Kernel	Comb
 				// == NTSC.
-				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_LANCZOSX,					{ 99.0f / 40.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
-				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_2 ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_LANCZOSX,					{ 50.0f / 19.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
-				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_LANCZOSX,					{ 100.0f / 65.0f, 0.0f },	35,		CLSpiroNtscFilterBase::LSN_CF_NONE },
-				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2 ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_KAISER,						{ 5.45, 0.0f },				25,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP ),	false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 3.4f, 0.0f },				59,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				51,		LSN_FF_LANCZOSX,					{ 99.0f / 40.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_2 ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_LANCZOSX,					{ 50.0f / 19.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_LANCZOSX,					{ 100.0f / 65.0f, 0.0f },	35,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2 ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_KAISER,						{ 5.45, 0.0f },				25,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 				{ LSN_LSTR( LSN_STR_VO_DP_FAST ),					false,	LSN_FF_BOX,			{ 0.0f, 0.0f },				12,		LSN_FF_BOX,							{ 0.0f, 0.0f },				12,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 
 				// == PAL.
