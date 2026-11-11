@@ -66,8 +66,8 @@ namespace lsn {
 				{ LSN_LSTR( LSN_STR_VO_DP_FAST ),					false,	LSN_FF_BOX,			{ 0.0f, 0.0f },				12,		LSN_FF_BOX,							{ 0.0f, 0.0f },				12,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 
 				// == PAL.
-				{ LSN_LSTR( LSN_STR_VO_DP_PAL_I ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_LANCZOSX,					{ 2.5f, 0.0f },				48,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
-				{ LSN_LSTR( LSN_STR_VO_DP_PAL_DK ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				44,		LSN_FF_CARDINAL_SPLINE_UNIFORM,		{ 0.0f, 0.0f },				44,		CLSpiroPalFilterBase::LSN_CF_3_LINE },
+				{ LSN_LSTR( LSN_STR_VO_DP_PAL_I ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 3.0f, 0.0f },				59,		CLSpiroPalFilterBase::LSN_CF_3_LINE },
+				{ LSN_LSTR( LSN_STR_VO_DP_PAL_DK ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				44,		LSN_FF_CARDINAL_SPLINE_UNIFORM,		{ 0.0f, 0.0f },				44,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_PAL_M ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				46,		LSN_FF_CARDINAL_SPLINE_UNIFORM,		{ 0.0f, 0.0f },				46,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_PAL_N ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				48,		LSN_FF_GAUSSIANX,					{ 0.0f, 0.0f },				48,		CLSpiroPalFilterBase::LSN_CF_3_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_FAST ),					true,	LSN_FF_BOX,			{ 0.0f, 0.0f },				12,		LSN_FF_BOX,							{ 0.0f, 0.0f },				12,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
