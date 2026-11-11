@@ -28,6 +28,7 @@
 #include "LSNPulse.h"
 #include "LSNTriangle.h"
 
+#include <atomic>
 #include <filesystem>
 #include <iterator>
 
@@ -714,6 +715,14 @@ namespace lsn {
 		inline constexpr float							HzAsFloat() const { return float( Hz() ); }
 
 		/**
+		 * Sets whether the application is in the background.  In the background the speakers get the background volume; recordings and
+		 *	other sample receivers keep the normal volume.  May be called from any thread.
+		 * 
+		 * \param _bInBg True if the application is in the background.
+		 **/
+		void											SetInBackground( bool _bInBg ) { m_bInBg.store( _bInBg, std::memory_order_relaxed ); }
+
+		/**
 		 * Sets the audio options.
 		 * 
 		 * \param _aoOptions The options to set.
@@ -1110,8 +1119,8 @@ namespace lsn {
 		uint8_t											m_ui8FrameClockWait = 0;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled = true;
-		/** Are we in the background? */
-		bool											m_bInBg = false;
+		/** Are we in the background?  Set by the UI thread and read by the emulation thread. */
+		std::atomic<bool>								m_bInBg = false;
 		/** Register was written this cycle. */
 		bool											m_bRegModified = false;
 		/** The old letterless buggy RP2A03 version. */
@@ -1934,7 +1943,7 @@ namespace lsn {
 					}
 					fSample = float( paApu->m_hfHpfFilter2.Process( fSample ) );
 					float fCallBackSample = fSample * paApu->m_fVolume;
-					if LSN_LIKELY( paApu->m_bInBg == false ) {
+					if LSN_LIKELY( !paApu->m_bInBg.load( std::memory_order_relaxed ) ) {
 						fSample *= paApu->m_fVolume;
 					}
 					else {
@@ -1949,7 +1958,7 @@ namespace lsn {
 			}
 			float fSample = _fSample;
 			float fCallBackSample = _fSample * paApu->m_fVolume;
-			if LSN_LIKELY( paApu->m_bInBg == false ) {
+			if LSN_LIKELY( !paApu->m_bInBg.load( std::memory_order_relaxed ) ) {
 				fSample *= paApu->m_fVolume;
 			}
 			else {

@@ -103,18 +103,16 @@ namespace lsn {
 
 			FilterFrame( _pui8Input, _ui64RenderStartCycle + 2 );
 
-			if ( m_bValidState && UploadTexture() ) {
-				VkDevice dDevice = m_pvkDevice->GetDevice();
-				VkQueue qQueue = m_pvkDevice->GetCommandQueue();
-
-				m_fRenderFence.Wait( UINT64_MAX );
+			// Wait (briefly) for the previous frame before overwriting the upload buffer it may still be reading.
+			if ( m_bValidState && PrevFrameRetired( LSN_MAX_FRAME_GPU_WAIT ) && UploadTexture() ) {
 				m_bCanPresent = false;
 
-				VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( dDevice, m_pvkDevice->GetSwapChain(), UINT64_MAX, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
-				if ( rRes == VK_ERROR_OUT_OF_DATE_KHR || rRes == VK_SUBOPTIMAL_KHR ) {
-					m_pvkDevice->ResizeSwapChain();
-				}
-				else if ( rRes == VK_SUCCESS ) {
+				// VK_SUBOPTIMAL_KHR still acquires an image and will signal m_sImageAvailable, so render and present it like VK_SUCCESS
+				//	(Present() re-creates the swap chain afterward).  Re-creating it here instead left that image acquired and the semaphore
+				//	pending, which could hang the next acquire (after going full-screen, for example).  Any other result acquired nothing, so
+				//	the frame is dropped.
+				VkResult rRes = AcquireNextImage( LSN_MAX_FRAME_GPU_WAIT );
+				if ( rRes == VK_SUCCESS || rRes == VK_SUBOPTIMAL_KHR ) {
 					m_fRenderFence.ResetFence();
 
 					VkCommandBuffer cbCmd = m_cbCommandBuffer.Get();
@@ -163,8 +161,7 @@ namespace lsn {
 					siSubmit.signalSemaphoreCount = 1;
 					siSubmit.pSignalSemaphores = sSignals;
 
-					CVulkan::m_pfQueueSubmit( qQueue, 1, &siSubmit, m_fRenderFence.Get() );
-					m_bCanPresent = true;
+					m_bCanPresent = SubmitFrame( siSubmit );
 				}
 			}
 		}

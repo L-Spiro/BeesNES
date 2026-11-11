@@ -534,6 +534,22 @@ namespace lsn {
 		 **/
 		void									SetVideoExportAbort( bool _bAbort );
 
+		/** A function that asks the rendering thread to draw (again). */
+		typedef void (*							PfExportRedraw)( void * _pvParm );
+
+		/**
+		 * Sets the function VideoExportFrameBoundary() calls while it waits for a frame to be rendered, to ask the rendering thread to draw
+		 *	(again).  A draw that could not render (no swap chain while a window changes size or goes full-screen, a lost device) is
+		 *	otherwise never retried, because the next request comes only with the next frame, which waits for this one.
+		 * 
+		 * \param _pfFunc The function, or nullptr.
+		 * \param _pvParm The parameter passed to _pfFunc.
+		 **/
+		void									SetExportRedrawFunc( PfExportRedraw _pfFunc, void * _pvParm ) {
+			m_pfExportRedraw = _pfFunc;
+			m_pvExportRedrawParm = _pvParm;
+		}
+
 		/**
 		 * Gets the current audio output rate:  the sample box's output rate, or the audio device's rate if the sample box has not been
 		 *	initialized.
@@ -658,6 +674,17 @@ namespace lsn {
 		 * Applies the current audio options.
 		 **/
 		void									ApplyAudioOptions();
+
+		/**
+		 * Sets whether BeesNES is in the background (the speakers then get the background volume).  The state is kept and given to
+		 *	every system that is created later.
+		 * 
+		 * \param _bInBg True if BeesNES is in the background.
+		 **/
+		void									SetInBackground( bool _bInBg ) {
+			m_bInBackground = _bInBg;
+			if ( m_psbSystem ) { m_psbSystem->SetInBackground( _bInBg ); }
+		}
 
 		/**
 		 * Gets a reference to the Cheat Manager.
@@ -915,6 +942,10 @@ namespace lsn {
 												m_ecExportEnd = LSN_VIDEO_EXPORT_OPTIONS::LSN_VEC_NONE;
 		/** Set on the rendering thread once the first frame has been given to the exporter. */
 		bool									m_bExportVideoStarted = false;
+		/** Asks the rendering thread to draw while VideoExportFrameBoundary() waits. */
+		PfExportRedraw							m_pfExportRedraw = nullptr;
+		/** The parameter passed to m_pfExportRedraw. */
+		void *									m_pvExportRedrawParm = nullptr;
 		/** The standard RGB filter. */
 		CRgb24Filter							m_r24fRgb24Filter;
 		/** L. Spiro's NTSC filter. */
@@ -1093,6 +1124,9 @@ namespace lsn {
 
 		/** Is this the first time setting the filter? */
 		bool									m_bHaveSetFilter = false;
+
+		/** Is BeesNES in the background? */
+		bool									m_bInBackground = false;
 
 		/** The raw WAV stream. */
 		static CWavFile							m_wfRawStream;

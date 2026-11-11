@@ -373,7 +373,104 @@ namespace lsn {
 					lsoGpu.ffFilterChroma = LSN_FF_GAUSSIANX;
 				}
 			}
+			SetLSpiroDefaults( froRet, _pmRegion, bAvx );
 			return froRet;
+		}
+
+		/**
+		 * Applies the tuned L. Spiro defaults of a region:  the TV preset (color space, decoder chip, and saturation), the color correction
+		 *	of the GPU filters, the standard settings, the Deep Internals, and the noise.  The Deep Internals are given to the software filter
+		 *	only on CPUs with AVX (the cheaper kernels set by Defaults() are kept otherwise).
+		 *
+		 * \param _froOptions The settings to update.
+		 * \param _pmRegion The region.
+		 * \param _bAvx True if the CPU supports AVX.
+		 */
+		static void											SetLSpiroDefaults( LSN_FILTER_REGION_OPTIONS &_froOptions, LSN_PPU_METRICS _pmRegion, bool _bAvx ) {
+			/** The tuned defaults of one region. */
+			struct LSN_REGION_DEFAULTS {
+				CColorSpace::LSN_COLOR_SPACE				cspTvPreset;										/**< The TV preset (its color space, decoder chip, and saturation). */
+				CNesPalette::LSN_GAMMA						gGamma;												/**< The gamma curve of the GPU filters. */
+				bool										bPhosphorDecay;										/**< GPU phosphor decay. */
+				float										fHueDegrees;										/**< The hue, in degrees. */
+				float										fContrast;											/**< The contrast. */
+				float										fBleed;												/**< The bleed. */
+				LSN_FILTER_FUNC								ffChroma;											/**< The chroma filter function. */
+				uint32_t									ui32ChromaKernel;									/**< The size of the chroma kernel. */
+				LSN_FILTER_FUNC								ffLuma;												/**< The luma filter function. */
+				float										fLumaParm;											/**< The parameter of the luma filter function. */
+				uint32_t									ui32LumaKernel;										/**< The size of the luma kernel. */
+				uint8_t										ui8Comb;											/**< The comb filter (NTSC or PAL, by region). */
+				float										fNoise;												/**< The noise amount (LSN_NT_CUSTOM). */
+				float										fSwPhosphorLevel;									/**< The software phosphor-decay level. */
+				float										fSwPhosphorPeriod;									/**< The software phosphor-decay time. */
+			};
+			constexpr float fContrastDef = 1.0f - 0.070710678118654752440084436210485f;
+			constexpr float fSwPeriodDef = 1.79113161563873291015625f;
+			LSN_REGION_DEFAULTS rdThis;
+			switch ( _pmRegion ) {
+				case LSN_PM_NTSC_J : {
+					rdThis = { CColorSpace::LSN_CSP_SONY_TRINITRON_CXA1870S_US, CNesPalette::LSN_G_CRT2, false, 2.0f, 1.0f, 0.0f,
+						LSN_FF_GAUSSIANX, 55, LSN_FF_LANCZOSX, 100.0f / 65.0f, 35, uint8_t( CLSpiroNtscFilterBase::LSN_CF_NONE ), 0.0235f, 0.25f, fSwPeriodDef };
+					break;
+				}
+				case LSN_PM_PAL : {
+					rdThis = { CColorSpace::LSN_CSP_SONY_PVM_CXA2060BS_PAL, CNesPalette::LSN_G_CRT1, true, 0.0f, 1.0f, 0.0f,
+						LSN_FF_GAUSSIANX, 53, LSN_FF_LANCZOSX, 3.0f, 59, uint8_t( CLSpiroPalFilterBase::LSN_CF_3_LINE ), 0.02f, 1.0f, fSwPeriodDef };
+					break;
+				}
+				case LSN_PM_DENDY : {
+					rdThis = { CColorSpace::LSN_CSP_SONY_BVM_20F1E, CNesPalette::LSN_G_CRT1, true, 8.0f, fContrastDef, 0.0f,
+						LSN_FF_GAUSSIANX, 45, LSN_FF_KAISER, 15.0f, 47, uint8_t( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE ), 0.0255f, 0.25f, 2.0f };
+					break;
+				}
+				case LSN_PM_PALM : {
+					rdThis = { CColorSpace::LSN_CSP_SONY_TRINITRON_PAL_6900K, CNesPalette::LSN_G_CRT1, true, 0.0f, fContrastDef, 0.0f,
+						LSN_FF_GAUSSIANX, 59, LSN_FF_CARDINAL_SPLINE_UNIFORM, 0.0f, 45, uint8_t( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE ), 0.0295f, 0.25f, fSwPeriodDef };
+					break;
+				}
+				case LSN_PM_PALN : {
+					rdThis = { CColorSpace::LSN_CSP_SONY_BVM_20F1E, CNesPalette::LSN_G_CRT1, true, 0.0f, fContrastDef, 0.35f,
+						LSN_FF_GAUSSIANX, 49, LSN_FF_GAUSSIANX, 0.0f, 59, uint8_t( CLSpiroPalFilterBase::LSN_CF_DELAY_LINE ), 0.0355f, 0.25f, 1.9f };
+					break;
+				}
+				default : {
+					// NTSC-M.
+					rdThis = { CColorSpace::LSN_CSP_RCA_COLORTRAK, CNesPalette::LSN_G_CRT2, true, 0.0f, 1.0f, 0.0f,
+						LSN_FF_GAUSSIANX, 53, LSN_FF_LANCZOSX, 3.4f, 59, uint8_t( CLSpiroNtscFilterBase::LSN_CF_NONE ), 0.015f, 0.25f, fSwPeriodDef };
+				}
+			}
+			const bool bPal = _pmRegion == LSN_PM_PAL || _pmRegion == LSN_PM_DENDY || _pmRegion == LSN_PM_PALM || _pmRegion == LSN_PM_PALN;
+			const CColorSpace::LSN_COLOR_SPACE_DATA & csdPreset = CColorSpace::Data( rdThis.cspTvPreset );
+
+			LSN_GPU_FILTER_OPTIONS & gfoGpu = _froOptions.gfoLSpiro;
+			gfoGpu.cspColorSpace = rdThis.cspTvPreset;
+			gfoGpu.gGamma = rdThis.gGamma;
+			gfoGpu.bPhosphorDecay = rdThis.bPhosphorDecay;
+			gfoGpu.bHighQualityResampler = false;
+
+			for ( LSN_LSPIRO_OPTIONS * plsoThis : { &_froOptions.lsoLSpiroCpu, &_froOptions.lsoLSpiroGpu } ) {
+				plsoThis->dmDemodulator = csdPreset.dmDemodulator;
+				plsoThis->fSaturation *= csdPreset.fSaturation;
+				plsoThis->fHue = float( rdThis.fHueDegrees * std::numbers::pi / 180.0 );
+				plsoThis->fBrightness = 0.0f;
+				plsoThis->fContrast = rdThis.fContrast;
+				plsoThis->fBleed = rdThis.fBleed;
+				plsoThis->ntNoiseType = LSN_NT_CUSTOM;
+				plsoThis->fNoiseAmount = rdThis.fNoise;
+				plsoThis->fPhosphorDecayLevel = rdThis.fSwPhosphorLevel;
+				plsoThis->fPhosphorDecayPeriod = rdThis.fSwPhosphorPeriod;
+				if ( bPal ) { plsoThis->cfCombFilter = CLSpiroPalFilterBase::LSN_COMB_FILTER( rdThis.ui8Comb ); }
+				else { plsoThis->cfNtscCombFilter = CLSpiroNtscFilterBase::LSN_COMB_FILTER( rdThis.ui8Comb ); }
+				if ( plsoThis == &_froOptions.lsoLSpiroCpu && !_bAvx ) { continue; }
+				plsoThis->ffFilterChroma = rdThis.ffChroma;
+				plsoThis->fFilterChromaParms[0] = plsoThis->fFilterChromaParms[1] = 0.0f;
+				plsoThis->ui32KernelSizeChroma = rdThis.ui32ChromaKernel;
+				plsoThis->ffFilterY = rdThis.ffLuma;
+				plsoThis->fFilterYParms[0] = rdThis.fLumaParm;
+				plsoThis->fFilterYParms[1] = 0.0f;
+				plsoThis->ui32KernelSizeY = rdThis.ui32LumaKernel;
+			}
 		}
 	};
 

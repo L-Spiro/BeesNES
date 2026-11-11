@@ -7,9 +7,11 @@
  */
 
 #include "LSNCheatManager.h"
+#include "../File/LSNStdFile.h"
 #include "../File/LSNZipFile.h"
 #include "../Localization/LSNLocalization.h"
 
+#include <cstring>
 #include <filesystem>
 
 namespace lsn {
@@ -25,6 +27,25 @@ namespace lsn {
 	std::wstring CCheatManager::InitializeCheatLibrary( const std::filesystem::path &_pPath, CHotkeyManager * _phmHotkeyManager ) {
 		DestroyCheatLibrary();
 		m_phmHotkeyManager = _phmHotkeyManager;
+
+		// The binary cache is much faster to load than the .JSON files.
+		std::filesystem::path pCache = _pPath;
+		pCache.replace_extension( L".lsch" );
+		uint64_t ui64ZipSize = 0;
+		int64_t i64ZipTime = 0;
+		{
+			std::error_code ecErr;
+			ui64ZipSize = uint64_t( std::filesystem::file_size( _pPath, ecErr ) );
+			if ( ecErr ) { ui64ZipSize = 0; }
+			else {
+				auto ftTime = std::filesystem::last_write_time( _pPath, ecErr );
+				i64ZipTime = ecErr ? 0 : int64_t( ftTime.time_since_epoch().count() );
+			}
+		}
+		// Without the .ZIP file, any cache is better than nothing.
+		if ( LoadCheatCache( pCache, ui64ZipSize, i64ZipTime ) ) { return std::wstring(); }
+		DestroyCheatLibrary();
+
 		CZipFile zfFile;
 		if ( !zfFile.Open( _pPath.generic_u16string().c_str() ) ) { return LSN_LSTR( LSN_FAILED_TO_OPEN_FILE ); }
 		std::vector<std::u16string> vFiles;
@@ -60,7 +81,192 @@ namespace lsn {
 		catch ( ... ) {
 			return LSN_LSTR( LSN_OUT_OF_MEMORY );
 		}
+		if ( m_vBuiltInCheats.size() ) {
+			// Failure only means the next start-up parses the .ZIP file again (the folder may be read-only).
+			SaveCheatCache( pCache, ui64ZipSize, i64ZipTime );
+		}
 		return wsError;
+	}
+
+	/** The magic number of the cheat cache ("LSCH"). */
+	static constexpr uint32_t						LSN_CHEAT_CACHE_MAGIC = 0x4843534CU;
+	/** The version of the cheat cache.  Change it whenever LSN_CHEAT_ENTRY or the file layout changes. */
+	static constexpr uint32_t						LSN_CHEAT_CACHE_VERSION = 1;
+
+	/**
+	 * Class CCheatCacheReader
+	 * \brief Reads the cheat cache from memory.
+	 *
+	 * Description: A minimal bounds-checked reader of the cheat cache.
+	 */
+	class CCheatCacheReader {
+	public :
+		CCheatCacheReader( const std::vector<uint8_t> &_vData ) :
+			m_vData( _vData ) {
+		}
+
+
+		// == Functions.
+		/**
+		 * Reads a plain value.
+		 * 
+		 * \param _tVal Holds the read value.
+		 * \return Returns true if there was enough data.
+		 **/
+		template <typename _tType>
+		bool										Read( _tType &_tVal ) {
+			if ( m_vData.size() - m_stPos < sizeof( _tType ) ) { return false; }
+			std::memcpy( &_tVal, m_vData.data() + m_stPos, sizeof( _tType ) );
+			m_stPos += sizeof( _tType );
+			return true;
+		}
+
+		/**
+		 * Reads a string (a 32-bit length then its characters).
+		 * 
+		 * \param _tStr Holds the read string.
+		 * \return Returns true if there was enough data.
+		 **/
+		template <typename _tType>
+		bool										ReadStr( _tType &_tStr ) {
+			uint32_t ui32Len;
+			if ( !Read( ui32Len ) ) { return false; }
+			const size_t stBytes = size_t( ui32Len ) * sizeof( typename _tType::value_type );
+			if ( m_vData.size() - m_stPos < stBytes ) { return false; }
+			_tStr.resize( ui32Len );
+			if ( stBytes ) { std::memcpy( _tStr.data(), m_vData.data() + m_stPos, stBytes ); }
+			m_stPos += stBytes;
+			return true;
+		}
+
+
+	protected :
+		// == Members.
+		const std::vector<uint8_t> &				m_vData;									/**< The data. */
+		size_t										m_stPos = 0;								/**< The read position. */
+	};
+
+	/**
+	 * Appends a plain value to a buffer.
+	 * 
+	 * \param _vBuffer The buffer.
+	 * \param _tVal The value to append.
+	 **/
+	template <typename _tType>
+	static void										CheatCacheWrite( std::vector<uint8_t> &_vBuffer, const _tType &_tVal ) {
+		const uint8_t * pui8Src = reinterpret_cast<const uint8_t *>(&_tVal);
+		_vBuffer.insert( _vBuffer.end(), pui8Src, pui8Src + sizeof( _tType ) );
+	}
+
+	/**
+	 * Appends a string (a 32-bit length then its characters) to a buffer.
+	 * 
+	 * \param _vBuffer The buffer.
+	 * \param _tStr The string to append.
+	 **/
+	template <typename _tType>
+	static void										CheatCacheWriteStr( std::vector<uint8_t> &_vBuffer, const _tType &_tStr ) {
+		CheatCacheWrite( _vBuffer, uint32_t( _tStr.size() ) );
+		const uint8_t * pui8Src = reinterpret_cast<const uint8_t *>(_tStr.data());
+		_vBuffer.insert( _vBuffer.end(), pui8Src, pui8Src + _tStr.size() * sizeof( typename _tType::value_type ) );
+	}
+
+	/**
+	 * Loads the built-in cheats from a binary cache.
+	 * 
+	 * \param _pCachePath The path to the cache.
+	 * \param _ui64ZipSize The size of the .ZIP file the cache must match, or 0 to accept the cache whatever it was made from.
+	 * \param _i64ZipTime The last-write time of the .ZIP file the cache must match (ignored if _ui64ZipSize is 0).
+	 * \return Returns true if the cache was valid and loaded into m_vBuiltInCheats.
+	 **/
+	bool CCheatManager::LoadCheatCache( const std::filesystem::path &_pCachePath, uint64_t _ui64ZipSize, int64_t _i64ZipTime ) {
+		std::vector<uint8_t> vFile;
+		if ( !CStdFile::LoadToMemory( _pCachePath.native().c_str(), vFile ) ) { return false; }
+		try {
+			CCheatCacheReader ccrReader( vFile );
+			uint32_t ui32Magic, ui32Version, ui32CharSize, ui32Total;
+			uint64_t ui64Size;
+			int64_t i64Time;
+			if ( !ccrReader.Read( ui32Magic ) || ui32Magic != LSN_CHEAT_CACHE_MAGIC ) { return false; }
+			if ( !ccrReader.Read( ui32Version ) || ui32Version != LSN_CHEAT_CACHE_VERSION ) { return false; }
+			if ( !ccrReader.Read( ui32CharSize ) || ui32CharSize != sizeof( wchar_t ) ) { return false; }
+			if ( !ccrReader.Read( ui64Size ) || !ccrReader.Read( i64Time ) ) { return false; }
+			if ( _ui64ZipSize && (ui64Size != _ui64ZipSize || i64Time != _i64ZipTime) ) { return false; }
+			if ( !ccrReader.Read( ui32Total ) ) { return false; }
+			// Every entry takes at least 19 bytes; a larger count means the file is damaged.
+			if ( size_t( ui32Total ) > vFile.size() / 19 ) { return false; }
+
+			std::vector<LSN_CHEAT_ENTRY> vCheats;
+			vCheats.resize( ui32Total );
+			for ( auto & ceThis : vCheats ) {
+				uint16_t ui16Type;
+				uint8_t ui8Enabled;
+				uint32_t ui32Addresses;
+				if ( !ccrReader.ReadStr( ceThis.wsDescription ) || !ccrReader.ReadStr( ceThis.wsNotes ) || !ccrReader.ReadStr( ceThis.u16sFile ) ) { return false; }
+				if ( !ccrReader.Read( ui16Type ) || !ccrReader.Read( ui8Enabled ) || !ccrReader.Read( ui32Addresses ) ) { return false; }
+				if ( ui16Type > LSN_CHEAT_ENTRY::LSN_CT_CUSTOM || ui32Addresses > 0x10000 ) { return false; }
+				ceThis.ctType = LSN_CHEAT_ENTRY::LSN_CHEAT_TYPE( ui16Type );
+				ceThis.bEnabled = ui8Enabled != 0;
+				ceThis.vAddresses.resize( ui32Addresses );
+				for ( auto & aThis : ceThis.vAddresses ) {
+					uint8_t ui8UseCompare;
+					if ( !ccrReader.ReadStr( aThis.sCode ) || !ccrReader.Read( aThis.ui16Address ) || !ccrReader.Read( aThis.ui8Value ) ||
+						!ccrReader.Read( aThis.ui8CompareValue ) || !ccrReader.Read( ui8UseCompare ) ) { return false; }
+					aThis.bUseCompare = ui8UseCompare != 0;
+				}
+			}
+			m_vBuiltInCheats = std::move( vCheats );
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Saves the built-in cheats to a binary cache.
+	 * 
+	 * \param _pCachePath The path to the cache.
+	 * \param _ui64ZipSize The size of the .ZIP file the cheats came from.
+	 * \param _i64ZipTime The last-write time of the .ZIP file the cheats came from.
+	 * \return Returns true if the cache was written.
+	 **/
+	bool CCheatManager::SaveCheatCache( const std::filesystem::path &_pCachePath, uint64_t _ui64ZipSize, int64_t _i64ZipTime ) const {
+		try {
+			std::vector<uint8_t> vBuffer;
+			vBuffer.reserve( m_vBuiltInCheats.size() * 160 );
+			CheatCacheWrite( vBuffer, LSN_CHEAT_CACHE_MAGIC );
+			CheatCacheWrite( vBuffer, LSN_CHEAT_CACHE_VERSION );
+			CheatCacheWrite( vBuffer, uint32_t( sizeof( wchar_t ) ) );
+			CheatCacheWrite( vBuffer, _ui64ZipSize );
+			CheatCacheWrite( vBuffer, _i64ZipTime );
+			CheatCacheWrite( vBuffer, uint32_t( m_vBuiltInCheats.size() ) );
+			for ( const auto & ceThis : m_vBuiltInCheats ) {
+				CheatCacheWriteStr( vBuffer, ceThis.wsDescription );
+				CheatCacheWriteStr( vBuffer, ceThis.wsNotes );
+				CheatCacheWriteStr( vBuffer, ceThis.u16sFile );
+				CheatCacheWrite( vBuffer, uint16_t( ceThis.ctType ) );
+				CheatCacheWrite( vBuffer, uint8_t( ceThis.bEnabled ? 1 : 0 ) );
+				CheatCacheWrite( vBuffer, uint32_t( ceThis.vAddresses.size() ) );
+				for ( const auto & aThis : ceThis.vAddresses ) {
+					CheatCacheWriteStr( vBuffer, aThis.sCode );
+					CheatCacheWrite( vBuffer, aThis.ui16Address );
+					CheatCacheWrite( vBuffer, aThis.ui8Value );
+					CheatCacheWrite( vBuffer, aThis.ui8CompareValue );
+					CheatCacheWrite( vBuffer, uint8_t( aThis.bUseCompare ? 1 : 0 ) );
+				}
+			}
+			// Write to a temporary file and rename it so a partial cache is never left behind.
+			std::filesystem::path pTmp = _pCachePath;
+			pTmp += L".tmp";
+			if ( !CStdFile::WriteToFile( pTmp.native().c_str(), vBuffer ) ) { return false; }
+			std::error_code ecErr;
+			std::filesystem::rename( pTmp, _pCachePath, ecErr );
+			if ( ecErr ) {
+				std::filesystem::remove( pTmp, ecErr );
+				return false;
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
 	}
 
 	/**

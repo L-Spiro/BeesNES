@@ -220,6 +220,16 @@ namespace lsn {
 				}
 				break;
 			}
+			case Layout::LSN_CWI_SEARCH_BUTTON : {
+				if ( _pwSrc && _wCtrlCode == EN_CHANGE ) {
+					std::wstring wsSearch = CUtilities::ToLower( _pwSrc->GetTextW() );
+					if ( wsSearch != m_wsSearch ) {
+						m_wsSearch = std::move( wsSearch );
+						AddCheats();
+					}
+				}
+				break;
+			}
 
 			case Layout::LSN_CWI_SHOW_ENABLED : {
 				RevealEnabled();
@@ -372,11 +382,28 @@ namespace lsn {
 			uint32_t ui32GameIdx = 0;
 
 			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
+			// Gather the cheats of each game whose text contains the search string (case-insensitive).
+			std::vector<decltype(sGames.begin())> vGameIters;
+			std::vector<std::vector<std::pair<uint32_t, std::wstring>>> vGameCheats;
 			for ( auto I = sGames.begin(); I != sGames.end(); ++I ) {
 				auto vCheats = m_pcmCheatManager->GatherCheatsForGame( (*I) );
+				std::vector<std::pair<uint32_t, std::wstring>> vMatches;
+				for ( size_t J = 0; J < vCheats.size(); ++J ) {
+					std::wstring wsText = CheatEntryToString( m_pcmCheatManager->CheatByIdx( vCheats[J] ) );
+					if ( !m_wsSearch.empty() && CUtilities::ToLower( wsText ).find( m_wsSearch ) == std::wstring::npos ) { continue; }
+					vMatches.emplace_back( uint32_t( vCheats[J] ), std::move( wsText ) );
+				}
+				if ( vMatches.empty() && !m_wsSearch.empty() ) { continue; }
+				vGameIters.push_back( I );
+				vGameCheats.push_back( std::move( vMatches ) );
+			}
+
+			for ( size_t G = 0; G < vGameIters.size(); ++G ) {
+				auto I = vGameIters[G];
+				const auto & vMatches = vGameCheats[G];
 				HTREEITEM hParent = TVI_ROOT;
-				// If there is only one game after the filter, no need to add a heirarchy.  Just make a flat list.
-				if ( sGames.size() > 1 ) {
+				// If there is only one game after the filter and search, no need to add a heirarchy.  Just make a flat list.
+				if ( vGameIters.size() > 1 ) {
 					// Add the game names with children.
 					std::wstring wsTmp = CUtilities::XStringToWString( (*I).c_str(), (*I).size() );
 					uint32_t ui32Id = 0x80000000U + ui32GameIdx++;
@@ -385,12 +412,10 @@ namespace lsn {
 					hParent = ptlvTree->InsertItem( &isInsertMe );
 					m_mGameNameAssociation.insert( std::make_pair( ui32Id, wsTmp ) );
 				}
-				for ( size_t J = 0; J < vCheats.size(); ++J ) {
-					auto cCheat = m_pcmCheatManager->CheatByIdx( vCheats[J] );
-					std::wstring wsText = CheatEntryToString( cCheat );
-					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsText.c_str()),
-						vCheats[J], hParent );
-						ptlvTree->InsertItem( &isInsertMe );
+				for ( size_t J = 0; J < vMatches.size(); ++J ) {
+					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(vMatches[J].second.c_str()),
+						vMatches[J].first, hParent );
+					ptlvTree->InsertItem( &isInsertMe );
 				}
 			}
 

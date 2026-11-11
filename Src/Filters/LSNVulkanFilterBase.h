@@ -296,6 +296,8 @@ namespace lsn {
 #endif
 		static LSN_VULKAN_GLOBAL_STATE							s_vgsState;							/**< The global Vulkan state containing the shared device. */
 		static constexpr uint64_t								LSN_MAX_UI_GPU_WAIT = 2ULL * 1000ULL * 1000ULL;	/**< The longest (in nanoseconds; 2 ms) the UI thread waits for the GPU to retire the previous frame before dropping the new one. */
+		static constexpr uint64_t								LSN_MAX_FRAME_GPU_WAIT = 100ULL * 1000ULL * 1000ULL;	/**< The longest (in nanoseconds; 100 ms) the heavier filters wait for the previous frame or a swap-chain image before dropping the new frame. */
+		static constexpr uint64_t								LSN_MAX_CAPTURE_GPU_WAIT = 1000ULL * 1000ULL * 1000ULL;	/**< The longest (in nanoseconds; 1 s) any filter waits for the GPU while capturing (recording a movie).  Every frame must be rendered then, but a GPU or presentation engine that stops responding must not freeze the UI thread forever. */
 
 		CVulkanDevice *											m_pvkDevice = nullptr;				/**< Pointer to the shared Vulkan device. */
 
@@ -456,9 +458,12 @@ namespace lsn {
 		 *	and while posted messages are pending, Windows generates no WM_PAINT for any window on the thread.  Drop the frame when this
 		 *	returns false.  Check it before touching anything the previous frame used (uploads, descriptor sets, size-dependent resources).
 		 *
+		 * While capturing (recording a movie), every frame must be rendered, so it waits up to LSN_MAX_CAPTURE_GPU_WAIT instead.
+		 *
+		 * \param _ui64TimeoutNs The longest to wait when not capturing, in nanoseconds.
 		 * \return Returns true if the previous frame has retired and the resources it used can be modified.
 		 */
-		bool													PrevFrameRetired();
+		bool													PrevFrameRetired( uint64_t _ui64TimeoutNs = LSN_MAX_UI_GPU_WAIT );
 
 		/**
 		 * Acquires the next swap-chain image without waiting.  On VK_SUCCESS or VK_SUBOPTIMAL_KHR, m_ui32ImageIndex is set and
@@ -466,9 +471,21 @@ namespace lsn {
 		 *	re-creates a suboptimal swap chain afterward.  On VK_ERROR_OUT_OF_DATE_KHR, the swap chain is re-created.  Any other result
 		 *	(VK_NOT_READY, for example) acquired nothing:  drop the frame.
 		 *
+		 * While capturing (recording a movie), it waits up to LSN_MAX_CAPTURE_GPU_WAIT for an image.
+		 *
+		 * \param _ui64TimeoutNs The longest to wait for an image when not capturing, in nanoseconds (0 never waits).
 		 * \return Returns the result of vkAcquireNextImageKHR().
 		 */
-		VkResult												AcquireNextImage();
+		VkResult												AcquireNextImage( uint64_t _ui64TimeoutNs = 0 );
+
+		/**
+		 * Submits the frame's command buffer, signaling m_fRenderFence (which the caller has reset).  If the submission fails, the fence is
+		 *	signaled by an empty submission so that the next PrevFrameRetired() does not wait for a frame that will never finish.
+		 *
+		 * \param _siSubmit The submission.
+		 * \return Returns true if the frame was submitted (and so can be presented).
+		 */
+		bool													SubmitFrame( const VkSubmitInfo &_siSubmit );
 
 		/**
 		 * Records commands that copy an area of an image into the capture buffer, to be read by ReadCapture() after the GPU has finished the

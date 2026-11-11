@@ -37,9 +37,10 @@ namespace lsn {
 		 * 
 		 * \param _vCheats The list of cheats to check.
 		 * \param _cCheat The cheat to check for being in _vCheats.
+		 * \param _stStart The index of the first cheat to check (cheats before it are not checked).
 		 * \return Returns the index of the cheat if found or size_t( -1 ).
 		 **/
-		static size_t									CheatIsInList( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, const LSN_CHEAT_ENTRY &_cCheat );
+		static size_t									CheatIsInList( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, const LSN_CHEAT_ENTRY &_cCheat, size_t _stStart = 0 );
 
 		/**
 		 * Determines if a cheat is already activated at a given address.

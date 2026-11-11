@@ -74,7 +74,9 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Loads all of the built-in cheats given a path to the .ZIP file.
+		 * Loads all of the built-in cheats given a path to the .ZIP file.  The parsed cheats are cached in a binary file next to the .ZIP
+		 *	file (the same name with the extension .lsch), which is loaded instead of the .ZIP file as long as it matches the size and time
+		 *	of the .ZIP file.
 		 * 
 		 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
 		 * \param _phmHotkeyManager A pointer to a hotkey manager to be used by this object.
@@ -181,6 +183,28 @@ namespace lsn {
 		std::wstring								m_wsFilter;						/**< The cheat filter. */
 		std::set<LSN_ACTIVE_CHEAT>					m_sActiveCheats;				/**< The list of active cheats. */
 		CHotkeyManager *							m_phmHotkeyManager = nullptr;	/**< A pointer to the hotkey manager. */
+
+
+		// == Functions.
+		/**
+		 * Loads the built-in cheats from a binary cache.
+		 * 
+		 * \param _pCachePath The path to the cache.
+		 * \param _ui64ZipSize The size of the .ZIP file the cache must match, or 0 to accept the cache whatever it was made from.
+		 * \param _i64ZipTime The last-write time of the .ZIP file the cache must match (ignored if _ui64ZipSize is 0).
+		 * \return Returns true if the cache was valid and loaded into m_vBuiltInCheats.
+		 **/
+		bool										LoadCheatCache( const std::filesystem::path &_pCachePath, uint64_t _ui64ZipSize, int64_t _i64ZipTime );
+
+		/**
+		 * Saves the built-in cheats to a binary cache.
+		 * 
+		 * \param _pCachePath The path to the cache.
+		 * \param _ui64ZipSize The size of the .ZIP file the cheats came from.
+		 * \param _i64ZipTime The last-write time of the .ZIP file the cheats came from.
+		 * \return Returns true if the cache was written.
+		 **/
+		bool										SaveCheatCache( const std::filesystem::path &_pCachePath, uint64_t _ui64ZipSize, int64_t _i64ZipTime ) const;
 	};
 
 }	// namespace lsn

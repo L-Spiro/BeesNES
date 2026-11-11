@@ -2153,6 +2153,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h" />
+    <ClInclude Include="Src\Windows\About\LSNAboutWindowLayout.h" />
+    <ClInclude Include="Src\Windows\About\LSNAboutWindow.h" />
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindowLayout.h" />
     <ClInclude Include="Src\Windows\VideoRecording\LSNVideoRecordingWindow.h" />
     <ClInclude Include="Src\Windows\VideoRecording\LSNVideoRecordingWindowLayout.h" />
@@ -2359,6 +2361,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp" />
+    <ClCompile Include="Src\Windows\About\LSNAboutWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\About\LSNAboutWindow.cpp" />
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\VideoRecording\LSNVideoRecordingWindow.cpp" />
     <ClCompile Include="Src\Windows\VideoRecording\LSNVideoRecordingWindowLayout.cpp" />

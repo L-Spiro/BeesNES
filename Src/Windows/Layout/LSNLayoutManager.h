@@ -50,6 +50,8 @@ namespace lsn {
 		LSN_LT_VIDEO_OPTIONS_DIALOG,
 		LSN_LT_VIDEO_OPTIONS_SETTINGS_PAGE,
 		LSN_LT_VIDEO_OPTIONS_FIELD_PAGE,
+
+		LSN_LT_ABOUT_DIALOG,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

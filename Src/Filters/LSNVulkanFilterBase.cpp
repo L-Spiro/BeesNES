@@ -149,14 +149,18 @@ namespace lsn {
 	 *	and while posted messages are pending, Windows generates no WM_PAINT for any window on the thread.  Drop the frame when this
 	 *	returns false.  Check it before touching anything the previous frame used (uploads, descriptor sets, size-dependent resources).
 	 *
+	 * While capturing (recording a movie), every frame must be rendered, so it waits up to LSN_MAX_CAPTURE_GPU_WAIT instead.
+	 *
+	 * \param _ui64TimeoutNs The longest to wait when not capturing, in nanoseconds.
 	 * \return Returns true if the previous frame has retired and the resources it used can be modified.
 	 */
-	bool CVulkanFilterBase::PrevFrameRetired() {
+	bool CVulkanFilterBase::PrevFrameRetired( uint64_t _ui64TimeoutNs ) {
 		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() ) { return false; }
 		VkFence fFence = m_fRenderFence.Get();
 		if LSN_UNLIKELY( fFence == VK_NULL_HANDLE ) { return false; }
-		// While capturing (recording a movie), every frame must be rendered, so wait as long as it takes.
-		return CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, m_pcbCapture ? UINT64_MAX : LSN_MAX_UI_GPU_WAIT ) == VK_SUCCESS;
+		// While capturing (recording a movie), every frame must be rendered, so wait longer (but never forever:  a dropped frame is
+		//	reported when the recording stops, while a frozen UI thread loses the whole recording).
+		return CVulkan::m_pfWaitForFences( m_pvkDevice->GetDevice(), 1, &fFence, VK_TRUE, m_pcbCapture ? LSN_MAX_CAPTURE_GPU_WAIT : _ui64TimeoutNs ) == VK_SUCCESS;
 	}
 
 	/**
@@ -165,17 +169,37 @@ namespace lsn {
 	 *	re-creates a suboptimal swap chain afterward.  On VK_ERROR_OUT_OF_DATE_KHR, the swap chain is re-created.  Any other result
 	 *	(VK_NOT_READY, for example) acquired nothing:  drop the frame.
 	 *
+	 * While capturing (recording a movie), it waits up to LSN_MAX_CAPTURE_GPU_WAIT for an image.
+	 *
+	 * \param _ui64TimeoutNs The longest to wait for an image when not capturing, in nanoseconds (0 never waits).
 	 * \return Returns the result of vkAcquireNextImageKHR().
 	 */
-	VkResult CVulkanFilterBase::AcquireNextImage() {
+	VkResult CVulkanFilterBase::AcquireNextImage( uint64_t _ui64TimeoutNs ) {
 		if LSN_UNLIKELY( !m_pvkDevice || !m_pvkDevice->GetDevice() || m_pvkDevice->GetSwapChain() == VK_NULL_HANDLE ) { return VK_ERROR_INITIALIZATION_FAILED; }
 		// A timeout of 0 never blocks; it returns VK_NOT_READY while the presentation engine holds every image.  While capturing (recording
-		//	a movie), every frame must be rendered, so wait for an image instead.
-		VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( m_pvkDevice->GetDevice(), m_pvkDevice->GetSwapChain(), m_pcbCapture ? UINT64_MAX : 0, m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
+		//	a movie), every frame must be rendered, so wait for an image instead (but never forever).
+		VkResult rRes = CVulkan::m_pfAcquireNextImageKHR( m_pvkDevice->GetDevice(), m_pvkDevice->GetSwapChain(), m_pcbCapture ? LSN_MAX_CAPTURE_GPU_WAIT : _ui64TimeoutNs,
+			m_sImageAvailable.Get(), VK_NULL_HANDLE, &m_ui32ImageIndex );
 		if ( rRes == VK_ERROR_OUT_OF_DATE_KHR ) {
 			m_pvkDevice->ResizeSwapChain();
 		}
 		return rRes;
+	}
+
+	/**
+	 * Submits the frame's command buffer, signaling m_fRenderFence (which the caller has reset).  If the submission fails, the fence is
+	 *	signaled by an empty submission so that the next PrevFrameRetired() does not wait for a frame that will never finish.
+	 *
+	 * \param _siSubmit The submission.
+	 * \return Returns true if the frame was submitted (and so can be presented).
+	 */
+	bool CVulkanFilterBase::SubmitFrame( const VkSubmitInfo &_siSubmit ) {
+		if LSN_UNLIKELY( !m_pvkDevice ) { return false; }
+		VkQueue qQueue = m_pvkDevice->GetCommandQueue();
+		if LSN_UNLIKELY( !qQueue ) { return false; }
+		if LSN_LIKELY( CVulkan::m_pfQueueSubmit( qQueue, 1, &_siSubmit, m_fRenderFence.Get() ) == VK_SUCCESS ) { return true; }
+		CVulkan::m_pfQueueSubmit( qQueue, 0, nullptr, m_fRenderFence.Get() );
+		return false;
 	}
 
 	/**

@@ -1420,6 +1420,7 @@ namespace lsn {
 			//m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsOutCapture.pvMetaParm, Options().stfStreamOptionsOutCapture.pfMetaFunc, pfTmp, Options().stfStreamOptionsOutCapture.pfMetaThreadFunc );
 			m_psbSystem->SetMetaDataStreamParms( Options().stfStreamOptionsRaw.pvMetaParm, pfTmp, Options().stfStreamOptionsRaw.pfMetaFunc, Options().stfStreamOptionsRaw.pfMetaThreadFunc );
 			m_psbSystem->SetAudioOptions( aoOptions );
+			m_psbSystem->SetInBackground( m_bInBackground );
 			SetStreamToFileOptions<true>( Options().stfStreamOptionsRaw );
 			SetStreamToFileOptions<false>( Options().stfStreamOptionsOutCapture );
 
@@ -1915,9 +1916,24 @@ namespace lsn {
 		// Normally the renderer only shows the newest frame, skipping any that were replaced before it got to them.  While exporting, each
 		//	frame must be rendered (and captured) before the next one replaces it, so the emulation waits here instead.
 		{
+			// A draw that could not render (no swap chain while the window changes size or goes full-screen, a lost device, a filter
+			//	switching APIs) is asked for again; if the frame still cannot be rendered, it is given up on (the gap is reported when
+			//	the recording stops) rather than freezing the emulator.
+			constexpr auto aRetry = std::chrono::milliseconds( 50 );
+			constexpr auto aGiveUp = std::chrono::seconds( 10 );		// Long enough for a new filter to compile its shaders.
+			auto aStart = std::chrono::steady_clock::now();
+			auto aLastRequest = aStart;
 			std::unique_lock<std::mutex> ulLock( m_mExportWait );
 			while ( m_aui64ExportDoneId < m_aui64ExportSwapId && !m_abExportAbort ) {
 				m_cvExportWait.wait_for( ulLock, std::chrono::milliseconds( 10 ) );
+				auto aNow = std::chrono::steady_clock::now();
+				if ( aNow - aStart >= aGiveUp ) { break; }
+				if ( m_pfExportRedraw && aNow - aLastRequest >= aRetry ) {
+					aLastRequest = aNow;
+					ulLock.unlock();
+					m_pfExportRedraw( m_pvExportRedrawParm );
+					ulLock.lock();
+				}
 			}
 		}
 

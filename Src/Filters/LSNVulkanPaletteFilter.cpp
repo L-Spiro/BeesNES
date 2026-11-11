@@ -189,7 +189,7 @@ namespace lsn {
 					siSubmit.signalSemaphoreCount = 1;
 					siSubmit.pSignalSemaphores = sSignals;
 
-					m_bCanPresent = CVulkan::m_pfQueueSubmit( m_pvkDevice->GetCommandQueue(), 1, &siSubmit, m_fRenderFence.Get() ) == VK_SUCCESS;
+					m_bCanPresent = SubmitFrame( siSubmit );
 				}
 			}
 

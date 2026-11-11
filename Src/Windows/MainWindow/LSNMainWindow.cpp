@@ -26,6 +26,7 @@
 #include "../../Utilities/LSNUtilities.h"
 #include "../Audio/LSNAudioOptionsWindowLayout.h"
 #include "../VideoOptions/LSNVideoOptionsWindowLayout.h"
+#include "../About/LSNAboutWindowLayout.h"
 #include "../Cheats/LSNCheatsWindowLayout.h"
 #include "../Input/LSNInputWindowLayout.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -142,6 +143,7 @@ namespace lsn {
 		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
 
 		m_bnEmulator.SetFolder( wsRoot.c_str() );
+		m_bnEmulator.SetExportRedrawFunc( ExportRedraw, this );
 		m_bnEmulator.LoadSettings();
 		m_bnEmulator.SetCurFilter( m_bnEmulator.Options().fFilter );
 
@@ -806,6 +808,10 @@ namespace lsn {
 				ShowCheats();
 				break;
 			}
+			case CMainWindowLayout::LSN_MWMI_HELP_ABOUT : {
+				ShowAbout();
+				break;
+			}
 			case CMainWindowLayout::LSN_MWMI_TOOLS_RECORD : {
 				ToggleVideoRecording();
 				break;
@@ -1224,6 +1230,22 @@ namespace lsn {
 	 */
 	CWidget::LSW_HANDLED CMainWindow::Move( LONG /*_lX*/, LONG /*_lY*/ ) {
 		Tick();
+		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Handles WM_ACTIVATE.
+	 * \brief Notified when the window is activated or deactivated.  Tells the APU when BeesNES goes to or comes from the background.
+	 *
+	 * \param _bMinimized Specifies the minimized state of the window being activated or deactivated.
+	 * \param _wActivationMode Specifies whether the window is being activated or deactivated.
+	 * \param _pwWidget The window being activated or deactivated (the other one), if it is one of ours.
+	 * \return Returns a LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CMainWindow::Activate( BOOL /*_bMinimized*/, WORD _wActivationMode, CWidget * _pwWidget ) {
+		// Losing activation to one of our own windows (a dialog) does not put BeesNES in the background; losing it to another
+		//	application (or to nothing) does.
+		m_bnEmulator.SetInBackground( _wActivationMode == WA_INACTIVE && !_pwWidget );
 		return LSW_H_CONTINUE;
 	}
 
@@ -2052,6 +2074,14 @@ namespace lsn {
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
 			m_bnEmulator.Swap( _bActuallySwap );
 		}
+		RequestDraw();
+	}
+
+	/**
+	 * Asks for the current frame to be drawn:  posts a draw request for GPU filters or invalidates the window for software filters.
+	 *	Can be called from any thread.
+	 **/
+	void CMainWindow::RequestDraw() {
 		if ( (m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter()) ) {
 			// Posted messages outrank input and WM_PAINT, so never let draw requests pile up:  one queued draw always renders the newest frame.
 			if ( !m_abGpuDrawQueued.exchange( true ) ) {
@@ -2065,6 +2095,15 @@ namespace lsn {
 				RDW_INVALIDATE |
 				RDW_NOERASE | RDW_NOFRAME | RDW_ALLCHILDREN );
 		}
+	}
+
+	/**
+	 * Called by the emulator (on the emulation thread) while it waits for a frame to be rendered for a recording.
+	 *
+	 * \param _pvParm A pointer to this object.
+	 **/
+	void CMainWindow::ExportRedraw( void * _pvParm ) {
+		static_cast<CMainWindow *>(_pvParm)->RequestDraw();
 	}
 
 	/**
@@ -2376,6 +2415,13 @@ namespace lsn {
 	 **/
 	void CMainWindow::ShowCheats() {
 		CCheatsWindowLayout::CreateCheatsDialog( this, &m_bnEmulator.CheatManager() );
+	}
+
+	/**
+	 * Shows the About dialog.
+	 **/
+	void CMainWindow::ShowAbout() {
+		CAboutWindowLayout::CreateAboutDialog( this );
 	}
 
 	/**

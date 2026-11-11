@@ -22,20 +22,22 @@
 	 * 
 	 * \param _vCheats The list of cheats to check.
 	 * \param _cCheat The cheat to check for being in _vCheats.
+	 * \param _stStart The index of the first cheat to check (cheats before it are not checked).
 	 * \return Returns the index of the cheat if found or size_t( -1 ).
 	 **/
-	size_t CCheatConverter::CheatIsInList( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, const LSN_CHEAT_ENTRY &_cCheat ) {
-		for ( auto I = _vCheats.size(); I--; ) {
+	size_t CCheatConverter::CheatIsInList( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, const LSN_CHEAT_ENTRY &_cCheat, size_t _stStart ) {
+		for ( auto I = _vCheats.size(); I-- > _stStart; ) {
 			if ( _vCheats[I].ctType != _cCheat.ctType ) { continue; }
 			if ( _vCheats[I].vAddresses.size() != _cCheat.vAddresses.size() ) { continue; }
 			if ( _vCheats[I].wsDescription != _cCheat.wsDescription ) { continue; }
 			if ( _vCheats[I].wsNotes != _cCheat.wsNotes ) { continue; }
 			if ( _vCheats[I].u16sFile != _cCheat.u16sFile ) { continue; }
 			
+			bool bSame = true;
 			for ( auto J = _vCheats[I].vAddresses.size(); J--; ) {
-				if ( _vCheats[I].vAddresses[J].sCode != _cCheat.vAddresses[J].sCode ) { continue; }
+				if ( _vCheats[I].vAddresses[J].sCode != _cCheat.vAddresses[J].sCode ) { bSame = false; break; }
 			}
-			return I;
+			if ( bSame ) { return I; }
 		}
 		return size_t( -1 );
 	}
@@ -332,6 +334,9 @@
 	 * \return Returns true if all cheats were loaded.  If false, _wsError is filled with an error string to present to the user.
 	 **/
 	bool CCheatConverter::LoadMesenJson( std::vector<uint8_t> &_vJson, std::vector<LSN_CHEAT_ENTRY> &_vCheats, const std::u16string &_u16sFileName, std::wstring &_wsError ) {
+		// Duplicates can only come from the same file (the file name is part of each cheat), so only the cheats added by this call are
+		//	searched for duplicates.  Searching every cheat made loading quadratic in the size of the whole library.
+		const size_t stFirst = _vCheats.size();
 		try {
 			lson::CJson jSon;
 
@@ -535,8 +540,8 @@
 							}
 						}
 					}
-					if ( size_t( -1 ) == CheatIsInList( _vCheats, ceEntry ) ) {
-						_vCheats.emplace_back( ceEntry );
+					if ( size_t( -1 ) == CheatIsInList( _vCheats, ceEntry, stFirst ) ) {
+						_vCheats.emplace_back( std::move( ceEntry ) );
 					}
 				}
 			}

@@ -686,6 +686,14 @@
 
 // Cheats.
 #define LSN_STR__CHEATS														&Cheats
+#define LSN_STR__ABOUT														&About BeesNES\u2026
+#define LSN_STR_ABOUT_BEESNES												About BeesNES
+#define LSN_STR_ABOUT_TITLE													BeesNES
+#define LSN_STR_ABOUT_DESC													A sub-cycle\u2013accurate Nintendo Entertainment System emulator.
+#define LSN_STR_ABOUT_CREATOR												Created by Shawn (L. Spiro) Wilcoxen.
+#define LSN_STR_ABOUT_COPYRIGHT												Copyright \u00A9 2020\u20132026 Shawn (L. Spiro) Wilcoxen.  Released under the MIT License.
+#define LSN_STR_ABOUT_CREDITS												Credits and Licenses
+#define LSN_STR_ABOUT_ICONS8												Icons by Icons8
 #define LSN_STR_CHEATS														Cheats
 #define LSN_STR_AVAILABLE_CHEATS											Manage Cheats
 #define LSN_STR_ACTIVATE													Activate

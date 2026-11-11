@@ -61,6 +61,7 @@ namespace lsn {
 			LSN_CWI_NONE										= 0,	// CCheatsWindowLayout::LSN_CHEATS_WINDOW_IDS
 			LSN_VRWI_NONE										= 0,	// CVideoRecordingWindowLayout::LSN_VIDEO_RECORDING_WINDOW_IDS
 			LSN_VOWI_NONE										= 0,	// CVideoOptionsWindowLayout (the Video Options dialog).
+			LSN_ABWI_NONE										= 0,	// CAboutWindowLayout (the About dialog).
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -769,6 +770,19 @@ namespace lsn {
 			LSN_VOWI_GROUP_LAST									= LSN_VOWI_GROUP_FIRST + 31,
 			LSN_VOWI_FIELD_FIRST,
 			LSN_VOWI_FIELD_LAST									= LSN_VOWI_FIELD_FIRST + 511,	// 4 per CVideoOptionsFields::LSN_VIDEO_FIELD (label, control, description, and separator).
+
+
+			// CAboutWindowLayout (the About dialog).
+			LSN_ABWI_DIALOG,
+			LSN_ABWI_GROUP,
+			LSN_ABWI_DESC,
+			LSN_ABWI_CREATOR,
+			LSN_ABWI_COPYRIGHT,
+			LSN_ABWI_GITHUB,
+			LSN_ABWI_CREDITS_GROUP,
+			LSN_ABWI_ICONS8,
+			LSN_ABWI_CREDITS_EDIT,
+			LSN_ABWI_OK,
 		};
 #endif	// #if defined( LSN_WINDOWS )
 

@@ -189,6 +189,8 @@ namespace lsn {
 			LSN_MWMI_TOOLS_RECORD,
 			LSN_MWMI_TOOLS_RECORDING_SETTINGS,
 
+			LSN_MWMI_HELP_ABOUT,
+
 			/*LSN_MWMI_SHOWFOUNDADDR,
 			LSN_MWMI_SHOW_EXPEVAL,
 			LSN_MWMI_SHOW_CONVERTER,
@@ -242,6 +244,9 @@ namespace lsn {
 
 		/** Tools menu. */
 		static LSW_MENU_ITEM					m_miToolsMenu[];
+
+		/** Help menu. */
+		static LSW_MENU_ITEM					m_miHelpMenu[];
 
 		/** Windows menu. */
 		static LSW_MENU_ITEM					m_miWindowsMenu[];

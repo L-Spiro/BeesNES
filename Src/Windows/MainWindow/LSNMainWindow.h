@@ -146,6 +146,17 @@ namespace lsn {
 		virtual LSW_HANDLED						Move( LONG _lX, LONG _lY );
 
 		/**
+		 * Handles WM_ACTIVATE.
+		 * \brief Notified when the window is activated or deactivated.  Tells the APU when BeesNES goes to or comes from the background.
+		 *
+		 * \param _bMinimized Specifies the minimized state of the window being activated or deactivated.
+		 * \param _wActivationMode Specifies whether the window is being activated or deactivated.
+		 * \param _pwWidget The window being activated or deactivated (the other one), if it is one of ours.
+		 * \return Returns a LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED						Activate( BOOL _bMinimized, WORD _wActivationMode, CWidget * _pwWidget );
+
+		/**
 		 * The WM_KEYDOWN handler.
 		 *
 		 * \param _uiKeyCode The virtual-key code of the nonsystem key.
@@ -359,6 +370,11 @@ namespace lsn {
 		void									ShowCheats();
 
 		/**
+		 * Shows the About dialog.
+		 **/
+		void									ShowAbout();
+
+		/**
 		 * Starts recording a video if not recording, otherwise stops recording (or cancels a recording that is waiting for its start
 		 *	condition).  Used by both the Record menu item and its hotkey.  Any error is shown in a message box.
 		 **/
@@ -555,6 +571,19 @@ namespace lsn {
 		 *	thread (dialogs included) for as long as the stream lasts.
 		 **/
 		void									FlushPendingPaints();
+
+		/**
+		 * Asks for the current frame to be drawn:  posts a draw request for GPU filters or invalidates the window for software filters.
+		 *	Can be called from any thread.
+		 **/
+		void									RequestDraw();
+
+		/**
+		 * Called by the emulator (on the emulation thread) while it waits for a frame to be rendered for a recording.
+		 *
+		 * \param _pvParm A pointer to this object.
+		 **/
+		static void								ExportRedraw( void * _pvParm );
 
 		/**
 		 * Opens an HID device by its ID string.

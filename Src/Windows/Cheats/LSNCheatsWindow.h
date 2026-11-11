@@ -122,6 +122,7 @@ namespace lsn {
 		CBitmap												m_bBitmaps16[LSN_I_TOTAL];					/**< Images for the toolbar. */
 		CEdit *												m_peFilterEdit = nullptr;					/**< The Filter toolbar edit. */
 		CEdit *												m_peSearchEdit = nullptr;					/**< The Search toolbar edit. */
+		std::wstring										m_wsSearch;									/**< The lower-case text of the Search toolbar edit (shown cheats must contain it). */
 		std::map<LPARAM, std::wstring>						m_mGameNameAssociation;						/**< Associates an LPARAM ID with a name of a game. */
 
 

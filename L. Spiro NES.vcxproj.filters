@@ -307,8 +307,14 @@
     <Filter Include="Source Files\Cheats">
       <UniqueIdentifier>{08fc4212-5a38-45cd-8885-1980d693f789}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Windows\About">
+      <UniqueIdentifier>{469da650-09d5-46bb-bdfa-40149f72d2fd}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Header Files\Windows\Cheats">
       <UniqueIdentifier>{c255b1fe-5433-4487-bfcd-ff3c00a91a28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows\About">
+      <UniqueIdentifier>{3b7b9786-0b3a-49c4-9a2b-fed971795b3e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Windows\Cheats">
       <UniqueIdentifier>{d336491b-7cdd-4eaf-8504-63b7d65ab54f}</UniqueIdentifier>
@@ -1434,6 +1440,12 @@
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h">
       <Filter>Header Files\Windows\Cheats</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\About\LSNAboutWindowLayout.h">
+      <Filter>Header Files\Windows\About</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\About\LSNAboutWindow.h">
+      <Filter>Header Files\Windows\About</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Utilities\LSNHotkeyManager.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
@@ -2047,6 +2059,12 @@
     </ClCompile>
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp">
       <Filter>Source Files\Windows\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\About\LSNAboutWindowLayout.cpp">
+      <Filter>Source Files\Windows\About</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\About\LSNAboutWindow.cpp">
+      <Filter>Source Files\Windows\About</Filter>
     </ClCompile>
     <ClCompile Include="Src\Utilities\LSNHotkeyManager.cpp">
       <Filter>Source Files\Utilities</Filter>

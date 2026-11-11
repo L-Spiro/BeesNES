@@ -73,7 +73,7 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_OPTIONS,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__OPTIONS ) },
 		{ FALSE,		LSN_MWMI_TOOLS,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__TOOLS ) },
 		//{ FALSE,		LSN_MWMI_WINDOW,			FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__WINDOW ) },
-		//{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
+		{ FALSE,		LSN_MWMI_HELP,				FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN__HELP ) },
 	};
 
 	/** File menu. */
@@ -284,6 +284,12 @@ namespace lsn {
 		{ FALSE,		LSN_MWMI_REGION_PALN,								TRUE,		FALSE,		TRUE,		LSN_LSTR( LSN_REGION_PALN ) },
 	};
 
+	/** Help menu. */
+	LSW_MENU_ITEM CMainWindowLayout::m_miHelpMenu[] = {
+		//bIsSeperator	dwId						bCheckable	bChecked	bEnabled	lpwcText
+		{ FALSE,		LSN_MWMI_HELP_ABOUT,		FALSE,		FALSE,		TRUE,		LSN_LSTR( LSN_STR__ABOUT ) },
+	};
+
 	/** Menus. */
 	LSW_MENU_LAYOUT CMainWindowLayout::m_miMenus[] = {
 		{
@@ -320,6 +326,13 @@ namespace lsn {
 			LSN_MWMI_TOOLS,
 			std::size( m_miToolsMenu ),
 			m_miToolsMenu
+		},
+		{
+			LSN_MWMI_MENU_HELP,
+			LSN_MWMI_MENU_BAR,
+			LSN_MWMI_HELP,
+			std::size( m_miHelpMenu ),
+			m_miHelpMenu
 		},
 		/*{
 			LSN_MWMI_MENU_WINDOW,

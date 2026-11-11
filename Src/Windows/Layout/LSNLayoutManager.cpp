@@ -9,6 +9,7 @@
  */
 
 #include "LSNLayoutManager.h"
+#include "../About/LSNAboutWindow.h"
 #include "../Audio/LSNAudioOptionsGeneralPage.h"
 #include "../Audio/LSNAudioOptionsRecordingPage.h"
 #include "../Audio/LSNAudioOptionsWindow.h"
@@ -44,6 +45,9 @@ namespace lsn {
 			}
 			case LSN_LT_SELECT_ROM_DIALOG : {
 				return new CSelectRomDialog( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_ABOUT_DIALOG : {
+				return new CAboutWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
 			}
 			case LSN_LT_INPUT_DIALOG : {
 				return new CInputWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );

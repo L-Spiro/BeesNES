@@ -299,6 +299,13 @@ namespace lsn {
 		virtual void									SetAudioOptions( const LSN_AUDIO_OPTIONS &/*_aoOptions*/ ) {}
 
 		/**
+		 * Sets whether the application is in the background (the speakers then get the background volume).
+		 * 
+		 * \param _bInBg True if the application is in the background.
+		 **/
+		virtual void									SetInBackground( bool /*_bInBg*/ ) {}
+
+		/**
 		 * Gets the $4010 register value.
 		 * 
 		 * \return Returns the $4010 register value.
