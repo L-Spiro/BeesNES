@@ -93,7 +93,6 @@ namespace lsn {
 
 			// Shared by the composite filters (always in this order).
 			LSN_VF_HUE,																							/**< The hue (degrees). */
-			LSN_VF_HUE_OFFSET,																					/**< The hue offset (degrees). */
 			LSN_VF_BRIGHTNESS,																					/**< The brightness. */
 			LSN_VF_CONTRAST,																					/**< The contrast. */
 			LSN_VF_SATURATION,																					/**< The saturation. */
@@ -283,8 +282,8 @@ namespace lsn {
 		static bool											IsEditable( LSN_VIDEO_FIELD _vfField, const LSN_FIELD_TARGET &_ftTarget );
 
 		/**
-		 * Applies a TV preset:  sets the color space, the hue offset, the saturation (relative to the default saturation of the filter), and
-		 *	(L. Spiro filters) the decoder chip.
+		 * Applies a TV preset:  sets the color space, the saturation (relative to the default saturation of the filter), and (L. Spiro
+		 *	filters) the decoder chip.
 		 *
 		 * \param _cspPreset The color space that models the television.
 		 * \param _ftTarget The settings being edited.

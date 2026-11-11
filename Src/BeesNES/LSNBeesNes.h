@@ -59,13 +59,16 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			5
+#define LSN_BEESNES_SETTINGS_VERSION			6
 /** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
 #define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
 /** The first settings version in which the parameters of the filter functions are the values used directly (Lanczos lobes, Kaiser beta, etc.). */
 #define LSN_BEESNES_SETTINGS_VERSION_FLOAT_PARMS	4
 /** The first settings version that saves the decoder chip (demodulator) of the L. Spiro filters. */
 #define LSN_BEESNES_SETTINGS_VERSION_DEMODULATOR	5
+/** The first settings version in which the brightness of the L. Spiro filters is a black-level offset and their contrast is a gain from black (as on a
+ *	television), color spaces are saved by ID, and the GPU filters have no hue offset. */
+#define LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS	6
 
 namespace lsn {
 
@@ -1396,11 +1399,12 @@ namespace lsn {
 		/**
 		 * Loads the settings shared by all GPU filters.
 		 *
+		 * \param _ui32Version The file version.
 		 * \param _sFile The in-memory stream of the settings file.
 		 * \param _gfoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
 		 * \return Returns true if the settings data was loaded.
 		 */
-		static bool								LoadGpuFilterSettings( CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions );
+		static bool								LoadGpuFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions );
 
 		/**
 		 * Saves the settings shared by all GPU filters.

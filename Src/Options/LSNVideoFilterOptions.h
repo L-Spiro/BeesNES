@@ -44,6 +44,7 @@ namespace lsn {
 		static constexpr float								fMinCrt1Brightness = -0.3f;									/**< The lowest brightness of the CRT1 curve (it breaks at -0.35). */
 		static constexpr float								fMaxCrt1Brightness = 1.0f;									/**< The highest brightness of the CRT1 curve. */
 		static constexpr float								fMaxBleed = 0.99f;											/**< The highest L. Spiro bleed (it must stay below 1). */
+		static constexpr float								fMaxNoiseAmount = 20.0f;									/**< The highest L. Spiro noise (standard deviation, in units of the black-to-white range; far past the point of pure snow). */
 
 
 		// == Functions.
@@ -67,7 +68,6 @@ namespace lsn {
 	 */
 	struct LSN_GPU_FILTER_OPTIONS {
 		CColorSpace::LSN_COLOR_SPACE						cspColorSpace = CColorSpace::LSN_CSP_SRGB;					/**< The color space of the emulated CRT. */
-		float												fHueOffset = 0.0f;											/**< A hue offset added to the filter's own hue, in radians (normally filled from a TV preset; composite-decoding filters only). */
 		CNesPalette::LSN_GAMMA								gGamma = CNesPalette::LSN_G_AUTO;							/**< The gamma curve applied by the gamma pass. */
 		float												fCrt1White = 1.0f;											/**< The white level (Lw) of the LSN_G_CRT1 curve. */
 		float												fCrt1Brightness = 0.0181f * 8.0f;							/**< The brightness (black lift, B) of the LSN_G_CRT1 curve. */
@@ -198,12 +198,12 @@ namespace lsn {
 		float												fFilterChromaParms[2] = { 0.0f, 0.0f };						/**< The parameters of the chroma filter function. */
 		float												fHue = float( 8.0 * std::numbers::pi / 180.0 );				/**< The hue, in radians. */
 		float												fGamma = 1.0f / 0.45f;										/**< The CRT gamma. */
-		float												fBrightness = 1.0f - 0.070710678118654752440084436210485f;	/**< The brightness. */
+		float												fBrightness = 0.0f;											/**< The brightness (a black-level offset, as on a television). */
 		float												fSaturation = -0.40f + 1.0f;								/**< The saturation. */
-		float												fContrast = 1.0f;											/**< The contrast (a gain around the middle of the signal range). */
+		float												fContrast = 1.0f - 0.070710678118654752440084436210485f;	/**< The contrast (a gain from black applied to luma and chroma, as on a television). */
 		float												fBlackLevel = 0.312f;										/**< The black level. */
 		float												fWhiteLevel = 1.100f;										/**< The white level. */
-		float												fBleed = 0.35f;												/**< How much of each filter kernel bleeds into its neighbors. */
+		float												fBleed = 0.0f;												/**< How much of each filter kernel bleeds into its neighbors. */
 		float												fPhosphorDecayPeriod = 1.79113161563873291015625f;			/**< The time it takes the phosphors to decay to 0.001 (software only). */
 		float												fPhosphorDecayLevel = 0.25f;								/**< The initial phosphor decay level (software only). */
 		CLSpiroPalFilterBase::LSN_COMB_FILTER				cfCombFilter = CLSpiroPalFilterBase::LSN_CF_NONE;			/**< The vertical comb filter (PAL only). */
@@ -268,11 +268,10 @@ namespace lsn {
 			froRet.gfoLmpNtsc.SetConvolution( CResamplerBase::LSN_FF_ROBIDOUXSHARP, CResamplerBase::LSN_FF_ROBIDOUXSOFT, CResamplerBase::LSN_FF_LINEAR, CResamplerBase::LSN_FF_TOTAL );
 			froRet.gfoLmpPal.SetConvolution( CResamplerBase::LSN_FF_ROBIDOUX, CResamplerBase::LSN_FF_ROBIDOUXSOFT, CResamplerBase::LSN_FF_LINEAR, CResamplerBase::LSN_FF_TOTAL );
 
-			// The NTSC-J (Famicom) GPU filters convert from the color space of a Japanese television (with its hue rotation).
+			// The NTSC-J (Famicom) GPU filters convert from the color space of a Japanese television.
 			if ( _pmRegion == LSN_PM_NTSC_J ) {
 				for ( LSN_GPU_FILTER_OPTIONS * pgfoThis : { &froRet.gfoBlargg, &froRet.gfoLmpNtsc, &froRet.gfoLSpiro } ) {
 					pgfoThis->cspColorSpace = CColorSpace::LSN_CSP_TOSHIBA_CF2005;
-					pgfoThis->fHueOffset = CColorSpace::HueOffset( CColorSpace::LSN_CSP_TOSHIBA_CF2005 );
 				}
 			}
 

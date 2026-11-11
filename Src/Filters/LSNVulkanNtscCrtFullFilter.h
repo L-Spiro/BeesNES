@@ -48,13 +48,6 @@ namespace lsn {
 		virtual CDisplayClient::LSN_PPU_OUT_FORMAT			Init( size_t _stBuffers, uint16_t _ui16Width, uint16_t _ui16Height ) override;
 
 		/**
-		 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).
-		 *
-		 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
-		 */
-		virtual void										SetHueOffset( float _fHueOffset ) override;
-
-		/**
 		 * Gets the convolution sampler to use for resampling.
 		 * \param _ui32Width The target width.
 		 * \param _ui32Height The target height.
@@ -164,8 +157,6 @@ namespace lsn {
 		std::vector<uint8_t>								m_vSettings;
 		/** The CRT structure. */
 		std::vector<uint8_t>								m_vCrtNtsc;
-		/** The hue offset (a color space's hue rotation), in radians. */
-		float												m_fHueOffset = 0.0f;
 		/** The phase table. */
 		int													m_iPhaseRef[4];
 		/** The final width. NTSC is CRT_HRES pixels wide. */

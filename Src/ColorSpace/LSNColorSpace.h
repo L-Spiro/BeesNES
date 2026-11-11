@@ -32,24 +32,47 @@ namespace lsn {
 	class CColorSpace {
 	public :
 		// == Enumerations.
-		/** The color spaces.  The order is the order in which they are listed in the UI. */
+		/** The color spaces.  The order is the order in which they are listed in the UI (settings save their IDs, so they can be added anywhere). */
 		enum LSN_COLOR_SPACE : uint32_t {
+			// Standards.
 			LSN_CSP_SRGB,																						/**< sRGB (the display; no conversion). */
 			LSN_CSP_BT709,																						/**< BT.709. */
-			LSN_CSP_SMPTE_C,																					/**< SMPTE C (SMPTE 170M, SMPTE 240M, BT.601 525). */
-			LSN_CSP_NTSC_1953,																					/**< NTSC 1953. */
-			LSN_CSP_BT470_NTSC,																					/**< BT.470 NTSC. */
-			LSN_CSP_BT470_PAL,																					/**< BT.470 PAL. */
-			LSN_CSP_BT601_625,																					/**< BT.601 625. */
 			LSN_CSP_BT2020,																						/**< BT.2020. */
-			LSN_CSP_NTSC_J,																						/**< NTSC-J. */
-			LSN_CSP_TOSHIBA_CF2005,																				/**< A Toshiba CF2005 as measured by patchy68k. */
-			LSN_CSP_SONY_PVM_20M2U,																				/**< NTSC-J on a Sony PVM 20M2U. */
-			LSN_CSP_SONY_PVM_20L2MDU,																			/**< NTSC-J on a Sony PVM 20L2MDU. */
-			LSN_CSP_SONY_P22_TRINITRON,																			/**< NTSC-J on a Sony Trinitron (P22 phosphors). */
+			LSN_CSP_SMPTE_C,																					/**< SMPTE C (SMPTE 170M, SMPTE 240M, BT.601 525; US). */
+			LSN_CSP_NTSC_1953,																					/**< NTSC 1953 (US). */
+			LSN_CSP_BT470_NTSC,																					/**< BT.470 NTSC (US and Japan). */
+			LSN_CSP_NTSC_J,																						/**< NTSC-J (Japan). */
+			LSN_CSP_BT470_PAL,																					/**< BT.470 PAL. */
+			LSN_CSP_BT601_625,																					/**< BT.601 625 (PAL). */
+
+			// US televisions.
+			LSN_CSP_TOSHIBA_CF2005,																				/**< A Toshiba Blackstripe CF2005 (US, 1985) as measured by patchy68k. */
+			LSN_CSP_TOSHIBA_CF2005_GM,																			/**< A Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
+			LSN_CSP_RCA_COLORTRAK,																				/**< An RCA ColorTrak Remote E13169GM (1989, US) as measured by patchy68k. */
+			LSN_CSP_RCA_COLORTRAK_8200K,																		/**< An RCA ColorTrak Remote E13169GM (1989, US) with an 8200K (D-white) white point, as in CustomPalette.java. */
+			LSN_CSP_SONY_KV_27S22,																				/**< A Sony Trinitron KV-27S22 (US, 1997):  Trinitron phosphors, 9300K + 27 MPCD, CXA2025AS. */
+			LSN_CSP_SONY_TRINITRON_CXA1870S_US,																	/**< A Sony Trinitron television with a CXA1870S in its US mode (about 1996). */
+			LSN_CSP_SONY_PVM_CXA2060BS_US,																		/**< A Sony Trinitron PVM with a CXA2060BS in its US mode (about 1998) and a D65 white point. */
+			LSN_CSP_SONY_PVM_20M2U,																				/**< A Sony PVM-20M2U (US) as measured by Keith Raney. */
+			LSN_CSP_SONY_PVM_20L2MDU,																			/**< A Sony PVM-20L2MDU (US) as measured by Keith Raney. */
+			LSN_CSP_SONY_BVM_20F1U,																				/**< A Sony BVM-20F1U broadcast monitor (US, SMPTE C phosphors) as measured with a spectroradiometer. */
+			LSN_CSP_PANASONIC_CT_36D30B_D65,																	/**< A Panasonic CT-36D30B (US, 2000) as measured by patchy68k, with a D65 white point (as in CustomPalette.java). */
+			LSN_CSP_PANASONIC_CT_36D30B_WARM,																	/**< A Panasonic CT-36D30B (US, 2000) as measured by patchy68k, on its Warm setting (about 7100K). */
+			LSN_CSP_PANASONIC_CT_36D30B_NORMAL,																	/**< A Panasonic CT-36D30B (US, 2000) as measured by patchy68k, on its Normal setting (about 9800K). */
+
+			// Japanese televisions.
+			LSN_CSP_SONY_P22_TRINITRON,																			/**< NTSC-J on a Sony Trinitron (Japan; P22 phosphors). */
+			LSN_CSP_SONY_TRINITRON_CXA1870S_JP,																	/**< A Sony Trinitron television with a CXA1870S in its Japanese mode (about 1996). */
+			LSN_CSP_SONY_PVM_CXA2060BS_JP,																		/**< A Sony Trinitron PVM with a CXA2060BS in its Japanese mode (about 1998) and a 9300K + 8 MPCD white point. */
 			LSN_CSP_TOSHIBA_1992,																				/**< A typical Toshiba television (EBU-like P22 phosphors in a 1992 Toshiba patent) with a 9300K + 27 MPCD white point. */
 			LSN_CSP_MATSUSHITA_1979,																			/**< A typical Matsushita television (P22 phosphors in a 1979 Matsushita patent) with a 9300K + 27 MPCD white point. */
-			LSN_CSP_RCA_COLORTRAK,																				/**< An RCA ColorTrak Remote E13169GM (1989, US) as measured by patchy68k. */
+
+			// PAL televisions.
+			LSN_CSP_SONY_PVM_CXA2060BS_PAL,																		/**< A Sony Trinitron PVM with a CXA2060BS in its PAL mode (about 1998) and a D65 white point. */
+			LSN_CSP_SONY_BVM_20F1E,																				/**< A Sony BVM-20F1E broadcast monitor (PAL, EBU phosphors) as measured with a spectroradiometer. */
+			LSN_CSP_SONY_TRINITRON_PAL_6900K,																	/**< A PAL Sony Trinitron television as measured by DariusG (6900K). */
+
+			// Computer monitors.
 			LSN_CSP_SONY_GDM_17SE1,																				/**< A Sony GDM-17SE1 Trinitron monitor (1994) as measured by Bohnsack et al. */
 			LSN_CSP_APPLE_MULTIPLE_SCAN_1705,																	/**< An Apple Multiple Scan 1705 monitor (manufacturer data). */
 			LSN_CSP_NEC_MULTISYNC_C400,																			/**< An NEC MultiSync C400 monitor. */
@@ -82,6 +105,8 @@ namespace lsn {
 			LSN_DM_RCA_COLORTRAK,																			/**< The unknown chip of an RCA ColorTrak Remote E13169GM (US, 1989), derived from measurements by patchy68k. */
 			LSN_DM_PANASONIC_CT_36D30B,																		/**< The unknown chip of a Panasonic CT-36D30B (US, 2000), derived from measurements by patchy68k. */
 			LSN_DM_MATSUSHITA_1979,																			/**< The demodulator of a 1979 Matsushita patent (US4167750A). */
+			LSN_DM_TDA884X_JP,																				/**< Philips TDA8840 to TDA8847 (and TDA8854/57) NTSC matrix, Japanese (MAT = 0). */
+			LSN_DM_TDA884X_US,																				/**< Philips TDA8846/TDA8847 (and TDA8857) NTSC matrix, USA (MAT = 1). */
 			LSN_DM_TOTAL,																					/**< The number of decoder chips. */
 		};
 
@@ -137,7 +162,6 @@ namespace lsn {
 			const float *												pfChromas;								/**< The chromaticities and white point (8 values:  red, green, blue, and white x and y). */
 			const wchar_t *												pwcName;								/**< The name shown to the user. */
 			const char *												pcId;									/**< A name that never changes, for saving settings. */
-			float														fHueOffset;								/**< A hue rotation (in radians, the units of the L. Spiro filters' SetHue()) that goes with this color space when it is used as a TV preset.  Positive values rotate the demodulation axes forward (decoded colors turn clockwise on the U/V plane). */
 			float														fSaturation;							/**< A saturation factor (relative to each filter's own saturation) that goes with this color space when it is used as a TV preset. */
 			bool														bTvPreset;								/**< If true, this color space models a physical TV and is listed among the TV presets. */
 			LSN_DEMODULATOR												dmDemodulator;							/**< The decoder chip that goes with this color space when it is used as a TV preset. */
@@ -327,6 +351,15 @@ namespace lsn {
 		static LSN_COLOR_SPACE												FromId( const char * _pcId );
 
 		/**
+		 * Finds a color space by its index in the list as it was before settings saved color spaces by ID (settings versions below
+		 *	LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS).
+		 *
+		 * \param _ui32Index The old index.
+		 * \return Returns the color space or LSN_CSP_TOTAL if the index is invalid.
+		 */
+		static LSN_COLOR_SPACE												FromLegacyIndex( uint32_t _ui32Index );
+
+		/**
 		 * Gets information about a television decoder chip.
 		 *
 		 * \param _dmDemodulator The decoder chip.
@@ -426,14 +459,6 @@ namespace lsn {
 		static std::string													SignedGammaCall( const std::string &_sGammaCall );
 
 		/**
-		 * Gets the hue rotation that goes with a color space (see LSN_COLOR_SPACE_DATA::fHueOffset).
-		 *
-		 * \param _cspColorSpace The color space.
-		 * \return Returns the hue rotation, in radians, to add to the decoder's hue.
-		 */
-		static inline float													HueOffset( LSN_COLOR_SPACE _cspColorSpace ) { return Data( _cspColorSpace ).fHueOffset; }
-
-		/**
 		 * Creates a conversion matrix given a color-space's chromaticities and white point.
 		 *
 		 * \param _fRedX X coordinate of red primary.
@@ -497,7 +522,7 @@ namespace lsn {
 		static float														m_fsRgb[8];							/**< Chromaticities and white point for sRGB. */
 		static float														m_fNtscJ[8];						/**< Chromaticities and white point for NTSC-J. */
 
-		// The hue rotation is -0.39, and the saturation factor is 1.1155. The video standard is 1953 NTSC with illuminant C and 2.2 gamma, and the CRT is also assumed to be approximately 2.2 gamma.
+		// The saturation factor is 1.1155. The video standard is 1953 NTSC with illuminant C and 2.2 gamma, and the CRT is also assumed to be approximately 2.2 gamma.
 		// https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h
 		static float														m_fToshibaCF2005[8];				/**< Chromaticities and white point for a Toshiba CF2005 as measured by patchy68k: https://forums.nesdev.org/viewtopic.php?p=302438. */
 
@@ -516,6 +541,20 @@ namespace lsn {
 		static float														m_fAppleMultipleScan1705[8];		/**< Chromaticities and white point for an Apple Multiple Scan 1705 monitor. */
 		static float														m_fNecMultiSyncC400[8];				/**< Chromaticities and white point for an NEC MultiSync C400 monitor. */
 		static float														m_fKdsVs19[8];						/**< Chromaticities and white point for a KDS VS19 monitor. */
+
+		// Harvested from CustomPalette.java and measurements found online (the sources are given with each).
+		static float														m_fToshibaCF2005Gm[8];				/**< Chromaticities and white point for a Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
+		static float														m_fRcaColorTrak8200K[8];			/**< Chromaticities and white point for an RCA ColorTrak Remote E13169GM (US, 1989) with an 8200K white point. */
+		static float														m_fSonyKv27S22[8];					/**< Chromaticities and white point for a Sony Trinitron KV-27S22 (US, 1997). */
+		static float														m_fSonyTrinitron9300K27[8];			/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a 9300K + 27 MPCD white point. */
+		static float														m_fSonyTrinitronD65[8];				/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a D65 white point. */
+		static float														m_fSonyTrinitronD93[8];				/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a 9300K + 8 MPCD white point. */
+		static float														m_fSonyBvm20F1U[8];					/**< Chromaticities and white point for a Sony BVM-20F1U broadcast monitor (US, SMPTE C phosphors), measured. */
+		static float														m_fSonyBvm20F1E[8];					/**< Chromaticities and white point for a Sony BVM-20F1E broadcast monitor (PAL, EBU phosphors), measured. */
+		static float														m_fSonyTrinitronPal6900K[8];		/**< Chromaticities and white point for a PAL Sony Trinitron television as measured by DariusG. */
+		static float														m_fPanasonicCt36D30BD65[8];			/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) with a D65 white point. */
+		static float														m_fPanasonicCt36D30BWarm[8];		/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) on its Warm setting. */
+		static float														m_fPanasonicCt36D30BNormal[8];		/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) on its Normal setting. */
 
 
 	protected :

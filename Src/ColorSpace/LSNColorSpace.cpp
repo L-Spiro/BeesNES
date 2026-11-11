@@ -175,27 +175,151 @@ namespace lsn {
 		0.281f, 0.311f
 	};
 
-	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {				/**< The information about each color space, in LSN_COLOR_SPACE order. */
-		{ m_fsRgb,							LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",						0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fBt709,							LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",					0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fSmpte,							LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",					0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_f1953,							LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",				0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fBt470_NTSC,					LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",				0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fBt470_PAL,						LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",				0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fBt601_625,						LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",				0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fBt2020,						LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",					0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fNtscJ,							LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",					0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fToshibaCF2005,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",			0.0f,	1.1155f,	true,		LSN_DM_TA7644BP },
-		{ m_fNtscJ_Sony_PVM_20M2U,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",			0.0f,	1.0f,		true,		LSN_DM_CXA2060BS_US },
-		{ m_fNtscJ_Sony_PVM_20L2MDU,		LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",			0.0f,	1.0f,		true,		LSN_DM_CXA2060BS_US },
-		{ m_fNtscJ_Sony_P22_Trinitron,		LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",		0.0f,	1.0f,		true,		LSN_DM_CXA1464AS_JP },
-		{ m_fToshiba1992,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_1992 ),					"toshiba_1992",				0.0f,	1.0f,		true,		LSN_DM_TA8801AN },
-		{ m_fMatsushita1979,				LSN_LSTR( LSN_STR_CSP_MATSUSHITA_1979 ),				"matsushita_1979",			0.0f,	1.0f,		true,		LSN_DM_MATSUSHITA_1979 },
-		{ m_fRcaColorTrak,					LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",	0.0f,	1.0f,		true,		LSN_DM_RCA_COLORTRAK },
-		{ m_fSonyGdm17Se1,					LSN_LSTR( LSN_STR_CSP_SONY_GDM_17SE1 ),					"sony_gdm_17se1",			0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fAppleMultipleScan1705,			LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",	0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fNecMultiSyncC400,				LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",		0.0f,	1.0f,		false,		LSN_DM_NONE },
-		{ m_fKdsVs19,						LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",					0.0f,	1.0f,		false,		LSN_DM_NONE },
+	// The following were harvested from CustomPalette.java and from measurements found online.
+	float CColorSpace::m_fToshibaCF2005Gm[8] = {													/**< Chromaticities and white point for a Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
+		// https://forums.libretro.com/t/plainoldpantss-shader-presets/45498?page=5
+		0.638994661420802f, 0.34054912704359f,
+		0.302680061977106f, 0.611123488970143f,
+		0.143735472664549f, 0.0703919024997988f,
+		// Not measured (9300K + 27 MPCD, as the other CF2005 preset).
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fRcaColorTrak8200K[8] = {													/**< Chromaticities and white point for an RCA ColorTrak Remote E13169GM (US, 1989) with an 8200K white point. */
+		// Phosphors measured by patchy68k:  https://github.com/ChthonVII/gamutthingy/issues/1#issuecomment-2672961597
+		0.623492333f, 0.343975233f,
+		0.312266967f, 0.590305267f,
+		0.153586233f, 0.064531667f,
+		// 8200K (D-white), as paired with this television in CustomPalette.java:  https://ieeexplore.ieee.org/document/234645
+		0.294f, 0.309f
+	};
+
+	float CColorSpace::m_fSonyKv27S22[8] = {														/**< Chromaticities and white point for a Sony Trinitron KV-27S22 (US, 1997). */
+		// Trinitron phosphors (manufacturer reference data, +/- 0.03):  https://www.color.org/wpaper1.xalter
+		0.621f, 0.340f,
+		0.281f, 0.606f,
+		0.152f, 0.067f,
+		// 9300K + 27 MPCD (guessed and checked by PlainOldPants):  https://forums.libretro.com/t/correct-color-some-evidence-related-to-the-nes/48914/99
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fSonyTrinitron9300K27[8] = {												/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a 9300K + 27 MPCD white point. */
+		// Bohnsack et al., "Characteristics of the Sony Multiscan 17se Trinitron color graphic display," Spatial Vision 10(4), 1997, as paired in CustomPalette.java.
+		0.6233f, 0.3390f,
+		0.2838f, 0.5895f,
+		0.1519f, 0.0669f,
+		// 9300K + 27 MPCD:  https://ieeexplore.ieee.org/document/4319950
+		0.281f, 0.311f
+	};
+
+	float CColorSpace::m_fSonyTrinitronD65[8] = {													/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a D65 white point. */
+		// Bohnsack et al. (1997), as paired in CustomPalette.java.
+		0.6233f, 0.3390f,
+		0.2838f, 0.5895f,
+		0.1519f, 0.0669f,
+		// D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fSonyTrinitronD93[8] = {													/**< Chromaticities and white point for a Sony Trinitron (Sony Multiscan 17se phosphors) with a 9300K + 8 MPCD white point. */
+		// Bohnsack et al. (1997), as paired in CustomPalette.java.
+		0.6233f, 0.3390f,
+		0.2838f, 0.5895f,
+		0.1519f, 0.0669f,
+		// 9300K + 8 MPCD (Nagaoka, 1979):  https://www.jstage.jst.go.jp/article/itej1978/33/12/33_12_1013/_pdf/-char/ja
+		0.2831f, 0.2971f
+	};
+
+	float CColorSpace::m_fSonyBvm20F1U[8] = {														/**< Chromaticities and white point for a Sony BVM-20F1U broadcast monitor (US, SMPTE C phosphors), measured. */
+		// Measured with a Konica Minolta CS-2000:  https://reposit.haw-hamburg.de/bitstream/20.500.12738/19790/1/BA_Redefinition_of_current_display_colour.pdf
+		// Only the green was measured on this unit; the red and blue are those of the BVM-20F1E measured alongside it.
+		0.6381f, 0.3317f,
+		0.3087f, 0.5985f,
+		0.1502f, 0.05802f,
+		// Calibrated to D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fSonyBvm20F1E[8] = {														/**< Chromaticities and white point for a Sony BVM-20F1E broadcast monitor (PAL, EBU phosphors), measured. */
+		// Measured with a Konica Minolta CS-2000:  https://reposit.haw-hamburg.de/bitstream/20.500.12738/19790/1/BA_Redefinition_of_current_display_colour.pdf
+		0.6381f, 0.3317f,
+		0.2918f, 0.6021f,
+		0.1502f, 0.05802f,
+		// Calibrated to D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fSonyTrinitronPal6900K[8] = {												/**< Chromaticities and white point for a PAL Sony Trinitron television as measured by DariusG. */
+		// The middles of the measured ranges:  https://forums.libretro.com/t/dogways-grading-shader-slang/27148/524
+		0.635f, 0.325f,
+		0.290f, 0.585f,
+		0.1525f, 0.0575f,
+		// Measured 6900K (the coordinates of 6900K on the daylight locus, from gamutthingy).
+		0.306769f, 0.322990f
+	};
+
+	float CColorSpace::m_fPanasonicCt36D30BD65[8] = {												/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) with a D65 white point. */
+		// Phosphors measured by patchy68k (from CustomPalette.java):  https://github.com/ChthonVII/gamutthingy/issues/4
+		0.651212890899489f, 0.327170850978215f,
+		0.311678021451133f, 0.607717178761663f,
+		0.15033614521611f, 0.0665766255634717f,
+		// D65 (as paired in CustomPalette.java).
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fPanasonicCt36D30BWarm[8] = {												/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) on its Warm setting. */
+		// Phosphors measured by patchy68k (from CustomPalette.java):  https://github.com/ChthonVII/gamutthingy/issues/4
+		0.651212890899489f, 0.327170850978215f,
+		0.311678021451133f, 0.607717178761663f,
+		0.15033614521611f, 0.0665766255634717f,
+		// Measured Warm (about 7100K):  https://forums.libretro.com/t/plainoldpantss-shader-presets/45498?page=5
+		0.3057f, 0.3145f
+	};
+
+	float CColorSpace::m_fPanasonicCt36D30BNormal[8] = {											/**< Chromaticities and white point for a Panasonic CT-36D30B (US, 2000) on its Normal setting. */
+		// Phosphors measured by patchy68k (from CustomPalette.java):  https://github.com/ChthonVII/gamutthingy/issues/4
+		0.651212890899489f, 0.327170850978215f,
+		0.311678021451133f, 0.607717178761663f,
+		0.15033614521611f, 0.0665766255634717f,
+		// Measured Normal (about 9800K):  https://forums.libretro.com/t/plainoldpantss-shader-presets/45498?page=5
+		0.2801f, 0.2922f
+	};
+
+	const CColorSpace::LSN_COLOR_SPACE_DATA CColorSpace::m_csdData[LSN_CSP_TOTAL] = {				/**< The information about each color space, in LSN_COLOR_SPACE order (pointer, name, ID, TV-preset saturation, is a TV preset, TV-preset decoder chip). */
+		{ m_fsRgb,								LSN_LSTR( LSN_STR_CSP_SRGB ),							"srgb",								1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt709,								LSN_LSTR( LSN_STR_CSP_BT709 ),							"bt709",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt2020,							LSN_LSTR( LSN_STR_CSP_BT2020 ),							"bt2020",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fSmpte,								LSN_LSTR( LSN_STR_CSP_SMPTE_C ),						"smpte_c",							1.0f,		false,		LSN_DM_NONE },
+		{ m_f1953,								LSN_LSTR( LSN_STR_CSP_NTSC_1953 ),						"ntsc_1953",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt470_NTSC,						LSN_LSTR( LSN_STR_CSP_BT470_NTSC ),						"bt470_ntsc",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fNtscJ,								LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt470_PAL,							LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fBt601_625,							LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fToshibaCF2005,						LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",					1.1155f,	true,		LSN_DM_TA7644BP },
+		{ m_fToshibaCF2005Gm,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005_GM ),				"toshiba_cf2005_gm",				1.0f,		true,		LSN_DM_TA7644BP_MEASURED },
+		{ m_fRcaColorTrak,						LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",			1.0f,		true,		LSN_DM_RCA_COLORTRAK },
+		{ m_fRcaColorTrak8200K,					LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK_8200K ),			"rca_colortrak_e13169gm_8200k",		1.2f,		true,		LSN_DM_RCA_COLORTRAK },
+		{ m_fSonyKv27S22,						LSN_LSTR( LSN_STR_CSP_SONY_KV_27S22 ),					"sony_kv_27s22",					1.0f,		true,		LSN_DM_CXA2025AS_US },
+		{ m_fSonyTrinitron9300K27,				LSN_LSTR( LSN_STR_CSP_SONY_TRINITRON_CXA1870S_US ),		"sony_trinitron_cxa1870s_us",		1.2f,		true,		LSN_DM_CXA1870S_US },
+		{ m_fSonyTrinitronD65,					LSN_LSTR( LSN_STR_CSP_SONY_PVM_CXA2060BS_US ),			"sony_pvm_cxa2060bs_us",			1.0f,		true,		LSN_DM_CXA2060BS_US },
+		{ m_fNtscJ_Sony_PVM_20M2U,				LSN_LSTR( LSN_STR_CSP_SONY_PVM_20M2U ),					"sony_pvm_20m2u",					1.0f,		true,		LSN_DM_CXA2060BS_US },
+		{ m_fNtscJ_Sony_PVM_20L2MDU,			LSN_LSTR( LSN_STR_CSP_SONY_PVM_20L2MDU ),				"sony_pvm_20l2mdu",					1.0f,		true,		LSN_DM_CXA2060BS_US },
+		{ m_fSonyBvm20F1U,						LSN_LSTR( LSN_STR_CSP_SONY_BVM_20F1U ),					"sony_bvm_20f1u",					1.0f,		true,		LSN_DM_NONE },
+		{ m_fPanasonicCt36D30BD65,				LSN_LSTR( LSN_STR_CSP_PANASONIC_CT_36D30B_D65 ),		"panasonic_ct_36d30b_d65",			1.0f,		true,		LSN_DM_PANASONIC_CT_36D30B },
+		{ m_fPanasonicCt36D30BWarm,				LSN_LSTR( LSN_STR_CSP_PANASONIC_CT_36D30B_WARM ),		"panasonic_ct_36d30b_warm",			1.0f,		true,		LSN_DM_PANASONIC_CT_36D30B },
+		{ m_fPanasonicCt36D30BNormal,			LSN_LSTR( LSN_STR_CSP_PANASONIC_CT_36D30B_NORMAL ),		"panasonic_ct_36d30b_normal",		1.0f,		true,		LSN_DM_PANASONIC_CT_36D30B },
+		{ m_fNtscJ_Sony_P22_Trinitron,			LSN_LSTR( LSN_STR_CSP_SONY_P22_TRINITRON ),				"sony_trinitron_p22",				1.0f,		true,		LSN_DM_CXA1464AS_JP },
+		{ m_fSonyTrinitron9300K27,				LSN_LSTR( LSN_STR_CSP_SONY_TRINITRON_CXA1870S_JP ),		"sony_trinitron_cxa1870s_jp",		1.2f,		true,		LSN_DM_CXA1870S_JP },
+		{ m_fSonyTrinitronD93,					LSN_LSTR( LSN_STR_CSP_SONY_PVM_CXA2060BS_JP ),			"sony_pvm_cxa2060bs_jp",			1.0f,		true,		LSN_DM_CXA2060BS_JP },
+		{ m_fToshiba1992,						LSN_LSTR( LSN_STR_CSP_TOSHIBA_1992 ),					"toshiba_1992",						1.0f,		true,		LSN_DM_TA8801AN },
+		{ m_fMatsushita1979,					LSN_LSTR( LSN_STR_CSP_MATSUSHITA_1979 ),				"matsushita_1979",					1.0f,		true,		LSN_DM_MATSUSHITA_1979 },
+		{ m_fSonyTrinitronD65,					LSN_LSTR( LSN_STR_CSP_SONY_PVM_CXA2060BS_PAL ),			"sony_pvm_cxa2060bs_pal",			1.0f,		true,		LSN_DM_CXA2060BS_PAL },
+		{ m_fSonyBvm20F1E,						LSN_LSTR( LSN_STR_CSP_SONY_BVM_20F1E ),					"sony_bvm_20f1e",					1.0f,		true,		LSN_DM_NONE },
+		{ m_fSonyTrinitronPal6900K,				LSN_LSTR( LSN_STR_CSP_SONY_TRINITRON_PAL_6900K ),		"sony_trinitron_pal_6900k",			1.0f,		true,		LSN_DM_NONE },
+		{ m_fSonyGdm17Se1,						LSN_LSTR( LSN_STR_CSP_SONY_GDM_17SE1 ),					"sony_gdm_17se1",					1.0f,		false,		LSN_DM_NONE },
+		{ m_fAppleMultipleScan1705,				LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",			1.0f,		false,		LSN_DM_NONE },
+		{ m_fNecMultiSyncC400,					LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",				1.0f,		false,		LSN_DM_NONE },
+		{ m_fKdsVs19,							LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",							1.0f,		false,		LSN_DM_NONE },
 	};
 
 	/** The information about each decoder chip, in LSN_DEMODULATOR order.  From gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h):
@@ -224,6 +348,8 @@ namespace lsn {
 		{ LSN_LSTR( LSN_STR_DM_RCA_COLORTRAK ),			"rca_colortrak_e13169gm",	{ 94.5488524399f, 255.376054365f, 0.0f },	{ 0.806809988011f, 0.295471057738f, 1.0f } },		// Unknown chip, 1989, measured by patchy68k.
 		{ LSN_LSTR( LSN_STR_DM_PANASONIC_CT_36D30B ),	"panasonic_ct_36d30b",		{ 101.580982936f, 232.937328893f, 0.0f },	{ 0.91062624791989f, 0.388131199173125f, 1.0f } },	// Unknown chip, 2000, measured by patchy68k.
 		{ LSN_LSTR( LSN_STR_DM_MATSUSHITA_1979 ),		"matsushita_1979",			{ 100.0f, 237.0f, 0.0f },				{ float( 2.5 / 2.65 ), float( 0.75 / 2.65 ), 1.0f } },	// 1979 Matsushita patent (US4167750A).
+		{ LSN_LSTR( LSN_STR_DM_TDA884X_JP ),			"tda884x_jp",				{ 95.0f, 240.0f, 0.0f },				{ float( 1.59 / 2.03 ), float( 0.61 / 2.03 ), 1.0f } },	// TDA8840/41/42/43/44/46/47 datasheet (MAT = 0).
+		{ LSN_LSTR( LSN_STR_DM_TDA884X_US ),			"tda884x_us",				{ 99.0f, 223.0f, -1.0f },				{ float( 1.53 / 2.20 ), float( 0.70 / 2.20 ), 1.0f } },	// TDA8846/47/57 datasheet (MAT = 1).
 	};
 
 	/**
@@ -363,6 +489,41 @@ namespace lsn {
 			if ( std::strcmp( m_csdData[I].pcId, _pcId ) == 0 ) { return LSN_COLOR_SPACE( I ); }
 		}
 		return LSN_CSP_TOTAL;
+	}
+
+	/**
+	 * Finds a color space by its index in the list as it was before settings saved color spaces by ID (settings versions below
+	 *	LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS).
+	 *
+	 * \param _ui32Index The old index.
+	 * \return Returns the color space or LSN_CSP_TOTAL if the index is invalid.
+	 */
+	CColorSpace::LSN_COLOR_SPACE CColorSpace::FromLegacyIndex( uint32_t _ui32Index ) {
+		// The IDs of the color spaces in their old order.
+		static const char * const s_pcIds[] = {
+			"srgb",
+			"bt709",
+			"smpte_c",
+			"ntsc_1953",
+			"bt470_ntsc",
+			"bt470_pal",
+			"bt601_625",
+			"bt2020",
+			"ntsc_j",
+			"toshiba_cf2005",
+			"sony_pvm_20m2u",
+			"sony_pvm_20l2mdu",
+			"sony_trinitron_p22",
+			"toshiba_1992",
+			"matsushita_1979",
+			"rca_colortrak_e13169gm",
+			"sony_gdm_17se1",
+			"apple_multiple_scan_1705",
+			"nec_multisync_c400",
+			"kds_vs19",
+		};
+		if ( _ui32Index >= std::size( s_pcIds ) ) { return LSN_CSP_TOTAL; }
+		return FromId( s_pcIds[_ui32Index] );
 	}
 
 	/**

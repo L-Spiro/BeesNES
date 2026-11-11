@@ -50,21 +50,6 @@ namespace lsn {
 
 	// == Functions.
 	/**
-	 * Sets a hue offset that is added to the filter's own hue (a color space's hue rotation; see CColorSpace::HueOffset()).  The
-	 *	tables are only regenerated if the offset changes.
-	 *
-	 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
-	 */
-	void CVulkanNtscBlarggFilter::SetHueOffset( float _fHueOffset ) {
-		if ( m_fHueOffset == _fHueOffset ) { return; }
-		m_fHueOffset = _fHueOffset;
-		// Blargg's hue is in units of 180 degrees (-1 = -180 degrees, 1 = 180 degrees).
-		nes_ntsc_setup_t nsTmp = m_nsSetup;
-		nsTmp.hue += double( _fHueOffset ) / std::numbers::pi;
-		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
-	}
-
-	/**
 	 * Sets all of the settings of the filter (hue, saturation, contrast, brightness, sharpness, gamma, resolution, artifacts, fringing, bleed,
 	 *	and field merging).  The pointer members (decoder matrix and palettes) are ignored.  The tables are regenerated.
 	 *
@@ -76,9 +61,7 @@ namespace lsn {
 		m_nsSetup.palette_out = nullptr;
 		m_nsSetup.palette = nullptr;
 		m_nsSetup.base_palette = nullptr;
-		nes_ntsc_setup_t nsTmp = m_nsSetup;
-		nsTmp.hue += double( m_fHueOffset ) / std::numbers::pi;
-		::nes_ntsc_init( &m_nnBlarggNtsc, &nsTmp );
+		::nes_ntsc_init( &m_nnBlarggNtsc, &m_nsSetup );
 	}
 
 	/**

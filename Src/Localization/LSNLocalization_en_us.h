@@ -774,26 +774,40 @@
 
 #define LSN_STR_CSP_SRGB													sRGB
 #define LSN_STR_CSP_BT709													BT.709
-#define LSN_STR_CSP_SMPTE_C													SMPTE C (SMPTE 170M/BT.601 525)
-#define LSN_STR_CSP_NTSC_1953												NTSC 1953
-#define LSN_STR_CSP_BT470_NTSC												BT.470 System M (NTSC)
-#define LSN_STR_CSP_BT470_PAL												BT.470 System B/G (PAL)
-#define LSN_STR_CSP_BT601_625												BT.601 625
 #define LSN_STR_CSP_BT2020													BT.2020
-#define LSN_STR_CSP_NTSC_J													NTSC-J
-#define LSN_STR_CSP_TOSHIBA_CF2005											Toshiba CF2005
-#define LSN_STR_CSP_SONY_PVM_20M2U											Sony PVM-20M2U
-#define LSN_STR_CSP_SONY_PVM_20L2MDU										Sony PVM-20L2MDU
-#define LSN_STR_CSP_SONY_P22_TRINITRON										Sony Trinitron (P22)
-#define LSN_STR_CSP_TOSHIBA_1992											Toshiba TV (1992 Patent)
-#define LSN_STR_CSP_MATSUSHITA_1979											Matsushita TV (1979 Patent)
-#define LSN_STR_CSP_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM
+#define LSN_STR_CSP_SMPTE_C													SMPTE C (US, SMPTE 170M/BT.601 525)
+#define LSN_STR_CSP_NTSC_1953												NTSC 1953 (US)
+#define LSN_STR_CSP_BT470_NTSC												BT.470 System M (NTSC, US/Japan)
+#define LSN_STR_CSP_NTSC_J													NTSC-J (Japan)
+#define LSN_STR_CSP_BT470_PAL												BT.470 System B/G (PAL)
+#define LSN_STR_CSP_BT601_625												BT.601 625 (PAL)
+#define LSN_STR_CSP_TOSHIBA_CF2005											Toshiba Blackstripe CF2005 (US, 1985)
+#define LSN_STR_CSP_TOSHIBA_CF2005_GM										Toshiba Blackstripe CF2005 (US, 1985, Geometric Mean)
+#define LSN_STR_CSP_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM (US, 1989)
+#define LSN_STR_CSP_RCA_COLORTRAK_8200K										RCA ColorTrak Remote E13169GM (US, 1989, 8200K)
+#define LSN_STR_CSP_SONY_KV_27S22											Sony Trinitron KV-27S22 (US, 1997)
+#define LSN_STR_CSP_SONY_TRINITRON_CXA1870S_US								Sony Trinitron (US, CXA1870S, 1996)
+#define LSN_STR_CSP_SONY_PVM_CXA2060BS_US									Sony Trinitron PVM (US, CXA2060BS, D65)
+#define LSN_STR_CSP_SONY_PVM_20M2U											Sony PVM-20M2U (US)
+#define LSN_STR_CSP_SONY_PVM_20L2MDU										Sony PVM-20L2MDU (US)
+#define LSN_STR_CSP_SONY_BVM_20F1U											Sony BVM-20F1U (US, SMPTE C, Measured)
+#define LSN_STR_CSP_PANASONIC_CT_36D30B_D65									Panasonic CT-36D30B (US, 2000, D65)
+#define LSN_STR_CSP_PANASONIC_CT_36D30B_WARM								Panasonic CT-36D30B (US, 2000, Warm)
+#define LSN_STR_CSP_PANASONIC_CT_36D30B_NORMAL								Panasonic CT-36D30B (US, 2000, Normal)
+#define LSN_STR_CSP_SONY_P22_TRINITRON										Sony Trinitron (Japan, P22)
+#define LSN_STR_CSP_SONY_TRINITRON_CXA1870S_JP								Sony Trinitron (Japan, CXA1870S, 1996)
+#define LSN_STR_CSP_SONY_PVM_CXA2060BS_JP									Sony Trinitron PVM (Japan, CXA2060BS, 9300K)
+#define LSN_STR_CSP_TOSHIBA_1992											Toshiba TV (US/Japan, 1992 Patent)
+#define LSN_STR_CSP_MATSUSHITA_1979											Matsushita TV (Japan, 1979 Patent)
+#define LSN_STR_CSP_SONY_PVM_CXA2060BS_PAL									Sony Trinitron PVM (PAL, CXA2060BS, D65)
+#define LSN_STR_CSP_SONY_BVM_20F1E											Sony BVM-20F1E (PAL, EBU, Measured)
+#define LSN_STR_CSP_SONY_TRINITRON_PAL_6900K								Sony Trinitron (PAL, 6900K, Measured)
 #define LSN_STR_CSP_SONY_GDM_17SE1											Sony GDM-17SE1 Trinitron Monitor
 #define LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705								Apple Multiple Scan 1705 Monitor
 #define LSN_STR_CSP_NEC_MULTISYNC_C400										NEC MultiSync C400 Monitor
 #define LSN_STR_CSP_KDS_VS19												KDS VS19 Monitor
 
-#define LSN_STR_DM_NONE														None (Standard)
+#define LSN_STR_DM_NONE														None (Standard Axes; PAL and SMPTE C)
 #define LSN_STR_DM_CXA1464AS_JP												Sony CXA1464AS (Japan, 1993)
 #define LSN_STR_DM_CXA1465AS_US												Sony CXA1465AS (US, 1993)
 #define LSN_STR_DM_CXA1870S_JP												Sony CXA1870S (Japan, 1996)
@@ -804,17 +818,19 @@
 #define LSN_STR_DM_CXA2060BS_US												Sony CXA2060BS (US, PVM, 1998)
 #define LSN_STR_DM_CXA2060BS_PAL											Sony CXA2060BS (PAL, PVM, 1998)
 #define LSN_STR_DM_CXA1213AS												Sony CXA1213AS (1992)
-#define LSN_STR_DM_TA7644BP													Toshiba TA7644BP (CF2005, 1985)
-#define LSN_STR_DM_TA7644BP_MEASURED										Toshiba TA7644BP (CF2005, Measured)
-#define LSN_STR_DM_TA7698AP													Toshiba TA7698AP (1988)
-#define LSN_STR_DM_TA8801AN													Toshiba TA8801AN (CF-3272B, 1993)
-#define LSN_STR_DM_TA8867AN													Toshiba TA8867AN (CE-20D10, 1994)
+#define LSN_STR_DM_TA7644BP													Toshiba TA7644BP (US, CF2005, 1985)
+#define LSN_STR_DM_TA7644BP_MEASURED										Toshiba TA7644BP (US, CF2005, Measured)
+#define LSN_STR_DM_TA7698AP													Toshiba TA7698AP (US, JVC TM-9U, 1988)
+#define LSN_STR_DM_TA8801AN													Toshiba TA8801AN (US, CF-3272B, 1993)
+#define LSN_STR_DM_TA8867AN													Toshiba TA8867AN (US, CE-20D10, 1994)
 #define LSN_STR_DM_TA8867BN													Toshiba TA8867BN
-#define LSN_STR_DM_TDA8362													Philips TDA8362 (Hitachi CMT2187)
-#define LSN_STR_DM_LA7655N													Sanyo LA7655N (1989)
-#define LSN_STR_DM_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM (Measured)
-#define LSN_STR_DM_PANASONIC_CT_36D30B										Panasonic CT-36D30B (Measured)
-#define LSN_STR_DM_MATSUSHITA_1979											Matsushita (1979 Patent)
+#define LSN_STR_DM_TDA8362													Philips TDA8362 (US/Japan, Hitachi CMT2187)
+#define LSN_STR_DM_LA7655N													Sanyo LA7655N (US/Japan, 1989)
+#define LSN_STR_DM_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM (US, Measured)
+#define LSN_STR_DM_PANASONIC_CT_36D30B										Panasonic CT-36D30B (US, Measured)
+#define LSN_STR_DM_MATSUSHITA_1979											Matsushita (Japan, 1979 Patent)
+#define LSN_STR_DM_TDA884X_JP												Philips TDA884x (Japan, NTSC Matrix)
+#define LSN_STR_DM_TDA884X_US												Philips TDA884x (US, NTSC Matrix)
 
 #define LSN_STR_PRORES_PROXY											Proxy
 #define LSN_STR_PRORES_LT												LT
@@ -966,7 +982,6 @@
 #define LSN_STR_VO_LOAD																Load:
 #define LSN_STR_VO_SHOW_COLOR_INDICES												Show Color Indices
 #define LSN_STR_VO_HUE																Hue (Degrees):
-#define LSN_STR_VO_HUE_OFFSET														Hue Offset (Degrees):
 #define LSN_STR_VO_BRIGHTNESS														Brightness:
 #define LSN_STR_VO_CONTRAST															Contrast:
 #define LSN_STR_VO_SATURATION														Saturation:
@@ -1105,7 +1120,7 @@
 #define LSN_STR_VO_TT_WHITE_ADAPTATION												How the white point of the emulated CRT is mapped to the white point of your monitor.  None keeps the CRT\u2019s own white (such as the bluish white of Japanese televisions), as it looked on the original screen.  Bradford (the most common), Von Kries, XYZ Scaling, and CAT02 turn the CRT\u2019s white into your monitor\u2019s white, the way your eyes would adapt to it.
 #define LSN_STR_VO_TT_GAMUT															How colors that your monitor cannot show are brought into its range.  Preserve Hue desaturates such a color toward gray just enough to fit, keeping its hue.  Clip clamps each color channel separately, which keeps more saturation but can shift the hue.
 #define LSN_STR_VO_TT_OUTPUT_RANGE													The range of the values sent to your monitor.  PC monitors use Full (0-255).  Use Limited (16-235) only for a television or capture device that expects video levels; the wrong range makes blacks gray or crushes the shadows.  Applies only to GPU filters.
-#define LSN_STR_VO_TT_TV_PRESET														Select a physical television to model.  This fills in the color space, the hue offset, and the saturation with the values of that television.
+#define LSN_STR_VO_TT_TV_PRESET														Select a physical television to model.  This fills in the color space, the saturation, and the decoder chip with the values of that television.  The region in each name is the market the television was made for (US, Japan, or PAL).
 #define LSN_STR_VO_TT_COLOR_SPACE													Select the CRT\u2019s color space.
 #define LSN_STR_VO_TT_DEMODULATOR													The decoder chip of the emulated television.  Televisions decoded the color-difference signals on moved axes with changed gains, which corrected the colors for their phosphors and white point (and gave each brand its look).  None decodes with the standard axes.  Selecting a TV Preset selects its decoder chip.
 #define LSN_STR_VO_TT_GAMMA															Select the CRT\u2019s gamma curve.
@@ -1128,9 +1143,8 @@
 #define LSN_STR_VO_TT_PALETTE_DISPLAY												The colors of the loaded palette.  Scroll down to see the rest of a 512-entry palette.
 #define LSN_STR_VO_TT_SHOW_COLOR_INDICES											Shows the index of each color on top of it in the palette display.
 #define LSN_STR_VO_TT_HUE															Rotates every color around the color wheel, in degrees, like the Tint control of a television.
-#define LSN_STR_VO_TT_HUE_OFFSET													An extra hue rotation, in degrees, added to Hue.  TV presets fill this in with the hue rotation of the decoder of that television.
-#define LSN_STR_VO_TT_BRIGHTNESS													Raises or lowers the brightness of the whole picture.
-#define LSN_STR_VO_TT_CONTRAST														The gain of the picture around middle gray.  Higher values make the darks darker and the lights lighter.
+#define LSN_STR_VO_TT_BRIGHTNESS													The black level of the picture, as set by the brightness control of a television.  In the L. Spiro filters it is added to every channel equally (it does not change the saturation):  0 leaves the picture unchanged and 1 is the distance from black to white.
+#define LSN_STR_VO_TT_CONTRAST														The gain of the picture, as set by the contrast (picture) control of a television.  In the L. Spiro filters luma and chroma are both multiplied by it, so black stays black and the saturation of the picture stays the same.
 #define LSN_STR_VO_TT_SATURATION													The strength of the colors.  Lower values move the picture toward black and white.
 #define LSN_STR_VO_TT_WHITE_LEVEL													The signal level shown as full white.  Lower values brighten the picture but can clip the brightest shades.
 #define LSN_STR_VO_TT_BLACK_LEVEL													The signal level shown as black.  Higher values darken the shadows but can crush them to black.
@@ -1150,7 +1164,7 @@
 #define LSN_STR_VO_TT_NTSC_COMB														How the luminance and chrominance are separated using neighboring lines, as in NTSC televisions.  None uses only the luminance and chrominance filters (notch and band-pass sets), which leaves dot crawl and rainbow artifacts.  2-Line (1H) Comb subtracts the line above (early-1980s sets with glass or CCD delay lines).  3-Line (2H) Comb uses the lines above and below (late-1980s and 1990s digital sets).  Adaptive 3-Line (2D) Comb combs with whichever neighboring line matches better and does not comb where neither matches (1990s high-end sets).  Combing removes most dot crawl but can leave hanging dots and blurred color at vertical color changes.
 #define LSN_STR_VO_TT_DEEP_PRESET													Fills in the Deep Internals (the filters, their parameters, their kernel sizes, and the vertical comb filter) with a tested combination.  Shows Custom when the settings match no preset.
 #define LSN_STR_VO_TT_NOISE_TYPE													The signal noise.  None adds no noise.  Custom Amount adds Gaussian noise of the amount set below.  Physics-Based models the thermal noise of the circuitry and will read your host machine\u2019s actual CPU temperature\u2014and base the noise levels off that\u2014which requires that BeesNES be run with administrator privileges.
-#define LSN_STR_VO_TT_NOISE_AMOUNT													The standard deviation of the Custom Amount noise, relative to the full signal range.  0.0225 is a typical amount.
+#define LSN_STR_VO_TT_NOISE_AMOUNT													The standard deviation of the Custom Amount noise, relative to the full signal range.  0.0225 is a typical amount; values of a few or more bury the picture in snow (up to 20).
 #define LSN_STR_VO_TT_SW_BASE_LEVEL													The maximum phosphor decay level of the software filter (the GPU versions use the Phosphor Decay settings under Common instead).
 #define LSN_STR_VO_TT_SW_TIME														The amount of time it takes the phosphors of the software filter to decay away in seconds.
 #define LSN_STR_VO_TT_LMP_NOISE														The amount of signal noise.

@@ -15,19 +15,18 @@
 #include <memory>
 #include <numbers>
 
-#define LSN_FINAL_BRIGHT							m_fBrightnessSetting// * (1.0f - (m_fPhosphorDecayRateGreen /*m_fPhosphorDecayRateGreen * (m_fInitPhosphorDecay * 2.0f)*/))
-
 namespace lsn {
 
 	// == Members.
 	CLSpiroPalFilterBase::CLSpiroPalFilterBase() {
 		m_fHueSetting = (8.0f + 0.0f) * std::numbers::pi / 180.0f;					/**< The hue. */
 		m_fGammaSetting = 2.8f;														/**< The CRT gamma curve. */
-		m_fBrightnessSetting = 1.0f - 0.070710678118654752440084436210485f;			/**< The brightness setting. */
+		m_fBrightnessSetting = 0.0f;												/**< The brightness setting (a black-level offset). */
+		m_fContrastSetting = 1.0f - 0.070710678118654752440084436210485f;			/**< The contrast setting (a gain from black). */
 		m_fSaturationSetting = -0.40f + 1.0f;										/**< The saturation setting. */
 
 		//m_fHueSetting = float( 33.0 * std::numbers::pi / 180.0 );
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );			// Generate phase table.
+		GenPhaseTables( m_fHueSetting );			// Generate phase table.
 		SetGamma( m_fGammaSetting );				// Generate gamma table.
 		GenNormalizedSignals();						// Generate black/white normalization levels.
 		SetKernelSize( m_ui32FilterKernelSize );	// Generate filter kernel weights.
@@ -182,29 +181,18 @@ namespace lsn {
 	 **/
 	void CLSpiroPalFilterBase::SetHue( float _fHue ) {
 		m_fHueSetting = _fHue;
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );
+		GenPhaseTables( m_fHueSetting );
 	}
 
 	/**
-	 * Sets a hue offset that is added to the hue (see SetHue()).  Used for a color space's hue rotation (CColorSpace::HueOffset()) so
-	 *	that it is applied relative to the hue setting instead of replacing it.  The phase tables are only regenerated if it changes.
-	 * 
-	 * \param _fHueOffset The hue offset, in radians.
-	 **/
-	void CLSpiroPalFilterBase::SetHueOffset( float _fHueOffset ) {
-		if ( m_fHueOffset == _fHueOffset ) { return; }
-		m_fHueOffset = _fHueOffset;
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );
-	}
-
-	/**
-	 * Sets the brightness.
+	 * Sets the brightness:  the black level of the picture, as the brightness control of a television sets it.  It is added to
+	 *	luma after the contrast gain (so it raises or lowers every channel equally and does not change the saturation).  0.0 leaves
+	 *	the picture unchanged; 1.0 is the distance from black to white.
 	 * 
 	 * \param _fBrightness The brightness to set.
 	 **/
 	void CLSpiroPalFilterBase::SetBrightness( float _fBrightness ) {
 		m_fBrightnessSetting = _fBrightness;
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );
 	}
 
 	/**
@@ -214,18 +202,18 @@ namespace lsn {
 	 **/
 	void CLSpiroPalFilterBase::SetSaturation( float _fSat ) {
 		m_fSaturationSetting = _fSat;
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );
+		GenPhaseTables( m_fHueSetting );
 	}
 
 	/**
-	 * Sets the contrast:  a gain around the middle of the signal range (0.5), applied to luma and chroma alike.  1.0 leaves the
-	 *	picture unchanged.
+	 * Sets the contrast (picture):  the gain of the video amplifier, as the contrast control of a television sets it.  Luma and
+	 *	chroma are both multiplied by it, so black stays black and the saturation of the picture is unchanged.
 	 * 
 	 * \param _fContrast The contrast to set.
 	 **/
 	void CLSpiroPalFilterBase::SetContrast( float _fContrast ) {
 		m_fContrastSetting = _fContrast;
-		GenPhaseTables( m_fHueSetting + m_fHueOffset );
+		GenPhaseTables( m_fHueSetting );
 	}
 
 	/**
@@ -466,9 +454,10 @@ namespace lsn {
 		}
 
 
-		// Contrast is a gain around 0.5:  Y' = (Y * Brightness - 0.5) * Contrast + 0.5.
-		float fBrightness = LSN_FINAL_BRIGHT * m_fContrastSetting;
-		float fLumaOffset = 0.5f * (1.0f - m_fContrastSetting);
+		// As on a television:  contrast is a gain from black (applied to chroma too, in GenPhaseTables()) and brightness is a black-level
+		//	offset:  Y' = Y * Contrast + Brightness.
+		const float fContrast = m_fContrastSetting;
+		const float fBrightness = m_fBrightnessSetting;
 		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		const int16_t i16HalfLeft = int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
 		const int16_t i16HalfRight = int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
@@ -623,7 +612,7 @@ namespace lsn {
 					++K;
 				}
 			}
-			(*_pfDstY) = (*_pfDstY) * fBrightness + fLumaOffset;
+			(*_pfDstY) = (*_pfDstY) * fContrast + fBrightness;
 			++_pfDstY;
 			++_pfDstI;
 			++_pfDstQ;
@@ -790,8 +779,8 @@ namespace lsn {
 			double dSin, dCos;
 			// 0.5 = 90 degrees.
 			::sincos( std::numbers::pi * ((I - 0.5) / 6.0 + 0.5) + _fHue, &dSin, &dCos );
-			dCos *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * m_fContrastSetting * 2.0;
-			dSin *= (LSN_FINAL_BRIGHT) * m_fSaturationSetting * m_fContrastSetting * 2.0;
+			dCos *= m_fSaturationSetting * m_fContrastSetting * 2.0;
+			dSin *= m_fSaturationSetting * m_fContrastSetting * 2.0;
 
 			// Straight version.
 			m_fPhaseCosTable[I] = float( dCos );
@@ -952,4 +941,3 @@ namespace lsn {
 
 }	// namespace lsn
 
-#undef LSN_FINAL_BRIGHT

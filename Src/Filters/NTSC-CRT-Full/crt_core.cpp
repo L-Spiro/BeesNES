@@ -350,7 +350,6 @@ extern void
 crt_reset_full(struct CRT *v)
 {
     v->hue = 0;
-    v->hue_offset = 0.0;
     v->saturation = 10;
     v->brightness = 0;
     v->contrast = 180;
@@ -436,7 +435,7 @@ crt_demodulate_full(struct CRT *v, int noise)
 	}*/
 	pitch = v->outw * bpp;
     
-	crt_sincos14_full(&huesn, &huecs, (int)std::lround((((v->hue + 33) % 180) + v->hue_offset) * 8192.0 / 180.0));
+	crt_sincos14_full(&huesn, &huecs, ((v->hue + 33) % 180) * 8192 / 180);
 	huesn >>= 11; /* make 4-bit */
 	huecs >>= 11;
 

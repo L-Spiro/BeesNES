@@ -262,7 +262,7 @@ namespace lsn {
 		m_vplsfVulkanLSpiroPalN.Init( stBuffers, uint16_t( RenderTargetWidth() ), uint16_t( RenderTargetHeight() ) );
 #endif	// #ifdef LSN_VULKAN1
 
-		// The NTSC-J (Famicom) GPU filters get the color space of a Japanese television (with its hue rotation) from their default options
+		// The NTSC-J (Famicom) GPU filters get the color space of a television from their default options
 		//	(see LSN_FILTER_REGION_OPTIONS::Defaults()), which ApplyFilterOptions() applied above.
 
 		UpdateCurrentSystem();
@@ -571,7 +571,6 @@ namespace lsn {
 	void CBeesNes::ApplyGpuFilterOptions( CGpuFilterBase &_gfbFilter, const LSN_GPU_FILTER_OPTIONS &_gfoOptions, const CColorSpace::LSN_DISPLAY_SETTINGS &_dsDisplay ) {
 		_gfbFilter.SetDisplaySettings( _dsDisplay );
 		_gfbFilter.SetColorSpace( _gfoOptions.cspColorSpace );
-		_gfbFilter.SetHueOffset( _gfoOptions.fHueOffset );
 		_gfbFilter.SetGamma( _gfoOptions.gGamma );
 		_gfbFilter.SetCrt1Parms( _gfoOptions.fCrt1White, _gfoOptions.fCrt1Brightness );
 		_gfbFilter.SetPhosphorDecayEnable( _gfoOptions.bPhosphorDecay );
@@ -3021,6 +3020,44 @@ namespace lsn {
 	}
 
 	/**
+	 * Reads a color space.  Settings versions from LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS on store its ID (see
+	 *	CColorSpace::LSN_COLOR_SPACE_DATA::pcId), so color spaces can be added anywhere in the list; older versions stored its index in
+	 *	the list as it was then (see CColorSpace::FromLegacyIndex()).
+	 *
+	 * \param _ui32Version The file version.
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _cspValue The value to update.  It is left unchanged if the stored color space is unknown.
+	 * \return Returns true if the value was read.
+	 */
+	static bool ReadColorSpaceSetting( uint32_t _ui32Version, CStream &_sFile, CColorSpace::LSN_COLOR_SPACE &_cspValue ) {
+		CColorSpace::LSN_COLOR_SPACE cspTmp = CColorSpace::LSN_CSP_TOTAL;
+		if ( _ui32Version < LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS ) {
+			uint32_t ui32Index;
+			if ( !_sFile.Read( ui32Index ) ) { return false; }
+			cspTmp = CColorSpace::FromLegacyIndex( ui32Index );
+		}
+		else {
+			std::string sId;
+			if ( !_sFile.ReadString( sId ) ) { return false; }
+			cspTmp = CColorSpace::FromId( sId.c_str() );
+		}
+		if ( cspTmp < CColorSpace::LSN_CSP_TOTAL ) { _cspValue = cspTmp; }
+		return true;
+	}
+
+	/**
+	 * Writes a color space (its ID; see ReadColorSpaceSetting()).
+	 *
+	 * \param _sFile The in-memory stream of the settings file.
+	 * \param _cspValue The color space to write.
+	 * \return Returns true if the value was written.
+	 */
+	static bool WriteColorSpaceSetting( CStream &_sFile, CColorSpace::LSN_COLOR_SPACE _cspValue ) {
+		const char * pcId = CColorSpace::Data( _cspValue ).pcId;
+		return _sFile.WriteString( std::u8string( reinterpret_cast<const char8_t *>(pcId) ) );
+	}
+
+	/**
 	 * Loads the settings of every filter for every region.
 	 *
 	 * \param _ui32Version The file version.
@@ -3078,21 +3115,21 @@ namespace lsn {
 	bool CBeesNes::LoadFilterRegionSettings( uint32_t _ui32Version, CStream &_sFile, LSN_FILTER_REGION_OPTIONS &_froOptions ) {
 		if ( !ReadBoolSetting( _sFile, _froOptions.bUseGlobal ) ) { return false; }
 
-		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoPalette ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _ui32Version, _sFile, _froOptions.gfoPalette ) ) { return false; }
 
 		if ( !LoadBlarggFilterSettings( _sFile, _froOptions.boBlarggNtsc ) ) { return false; }
-		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoBlargg ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _ui32Version, _sFile, _froOptions.gfoBlargg ) ) { return false; }
 
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscCpu ) ) { return false; }
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpNtscGpu ) ) { return false; }
-		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLmpNtsc ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _ui32Version, _sFile, _froOptions.gfoLmpNtsc ) ) { return false; }
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalCpu ) ) { return false; }
 		if ( !LoadLmp88959FilterSettings( _sFile, _froOptions.lsLmpPalGpu ) ) { return false; }
-		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLmpPal ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _ui32Version, _sFile, _froOptions.gfoLmpPal ) ) { return false; }
 
 		if ( !LoadLSpiroFilterSettings( _ui32Version, _sFile, _froOptions.lsoLSpiroCpu ) ) { return false; }
 		if ( !LoadLSpiroFilterSettings( _ui32Version, _sFile, _froOptions.lsoLSpiroGpu ) ) { return false; }
-		if ( !LoadGpuFilterSettings( _sFile, _froOptions.gfoLSpiro ) ) { return false; }
+		if ( !LoadGpuFilterSettings( _ui32Version, _sFile, _froOptions.gfoLSpiro ) ) { return false; }
 		return true;
 	}
 
@@ -3127,13 +3164,18 @@ namespace lsn {
 	/**
 	 * Loads the settings shared by all GPU filters.
 	 *
+	 * \param _ui32Version The file version.
 	 * \param _sFile The in-memory stream of the settings file.
 	 * \param _gfoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadGpuFilterSettings( CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
-		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.cspColorSpace, 0, int64_t( CColorSpace::LSN_CSP_TOTAL ) - 1 ) ) { return false; }
-		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fHueOffset ) ) { return false; }
+	bool CBeesNes::LoadGpuFilterSettings( uint32_t _ui32Version, CStream &_sFile, LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
+		if ( !ReadColorSpaceSetting( _ui32Version, _sFile, _gfoOptions.cspColorSpace ) ) { return false; }
+		if ( _ui32Version < LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS ) {
+			// The hue offset (removed).
+			float fHueOffset;
+			if ( !_sFile.Read( fHueOffset ) ) { return false; }
+		}
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _gfoOptions.gGamma, 0, int64_t( CNesPalette::LSN_G_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fCrt1White ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _gfoOptions.fCrt1Brightness ) ) { return false; }
@@ -3167,8 +3209,7 @@ namespace lsn {
 	 * \return Returns true if the settings data was saved.
 	 */
 	bool CBeesNes::SaveGpuFilterSettings( CStream &_sFile, const LSN_GPU_FILTER_OPTIONS &_gfoOptions ) {
-		if ( !_sFile.Write( uint32_t( _gfoOptions.cspColorSpace ) ) ) { return false; }
-		if ( !_sFile.Write( _gfoOptions.fHueOffset ) ) { return false; }
+		if ( !WriteColorSpaceSetting( _sFile, _gfoOptions.cspColorSpace ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( _gfoOptions.gGamma ) ) ) { return false; }
 		if ( !_sFile.Write( _gfoOptions.fCrt1White ) ) { return false; }
 		if ( !_sFile.Write( _gfoOptions.fCrt1Brightness ) ) { return false; }
@@ -3288,6 +3329,13 @@ namespace lsn {
 			&_lsoOptions.fWhiteLevel, &_lsoOptions.fBleed, &_lsoOptions.fPhosphorDecayPeriod, &_lsoOptions.fPhosphorDecayLevel } ) {
 			if ( !ReadFiniteSetting( _sFile, (*pfThis) ) ) { return false; }
 		}
+		if ( _ui32Version < LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS ) {
+			// The brightness was a gain and the contrast a gain around 0.5:  Y' = Y * Brightness * Contrast + 0.5 * (1 - Contrast), with the
+			//	chroma multiplied by Brightness * Contrast.  Now the contrast is the whole gain and the brightness the offset.
+			const float fOldBrightness = _lsoOptions.fBrightness, fOldContrast = _lsoOptions.fContrast;
+			_lsoOptions.fContrast = fOldBrightness * fOldContrast;
+			_lsoOptions.fBrightness = 0.5f * (1.0f - fOldContrast);
+		}
 		LSN_VIDEO_LIMITS::ClampPhosphor( _lsoOptions.fPhosphorDecayLevel, _lsoOptions.fPhosphorDecayPeriod );
 		_lsoOptions.fBleed = std::clamp( _lsoOptions.fBleed, 0.0f, LSN_VIDEO_LIMITS::fMaxBleed );
 		if ( !ReadRangedSetting<uint8_t>( _sFile, _lsoOptions.cfCombFilter, 0, int64_t( CLSpiroPalFilterBase::LSN_CF_TOTAL ) - 1 ) ) { return false; }
@@ -3297,7 +3345,7 @@ namespace lsn {
 		if ( !ReadRangedSetting<uint16_t>( _sFile, _lsoOptions.ui16PixelToSignal, 1, 64 ) ) { return false; }
 		if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.ntNoiseType, 0, int64_t( LSN_NT_TOTAL ) - 1 ) ) { return false; }
 		if ( !ReadFiniteSetting( _sFile, _lsoOptions.fNoiseAmount ) ) { return false; }
-		_lsoOptions.fNoiseAmount = std::max( _lsoOptions.fNoiseAmount, 0.0f );
+		_lsoOptions.fNoiseAmount = std::clamp( _lsoOptions.fNoiseAmount, 0.0f, LSN_VIDEO_LIMITS::fMaxNoiseAmount );
 		if ( _ui32Version >= LSN_BEESNES_SETTINGS_VERSION_DEMODULATOR ) {
 			if ( !ReadRangedSetting<uint32_t>( _sFile, _lsoOptions.dmDemodulator, 0, int64_t( CColorSpace::LSN_DM_TOTAL ) - 1 ) ) { return false; }
 		}
@@ -3370,7 +3418,7 @@ namespace lsn {
 	 * \param _hdoOptions The settings into which to load the settings data.  Values that are invalid are left unchanged.
 	 * \return Returns true if the settings data was loaded.
 	 */
-	bool CBeesNes::LoadHostDisplaySettings( uint32_t /*_ui32Version*/, CStream &_sFile, LSN_HOST_DISPLAY_OPTIONS &_hdoOptions ) {
+	bool CBeesNes::LoadHostDisplaySettings( uint32_t _ui32Version, CStream &_sFile, LSN_HOST_DISPLAY_OPTIONS &_hdoOptions ) {
 		uint32_t ui32Tag, ui32SectionVersion;
 		if ( !_sFile.ReadUi32( ui32Tag ) ) { return false; }
 		if ( ui32Tag != LSN_HOST_DISPLAY_SECTION_TAG ) { return true; }
@@ -3378,7 +3426,7 @@ namespace lsn {
 		if ( ui32SectionVersion != LSN_HOST_DISPLAY_SECTION_VERSION ) { return true; }
 
 		CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _hdoOptions.dsDisplay;
-		if ( !ReadRangedSetting<uint32_t>( _sFile, dsDisplay.cspColorSpace, 0, int64_t( CColorSpace::LSN_CSP_TOTAL ) - 1 ) ) { return false; }
+		if ( !ReadColorSpaceSetting( _ui32Version, _sFile, dsDisplay.cspColorSpace ) ) { return false; }
 		CNesPalette::LSN_GAMMA gMonitor = dsDisplay.gGamma;
 		if ( !ReadRangedSetting<uint32_t>( _sFile, gMonitor, 0, int64_t( CNesPalette::LSN_G_TOTAL ) - 1 ) ) { return false; }
 		if ( CColorSpace::IsMonitorGamma( gMonitor ) ) { dsDisplay.gGamma = gMonitor; }
@@ -3399,7 +3447,7 @@ namespace lsn {
 		if ( !_sFile.WriteUi32( LSN_HOST_DISPLAY_SECTION_TAG ) ) { return false; }
 		if ( !_sFile.WriteUi32( LSN_HOST_DISPLAY_SECTION_VERSION ) ) { return false; }
 		const CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _hdoOptions.dsDisplay;
-		if ( !_sFile.Write( uint32_t( dsDisplay.cspColorSpace ) ) ) { return false; }
+		if ( !WriteColorSpaceSetting( _sFile, dsDisplay.cspColorSpace ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( dsDisplay.gGamma ) ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( dsDisplay.waWhiteAdaptation ) ) ) { return false; }
 		if ( !_sFile.Write( uint32_t( dsDisplay.gmGamutMapping ) ) ) { return false; }

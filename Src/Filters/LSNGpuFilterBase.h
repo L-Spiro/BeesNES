@@ -238,14 +238,6 @@ namespace lsn {
 		inline bool											NeedsGammaPass( CNesPalette::LSN_GAMMA _gEffGamma ) const { return _gEffGamma != CNesPalette::LSN_G_NONE || !m_cmColorSpace.IsIdentity(); }
 
 		/**
-		 * Sets a hue offset that is added to the filter's own hue (normally filled from a TV preset; see CColorSpace::HueOffset()).  Filters
-		 *	that decode a composite signal (the L. Spiro, Blargg, and NTSC CRT Full filters) override this; the rest ignore it.
-		 *
-		 * \param _fHueOffset The hue offset, in radians.  Positive values rotate the demodulation axes forward.
-		 */
-		virtual void										SetHueOffset( float /*_fHueOffset*/ ) {}
-
-		/**
 		 * Sets whether the internal scaling (the sharpness factors) is dynamic.  If dynamic, each factor is one level above the ratio of
 		 *	the output size to the native size, capped at the set sharpness factor; otherwise the set factors are always used.
 		 *

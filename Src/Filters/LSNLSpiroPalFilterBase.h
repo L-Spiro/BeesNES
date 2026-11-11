@@ -184,21 +184,6 @@ namespace lsn {
 		void												SetHue( float _fHue );
 
 		/**
-		 * Sets a hue offset that is added to the hue (see SetHue()).  Used for a color space's hue rotation (CColorSpace::HueOffset()) so
-		 *	that it is applied relative to the hue setting instead of replacing it.  The phase tables are only regenerated if it changes.
-		 * 
-		 * \param _fHueOffset The hue offset, in radians.
-		 **/
-		void												SetHueOffset( float _fHueOffset );
-
-		/**
-		 * Gets the hue offset (see SetHueOffset()).
-		 * 
-		 * \return Returns the hue offset, in radians.
-		 **/
-		inline float										HueOffset() const { return m_fHueOffset; }
-
-		/**
 		 * Sets the coefficients that convert the decoded Y'UV to R'G'B' (the decoder chip of the emulated television; see
 		 *	CColorSpace::DemodulatorMatrix()):  R' = Y' + _pfMatrix[0] * U + _pfMatrix[1] * V, G' = Y' + _pfMatrix[2] * U + _pfMatrix[3] * V,
 		 *	and B' = Y' + _pfMatrix[4] * U + _pfMatrix[5] * V.
@@ -217,7 +202,9 @@ namespace lsn {
 		inline const float *								DemodulatorMatrix() const { return m_fDemodMatrix; }
 
 		/**
-		 * Sets the brightness.
+		 * Sets the brightness:  the black level of the picture, as the brightness control of a television sets it.  It is added to
+		 *	luma after the contrast gain (so it raises or lowers every channel equally and does not change the saturation).  0.0 leaves
+		 *	the picture unchanged; 1.0 is the distance from black to white.
 		 * 
 		 * \param _fBrightness The brightness to set.
 		 **/
@@ -231,8 +218,8 @@ namespace lsn {
 		void												SetSaturation( float _fSat );
 
 		/**
-		 * Sets the contrast:  a gain around the middle of the signal range (0.5), applied to luma and chroma alike.  1.0 leaves the
-		 *	picture unchanged.
+		 * Sets the contrast (picture):  the gain of the video amplifier, as the contrast control of a television sets it.  Luma and
+		 *	chroma are both multiplied by it, so black stays black and the saturation of the picture is unchanged.
 		 * 
 		 * \param _fContrast The contrast to set.
 		 **/
@@ -541,12 +528,11 @@ namespace lsn {
 
 		// ** SETTINGS ** //
 		float												m_fHueSetting = 0.0f;								/**< The hue. */
-		float												m_fHueOffset = 0.0f;								/**< An offset added to the hue (a color space's hue rotation), in radians. */
 		float												m_fDemodMatrix[6] = { 0.0f, 1.139883025203f, -0.394642233974f, -0.580621847591f, 2.032061872219f, 0.0f };	/**< The Y'UV-to-R'G'B' coefficients (R from U and V, G from U and V, B from U and V; see SetDemodulatorMatrix()). */
 		float												m_fGammaSetting = 2.2f;								/**< The CRT gamma curve. */
-		float												m_fBrightnessSetting = 1.0f;						/**< The brightness setting. */
+		float												m_fBrightnessSetting = 0.0f;						/**< The brightness setting (a black-level offset). */
 		float												m_fSaturationSetting = 1.0f;						/**< The saturation setting. */
-		float												m_fContrastSetting = 1.0f;							/**< The contrast setting (a gain around 0.5). */
+		float												m_fContrastSetting = 1.0f;							/**< The contrast setting (a gain from black). */
 		float												m_fBlackSetting = 0.0f;								/**< Black level. */
 		float												m_fWhiteSetting = 1.100f;							/**< White level. */
 		float												m_fPhosphorDecayRateGreen = 0.940216839313507080078125f;	/**< Phosphor decay rate. PAL-N (Argentina Famiclone): 0.940785944461822509765625f. */

@@ -72,7 +72,6 @@ namespace lsn {
 
 		// Shared by the composite filters.
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_HUE ),						reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_HUE )) },
-		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_HUE_OFFSET ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_HUE_OFFSET )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_BRIGHTNESS ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_BRIGHTNESS )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_CONTRAST ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_CONTRAST )) },
 		{ CVideoOptionsFields::LSN_VFT_FLOAT,		LSN_LSTR( LSN_STR_VO_SATURATION ),				reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_SATURATION )) },
@@ -149,14 +148,14 @@ namespace lsn {
 	};
 	/** The Blargg fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfBlargg[] = {
-		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_HUE_OFFSET, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
+		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
 		CVideoOptionsFields::LSN_VF_CONTRAST, CVideoOptionsFields::LSN_VF_SATURATION, CVideoOptionsFields::LSN_VF_BLARGG_GAMMA,
 		CVideoOptionsFields::LSN_VF_BLARGG_SHARPNESS, CVideoOptionsFields::LSN_VF_BLARGG_FRINGING, CVideoOptionsFields::LSN_VF_BLARGG_BLEED,
 		CVideoOptionsFields::LSN_VF_BLARGG_ARTIFACTS, CVideoOptionsFields::LSN_VF_BLARGG_MERGE_FIELDS,
 	};
 	/** The L. Spiro standard fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfLSpiroStandard[] = {
-		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_HUE_OFFSET, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
+		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
 		CVideoOptionsFields::LSN_VF_CONTRAST, CVideoOptionsFields::LSN_VF_SATURATION, CVideoOptionsFields::LSN_VF_WHITE_LEVEL,
 		CVideoOptionsFields::LSN_VF_BLACK_LEVEL, CVideoOptionsFields::LSN_VF_LSPIRO_BLEED,
 	};
@@ -184,7 +183,7 @@ namespace lsn {
 	};
 	/** The LMP88959 NTSC fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfLmpNtsc[] = {
-		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_HUE_OFFSET, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
+		CVideoOptionsFields::LSN_VF_HUE, CVideoOptionsFields::LSN_VF_BRIGHTNESS,
 		CVideoOptionsFields::LSN_VF_CONTRAST, CVideoOptionsFields::LSN_VF_SATURATION, CVideoOptionsFields::LSN_VF_WHITE_LEVEL,
 		CVideoOptionsFields::LSN_VF_BLACK_LEVEL, CVideoOptionsFields::LSN_VF_LMP_NOISE, CVideoOptionsFields::LSN_VF_LMP_BLEND,
 		CVideoOptionsFields::LSN_VF_LMP_VSYNC, CVideoOptionsFields::LSN_VF_LMP_HSYNC,
@@ -808,7 +807,6 @@ namespace lsn {
 				case LSN_VF_CONV_MEDIUM : { _dValue = double( pgfoGpu->ffConvolution[CGpuFilterBase::LSN_CB_MEDIUM] ); return true; }
 				case LSN_VF_CONV_HIGH : { _dValue = double( pgfoGpu->ffConvolution[CGpuFilterBase::LSN_CB_HIGH] ); return true; }
 				case LSN_VF_CONV_MAX : { _dValue = double( pgfoGpu->ffConvolution[CGpuFilterBase::LSN_CB_MAX] ); return true; }
-				case LSN_VF_HUE_OFFSET : { _dValue = pgfoGpu->fHueOffset * dRadToDeg; return true; }
 				default : {}
 			}
 		}
@@ -1007,7 +1005,6 @@ namespace lsn {
 					pgfoGpu->ffConvolution[CGpuFilterBase::LSN_CB_LOW + (_vfField - LSN_VF_CONV_LOW)] = CResamplerBase::LSN_FILTER_FUNCS( ui32Enum );
 					return true;
 				}
-				case LSN_VF_HUE_OFFSET : { pgfoGpu->fHueOffset = float( _dValue * dDegToRad ); return true; }
 				default : {}
 			}
 		}
@@ -1104,7 +1101,7 @@ namespace lsn {
 							lsoLSpiro.ntNoiseType = LSN_NOISE_TYPE( ui32Enum );
 							break;
 						}
-						case LSN_VF_NOISE_AMOUNT : { lsoLSpiro.fNoiseAmount = std::max( fValue, 0.0f ); break; }
+						case LSN_VF_NOISE_AMOUNT : { lsoLSpiro.fNoiseAmount = std::clamp( fValue, 0.0f, LSN_VIDEO_LIMITS::fMaxNoiseAmount ); break; }
 						case LSN_VF_DEMODULATOR : {
 							if ( ui32Enum >= CColorSpace::LSN_DM_TOTAL ) { return false; }
 							lsoLSpiro.dmDemodulator = CColorSpace::LSN_DEMODULATOR( ui32Enum );
@@ -1198,8 +1195,8 @@ namespace lsn {
 	}
 
 	/**
-	 * Applies a TV preset:  sets the color space, the hue offset, the saturation (relative to the default saturation of the filter), and
-	 *	(L. Spiro filters) the decoder chip.
+	 * Applies a TV preset:  sets the color space, the saturation (relative to the default saturation of the filter), and (L. Spiro
+	 *	filters) the decoder chip.
 	 *
 	 * \param _cspPreset The color space that models the television.
 	 * \param _ftTarget The settings being edited.
@@ -1209,7 +1206,6 @@ namespace lsn {
 		if ( !pgfoGpu || !_ftTarget.pfroFilters || _cspPreset >= CColorSpace::LSN_CSP_TOTAL ) { return; }
 		const CColorSpace::LSN_COLOR_SPACE_DATA & csdData = CColorSpace::Data( _cspPreset );
 		pgfoGpu->cspColorSpace = _cspPreset;
-		pgfoGpu->fHueOffset = csdData.fHueOffset;
 
 		const LSN_FILTER_REGION_OPTIONS froDefaults = LSN_FILTER_REGION_OPTIONS::Defaults( _ftTarget.pmRegion );
 		LSN_FILTER_REGION_OPTIONS & froOptions = (*_ftTarget.pfroFilters);
@@ -1257,7 +1253,6 @@ namespace lsn {
 		_ftTarget.pfroFilters->gfoPalette.fCrt1White = ppPreset.fCrt1White;
 		_ftTarget.pfroFilters->gfoPalette.fCrt1Brightness = ppPreset.fCrt1Brightness;
 		_ftTarget.pfroFilters->gfoPalette.cspColorSpace = (_ftTarget.pmRegion == LSN_PM_NTSC_J) ? ppPreset.cspNtscJColorSpace : ppPreset.cspColorSpace;
-		_ftTarget.pfroFilters->gfoPalette.fHueOffset = 0.0f;
 	}
 
 	/**
@@ -1269,7 +1264,6 @@ namespace lsn {
 		if ( !_ftTarget.ppoPalette || !_ftTarget.pfroFilters ) { return; }
 		_ftTarget.ppoPalette->gCrtGamma[_ftTarget.pmRegion] = CNesPalette::LSN_G_sRGB;
 		_ftTarget.pfroFilters->gfoPalette.cspColorSpace = CColorSpace::LSN_CSP_SRGB;
-		_ftTarget.pfroFilters->gfoPalette.fHueOffset = 0.0f;
 	}
 
 	/**
@@ -1388,13 +1382,7 @@ namespace lsn {
 			}
 			case LSN_VF_NOISE_AMOUNT : {
 				_dMin = 0.0;
-				_dMax = 1.0;
-				return true;
-			}
-			case LSN_VF_HUE_OFFSET : {
-				// Degrees.
-				_dMin = -180.0;
-				_dMax = 180.0;
+				_dMax = LSN_VIDEO_LIMITS::fMaxNoiseAmount;
 				return true;
 			}
 			default : { return false; }
