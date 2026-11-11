@@ -95,9 +95,9 @@ namespace lsn {
 		LSN_AT_NTSC_M_MODE_0_STEP_0						= uint32_t( 3728.5 * 2.0 ),			/**< 7457. */
 		LSN_AT_NTSC_M_MODE_0_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
 		LSN_AT_NTSC_M_MODE_0_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
-		LSN_AT_NTSC_M_MODE_0_STEP_3_0						= uint32_t( 14914 * 2.0 ),			/**< 29828. */
-		LSN_AT_NTSC_M_MODE_0_STEP_3_1						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
-		LSN_AT_NTSC_M_MODE_0_STEP_3_2						= uint32_t( 14915 * 2.0 ),			/**< 29830. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_0					= uint32_t( 14914 * 2.0 ),			/**< 29828. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_1					= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
+		LSN_AT_NTSC_M_MODE_0_STEP_3_2					= uint32_t( 14915 * 2.0 ),			/**< 29830. */
 
 		LSN_AT_PAL_MODE_0_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
 		LSN_AT_PAL_MODE_0_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
@@ -111,8 +111,8 @@ namespace lsn {
 		LSN_AT_NTSC_M_MODE_1_STEP_1						= uint32_t( 7456.5 * 2.0 ),			/**< 14913. */
 		LSN_AT_NTSC_M_MODE_1_STEP_2						= uint32_t( 11185.5 * 2.0 ),		/**< 22371. */
 		LSN_AT_NTSC_M_MODE_1_STEP_3						= uint32_t( 14914.5 * 2.0 ),		/**< 29829. */
-		LSN_AT_NTSC_M_MODE_1_STEP_4_0						= uint32_t( 18640.5 * 2.0 ),		/**< 37281. */
-		LSN_AT_NTSC_M_MODE_1_STEP_4_1						= uint32_t( 18641 * 2.0 ),			/**< 37282. */
+		LSN_AT_NTSC_M_MODE_1_STEP_4_0					= uint32_t( 18640.5 * 2.0 ),		/**< 37281. */
+		LSN_AT_NTSC_M_MODE_1_STEP_4_1					= uint32_t( 18641 * 2.0 ),			/**< 37282. */
 
 		LSN_AT_PAL_MODE_1_STEP_0						= uint32_t( 4156.5 * 2.0 ),			/**< 8313. */
 		LSN_AT_PAL_MODE_1_STEP_1						= uint32_t( 8313.5 * 2.0 ),			/**< 16627. */
@@ -723,6 +723,8 @@ namespace lsn {
 			if ( _aoOptions.apCharacteristics.bInvert ) {
 				m_fVolume *= -1.0f;
 			}
+			m_fBgVol = _aoOptions.fBgVol * m_fVolume;
+
 			m_bEnabled = m_fVolume != 0.0f && _aoOptions.bEnabled;
 
 			float dMaxLpf = _aoOptions.ui32OutputHz / 2.0f + 100.0f;
@@ -1034,7 +1036,9 @@ namespace lsn {
 		/** The current cycle function. */
 		PfTicks											m_pftTick = nullptr;
 		/** Final volume multiplier. */
-		float											m_fVolume = (-1.0f);		
+		float											m_fVolume = -1.0f;	
+		/** The background volume. */
+		float											m_fBgVol = -1.0f;
 		/** The 37-Hz pole filter. */
 		CPoleFilterHpf									m_pfPole37;
 		/** The 14-Hz pole filter. */
@@ -1106,6 +1110,8 @@ namespace lsn {
 		uint8_t											m_ui8FrameClockWait = 0;
 		/** Audio setting: Enabled. */
 		bool											m_bEnabled = true;
+		/** Are we in the background? */
+		bool											m_bInBg = false;
 		/** Register was written this cycle. */
 		bool											m_bRegModified = false;
 		/** The old letterless buggy RP2A03 version. */
@@ -1927,16 +1933,32 @@ namespace lsn {
 						fSample = paApu->m_pmbMapper->PostProcessAudioSample( fSample, fHz );
 					}
 					fSample = float( paApu->m_hfHpfFilter2.Process( fSample ) );
-					fSample *= paApu->m_fVolume;
-					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
-						paApu->m_pwfOutStream->AddStreamSample( fSample );
+					float fCallBackSample = fSample * paApu->m_fVolume;
+					if LSN_LIKELY( paApu->m_bInBg == false ) {
+						fSample *= paApu->m_fVolume;
 					}
-					paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fSample );
+					else {
+						fSample *= paApu->m_fBgVol;
+					}
+					if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
+						paApu->m_pwfOutStream->AddStreamSample( fCallBackSample );
+					}
+					paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fCallBackSample );
 					return fSample;
 				}
 			}
-			float fSample = _fSample * paApu->m_fVolume;
-			paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fSample );
+			float fSample = _fSample;
+			float fCallBackSample = _fSample * paApu->m_fVolume;
+			if LSN_LIKELY( paApu->m_bInBg == false ) {
+				fSample *= paApu->m_fVolume;
+			}
+			else {
+				fSample *= paApu->m_fBgVol;
+			}
+			if LSN_UNLIKELY( paApu->m_pwfOutStream ) {
+				paApu->m_pwfOutStream->AddStreamSample( fCallBackSample );
+			}
+			paApu->m_pfSampleOut( paApu->m_pvSampleOutParm, fCallBackSample );
 			return fSample;
 		}
 
