@@ -414,6 +414,15 @@ namespace lsn {
 		void									Swap( bool _bActuallySwap = true );
 
 		/**
+		 * Prepares a black frame for the next Render(), for use before anything has been rendered (at start-up):  a temporary buffer in
+		 *	the input format of the current filter, filled with black, becomes the render target.  Does nothing once a frame has been
+		 *	swapped in.  Should be called inside the same citical section/mutex as Render().
+		 *
+		 * \return Returns true if a black frame was prepared.
+		 */
+		bool									PrepareBlankFrame();
+
+		/**
 		 * Determines if swapping is safe (the new filter has all of the same inputs as the current filter).
 		 * 
 		 * \return Returns true if the queued filter has all of the same inputs (format, bit depth, dimensions, etc.) as the current filter.
@@ -886,6 +895,8 @@ namespace lsn {
 		double									m_dRatioActual;
 		/** The current/next filter/render target. */
 		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
+		/** The black frame drawn at start-up (see PrepareBlankFrame()); it stays the render target until the first Swap(). */
+		std::vector<uint8_t>					m_vBlankFrame;
 		/** The most recently captured frame, filled by Render() while capturing video. */
 		LSN_CAPTURE_BUFFER						m_cbVideoCapture;
 		/** True while capturing video. */

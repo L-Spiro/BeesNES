@@ -62,6 +62,7 @@ namespace lsn {
 			LSN_VRWI_NONE										= 0,	// CVideoRecordingWindowLayout::LSN_VIDEO_RECORDING_WINDOW_IDS
 			LSN_VOWI_NONE										= 0,	// CVideoOptionsWindowLayout (the Video Options dialog).
 			LSN_ABWI_NONE										= 0,	// CAboutWindowLayout (the About dialog).
+			LSN_WFLI_NONE										= 0,	// CWavEditorFindLoopsWindowLayout (the Find Loop Points dialog).
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -364,10 +365,7 @@ namespace lsn {
 			LSN_AOWI_PAGE_RAW_META_STATUS_CHECK,
 			LSN_AOWI_PAGE_RAW_META_FRAME_CHECK,
 
-			LSN_AOWI_PAGE_RAW_META_P1_ON_OFF_CHECK,
-			LSN_AOWI_PAGE_RAW_META_P2_ON_OFF_CHECK,
-			LSN_AOWI_PAGE_RAW_META_TRI_ON_OFF_CHECK,
-			LSN_AOWI_PAGE_RAW_META_NOISE_ON_OFF_CHECK,
+			LSN_AOWI_PAGE_RAW_META_REDUNDANT_CHECK,
 			LSN_AOWI_PAGE_RAW_META_DMC_SET_CHECK,
 
 
@@ -783,6 +781,27 @@ namespace lsn {
 			LSN_ABWI_ICONS8,
 			LSN_ABWI_CREDITS_EDIT,
 			LSN_ABWI_OK,
+
+
+			// CWavEditorFindLoopsWindowLayout (the Find Loop Points dialog).
+			LSN_WFLI_DIALOG,
+			LSN_WFLI_SEARCH_GROUP,
+			LSN_WFLI_START_LABEL,
+			LSN_WFLI_START_EDIT,
+			LSN_WFLI_LOOP_LABEL,
+			LSN_WFLI_LOOP_EDIT,
+			LSN_WFLI_LOOPS_LABEL,
+			LSN_WFLI_LOOPS_EDIT,
+			LSN_WFLI_RANGE_LABEL,
+			LSN_WFLI_RANGE_EDIT,
+			LSN_WFLI_MISMATCH_LABEL,
+			LSN_WFLI_MISMATCH_EDIT,
+			LSN_WFLI_FIND,
+			LSN_WFLI_RESULTS_GROUP,
+			LSN_WFLI_LISTBOX,
+			LSN_WFLI_DETAILS_EDIT,
+			LSN_WFLI_APPLY,
+			LSN_WFLI_CANCEL,
 		};
 #endif	// #if defined( LSN_WINDOWS )
 

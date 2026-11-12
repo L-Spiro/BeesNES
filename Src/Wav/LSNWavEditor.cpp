@@ -17,6 +17,7 @@
 #include <EEExpEval.h>
 
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 
@@ -356,6 +357,186 @@ namespace lsn {
 		catch ( ... ) { return false; }
 
 		return true;
+	}
+
+	/**
+	 * Loads a metadata file and associates it with a WAV set, replacing any metadata it already has.
+	 *
+	 * \param _ui32Id The unique ID of the WAV set.
+	 * \param _wsPath The path to the metadata file.
+	 * \return Returns true if the WAV set exists and the metadata file was loaded and parsed.  On failure, the WAV set is left unchanged.
+	 **/
+	bool CWavEditor::SetMetadata( uint32_t _ui32Id, const std::wstring &_wsPath ) {
+		try {
+			auto pwfsSet = WavById( _ui32Id );
+			if ( !pwfsSet ) { return false; }
+
+			std::vector<LSN_METADATA> vMetadata;
+			std::vector<char> vText;
+			if ( !AddMetadata( _wsPath, vMetadata, vText ) || !vMetadata.size() ) { return false; }
+
+			// Moving the text keeps its buffer, so the entries still point into it.
+			pwfsSet->wsMetaPath = _wsPath;
+			pwfsSet->vMetadata = std::move( vMetadata );
+			pwfsSet->vMetaText = std::move( vText );
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Searches metadata for ranges of logged events that repeat a given number of times.  The first loop is the range of events from a
+	 *	starting event near _dStart up to (but not including) a matching event near _dLoop.  Each following loop is found by matching the
+	 *	events of the first loop, in order, against the events that follow, so the timing of the events may vary from loop to loop.  Small
+	 *	differences (such as two writes landing in the same sample in one loop and in different samples in another) are tolerated up to
+	 *	_dMaxMismatch percent of the events in the first loop.
+	 *
+	 * \param _vMetadata The metadata to search.
+	 * \param _dStart The approximate time of the start of the first loop.
+	 * \param _dLoop The approximate time of the first loop point (the start of the second loop).
+	 * \param _dRange How far (in seconds) from _dStart and _dLoop to search.
+	 * \param _ui32Loops The number of loops to find.
+	 * \param _dMaxMismatch The percent of the events in the first loop that may fail to match in each of the following loops combined.
+	 * \param _vResults Holds the returned loop ranges, sorted best first.
+	 * \param _sMaxResults The maximum number of results to return.
+	 * \return Returns false if there was a memory failure.
+	 **/
+	bool CWavEditor::FindLoops( const std::vector<LSN_METADATA> &_vMetadata, double _dStart, double _dLoop, double _dRange,
+		uint32_t _ui32Loops, double _dMaxMismatch, std::vector<LSN_LOOP_RANGE> &_vResults, size_t _sMaxResults ) {
+		try {
+			_vResults.clear();
+			const size_t sTotal = _vMetadata.size();
+			if ( !_ui32Loops || sTotal < 2 || !_sMaxResults ) { return true; }
+			_dRange = std::abs( _dRange );
+			_dMaxMismatch = std::clamp( _dMaxMismatch, 0.0, 100.0 );
+
+			// Give each distinct event text an ID so that events can be compared with a single integer compare.
+			std::vector<uint32_t> vIds( sTotal );
+			{
+				std::unordered_map<std::string_view, uint32_t> mIds;
+				mIds.reserve( sTotal );
+				for ( size_t I = 0; I < sTotal; ++I ) {
+					auto aIt = mIds.try_emplace( _vMetadata[I].sText, uint32_t( mIds.size() ) );
+					vIds[I] = aIt.first->second;
+				}
+			}
+
+			// The candidates for the start of the first loop and for the first loop point.
+			std::vector<size_t> vStarts, vLoops;
+			for ( size_t I = 0; I < sTotal; ++I ) {
+				if ( std::abs( _vMetadata[I].dTime - _dStart ) <= _dRange ) { vStarts.push_back( I ); }
+				if ( std::abs( _vMetadata[I].dTime - _dLoop ) <= _dRange ) { vLoops.push_back( I ); }
+			}
+
+			// At least this many events at the start of the second loop must exactly match the start of the first loop.  This rejects most
+			//	candidates quickly.
+			constexpr size_t sPrefix = 16;
+			// Loops to follow:  loops 2 through _ui32Loops.  When only 1 loop is requested, the second loop is still followed to verify the first
+			//	one, but it is allowed to be cut off by the end of the recording.
+			const uint32_t ui32Follow = std::max<uint32_t>( _ui32Loops, 2 );
+			for ( auto sStart : vStarts ) {
+				for ( auto sLoop : vLoops ) {
+					if ( sLoop <= sStart ) { continue; }
+					const size_t sLen = sLoop - sStart;
+
+					size_t sCheck = std::min( sLen, sPrefix );
+					if ( sLoop + sCheck > sTotal ) { continue; }
+					bool bMatch = true;
+					for ( size_t J = 0; J < sCheck; ++J ) {
+						if ( vIds[sStart+J] != vIds[sLoop+J] ) { bMatch = false; break; }
+					}
+					if ( !bMatch ) { continue; }
+
+					// The order of the events must repeat; their timing is not checked.
+					const size_t sMaxMismatches = size_t( double( sLen ) * (ui32Follow - 1) * _dMaxMismatch / 100.0 );
+					size_t sMismatches = 0;
+					size_t sPos = sLoop;					// The start of loop K (loop 2 here).
+					size_t sEnd = sLoop;					// The end of loop _ui32Loops.
+					for ( uint32_t K = 2; K <= ui32Follow && sPos != SIZE_MAX; ++K ) {
+						sPos = FollowLoop( vIds, sStart, sLoop, sPos, sMaxMismatches, sMismatches, K > _ui32Loops );
+						if ( K == _ui32Loops ) { sEnd = sPos; }
+					}
+					if ( sPos == SIZE_MAX || sEnd >= sTotal ) { continue; }
+
+					LSN_LOOP_RANGE lrRange;
+					lrRange.sStart = sStart;
+					lrRange.sLoop = sLoop;
+					lrRange.sEnd = sEnd;
+					lrRange.sMismatches = sMismatches;
+					_vResults.push_back( lrRange );
+				}
+			}
+
+			// Best first:  fewest mismatches, then closest to the given times.
+			auto aDist = [&]( const LSN_LOOP_RANGE &_lrRange ) {
+				return std::abs( _vMetadata[_lrRange.sStart].dTime - _dStart ) + std::abs( _vMetadata[_lrRange.sLoop].dTime - _dLoop );
+			};
+			std::stable_sort( _vResults.begin(), _vResults.end(), [&]( const LSN_LOOP_RANGE &_lrLeft, const LSN_LOOP_RANGE &_lrRight ) {
+				if ( _lrLeft.sMismatches != _lrRight.sMismatches ) { return _lrLeft.sMismatches < _lrRight.sMismatches; }
+				return aDist( _lrLeft ) < aDist( _lrRight );
+			} );
+			if ( _vResults.size() > _sMaxResults ) { _vResults.resize( _sMaxResults ); }
+			return true;
+		}
+		catch ( ... ) {
+			_vResults.clear();
+			return false;
+		}
+	}
+
+	/**
+	 * Follows one loop:  matches the events of the first loop, in order, against the events starting at a given index.
+	 *
+	 * \param _vIds The event ID's (one per metadata entry; equal ID's mean equal event texts).
+	 * \param _sLoopStart The index of the first event of the first loop.
+	 * \param _sLoopEnd The index one past the last event of the first loop.
+	 * \param _sPos The index of the first event of the loop to follow.
+	 * \param _sMaxMismatches The total number of mismatches allowed.
+	 * \param _sMismatches The running total of mismatches, updated by this function.
+	 * \param _bAllowTruncated If true, running out of events before the end of the loop counts as success.
+	 * \return Returns the index of the first event after the followed loop or SIZE_MAX if the loop could not be followed.
+	 **/
+	size_t CWavEditor::FollowLoop( const std::vector<uint32_t> &_vIds, size_t _sLoopStart, size_t _sLoopEnd, size_t _sPos,
+		size_t _sMaxMismatches, size_t &_sMismatches, bool _bAllowTruncated ) {
+		// How far ahead (in events) to look in either sequence to get back in step after a mismatch.
+		constexpr size_t sWindow = 8;
+		const size_t sTotal = _vIds.size();
+		size_t I = _sLoopStart, J = _sPos;
+		while ( I < _sLoopEnd ) {
+			if ( J >= sTotal ) { return _bAllowTruncated ? sTotal : SIZE_MAX; }
+			if ( _vIds[I] == _vIds[J] ) {
+				++I;
+				++J;
+				continue;
+			}
+
+			// Get back in step:  skip the fewest events in either sequence after which the events match again.  Past the end of the first loop,
+			//	the next loop begins, so the event to match is the first event of the first loop.
+			bool bFound = false;
+			const size_t sMaxSkipI = std::min( sWindow, _sLoopEnd - I );
+			for ( size_t sCost = 1; sCost <= sWindow * 2 && !bFound; ++sCost ) {
+				for ( size_t D1 = (sCost > sWindow ? sCost - sWindow : 0); D1 <= std::min( sCost, sMaxSkipI ); ++D1 ) {
+					const size_t D2 = sCost - D1;
+					const size_t sI = I + D1, sJ = J + D2;
+					if ( sJ >= sTotal ) { continue; }
+					const uint32_t ui32Want = sI < _sLoopEnd ? _vIds[sI] : _vIds[_sLoopStart];
+					if ( _vIds[sJ] != ui32Want ) { continue; }
+
+					_sMismatches += std::max( D1, D2 );
+					if ( _sMismatches > _sMaxMismatches ) { return SIZE_MAX; }
+					if ( sI >= _sLoopEnd ) { return sJ; }
+					I = sI;
+					J = sJ;
+					bFound = true;
+					break;
+				}
+			}
+			if ( !bFound ) {
+				if ( _bAllowTruncated && J + sWindow >= sTotal ) { return sTotal; }
+				return SIZE_MAX;
+			}
+		}
+		return J;
 	}
 
 	/**

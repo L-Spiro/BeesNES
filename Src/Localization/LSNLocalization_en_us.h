@@ -344,13 +344,9 @@
 #define LSN_AUDIO_OPTIONS_METADATA_STATUS									Status ($4015)
 #define LSN_AUDIO_OPTIONS_METADATA_FRAME_COUNTER							Frame Counter ($4017)
 
-#define LSN_AUDIO_OPTIONS_METADATA_PULSE1_ON_OFF							Pulse 1 On/Off
-#define LSN_AUDIO_OPTIONS_METADATA_PULSE2_ON_OFF							Pulse 2 On/Off
-#define LSN_AUDIO_OPTIONS_METADATA_TRIANGLE_ON_OFF							Triangle On/Off
-#define LSN_AUDIO_OPTIONS_METADATA_NOISE_ON_OFF								Noise On/Off
 #define LSN_AUDIO_OPTIONS_METADATA_DMC_SET									DMC Written
 
-#define LSN_AUDIO_OPTIONS_CAPTUE_ALL										Capture Redundant
+#define LSN_AUDIO_OPTIONS_CAPTUE_ALL										Log Redundant Writes (Even When Nothing Changes)
 
 #define LSN_AUDIO_OPTIONS_ERR_INVALID_PATH									A valid path must be supplied.
 #define LSN_AUDIO_OPTIONS_ERR_SAME_PATHS									Cannot output 2 streams to the same path at once.
@@ -423,6 +419,28 @@
 #define LSN_WE_LOOP															Loop
 #define LSN_WE_ONE_SHOT														One-Shot
 #define LSN_WE_FIND_LOOPS													Find Loop Points
+#define LSN_WE_FL_SEARCH													Search
+#define LSN_WE_FL_START														Approximate Loop Start (Seconds):
+#define LSN_WE_FL_LOOP														Approximate First Loop Point (Seconds):
+#define LSN_WE_FL_LOOPS														Number of Loops:
+#define LSN_WE_FL_RANGE														Search Range (\u00B1 Seconds):
+#define LSN_WE_FL_MISMATCH													Allowed Mismatched Events (%):
+#define LSN_WE_FL_FIND														Find
+#define LSN_WE_FL_RESULTS													Possible Loop Ranges
+#define LSN_WE_FL_APPLY														Apply
+#define LSN_WE_FL_ITEM_START												Start:
+#define LSN_WE_FL_ITEM_END													End:
+#define LSN_WE_FL_FIRST_LOOP												First Loop Point:
+#define LSN_WE_FL_DETAILS													First loop: {:.7f} seconds ({} events).  All loops: {:.7f} seconds.  Mismatched events: {}.
+#define LSN_WE_FL_FOUND														{} possible loop ranges found.  Select one to see its details.
+#define LSN_WE_FL_NONE_FOUND												No loops were found.  Try a larger search range or more allowed mismatches or fewer loops.  Loops can only be found reliably if redundant register writes were logged when the audio was recorded.
+#define LSN_WE_FL_NO_METADATA												The track has no metadata.  Select a single track that has metadata.
+#define LSN_WE_FL_ERR_START													The approximate loop start must be a valid expression.
+#define LSN_WE_FL_ERR_LOOP													The approximate first loop point must be a valid expression.
+#define LSN_WE_FL_ERR_LOOPS													The number of loops must be a valid expression resulting in a value of at least 1.
+#define LSN_WE_FL_ERR_RANGE													The search range must be a valid expression resulting in a non-negative value.
+#define LSN_WE_FL_ERR_MISMATCH												The allowed mismatched events must be a valid expression resulting in a value between 0 and 100.
+#define LSN_WE_ADD_META_FAILED												The metadata file could not be loaded.  It must be a metadata file logged during audio recording.
 #define LSN_WE_START														Start:
 #define LSN_WE_END															End:
 #define LSN_WE_DELAY														Pre-Fade Dur.:

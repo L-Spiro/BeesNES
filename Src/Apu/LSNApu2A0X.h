@@ -192,10 +192,9 @@ namespace lsn {
 		LSN_RF_STATUS									= (1 << 5),
 		LSN_RF_FRAME_COUNTER							= (1 << 6),
 
-		LSN_RF_PULSE1_ON_OFF							= (1 << 7),
-		LSN_RF_PULSE2_ON_OFF							= (1 << 8),
-		LSN_RF_TRIANGKE_ON_OFF							= (1 << 9),
-		LSN_RF_NOISE_ON_OFF								= (1 << 10),
+		// Bits 7-10 were the removed channel on/off events; they are ignored.
+
+		LSN_RF_REDUNDANT								= (1 << 11),						/**< Also log register writes that did not change the registers (to find loops in the logged events). */
 	};
 
 	/** Channel types. */
@@ -282,6 +281,7 @@ namespace lsn {
 			uint8_t										ui8Registers[0x17+1];
 			double										dTime;
 			LSN_METADATA_TYPES							mtType = LSN_MT_REGISTER;
+			uint32_t									ui32Written = 0;					/**< The registers written since the previous event (bit N = $40NN), for redundant logging. */
 
 
 			// == Operators.
@@ -306,6 +306,7 @@ namespace lsn {
 			LSN_REG_BUFFER &							operator = ( const uint8_t * _pui8Other ) {
 				std::memcpy( ui8Registers, _pui8Other, sizeof( ui8Registers ) );
 				mtType = LSN_MT_REGISTER;
+				ui32Written = 0;
 				return (*this);
 			}
 
@@ -361,36 +362,21 @@ namespace lsn {
 			inline uint8_t								FrameCounter() const { return ui8Registers[0x17] & 0b11000000; }
 
 			/**
-			 * Sets to Pulse 1 on/off.
+			 * Gets the registers ($40NN = bit N) that belong to the channels selected by a mask of LSN_REG_FLAGS.
 			 * 
-			 * \param _bOn Whether noise was changed to on or not.
+			 * \param _ui64Mask The bit mask indicating which channels/registers to select.
+			 * \return Returns the register bits of the selected channels.
 			 **/
-			inline void									SetPulse1OnOff( bool _bOn ) {
-				ui8Registers[0] = LSN_C_PULSE_0;
-				ui8Registers[1] = _bOn;
-				mtType = LSN_MT_CHANNEL_ON_OFF;
-			}
-
-			/**
-			 * Sets to Pulse 2 on/off.
-			 * 
-			 * \param _bOn Whether noise was changed to on or not.
-			 **/
-			inline void									SetPulse2OnOff( bool _bOn ) {
-				ui8Registers[0] = LSN_C_PULSE_1;
-				ui8Registers[1] = _bOn;
-				mtType = LSN_MT_CHANNEL_ON_OFF;
-			}
-
-			/**
-			 * Sets to Noise on/off.
-			 * 
-			 * \param _bOn Whether noise was changed to on or not.
-			 **/
-			inline void									SetNoiseOnOff( bool _bOn ) {
-				ui8Registers[0] = LSN_C_NOISE;
-				ui8Registers[1] = _bOn;
-				mtType = LSN_MT_CHANNEL_ON_OFF;
+			static inline uint32_t						RegistersOf( uint64_t _ui64Mask ) {
+				uint32_t ui32Ret = 0;
+				if ( _ui64Mask & LSN_RF_PULSE1 ) { ui32Ret |= 0x0000000F; }
+				if ( _ui64Mask & LSN_RF_PULSE2 ) { ui32Ret |= 0x000000F0; }
+				if ( _ui64Mask & LSN_RF_TRIANGLE ) { ui32Ret |= 0x00000F00; }
+				if ( _ui64Mask & LSN_RF_NOISE ) { ui32Ret |= 0x0000F000; }
+				if ( _ui64Mask & LSN_RF_DMC ) { ui32Ret |= 0x000F0000; }
+				if ( _ui64Mask & LSN_RF_STATUS ) { ui32Ret |= (1U << 0x15); }
+				if ( _ui64Mask & LSN_RF_FRAME_COUNTER ) { ui32Ret |= (1U << 0x17); }
+				return ui32Ret;
 			}
 
 			/**
@@ -881,46 +867,23 @@ namespace lsn {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm);
 			
 			bool bRet = false;
-			if ( !paApu->m_rbLastRegBufferRaw.Equals( paApu->m_ui8Registers, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
+			// With LSN_RF_REDUNDANT, a write to a selected channel is an event even if it changed nothing (a game that loops its music
+			//	repeats its writes, not necessarily its changes).
+			const uint32_t ui32Written = paApu->m_ui32RegWrites & LSN_REG_BUFFER::RegistersOf( _sStream.ui64MetaParm );
+			paApu->m_ui32RegWrites = 0;
+			const bool bRedundant = (_sStream.ui64MetaParm & LSN_RF_REDUNDANT) && ui32Written;
+			if ( bRedundant || !paApu->m_rbLastRegBufferRaw.Equals( paApu->m_ui8Registers, _sStream.ui64MetaParm ) || _sStream.ui64MetaWritten == 0 ) {
 				if LSN_UNLIKELY( _sStream.ui64MetaWritten == 0 ) { paApu->m_ui64RawExportStartCycle = paApu->m_ui64Cycles; }
 				
-				size_t sIdx = _sStream.vMetaBuffer.size();
-				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), paApu->m_ui8Registers, paApu->m_ui8Registers + sizeof( LSN_REG_BUFFER ) );
-				(*reinterpret_cast<LSN_REG_BUFFER *>(&_sStream.vMetaBuffer[sIdx])).dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
-				(*reinterpret_cast<LSN_REG_BUFFER *>(&_sStream.vMetaBuffer[sIdx])).mtType = LSN_MT_REGISTER;
+				LSN_REG_BUFFER rbTmp;
+				std::memcpy( rbTmp.ui8Registers, paApu->m_ui8Registers, sizeof( rbTmp.ui8Registers ) );
+				rbTmp.dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
+				rbTmp.mtType = LSN_MT_REGISTER;
+				rbTmp.ui32Written = (_sStream.ui64MetaParm & LSN_RF_REDUNDANT) ? ui32Written : 0;
+				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), reinterpret_cast<uint8_t *>(&rbTmp), reinterpret_cast<uint8_t *>(&rbTmp) + sizeof( LSN_REG_BUFFER ) );
 
 				paApu->m_rbLastRegBufferRaw = paApu->m_ui8Registers;
 
-				bRet = true;
-			}
-			if LSN_UNLIKELY( (_sStream.ui64MetaParm & LSN_RF_PULSE1_ON_OFF) && paApu->GetChannelOnOff()[LSN_C_PULSE_0] ) {
-				if LSN_UNLIKELY( _sStream.ui64MetaWritten == 0 ) { paApu->m_ui64RawExportStartCycle = paApu->m_ui64Cycles; }
-
-				LSN_REG_BUFFER rbTmp;
-				rbTmp.dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
-				rbTmp.SetPulse1OnOff( paApu->m_ChannelOutputtingStatus[LSN_C_PULSE_0] );
-
-				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), reinterpret_cast<uint8_t *>(&rbTmp), reinterpret_cast<uint8_t *>(&rbTmp) + sizeof( LSN_REG_BUFFER ) );
-				bRet = true;
-			}
-			if LSN_UNLIKELY( (_sStream.ui64MetaParm & LSN_RF_PULSE2_ON_OFF) && paApu->GetChannelOnOff()[LSN_C_PULSE_1] ) {
-				if LSN_UNLIKELY( _sStream.ui64MetaWritten == 0 ) { paApu->m_ui64RawExportStartCycle = paApu->m_ui64Cycles; }
-
-				LSN_REG_BUFFER rbTmp;
-				rbTmp.dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
-				rbTmp.SetPulse2OnOff( paApu->m_ChannelOutputtingStatus[LSN_C_PULSE_1] );
-
-				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), reinterpret_cast<uint8_t *>(&rbTmp), reinterpret_cast<uint8_t *>(&rbTmp) + sizeof( LSN_REG_BUFFER ) );
-				bRet = true;
-			}
-			if LSN_UNLIKELY( (_sStream.ui64MetaParm & LSN_RF_NOISE_ON_OFF) && paApu->GetChannelOnOff()[LSN_C_NOISE] ) {
-				if LSN_UNLIKELY( _sStream.ui64MetaWritten == 0 ) { paApu->m_ui64RawExportStartCycle = paApu->m_ui64Cycles; }
-
-				LSN_REG_BUFFER rbTmp;
-				rbTmp.dTime = (paApu->m_ui64Cycles - paApu->m_ui64RawExportStartCycle) / std::ceil( paApu->Hz() );
-				rbTmp.SetNoiseOnOff( paApu->m_ChannelOutputtingStatus[LSN_C_NOISE] );
-
-				_sStream.vMetaBuffer.insert( _sStream.vMetaBuffer.end(), reinterpret_cast<uint8_t *>(&rbTmp), reinterpret_cast<uint8_t *>(&rbTmp) + sizeof( LSN_REG_BUFFER ) );
 				bRet = true;
 			}
 			return bRet;
@@ -947,37 +910,37 @@ namespace lsn {
 				sBinaryTmp = std::to_string( _sStream.ui64MetaThreadParm ) + ":";
 				if ( prbInput[I].mtType == LSN_MT_REGISTER ) {
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_PULSE1) && prbLast->Pulse1() != prbInput[I].Pulse1()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_PULSE1) && (prbLast->Pulse1() != prbInput[I].Pulse1() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_PULSE1 )))) ) {
 					
 						sBinaryTmp += " Pu1: " + ee::CExpEval::ToBinary( prbInput[I].Pulse1(), 4 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_PULSE2) && prbLast->Pulse2() != prbInput[I].Pulse2()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_PULSE2) && (prbLast->Pulse2() != prbInput[I].Pulse2() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_PULSE2 )))) ) {
 					
 						sBinaryTmp += " Pu2: " + ee::CExpEval::ToBinary( prbInput[I].Pulse2(), 4 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_TRIANGLE) && prbLast->Triangle() != prbInput[I].Triangle()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_TRIANGLE) && (prbLast->Triangle() != prbInput[I].Triangle() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_TRIANGLE )))) ) {
 					
 						sBinaryTmp += " Tri: " + ee::CExpEval::ToBinary( prbInput[I].Triangle(), 4 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_NOISE) && prbLast->Noise() != prbInput[I].Noise()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_NOISE) && (prbLast->Noise() != prbInput[I].Noise() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_NOISE )))) ) {
 					
 						sBinaryTmp += " Noi: " + ee::CExpEval::ToBinary( prbInput[I].Noise(), 4 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_DMC) && prbLast->Dmc() != prbInput[I].Dmc()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_DMC) && (prbLast->Dmc() != prbInput[I].Dmc() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_DMC )))) ) {
 					
 						sBinaryTmp += " DMC: " + ee::CExpEval::ToBinary( prbInput[I].Dmc(), 4 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_STATUS) && prbLast->Status() != prbInput[I].Status()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_STATUS) && (prbLast->Status() != prbInput[I].Status() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_STATUS )))) ) {
 					
 						sBinaryTmp += " Sts: " + ee::CExpEval::ToBinary( prbInput[I].Status(), 1 * 8 );
 					}
 					if ( !prbLast ||
-						((_sStream.ui64MetaParm & LSN_RF_FRAME_COUNTER) && prbLast->FrameCounter() != prbInput[I].FrameCounter()) ) {
+						((_sStream.ui64MetaParm & LSN_RF_FRAME_COUNTER) && (prbLast->FrameCounter() != prbInput[I].FrameCounter() || (prbInput[I].ui32Written & LSN_REG_BUFFER::RegistersOf( LSN_RF_FRAME_COUNTER )))) ) {
 					
 						sBinaryTmp += " FrC: " + ee::CExpEval::ToBinary( prbInput[I].FrameCounter(), 1 * 8 );
 					}
@@ -1123,6 +1086,8 @@ namespace lsn {
 		std::atomic<bool>								m_bInBg = false;
 		/** Register was written this cycle. */
 		bool											m_bRegModified = false;
+		/** The registers written since the last metadata event (bit N = $40NN). */
+		uint32_t										m_ui32RegWrites = 0;
 		/** The old letterless buggy RP2A03 version. */
 		bool											m_bLetterless = false;
 		/** On/off status tracker for each channel. */
@@ -1475,6 +1440,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4000( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x00);
 			//paApu->m_ui8Registers[0x00] = _ui8Val;
 			paApu->m_ui8Registers[0x00] = (_ui8Val & ~LSN_PULSE1_HALT_MASK) | (paApu->m_ui8Registers[0x00] & LSN_PULSE1_HALT_MASK);
 			paApu->m_dvPulse1LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE1_HALT_MASK );
@@ -1493,6 +1459,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4001( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x01);
 			paApu->m_ui8Registers[0x01] = _ui8Val;
 			paApu->m_pPulse1.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
 			paApu->m_pPulse1.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
@@ -1512,6 +1479,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4002( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x02);
 			paApu->m_ui8Registers[0x02] = _ui8Val;
 			paApu->m_pPulse1.SetTimerLow( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1527,6 +1495,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4003( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x03);
 			paApu->m_ui8Registers[0x03] = _ui8Val;
 			paApu->m_pPulse1.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE1_ENABLED( paApu ) ) {
@@ -1549,6 +1518,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4004( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x04);
 			//paApu->m_ui8Registers[0x04] = _ui8Val;
 			paApu->m_ui8Registers[0x04] = (_ui8Val & ~LSN_PULSE2_HALT_MASK) | (paApu->m_ui8Registers[0x04] & LSN_PULSE2_HALT_MASK);
 			paApu->m_dvPulse2LengthCounterHalt.WriteWithDelay( _ui8Val & LSN_PULSE2_HALT_MASK );
@@ -1567,6 +1537,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4005( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x05);
 			paApu->m_ui8Registers[0x05] = _ui8Val;
 			paApu->m_pPulse2.SetSweepEnabled( ((_ui8Val & 0b10000000) != 0) );
 			paApu->m_pPulse2.SetSweepPeriod( (_ui8Val >> 4) & 0b111 );
@@ -1586,6 +1557,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4006( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x06);
 			paApu->m_ui8Registers[0x06] = _ui8Val;
 			paApu->m_pPulse2.SetTimerLow( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1601,6 +1573,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4007( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x07);
 			paApu->m_ui8Registers[0x07] = _ui8Val;
 			paApu->m_pPulse2.SetTimerHigh( _ui8Val );
 			if ( LSN_PULSE2_ENABLED( paApu ) ) {
@@ -1623,6 +1596,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4008( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x08);
 			//paApu->m_ui8Registers[0x08] = _ui8Val;
 			paApu->m_ui8Registers[0x08] = (_ui8Val & ~LSN_TRIANGLE_HALT_MASK) | (paApu->m_ui8Registers[0x08] & LSN_TRIANGLE_HALT_MASK);
 			paApu->m_dvTriangleLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_TRIANGLE_HALT_MASK );
@@ -1640,6 +1614,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400A( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x0A);
 			paApu->m_ui8Registers[0x0A] = _ui8Val;
 			paApu->m_tTriangle.SetTimerLow( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1655,6 +1630,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400B( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x0B);
 			paApu->m_ui8Registers[0x0B] = _ui8Val;
 			paApu->m_tTriangle.SetTimerHigh( _ui8Val, false );
 			if ( LSN_TRIANGLE_ENABLED( paApu ) ) {
@@ -1677,6 +1653,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400C( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x0C);
 			//paApu->m_ui8Registers[0x0C] = _ui8Val;
 			paApu->m_ui8Registers[0x0C] = (_ui8Val & ~LSN_NOISE_HALT_MASK) | (paApu->m_ui8Registers[0x0C] & LSN_NOISE_HALT_MASK);
 			paApu->m_dvNoiseLengthCounterHalt.WriteWithDelay( _ui8Val & LSN_NOISE_HALT_MASK );
@@ -1694,6 +1671,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400E( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x0E);
 			paApu->m_ui8Registers[0x0E] = _ui8Val;
 			if LSN_UNLIKELY( paApu->m_bLetterless ) {
 				paApu->m_nNoise.SetTimer( CApuUnit::OldNoiseTable<_tType>( (_ui8Val & 0b00001111) ) );
@@ -1717,6 +1695,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write400F( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x0F);
 			paApu->m_ui8Registers[0x0F] = _ui8Val;
 			if ( LSN_NOISE_ENABLED( paApu ) ) {
 				//if ( !(paApu->m_i64TicksToLenCntr == 0 && paApu->m_nNoise.GetLengthCounter()) ) {
@@ -1738,6 +1717,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4010( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x10);
 			paApu->m_ui8Registers[0x10] = _ui8Val;
 			paApu->m_dDmc.Write4010<_tType>( _ui8Val, paApu->m_pcbCpu );
 			paApu->m_bRegModified = true;
@@ -1753,6 +1733,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4011( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x11);
 			paApu->m_ui8Registers[0x11] = _ui8Val;
 			paApu->m_dDmc.Write4011( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1768,6 +1749,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4012( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x12);
 			paApu->m_ui8Registers[0x12] = _ui8Val;
 			paApu->m_dDmc.Write4012( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1783,6 +1765,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4013( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x13);
 			paApu->m_ui8Registers[0x13] = _ui8Val;
 			paApu->m_dDmc.Write4013( _ui8Val );
 			paApu->m_bRegModified = true;
@@ -1844,6 +1827,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4015( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x15);
 			paApu->m_ui8Registers[0x15] = _ui8Val;
 
 			if ( !LSN_PULSE1_ENABLED( paApu ) ) {
@@ -1882,6 +1866,7 @@ namespace lsn {
 		 */
 		static void LSN_FASTCALL						Write4017( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * /*_pui8Data*/, uint8_t _ui8Val ) {
 			CThisApu * paApu = reinterpret_cast<CThisApu *>(_pvParm0);
+			paApu->m_ui32RegWrites |= (1U << 0x17);
 			// * If the write occurs during an APU cycle, the effects occur 3 CPU cycles after the $4017 write cycle, and if the write occurs between APU cycles, the effects occurs 4 CPU cycles after the write cycle.
 			// "During" an APU cycle means every even CPU cycle.  "Between" APU cycles means every odd CPU cycle.
 			// This is handled by having Set4017() set m_bModeSwitch, which will then be seen only on even ticks.

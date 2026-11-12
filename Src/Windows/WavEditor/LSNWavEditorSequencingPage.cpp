@@ -11,6 +11,7 @@
 #include "LSNWavEditorSequencingPage.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
+#include "LSNWavEditorFindLoopsWindowLayout.h"
 #include "LSNWavEditorWindow.h"
 
 #include <CheckButton/LSWCheckButton.h>
@@ -262,6 +263,12 @@ namespace lsn {
 						}
 						break;
 					}
+				}
+				break;
+			}
+			case Layout::LSN_WEWI_SEQ_FIND_LOOPS_BUTTON : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					FindLoops();
 				}
 				break;
 			}
@@ -705,6 +712,7 @@ namespace lsn {
 				{ Layout::LSN_WEWI_SEQ_START_COMBO,						bHasMeta },
 				//{ Layout::LSN_WEWI_SEQ_END_COMBO,						bHasMeta },
 				{ Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO,				bHasMeta },
+				{ Layout::LSN_WEWI_SEQ_FIND_LOOPS_BUTTON,				bHasMeta },
 
 				//{ Layout::LSN_WEWI_SEQ_OPS_TREELISTVEW,					bHasItems },
 				{ Layout::LSN_WEWI_SEQ_OPS_REMOVE_BUTTON,				bSelected },
@@ -868,6 +876,38 @@ namespace lsn {
 				}
 			}
 			m_bInternalUpdate = false;
+		}
+		Update();
+	}
+
+	/**
+	 * Opens the Find Loop Points dialog for the shown track and applies the chosen ending point to the stopping-point controls.
+	 **/
+	void CWavEditorSequencingPage::FindLoops() {
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
+		if ( !pwfsSet || pwfsSet->wsMetaPath.size() == 0 || !pwfsSet->vMetadata.size() ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_WE_FL_NO_METADATA ), LSN_LSTR( LSN_ERROR ) );
+			return;
+		}
+
+		CWavEditorFindLoopsWindowLayout::LSN_FIND_LOOPS_DATA fldData;
+		fldData.pvMetadata = &pwfsSet->vMetadata;
+		if ( !CWavEditorFindLoopsWindowLayout::CreateFindLoopsDialog( this, fldData ) ) { return; }
+		if ( fldData.sEnd >= pwfsSet->vMetadata.size() ) { return; }
+
+		// The combo boxes hold one item per metadata entry, in order, so the entry index is the item index.
+		FillCombos();
+		auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ));
+		if ( pcbCombo ) {
+			pcbCombo->SetCurSel( INT( fldData.sEnd ) );
+			std::vector<LPARAM> vUpdateMe;
+			GetPagesToUpdate( vUpdateMe );
+			static_cast<CWavEditorWindow *>(m_pwParent)->SetAllSeqComboSels( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO, INT( fldData.sEnd ), vUpdateMe );
+		}
+		// Setting the text sends EN_CHANGE, which stores it in the tracks being edited.
+		auto pwEdit = FindChild( Layout::LSN_WEWI_SEQ_LOOPS_STOP_EDIT );
+		if ( pwEdit ) {
+			pwEdit->SetTextA( std::format( "{:.35g}", pwfsSet->vMetadata[fldData.sEnd].dTime ).c_str() );
 		}
 		Update();
 	}

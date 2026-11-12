@@ -1002,6 +1002,12 @@
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorOutputPage.h">
       <Filter>Header Files\Windows\WavEditor</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindow.h">
+      <Filter>Header Files\Windows\WavEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindowLayout.h">
+      <Filter>Header Files\Windows\WavEditor</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.h">
       <Filter>Header Files\Windows\WavEditor</Filter>
     </ClInclude>
@@ -1827,6 +1833,12 @@
       <Filter>Source Files\Windows\WavEditor</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorOutputPage.cpp">
+      <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindow.cpp">
+      <Filter>Source Files\Windows\WavEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindowLayout.cpp">
       <Filter>Source Files\Windows\WavEditor</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.cpp">

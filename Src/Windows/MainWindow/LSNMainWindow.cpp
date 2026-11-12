@@ -325,7 +325,15 @@ namespace lsn {
 			}
 		}
 
-		
+		// Nothing has been rendered yet, so the window shows whatever was on the screen.  Draw a black frame through the current filter.
+		{
+			bool bPrepared;
+			{
+				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+				bPrepared = m_bnEmulator.PrepareBlankFrame();
+			}
+			if ( bPrepared ) { RequestDraw(); }
+		}
 		return LSW_H_CONTINUE;
 	}
 

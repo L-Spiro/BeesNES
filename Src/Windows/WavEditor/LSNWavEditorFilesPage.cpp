@@ -136,6 +136,40 @@ namespace lsn {
 				}
 				break;
 			}
+			case Layout::LSN_WEWI_FILES_ADD_META_BUTTON : {
+				if ( m_pwParent && m_pweEditor ) {
+					auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));
+					std::vector<LPARAM> vSelected;
+					if ( ptlTree && ptlTree->GatherSelectedLParam( vSelected, true ) && vSelected.size() ) {
+						// A metadata file belongs to a single WAV file, so it goes to the first selected track.
+						uint32_t ui32Id = uint32_t( vSelected[0] ) & 0xFFFF;
+						auto pwfsSet = m_pweEditor->WavById( ui32Id );
+						if ( pwfsSet ) {
+							OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+							std::wstring szFileName;
+							szFileName.resize( 0xFFFF + 2 );
+
+							std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_AUDIO_OPTIONS_TXT_TYPES ), std::size( LSN_LSTR( LSN_AUDIO_OPTIONS_TXT_TYPES ) ) - 1 );
+							std::filesystem::path pWav( pwfsSet->wfFile.wsPath );
+							std::wstring wsDir = pWav.parent_path().wstring();
+							std::wstring wsTitle = std::wstring( LSN_LSTR( LSN_WE_ADD_METADATA ) ) + L":  " + pWav.filename().wstring();
+							ofnOpenFile.hwndOwner = Wnd();
+							ofnOpenFile.lpstrFilter = wsFilter.c_str();
+							ofnOpenFile.nFilterIndex = 1;
+							ofnOpenFile.lpstrFile = szFileName.data();
+							ofnOpenFile.nMaxFile = DWORD( szFileName.size() );
+							ofnOpenFile.lpstrTitle = wsTitle.c_str();
+							ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+							ofnOpenFile.lpstrInitialDir = wsDir.c_str();
+
+							if ( ::GetOpenFileNameW( &ofnOpenFile ) ) {
+								static_cast<CWavEditorWindow *>(m_pwParent)->SetMetadata( ui32Id, ofnOpenFile.lpstrFile );
+							}
+						}
+					}
+				}
+				break;
+			}
 			case Layout::LSN_WEWI_FILES_REMOVE_BUTTON : {
 				if ( m_pwParent ) {
 					auto ptlTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));

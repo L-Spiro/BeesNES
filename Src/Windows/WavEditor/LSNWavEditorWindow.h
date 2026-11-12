@@ -103,6 +103,15 @@ namespace lsn {
 		virtual bool										AddWavFiles( const std::wstring &_wsPath, uint32_t _ui32Id = 0 );
 
 		/**
+		 * Loads a metadata file via the Add Metadata button and associates it with a WAV set, replacing any metadata it already has.
+		 * 
+		 * \param _ui32Id The unique ID of the WAV set.
+		 * \param _wsPath The path to the metadata file.
+		 * \return Returns true if the metadata file was loaded.  An error is shown on failure.
+		 **/
+		bool												SetMetadata( uint32_t _ui32Id, const std::wstring &_wsPath );
+
+		/**
 		 * Removes files by unique ID.
 		 * 
 		 * \param _vIds The array of unique ID's to remove.

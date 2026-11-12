@@ -306,6 +306,36 @@ namespace lsn {
 	}
 
 	/**
+	 * Loads a metadata file via the Add Metadata button and associates it with a WAV set, replacing any metadata it already has.
+	 * 
+	 * \param _ui32Id The unique ID of the WAV set.
+	 * \param _wsPath The path to the metadata file.
+	 * \return Returns true if the metadata file was loaded.  An error is shown on failure.
+	 **/
+	bool CWavEditorWindow::SetMetadata( uint32_t _ui32Id, const std::wstring &_wsPath ) {
+		if ( !m_weEditor.SetMetadata( _ui32Id, _wsPath ) ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_WE_ADD_META_FAILED ), LSN_LSTR( LSN_ERROR ) );
+			return false;
+		}
+
+		// As when the metadata is found automatically (see CWavEditorSequencingPage::InitTrack()), the start point is set to the first logged event.
+		//	Selections in the metadata combo boxes refer to the old metadata, so they are cleared.
+		auto pwfsSet = m_weEditor.WavById( _ui32Id );
+		auto ptTrack = TrackById( _ui32Id );
+		if ( pwfsSet && ptTrack && pwfsSet->vMetadata.size() ) {
+			try {
+				ptTrack->tSequencing.i32StartSelection = 0;
+				ptTrack->tSequencing.wsStartTime = std::format( L"{:.35g}", pwfsSet->vMetadata[0].dTime );
+				ptTrack->tSequencing.i32StopSelection = -1;
+			}
+			catch ( ... ) {}
+		}
+		if ( m_pwespSequencing ) { m_pwespSequencing->MetadataChanged( _ui32Id ); }
+		Update( true );
+		return true;
+	}
+
+	/**
 	 * Removes files by unique ID.
 	 * 
 	 * \param _vIds The array of unique ID's to remove.

@@ -22,6 +22,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 
@@ -205,6 +206,14 @@ namespace lsn {
 			}
 		};
 
+		/** A loop range found by FindLoops(). */
+		struct LSN_LOOP_RANGE {
+			size_t														sStart = 0;										/**< The index of the metadata entry that starts the first loop. */
+			size_t														sLoop = 0;										/**< The index of the metadata entry that starts the second loop (the first loop point). */
+			size_t														sEnd = 0;										/**< The index of the metadata entry that ends the last requested loop. */
+			size_t														sMismatches = 0;								/**< The number of events that did not match the first loop. */
+		};
+
 		/** A single WAV file. */
 		struct LSN_WAV_FILE {
 			std::wstring												wsPath;											/**< Path to the file. */
@@ -354,6 +363,35 @@ namespace lsn {
 		 **/
 		bool															LoadFromStruct( const LSN_WAV_EDITOR_WINDOW_OPTIONS &_wewoOptions );
 
+		/**
+		 * Loads a metadata file and associates it with a WAV set, replacing any metadata it already has.
+		 *
+		 * \param _ui32Id The unique ID of the WAV set.
+		 * \param _wsPath The path to the metadata file.
+		 * \return Returns true if the WAV set exists and the metadata file was loaded and parsed.  On failure, the WAV set is left unchanged.
+		 **/
+		bool															SetMetadata( uint32_t _ui32Id, const std::wstring &_wsPath );
+
+		/**
+		 * Searches metadata for ranges of logged events that repeat a given number of times.  The first loop is the range of events from a
+		 *	starting event near _dStart up to (but not including) a matching event near _dLoop.  Each following loop is found by matching the
+		 *	events of the first loop, in order, against the events that follow, so the timing of the events may vary from loop to loop.  Small
+		 *	differences (such as two writes landing in the same sample in one loop and in different samples in another) are tolerated up to
+		 *	_dMaxMismatch percent of the events in the first loop.
+		 *
+		 * \param _vMetadata The metadata to search.
+		 * \param _dStart The approximate time of the start of the first loop.
+		 * \param _dLoop The approximate time of the first loop point (the start of the second loop).
+		 * \param _dRange How far (in seconds) from _dStart and _dLoop to search.
+		 * \param _ui32Loops The number of loops to find.
+		 * \param _dMaxMismatch The percent of the events in the first loop that may fail to match in each of the following loops combined.
+		 * \param _vResults Holds the returned loop ranges, sorted best first.
+		 * \param _sMaxResults The maximum number of results to return.
+		 * \return Returns false if there was a memory failure.
+		 **/
+		static bool														FindLoops( const std::vector<LSN_METADATA> &_vMetadata, double _dStart, double _dLoop, double _dRange,
+			uint32_t _ui32Loops, double _dMaxMismatch, std::vector<LSN_LOOP_RANGE> &_vResults, size_t _sMaxResults = 1000 );
+
 
 	protected :
 		// == Members.
@@ -379,6 +417,21 @@ namespace lsn {
 		 * \return Returns false if the file does not exist or could not be accessed or is not a WAV file.
 		 **/
 		bool															CreateWavFile( const std::wstring &_wsPath, LSN_WAV_FILE &_wfData );
+
+		/**
+		 * Follows one loop:  matches the events of the first loop, in order, against the events starting at a given index.
+		 *
+		 * \param _vIds The event ID's (one per metadata entry; equal ID's mean equal event texts).
+		 * \param _sLoopStart The index of the first event of the first loop.
+		 * \param _sLoopEnd The index one past the last event of the first loop.
+		 * \param _sPos The index of the first event of the loop to follow.
+		 * \param _sMaxMismatches The total number of mismatches allowed.
+		 * \param _sMismatches The running total of mismatches, updated by this function.
+		 * \param _bAllowTruncated If true, running out of events before the end of the loop counts as success.
+		 * \return Returns the index of the first event after the followed loop or SIZE_MAX if the loop could not be followed.
+		 **/
+		static size_t													FollowLoop( const std::vector<uint32_t> &_vIds, size_t _sLoopStart, size_t _sLoopEnd, size_t _sPos,
+			size_t _sMaxMismatches, size_t &_sMismatches, bool _bAllowTruncated );
 
 		/**
 		 * Loads and parses a metadata file.

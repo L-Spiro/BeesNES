@@ -1019,6 +1019,61 @@ namespace lsn {
 	}
 
 	/**
+	 * Prepares a black frame for the next Render(), for use before anything has been rendered (at start-up):  a temporary buffer in
+	 *	the input format of the current filter, filled with black, becomes the render target.  Does nothing once a frame has been
+	 *	swapped in.  Should be called inside the same citical section/mutex as Render().
+	 *
+	 * \return Returns true if a black frame was prepared.
+	 */
+	bool CBeesNes::PrepareBlankFrame() {
+		if ( m_cfartCurFilterAndTargets.pfbPrevFilter ) { return false; }
+		CFilterBase * pfbFilter = m_cfartCurFilterAndTargets.pfbCurFilter ? m_cfartCurFilterAndTargets.pfbCurFilter : m_cfartCurFilterAndTargets.pfbNextFilter;
+		if ( !pfbFilter || !pfbFilter->OutputBuffer() ) { return false; }
+		const uint32_t ui32W = pfbFilter->OutputWidth(), ui32H = pfbFilter->OutputHeight();
+		const uint32_t ui32Stride = uint32_t( pfbFilter->OutputStride() );
+		if ( !ui32W || !ui32H || !ui32Stride ) { return false; }
+		try {
+			m_vBlankFrame.assign( size_t( ui32Stride ) * ui32H, 0 );
+		}
+		catch ( ... ) { return false; }
+		// Black in the input format of the filter (palette entry 0x0F, or RGB 0 with opaque alpha).
+		switch ( pfbFilter->InputFormat() ) {
+			case CDisplayClient::LSN_POF_6BIT_PALETTE : {
+				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
+					std::memset( &m_vBlankFrame[size_t( Y )*ui32Stride], 0x0F, ui32W );
+				}
+				break;
+			}
+			case CDisplayClient::LSN_POF_9BIT_PALETTE : {
+				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
+					uint16_t * pui16Row = reinterpret_cast<uint16_t *>(&m_vBlankFrame[size_t( Y )*ui32Stride]);
+					for ( uint32_t X = 0; X < ui32W; ++X ) { pui16Row[X] = 0x0F; }
+				}
+				break;
+			}
+			case CDisplayClient::LSN_POF_RGB32 : {
+				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
+					uint8_t * pui8Row = &m_vBlankFrame[size_t( Y )*ui32Stride];
+					for ( uint32_t X = 0; X < ui32W; ++X ) { pui8Row[X*4+3] = 0xFF; }
+				}
+				break;
+			}
+			default : {}	// RGB:  all 0.
+		}
+		m_cfartCurFilterAndTargets.pfbPrevFilter = pfbFilter;
+		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_vBlankFrame.data();
+		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( pfbFilter->OutputBits() );
+		m_cfartCurFilterAndTargets.ui32Width = ui32W;
+		m_cfartCurFilterAndTargets.ui32Height = ui32H;
+		m_cfartCurFilterAndTargets.ui32Stride = ui32Stride;
+		m_cfartCurFilterAndTargets.ui64Frame = 0;
+		m_cfartCurFilterAndTargets.ui64RenderStartCycle = 0;
+		m_cfartCurFilterAndTargets.bMirrored = pfbFilter->FlipInput();
+		m_cfartCurFilterAndTargets.bDirty = true;
+		return true;
+	}
+
+	/**
 	 * Swaps PPU render targets and switches to the next filter if a new filter has been set.
 	 *	Should be called inside the same citical section/mutex as Render().
 	 *

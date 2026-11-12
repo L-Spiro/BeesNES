@@ -2181,6 +2181,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePage.h" />
     <ClInclude Include="Src\Windows\Templates\LSNTemplatePageLayout.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFileSettingsPage.h" />
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindow.h" />
+    <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindowLayout.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorOutputPage.h" />
     <ClInclude Include="Src\Windows\WavEditor\LSNWavEditorSequencingPage.h" />
@@ -2388,6 +2390,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePage.cpp" />
     <ClCompile Include="Src\Windows\Templates\LSNTemplatePageLayout.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFileSettingsPage.cpp" />
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindow.cpp" />
+    <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFindLoopsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorFilesPage.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorOutputPage.cpp" />
     <ClCompile Include="Src\Windows\WavEditor\LSNWavEditorSequencingPage.cpp" />

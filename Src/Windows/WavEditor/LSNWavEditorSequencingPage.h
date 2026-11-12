@@ -153,6 +153,29 @@ namespace lsn {
 		uint32_t											UniqueId() const { return m_ui32Id; }
 
 		/**
+		 * Informs the page that the metadata of a WAV set was replaced.  The metadata combo boxes are refilled if they show that WAV set.
+		 * 
+		 * \param _ui32Id The unique ID of the WAV set whose metadata changed.
+		 **/
+		void												MetadataChanged( uint32_t _ui32Id ) {
+			if ( m_ui32MetaId == _ui32Id ) { m_ui32MetaId = 0; }
+			if ( m_ui32Id == _ui32Id ) {
+				FillCombos();
+				Update();
+			}
+		}
+
+		/**
+		 * Gets the text shown for a metadata entry in the metadata combo boxes.
+		 * 
+		 * \param _vMetadata The metadata.
+		 * \param _sIdx The index of the entry in _vMetadata.
+		 * \return Returns the text to show for the entry.
+		 **/
+		static std::string									MetadataText( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx );
+
+
+		/**
 		 * Handles the WM_COMMAND message.
 		 *
 		 * \param _wCtrlCode 0 = from menu, 1 = from accelerator, otherwise it is a Control-defined notification code.
@@ -236,6 +259,11 @@ namespace lsn {
 		 **/
 		void												FillCombos();
 
+		/**
+		 * Opens the Find Loop Points dialog for the shown track and applies the chosen ending point to the stopping-point controls.
+		 **/
+		void												FindLoops();
+
 
 	protected :
 		// == Members.
@@ -268,15 +296,6 @@ namespace lsn {
 		 * \return Returns true if _pwCombo is a valid pointer to a combo box and _vMetadata is not empty.
 		 **/
 		bool												FillComboWithMetadata( CWidget * _pwCombo, const std::vector<CWavEditor::LSN_METADATA> &_vMetadata );
-
-		/**
-		 * Gets the text shown for a metadata entry in the metadata combo boxes.
-		 * 
-		 * \param _vMetadata The metadata.
-		 * \param _sIdx The index of the entry in _vMetadata.
-		 * \return Returns the text to show for the entry.
-		 **/
-		static std::string									MetadataText( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx );
 
 		/**
 		 * Gets the unique ID's of the tracks to which changes in the controls are applied.  This is the shown track or else the selected tracks (or

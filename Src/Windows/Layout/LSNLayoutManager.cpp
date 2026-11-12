@@ -29,6 +29,7 @@
 #include "../VideoRecording/LSNVideoRecordingWindow.h"
 #include "../WavEditor/LSNWavEditorFileSettingsPage.h"
 #include "../WavEditor/LSNWavEditorFilesPage.h"
+#include "../WavEditor/LSNWavEditorFindLoopsWindow.h"
 #include "../WavEditor/LSNWavEditorOutputPage.h"
 #include "../WavEditor/LSNWavEditorSequencingPage.h"
 #include "../WavEditor/LSNWavEditorWindow.h"
@@ -102,6 +103,9 @@ namespace lsn {
 			}
 			case LSN_LT_WAV_EDITOR_OUTPUT : {
 				return new CWavEditorOutputPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
+			}
+			case LSN_LT_WAV_EDITOR_FIND_LOOPS_DIALOG : {
+				return new CWavEditorFindLoopsWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
 			}
 
 			case LSN_LT_CHEATS : {
