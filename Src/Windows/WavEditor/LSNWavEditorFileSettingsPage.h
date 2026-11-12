@@ -255,6 +255,13 @@ namespace lsn {
 
 
 	protected :
+		// == Enumerations.
+		/** The version of Characteristics files. */
+		enum : uint8_t {
+			LSN_CHARACTERISTICS_VERSION						= 1,
+		};
+
+
 		// == Members.
 		/** The WAV Editor object. */
 		CWavEditor *										m_pweEditor = nullptr;
@@ -272,6 +279,12 @@ namespace lsn {
 		static const WORD									m_wComboIds[];
 		/** The check boxes whose check states are stored per track. */
 		static const WORD									m_wCheckIds[];
+		/** The edit controls saved in Characteristics files, in file order. */
+		static const WORD									m_wCharEditIds[9];
+		/** The filter-type combo boxes saved in Characteristics files (as item data), in file order. */
+		static const WORD									m_wCharComboIds[4];
+		/** The check boxes saved in Characteristics files, in file order. */
+		static const WORD									m_wCharCheckIds[9];
 
 
 		// == Functions.
@@ -292,6 +305,23 @@ namespace lsn {
 		 * \return Returns the index of the item with the given data or -1.
 		 **/
 		int32_t												ComboIndex( WORD _wId, LPARAM _lpData );
+
+		/**
+		 * Gets the folder in which Characteristics files are saved (.\WAVEditor\ next to the executable).
+		 * 
+		 * \return Returns the folder, including the trailing separator.
+		 **/
+		static std::wstring									CharacteristicsFolder();
+
+		/**
+		 * Saves the values in the Characteristics group to a file chosen by the user.
+		 **/
+		void												SaveCharacteristics();
+
+		/**
+		 * Loads a Characteristics file chosen by the user and applies its values to the tracks being edited.
+		 **/
+		void												LoadCharacteristics();
 
 		/**
 		 * Gets the item data of an item in a combo box.

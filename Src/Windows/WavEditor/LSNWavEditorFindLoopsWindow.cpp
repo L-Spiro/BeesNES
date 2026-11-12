@@ -62,6 +62,9 @@ namespace lsn {
 			if ( pwThis ) { pwThis->SetTextW( tTexts[I].pwsText->c_str() ); }
 		}
 
+		UpdateResultLabel( Layout::LSN_WFLI_START_EDIT, Layout::LSN_WFLI_START_RESULT_LABEL );
+		UpdateResultLabel( Layout::LSN_WFLI_LOOP_EDIT, Layout::LSN_WFLI_LOOP_RESULT_LABEL );
+
 		auto pwStart = FindChild( Layout::LSN_WFLI_START_EDIT );
 		if ( pwStart ) { ::SetFocus( pwStart->Wnd() ); }
 		return LSW_H_HANDLED;
@@ -92,6 +95,14 @@ namespace lsn {
 			case Layout::LSN_WFLI_FIND : {
 				Find();
 				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_WFLI_START_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE ) { UpdateResultLabel( _wId, Layout::LSN_WFLI_START_RESULT_LABEL ); }
+				break;
+			}
+			case Layout::LSN_WFLI_LOOP_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE ) { UpdateResultLabel( _wId, Layout::LSN_WFLI_LOOP_RESULT_LABEL ); }
+				break;
 			}
 			case Layout::LSN_WFLI_LISTBOX : {
 				switch ( _wCtrlCode ) {
@@ -303,6 +314,34 @@ namespace lsn {
 			::SetFocus( pwEdit->Wnd() );
 			::SendMessageW( pwEdit->Wnd(), EM_SETSEL, 0, -1 );
 		}
+	}
+
+	/**
+	 * Shows the evaluated value of a time edit control (which often holds an expression such as a sample number divided by a sample rate) in
+	 *	seconds in the label to its right.
+	 *
+	 * \param _wEditId The ID of the edit control.
+	 * \param _wLabelId The ID of the label.
+	 */
+	void CWavEditorFindLoopsWindow::UpdateResultLabel( WORD _wEditId, WORD _wLabelId ) {
+		auto pwEdit = FindChild( _wEditId );
+		auto pwLabel = FindChild( _wLabelId );
+		if ( !pwEdit || !pwLabel ) { return; }
+		try {
+			std::wstring wsText = pwEdit->GetTextW();
+			if ( wsText.find_first_not_of( L" \t\r\n" ) == std::wstring::npos ) {
+				pwLabel->SetTextW( L"" );
+				return;
+			}
+			ee::CExpEvalContainer::EE_RESULT rRes;
+			if ( pwEdit->GetTextAsDoubleExpression( rRes ) && !std::isnan( rRes.u.dVal ) ) {
+				pwLabel->SetTextW( std::format( LSN_LSTR( LSN_WE_FL_SECONDS ), rRes.u.dVal ).c_str() );
+			}
+			else {
+				pwLabel->SetTextW( LSN_LSTR( LSN_WE_FL_INVALID ) );
+			}
+		}
+		catch ( ... ) {}
 	}
 
 	/**

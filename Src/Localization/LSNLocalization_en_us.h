@@ -420,14 +420,16 @@
 #define LSN_WE_ONE_SHOT														One-Shot
 #define LSN_WE_FIND_LOOPS													Find Loop Points
 #define LSN_WE_FL_SEARCH													Search
-#define LSN_WE_FL_START														Approximate Loop Start (Seconds):
-#define LSN_WE_FL_LOOP														Approximate First Loop Point (Seconds):
-#define LSN_WE_FL_LOOPS														Number of Loops:
+#define LSN_WE_FL_START														Approximate Loop Start:
+#define LSN_WE_FL_LOOP														Approximate First Loop Point:
+#define LSN_WE_FL_LOOPS														Loops:
 #define LSN_WE_FL_RANGE														Search Range (\u00B1 Seconds):
-#define LSN_WE_FL_MISMATCH													Allowed Mismatched Events (%):
+#define LSN_WE_FL_MISMATCH													Mismatches (%):
 #define LSN_WE_FL_FIND														Find
 #define LSN_WE_FL_RESULTS													Possible Loop Ranges
 #define LSN_WE_FL_APPLY														Apply
+#define LSN_WE_FL_SECONDS													= {:.7f} seconds
+#define LSN_WE_FL_INVALID													(Invalid Expression)
 #define LSN_WE_FL_ITEM_START												Start:
 #define LSN_WE_FL_ITEM_END													End:
 #define LSN_WE_FL_FIRST_LOOP												First Loop Point:
@@ -439,8 +441,9 @@
 #define LSN_WE_FL_ERR_LOOP													The approximate first loop point must be a valid expression.
 #define LSN_WE_FL_ERR_LOOPS													The number of loops must be a valid expression resulting in a value of at least 1.
 #define LSN_WE_FL_ERR_RANGE													The search range must be a valid expression resulting in a non-negative value.
-#define LSN_WE_FL_ERR_MISMATCH												The allowed mismatched events must be a valid expression resulting in a value between 0 and 100.
+#define LSN_WE_FL_ERR_MISMATCH												The allowed mismatches must be a valid expression resulting in a value between 0 and 100.
 #define LSN_WE_ADD_META_FAILED												The metadata file could not be loaded.  It must be a metadata file logged during audio recording.
+#define LSN_WE_CHAR_FILES													WAV Characteristics (*.bwc)\0*.bwc\0
 #define LSN_WE_START														Start:
 #define LSN_WE_END															End:
 #define LSN_WE_DELAY														Pre-Fade Dur.:

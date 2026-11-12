@@ -15,20 +15,33 @@
 
 namespace lsn {
 
-#define LSN_FL_W												420
+#define LSN_FL_W												360
 #define LSN_FL_GROUP_W											(LSN_FL_W - LSN_LEFT_JUST * 2)
+#define LSN_FL_L												(LSN_LEFT_JUST + LSN_GROUP_LEFT)
 #define LSN_FL_INNER_W											(LSN_FL_GROUP_W - LSN_GROUP_LEFT * 2)
-#define LSN_FL_LABEL_L											(LSN_LEFT_JUST + LSN_GROUP_LEFT)
-#define LSN_FL_LABEL_W											140
+#define LSN_FL_INNER_R											(LSN_FL_L + LSN_FL_INNER_W)
+#define LSN_FL_GAP												4
 #define LSN_FL_LABEL_OFF										((LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2)
-#define LSN_FL_EDIT_L											(LSN_FL_LABEL_L + LSN_FL_LABEL_W + LSN_LEFT_JUST)
-#define LSN_FL_EDIT_W											100
 #define LSN_FL_ROW_H											(LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST)
 #define LSN_FL_ROW_T( IDX )										(LSN_TOP_JUST + LSN_GROUP_TOP + LSN_FL_ROW_H * (IDX))
-#define LSN_FL_SEARCH_H											(LSN_GROUP_TOP + LSN_FL_ROW_H * 5 - LSN_TOP_JUST + LSN_GROUP_BOTTOM)
+#define LSN_FL_TIME_LABEL_W										100
+#define LSN_FL_TIME_EDIT_L										(LSN_FL_L + LSN_FL_TIME_LABEL_W + LSN_FL_GAP)
+#define LSN_FL_TIME_EDIT_W										150
+#define LSN_FL_TIME_RESULT_L									(LSN_FL_TIME_EDIT_L + LSN_FL_TIME_EDIT_W + LSN_FL_GAP)
+#define LSN_FL_TIME_RESULT_W									(LSN_FL_INNER_R - LSN_FL_TIME_RESULT_L)
+#define LSN_FL_SMALL_EDIT_W										30
+#define LSN_FL_LOOPS_LABEL_W									24
+#define LSN_FL_LOOPS_EDIT_L										(LSN_FL_L + LSN_FL_LOOPS_LABEL_W + LSN_FL_GAP)
+#define LSN_FL_RANGE_LABEL_L									(LSN_FL_LOOPS_EDIT_L + LSN_FL_SMALL_EDIT_W + LSN_FL_GAP * 3)
+#define LSN_FL_RANGE_LABEL_W									82
+#define LSN_FL_RANGE_EDIT_L										(LSN_FL_RANGE_LABEL_L + LSN_FL_RANGE_LABEL_W + LSN_FL_GAP)
+#define LSN_FL_MISMATCH_LABEL_L									(LSN_FL_RANGE_EDIT_L + LSN_FL_SMALL_EDIT_W + LSN_FL_GAP * 3)
+#define LSN_FL_MISMATCH_LABEL_W									54
+#define LSN_FL_MISMATCH_EDIT_L									(LSN_FL_MISMATCH_LABEL_L + LSN_FL_MISMATCH_LABEL_W + LSN_FL_GAP)
+#define LSN_FL_SEARCH_H											(LSN_GROUP_TOP + LSN_FL_ROW_H * 3 - LSN_TOP_JUST + LSN_GROUP_BOTTOM)
 #define LSN_FL_RESULTS_T										(LSN_TOP_JUST + LSN_FL_SEARCH_H + LSN_TOP_JUST)
-#define LSN_FL_LIST_H											140
-#define LSN_FL_DETAILS_H										44
+#define LSN_FL_LIST_H											104
+#define LSN_FL_DETAILS_H										42
 #define LSN_FL_RESULTS_H										(LSN_GROUP_TOP + LSN_FL_LIST_H + LSN_TOP_JUST + LSN_FL_DETAILS_H + LSN_GROUP_BOTTOM)
 #define LSN_FL_H												(LSN_FL_RESULTS_T + LSN_FL_RESULTS_H + LSN_TOP_JUST + LSN_DEF_BUTTON_HEIGHT + LSN_TOP_JUST)
 
@@ -73,9 +86,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
+			LSN_FL_L,										// iLeft
 			LSN_FL_ROW_T( 0 ) + LSN_FL_LABEL_OFF,			// iTop
-			LSN_FL_LABEL_W,									// dwWidth
+			LSN_FL_TIME_LABEL_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -89,12 +102,28 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			TRUE,											// bActive
-			LSN_FL_EDIT_L,									// iLeft
+			LSN_FL_TIME_EDIT_L,								// iLeft
 			LSN_FL_ROW_T( 0 ),								// iTop
-			LSN_FL_EDIT_W,									// dwWidth
+			LSN_FL_TIME_EDIT_W,								// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_WFLI_DIALOG,					// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			CWinUtilities::LSN_WFLI_START_RESULT_LABEL,		// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_FL_TIME_RESULT_L,							// iLeft
+			LSN_FL_ROW_T( 0 ) + LSN_FL_LABEL_OFF,			// iTop
+			LSN_FL_TIME_RESULT_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			CWinUtilities::LSN_WFLI_DIALOG,					// dwParentId
@@ -105,9 +134,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
+			LSN_FL_L,										// iLeft
 			LSN_FL_ROW_T( 1 ) + LSN_FL_LABEL_OFF,			// iTop
-			LSN_FL_LABEL_W,									// dwWidth
+			LSN_FL_TIME_LABEL_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -121,12 +150,28 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_EDIT_L,									// iLeft
+			LSN_FL_TIME_EDIT_L,								// iLeft
 			LSN_FL_ROW_T( 1 ),								// iTop
-			LSN_FL_EDIT_W,									// dwWidth
+			LSN_FL_TIME_EDIT_W,								// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_WFLI_DIALOG,					// dwParentId
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			CWinUtilities::LSN_WFLI_LOOP_RESULT_LABEL,		// wId
+			nullptr,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_FL_TIME_RESULT_L,							// iLeft
+			LSN_FL_ROW_T( 1 ) + LSN_FL_LABEL_OFF,			// iTop
+			LSN_FL_TIME_RESULT_W,							// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			0,												// dwStyleEx
 			nullptr,										// pwcText
 			0,												// sTextLen
 			CWinUtilities::LSN_WFLI_DIALOG,					// dwParentId
@@ -137,9 +182,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
+			LSN_FL_L,										// iLeft
 			LSN_FL_ROW_T( 2 ) + LSN_FL_LABEL_OFF,			// iTop
-			LSN_FL_LABEL_W,									// dwWidth
+			LSN_FL_LOOPS_LABEL_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -153,9 +198,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_EDIT_L,									// iLeft
+			LSN_FL_LOOPS_EDIT_L,							// iLeft
 			LSN_FL_ROW_T( 2 ),								// iTop
-			LSN_FL_EDIT_W,									// dwWidth
+			LSN_FL_SMALL_EDIT_W,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -169,9 +214,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
-			LSN_FL_ROW_T( 3 ) + LSN_FL_LABEL_OFF,			// iTop
-			LSN_FL_LABEL_W,									// dwWidth
+			LSN_FL_RANGE_LABEL_L,							// iLeft
+			LSN_FL_ROW_T( 2 ) + LSN_FL_LABEL_OFF,			// iTop
+			LSN_FL_RANGE_LABEL_W,							// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -185,9 +230,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_EDIT_L,									// iLeft
-			LSN_FL_ROW_T( 3 ),								// iTop
-			LSN_FL_EDIT_W,									// dwWidth
+			LSN_FL_RANGE_EDIT_L,							// iLeft
+			LSN_FL_ROW_T( 2 ),								// iTop
+			LSN_FL_SMALL_EDIT_W,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -201,9 +246,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
-			LSN_FL_ROW_T( 4 ) + LSN_FL_LABEL_OFF,			// iTop
-			LSN_FL_LABEL_W,									// dwWidth
+			LSN_FL_MISMATCH_LABEL_L,						// iLeft
+			LSN_FL_ROW_T( 2 ) + LSN_FL_LABEL_OFF,			// iTop
+			LSN_FL_MISMATCH_LABEL_W,						// dwWidth
 			LSN_DEF_STATIC_HEIGHT,							// dwHeight
 			LSN_STATICSTYLE,								// dwStyle
 			0,												// dwStyleEx
@@ -217,9 +262,9 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_EDIT_L,									// iLeft
-			LSN_FL_ROW_T( 4 ),								// iTop
-			LSN_FL_EDIT_W,									// dwWidth
+			LSN_FL_MISMATCH_EDIT_L,							// iLeft
+			LSN_FL_ROW_T( 2 ),								// iTop
+			LSN_FL_SMALL_EDIT_W,							// dwWidth
 			LSN_DEF_EDIT_HEIGHT,							// dwHeight
 			LSN_EDITSTYLE,									// dwStyle
 			WS_EX_CLIENTEDGE,								// dwStyleEx
@@ -233,8 +278,8 @@ namespace lsn {
 			WC_BUTTONW,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_W - LSN_LEFT_JUST - LSN_GROUP_LEFT - LSN_DEF_BUTTON_WIDTH,	// iLeft
-			LSN_FL_ROW_T( 4 ),								// iTop
+			LSN_FL_INNER_R - LSN_DEF_BUTTON_WIDTH,			// iLeft
+			LSN_FL_ROW_T( 2 ),								// iTop
 			LSN_DEF_BUTTON_WIDTH,							// dwWidth
 			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
 			LSN_DEFBUTTONSTYLE,								// dwStyle
@@ -265,7 +310,7 @@ namespace lsn {
 			WC_LISTBOXW,									// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
+			LSN_FL_L,										// iLeft
 			LSN_FL_RESULTS_T + LSN_GROUP_TOP,				// iTop
 			LSN_FL_INNER_W,									// dwWidth
 			LSN_FL_LIST_H,									// dwHeight
@@ -281,7 +326,7 @@ namespace lsn {
 			nullptr,										// lpwcClass
 			TRUE,											// bEnabled
 			FALSE,											// bActive
-			LSN_FL_LABEL_L,									// iLeft
+			LSN_FL_L,										// iLeft
 			LSN_FL_RESULTS_T + LSN_GROUP_TOP + LSN_FL_LIST_H + LSN_TOP_JUST,	// iTop
 			LSN_FL_INNER_W,									// dwWidth
 			LSN_FL_DETAILS_H,								// dwHeight
@@ -331,14 +376,27 @@ namespace lsn {
 #undef LSN_FL_LIST_H
 #undef LSN_FL_RESULTS_T
 #undef LSN_FL_SEARCH_H
+#undef LSN_FL_MISMATCH_EDIT_L
+#undef LSN_FL_MISMATCH_LABEL_W
+#undef LSN_FL_MISMATCH_LABEL_L
+#undef LSN_FL_RANGE_EDIT_L
+#undef LSN_FL_RANGE_LABEL_W
+#undef LSN_FL_RANGE_LABEL_L
+#undef LSN_FL_LOOPS_EDIT_L
+#undef LSN_FL_LOOPS_LABEL_W
+#undef LSN_FL_SMALL_EDIT_W
+#undef LSN_FL_TIME_RESULT_W
+#undef LSN_FL_TIME_RESULT_L
+#undef LSN_FL_TIME_EDIT_W
+#undef LSN_FL_TIME_EDIT_L
+#undef LSN_FL_TIME_LABEL_W
 #undef LSN_FL_ROW_T
 #undef LSN_FL_ROW_H
-#undef LSN_FL_EDIT_W
-#undef LSN_FL_EDIT_L
 #undef LSN_FL_LABEL_OFF
-#undef LSN_FL_LABEL_W
-#undef LSN_FL_LABEL_L
+#undef LSN_FL_GAP
+#undef LSN_FL_INNER_R
 #undef LSN_FL_INNER_W
+#undef LSN_FL_L
 #undef LSN_FL_GROUP_W
 #undef LSN_FL_W
 

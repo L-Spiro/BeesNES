@@ -123,6 +123,15 @@ namespace lsn {
 		void															EditError( WORD _wId, const wchar_t * _pwcError );
 
 		/**
+		 * Shows the evaluated value of a time edit control (which often holds an expression such as a sample number divided by a sample rate) in
+		 *	seconds in the label to its right.
+		 *
+		 * \param _wEditId The ID of the edit control.
+		 * \param _wLabelId The ID of the label.
+		 */
+		void															UpdateResultLabel( WORD _wEditId, WORD _wLabelId );
+
+		/**
 		 * Gets the text of a metadata entry as it is shown in the metadata combo boxes of the WAV Editor.
 		 *
 		 * \param _sIdx The index of the metadata entry.

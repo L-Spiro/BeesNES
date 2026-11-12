@@ -13,6 +13,7 @@
 #include "../Layout/LSNLayoutMacros.h"
 #include "../WinUtilities/LSNWinUtilities.h"
 #include "LSNWavEditorWindow.h"
+#include "../../File/LSNFileStream.h"
 
 #include <CheckButton/LSWCheckButton.h>
 #include <ComboBox/LSWComboBox.h>
@@ -60,6 +61,40 @@ namespace lsn {
 
 	/** The check boxes whose check states are stored per track. */
 	const WORD CWavEditorFileSettingsPage::m_wCheckIds[] = {
+		Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_RF_1_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_RF_2_CHECK,
+		Layout::LSN_WEWI_FSETS_CHAR_SUNSOFT_5B_CHECK,
+	};
+
+	/** The edit controls saved in Characteristics files, in file order. */
+	const WORD CWavEditorFileSettingsPage::m_wCharEditIds[] = {
+		Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_FALLOFF_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_EDIT,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_FALLOFF_EDIT,
+	};
+
+	/** The filter-type combo boxes saved in Characteristics files (as item data), in file order. */
+	const WORD CWavEditorFileSettingsPage::m_wCharComboIds[] = {
+		Layout::LSN_WEWI_FSETS_CHAR_LPF_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF0_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF1_TYPE_COMBO,
+		Layout::LSN_WEWI_FSETS_CHAR_HPF2_TYPE_COMBO,
+	};
+
+	/** The check boxes saved in Characteristics files, in file order. */
+	const WORD CWavEditorFileSettingsPage::m_wCharCheckIds[] = {
 		Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK,
 		Layout::LSN_WEWI_FSETS_CHAR_INV_CHECK,
 		Layout::LSN_WEWI_FSETS_CHAR_LPF_CHECK,
@@ -328,6 +363,14 @@ namespace lsn {
 					}
 				}
 				
+				break;
+			}
+			case Layout::LSN_WEWI_FSETS_CHAR_SAVE_BUTTON : {
+				if ( _wCtrlCode == BN_CLICKED ) { SaveCharacteristics(); }
+				break;
+			}
+			case Layout::LSN_WEWI_FSETS_CHAR_LOAD_BUTTON : {
+				if ( _wCtrlCode == BN_CLICKED ) { LoadCharacteristics(); }
 				break;
 			}
 			case Layout::LSN_WEWI_FSETS_FDATA_HZ_COMBO : {}				LSN_FALLTHROUGH
@@ -1164,6 +1207,192 @@ namespace lsn {
 
 			// Whatever is left should be updated, even if there is nothing left.
 		}
+	}
+
+	/**
+	 * Gets the folder in which Characteristics files are saved (.\WAVEditor\ next to the executable).
+	 *
+	 * \return Returns the folder, including the trailing separator.
+	 **/
+	std::wstring CWavEditorFileSettingsPage::CharacteristicsFolder() {
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 );
+		DWORD dwLen = ::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		wsBuffer.resize( dwLen );
+		size_t sPos = wsBuffer.find_last_of( L"\\/" );
+		std::wstring wsRoot = sPos == std::wstring::npos ? std::wstring() : wsBuffer.substr( 0, sPos + 1 );
+		return wsRoot + L"WAVEditor\\";
+	}
+
+	/**
+	 * Saves the values in the Characteristics group to a file chosen by the user.
+	 **/
+	void CWavEditorFileSettingsPage::SaveCharacteristics() {
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_WE_CHAR_FILES ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
+		try {
+			std::wstring wsFolder = CharacteristicsFolder();
+			std::error_code ecErr;
+			if ( !std::filesystem::create_directories( wsFolder, ecErr ) && ecErr ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_CREATE_DIRECTORIES ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+			std::wstring wsFileName;
+			wsFileName.resize( 0xFFFF + 2 );
+			ofnOpenFile.hwndOwner = Wnd();
+			ofnOpenFile.lpstrFilter = LSN_FILE_OPEN_FORMAT;
+			ofnOpenFile.lpstrFile = wsFileName.data();
+			ofnOpenFile.nMaxFile = DWORD( wsFileName.size() );
+			ofnOpenFile.nFilterIndex = 1;
+			ofnOpenFile.lpstrDefExt = L"bwc";
+			ofnOpenFile.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+			ofnOpenFile.lpstrInitialDir = wsFolder.c_str();
+			if ( !::GetSaveFileNameW( &ofnOpenFile ) ) { return; }
+
+			auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+			if ( !pPath.has_extension() ) { pPath += L".bwc"; }
+
+			CStdFile sfFile;
+			if ( !sfFile.Create( pPath.generic_u16string().c_str() ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_CREATE_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			CFileStream sStream( sfFile );
+
+			auto aText = [&]( WORD _wId ) {
+				auto pwThis = FindChild( _wId );
+				return pwThis ? pwThis->GetTextW() : std::wstring();
+			};
+			auto aCheck = [&]( WORD _wId ) {
+				auto pwThis = FindChild( _wId );
+				return pwThis ? pwThis->IsChecked() : false;
+			};
+			auto aType = [&]( WORD _wId ) {
+				auto pwThis = FindChild( _wId );
+				return uint8_t( pwThis ? ComboData( _wId, pwThis->GetCurSel(), CWavEditor::LSN_F_POLE ) : CWavEditor::LSN_F_POLE );
+			};
+
+			bool bOk = sStream.WriteUi8( 'B' ) && sStream.WriteUi8( 'W' ) && sStream.WriteUi8( 'C' ) && sStream.WriteUi8( 'H' ) &&
+				sStream.WriteUi8( LSN_CHARACTERISTICS_VERSION );
+			for ( size_t I = 0; I < std::size( m_wCharEditIds ) && bOk; ++I ) {
+				bOk = sStream.WriteStringU16( aText( m_wCharEditIds[I] ) );
+			}
+			for ( size_t I = 0; I < std::size( m_wCharComboIds ) && bOk; ++I ) {
+				bOk = sStream.WriteUi8( aType( m_wCharComboIds[I] ) );
+			}
+			for ( size_t I = 0; I < std::size( m_wCharCheckIds ) && bOk; ++I ) {
+				bOk = sStream.WriteBool( aCheck( m_wCharCheckIds[I] ) );
+			}
+			if ( !bOk ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+		}
+		catch ( ... ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+		}
+#undef LSN_FILE_OPEN_FORMAT
+	}
+
+	/**
+	 * Loads a Characteristics file chosen by the user and applies its values to the tracks being edited.
+	 **/
+	void CWavEditorFileSettingsPage::LoadCharacteristics() {
+#define LSN_FILE_OPEN_FORMAT				LSN_LSTR( LSN_WE_CHAR_FILES ) LSN_LSTR( LSN_ALL_FILES___________ ) L"\0"
+		try {
+			std::wstring wsFolder = CharacteristicsFolder();
+			OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+			std::wstring wsFileName;
+			wsFileName.resize( 0xFFFF + 2 );
+			ofnOpenFile.hwndOwner = Wnd();
+			ofnOpenFile.lpstrFilter = LSN_FILE_OPEN_FORMAT;
+			ofnOpenFile.lpstrFile = wsFileName.data();
+			ofnOpenFile.nMaxFile = DWORD( wsFileName.size() );
+			ofnOpenFile.nFilterIndex = 1;
+			ofnOpenFile.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+			ofnOpenFile.lpstrInitialDir = wsFolder.c_str();
+			if ( !::GetOpenFileNameW( &ofnOpenFile ) ) { return; }
+
+			auto pPath = std::filesystem::path( ofnOpenFile.lpstrFile );
+			CStdFile sfFile;
+			if ( !sfFile.Open( pPath.generic_u16string().c_str() ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_OPEN_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			CFileStream sStream( sfFile );
+
+			// Read everything before changing anything.
+			uint8_t ui8Header[5];
+			for ( size_t I = 0; I < std::size( ui8Header ); ++I ) {
+				if ( !sStream.ReadUi8( ui8Header[I] ) ) {
+					lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+					return;
+				}
+			}
+			if ( ui8Header[0] != 'B' || ui8Header[1] != 'W' || ui8Header[2] != 'C' || ui8Header[3] != 'H' ||
+				ui8Header[4] == 0 || ui8Header[4] > LSN_CHARACTERISTICS_VERSION ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_INVALID_FILE_FORMAT ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			std::wstring wsTexts[std::size( m_wCharEditIds )];
+			uint8_t ui8Types[std::size( m_wCharComboIds )];
+			bool bChecks[std::size( m_wCharCheckIds )];
+			bool bOk = true;
+			for ( size_t I = 0; I < std::size( wsTexts ) && bOk; ++I ) { bOk = sStream.ReadStringU16( wsTexts[I] ); }
+			for ( size_t I = 0; I < std::size( ui8Types ) && bOk; ++I ) { bOk = sStream.ReadUi8( ui8Types[I] ); }
+			for ( size_t I = 0; I < std::size( bChecks ) && bOk; ++I ) { bOk = sStream.ReadBool( bChecks[I] ); }
+			if ( !bOk ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_FAILED_TO_READ_FROM_FILE ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+
+			// As with the presets, a checked Lock Volume keeps the current volume (and stays checked).
+			bool bLockVolume = false;
+			{
+				auto pwLock = FindChild( Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK );
+				if ( pwLock ) { bLockVolume = pwLock->IsChecked(); }
+			}
+
+			std::vector<LPARAM> vUpdateUs;
+			GetPagesToUpdate( vUpdateUs );
+			auto pwewWindow = static_cast<CWavEditorWindow *>(m_pwParent);
+
+			// Setting the texts sends EN_CHANGE, which stores them in the tracks being edited.
+			for ( size_t I = 0; I < std::size( m_wCharEditIds ); ++I ) {
+				if ( bLockVolume && m_wCharEditIds[I] == Layout::LSN_WEWI_FSETS_CHAR_VOL_EDIT ) { continue; }
+				auto pwThis = FindChild( m_wCharEditIds[I] );
+				if ( pwThis ) { pwThis->SetTextW( wsTexts[I].c_str() ); }
+			}
+			for ( size_t I = 0; I < std::size( m_wCharComboIds ); ++I ) {
+				auto pcbThis = reinterpret_cast<lsw::CComboBox *>(FindChild( m_wCharComboIds[I] ));
+				int32_t i32Sel = ComboIndex( m_wCharComboIds[I], LPARAM( ui8Types[I] ) );
+				if ( i32Sel < 0 ) { i32Sel = ComboIndex( m_wCharComboIds[I], LPARAM( CWavEditor::LSN_F_POLE ) ); }
+				if ( pcbThis ) { pcbThis->SetCurSel( i32Sel ); }
+				pwewWindow->SetAllSettingsComboSels( m_wCharComboIds[I], i32Sel, vUpdateUs );
+			}
+			for ( size_t I = 0; I < std::size( m_wCharCheckIds ); ++I ) {
+				bool bChecked = bChecks[I];
+				if ( bLockVolume && m_wCharCheckIds[I] == Layout::LSN_WEWI_FSETS_CHAR_LOCK_CHECK ) { bChecked = true; }
+				auto pwThis = FindChild( m_wCharCheckIds[I] );
+				if ( pwThis ) { pwThis->SetCheck( bChecked ); }
+				pwewWindow->SetAllSettingsCheckStates( m_wCharCheckIds[I], bChecked, vUpdateUs );
+			}
+
+			// The values no longer match a preset.
+			{
+				int32_t i32Custom = ComboIndex( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO, LPARAM( -1 ) );
+				auto pcbThis = reinterpret_cast<lsw::CComboBox *>(FindChild( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO ));
+				if ( pcbThis ) { pcbThis->SetCurSel( i32Custom ); }
+				pwewWindow->SetAllSettingsComboSels( Layout::LSN_WEWI_FSETS_CHAR_PRESET_COMBO, i32Custom, vUpdateUs );
+			}
+			Update();
+		}
+		catch ( ... ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+		}
+#undef LSN_FILE_OPEN_FORMAT
 	}
 
 	/**
