@@ -285,6 +285,12 @@ namespace lsn {
 		static const WORD									m_wComboIds[];
 		/** The check boxes and radio buttons whose check states are stored per track. */
 		static const WORD									m_wCheckIds[];
+		/** The characters typed so far into a metadata combo box (type-ahead selection). */
+		std::string											m_sTypeAhead;
+		/** The time (from ::GetTickCount64()) of the last character typed into a metadata combo box. */
+		uint64_t											m_ui64TypeAheadTime = 0;
+		/** The ID of the metadata combo box into which m_sTypeAhead was typed. */
+		WORD												m_wTypeAheadId = 0;
 
 
 		// == Functions.
@@ -304,6 +310,41 @@ namespace lsn {
 		 * \param _vPages Holds the returned array of track ID's to update.
 		 **/
 		void												GetPagesToUpdate( std::vector<LPARAM> &_vPages );
+
+		/**
+		 * Selects the first item in a metadata combo box whose text begins with the characters typed so far.  The combo boxes are owner-drawn
+		 *	without strings, so Windows cannot do this itself.  Typing the same single character again moves to the next item that begins with it.
+		 * 
+		 * \param _wId The ID of the combo box.
+		 * \param _wcChar The typed character.
+		 **/
+		void												TypeAhead( WORD _wId, wchar_t _wcChar );
+
+		/**
+		 * Determines whether the text of a metadata combo-box item begins with the given characters.  The index part is compared both with and
+		 *	without its leading zeros, and the rest of the text is compared without regard to case.
+		 * 
+		 * \param _vMetadata The metadata.
+		 * \param _sIdx The index of the entry in _vMetadata.
+		 * \param _sDigits The number of digits to which indices are padded.
+		 * \param _sPrefix The characters typed so far.
+		 * \return Returns true if the text of the item begins with _sPrefix.
+		 **/
+		static bool											TypeAheadMatches( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx, size_t _sDigits,
+			const std::string &_sPrefix );
+
+		/**
+		 * The subclass procedure for the metadata combo boxes and their drop-down lists.  Sends typed characters to TypeAhead().
+		 * 
+		 * \param _hWnd The combo box or its drop-down list.
+		 * \param _uMsg The message.
+		 * \param _wParam The WPARAM of the message.
+		 * \param _lParam The LPARAM of the message.
+		 * \param _uIdSubclass The ID of the combo box.
+		 * \param _dwRefData Pointer to the CWavEditorSequencingPage object.
+		 * \return Returns the result of the message.
+		 **/
+		static LRESULT CALLBACK								ComboSubclassProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam, UINT_PTR _uIdSubclass, DWORD_PTR _dwRefData );
 
 	private :
 		typedef CWinUtilities								Layout;

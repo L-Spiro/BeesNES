@@ -19,6 +19,9 @@
 #include <TreeListView/LSWTreeListView.h>
 #include <Tab/LSWTab.h>
 
+#include <cctype>
+#include <cmath>
+#include <commctrl.h>
 #include <commdlg.h>
 #include <filesystem>
 #include <format>
@@ -175,6 +178,20 @@ namespace lsn {
 				reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WARNING_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT | LR_DEFAULTSIZE | LR_SHARED )) );*/
 			::SendMessageW( pwWarning->Wnd(), STM_SETIMAGE, IMAGE_ICON, reinterpret_cast<LPARAM>(reinterpret_cast<HICON>(::LoadImageW( CBase::GetModuleHandleW( nullptr ), MAKEINTRESOURCEW( IDI_WARNING_ICON_32 ), IMAGE_ICON, 0, 0, LR_LOADTRANSPARENT | LR_DEFAULTSIZE | LR_SHARED ))) );
 		}
+
+		// The metadata combo boxes are owner-drawn without strings, so typing does not select items.  Do it here (in the combo box when it is
+		//	closed and in its list when it is dropped down).
+		for ( WORD wId : { WORD( Layout::LSN_WEWI_SEQ_START_COMBO ), WORD( Layout::LSN_WEWI_SEQ_LOOPS_STOP_COMBO ) } ) {
+			auto pwCombo = FindChild( wId );
+			if ( pwCombo && pwCombo->Wnd() ) {
+				::SetWindowSubclass( pwCombo->Wnd(), ComboSubclassProc, wId, reinterpret_cast<DWORD_PTR>(this) );
+				COMBOBOXINFO cbiInfo = { sizeof( cbiInfo ) };
+				if ( ::GetComboBoxInfo( pwCombo->Wnd(), &cbiInfo ) && cbiInfo.hwndList ) {
+					::SetWindowSubclass( cbiInfo.hwndList, ComboSubclassProc, wId, reinterpret_cast<DWORD_PTR>(this) );
+				}
+			}
+		}
+
 		m_bInternalUpdate = false;
 		Update();
 		return LSW_H_CONTINUE;
@@ -1052,6 +1069,116 @@ namespace lsn {
 	std::string CWavEditorSequencingPage::MetadataText( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx ) {
 		size_t sDigits = size_t( std::ceil( std::log10( _vMetadata.size() + 1 ) ) );
 		return std::format( "{:0{}}: {:.30g} {}", _vMetadata[_sIdx].ui32Idx, sDigits, _vMetadata[_sIdx].dTime, _vMetadata[_sIdx].sText );
+	}
+
+	/**
+	 * Selects the first item in a metadata combo box whose text begins with the characters typed so far.  The combo boxes are owner-drawn
+	 *	without strings, so Windows cannot do this itself.  Typing the same single character again moves to the next item that begins with it.
+	 * 
+	 * \param _wId The ID of the combo box.
+	 * \param _wcChar The typed character.
+	 **/
+	void CWavEditorSequencingPage::TypeAhead( WORD _wId, wchar_t _wcChar ) {
+		auto pcbCombo = reinterpret_cast<CComboBox *>(FindChild( _wId ));
+		auto pwfsSet = m_pweEditor ? m_pweEditor->WavById( m_ui32Id ) : nullptr;
+		if ( !pcbCombo || !pwfsSet || !pwfsSet->vMetadata.size() ) { return; }
+		if ( _wcChar < L' ' || _wcChar > 0x7E ) { return; }		// The texts are ASCII.
+		try {
+			// Like a list box:  a pause starts a new search.
+			uint64_t ui64Now = ::GetTickCount64();
+			uint64_t ui64Timeout = std::max<uint64_t>( 1000, uint64_t( ::GetDoubleClickTime() ) * 2 );
+			if ( _wId != m_wTypeAheadId || ui64Now - m_ui64TypeAheadTime > ui64Timeout ) { m_sTypeAhead.clear(); }
+			m_ui64TypeAheadTime = ui64Now;
+			m_wTypeAheadId = _wId;
+
+			char cChar = char( _wcChar );
+			bool bCycle = m_sTypeAhead.size() == 1 && m_sTypeAhead[0] == cChar;
+			if ( !bCycle ) { m_sTypeAhead.push_back( cChar ); }
+
+			INT iCount = pcbCombo->GetCount();
+			if ( iCount <= 0 ) { return; }
+			INT iCur = pcbCombo->GetCurSel();
+			// A new single character (or the same one again) starts after the current item; more characters refine the search starting at it.
+			INT iStart = m_sTypeAhead.size() == 1 ? (iCur + 1) : std::max( iCur, 0 );
+			size_t sDigits = size_t( std::ceil( std::log10( pwfsSet->vMetadata.size() + 1 ) ) );
+			for ( INT I = 0; I < iCount; ++I ) {
+				INT iIdx = (iStart + I) % iCount;
+				size_t sMeta = size_t( pcbCombo->GetItemData( iIdx ) );
+				if ( sMeta >= pwfsSet->vMetadata.size() ) { continue; }
+				if ( TypeAheadMatches( pwfsSet->vMetadata, sMeta, sDigits, m_sTypeAhead ) ) {
+					if ( iIdx != iCur ) {
+						pcbCombo->SetCurSel( iIdx );
+						Command( CBN_SELCHANGE, _wId, pcbCombo );
+					}
+					return;
+				}
+			}
+			::MessageBeep( MB_OK );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Determines whether the text of a metadata combo-box item begins with the given characters.  The index part is compared both with and
+	 *	without its leading zeros, and the rest of the text is compared without regard to case.
+	 * 
+	 * \param _vMetadata The metadata.
+	 * \param _sIdx The index of the entry in _vMetadata.
+	 * \param _sDigits The number of digits to which indices are padded.
+	 * \param _sPrefix The characters typed so far.
+	 * \return Returns true if the text of the item begins with _sPrefix.
+	 **/
+	bool CWavEditorSequencingPage::TypeAheadMatches( const std::vector<CWavEditor::LSN_METADATA> &_vMetadata, size_t _sIdx, size_t _sDigits,
+		const std::string &_sPrefix ) {
+		// Most typing is of digits, which only need the index (cheap to format).
+		bool bDigits = _sPrefix.find_first_not_of( "0123456789" ) == std::string::npos;
+		if ( bDigits ) {
+			char szBuffer[32];
+			// As shown (with leading zeros).
+			auto aRes = std::format_to_n( szBuffer, std::size( szBuffer ), "{:0{}}", _vMetadata[_sIdx].ui32Idx, _sDigits );
+			std::string_view svPadded( szBuffer, size_t( aRes.out - szBuffer ) );
+			if ( svPadded.starts_with( _sPrefix ) ) { return true; }
+			// Without leading zeros.
+			aRes = std::format_to_n( szBuffer, std::size( szBuffer ), "{}", _vMetadata[_sIdx].ui32Idx );
+			std::string_view svPlain( szBuffer, size_t( aRes.out - szBuffer ) );
+			return svPlain.starts_with( _sPrefix );
+		}
+
+		std::string sText = MetadataText( _vMetadata, _sIdx );
+		if ( sText.size() < _sPrefix.size() ) { return false; }
+		for ( size_t I = 0; I < _sPrefix.size(); ++I ) {
+			if ( std::tolower( uint8_t( sText[I] ) ) != std::tolower( uint8_t( _sPrefix[I] ) ) ) { return false; }
+		}
+		return true;
+	}
+
+	/**
+	 * The subclass procedure for the metadata combo boxes and their drop-down lists.  Sends typed characters to TypeAhead().
+	 * 
+	 * \param _hWnd The combo box or its drop-down list.
+	 * \param _uMsg The message.
+	 * \param _wParam The WPARAM of the message.
+	 * \param _lParam The LPARAM of the message.
+	 * \param _uIdSubclass The ID of the combo box.
+	 * \param _dwRefData Pointer to the CWavEditorSequencingPage object.
+	 * \return Returns the result of the message.
+	 **/
+	LRESULT CALLBACK CWavEditorSequencingPage::ComboSubclassProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam, UINT_PTR _uIdSubclass, DWORD_PTR _dwRefData ) {
+		switch ( _uMsg ) {
+			case WM_CHAR : {
+				if ( _wParam >= L' ' ) {
+					auto pwespPage = reinterpret_cast<CWavEditorSequencingPage *>(_dwRefData);
+					if ( pwespPage ) { pwespPage->TypeAhead( WORD( _uIdSubclass ), wchar_t( _wParam ) ); }
+					return 0;
+				}
+				break;
+			}
+			case WM_NCDESTROY : {
+				::RemoveWindowSubclass( _hWnd, ComboSubclassProc, _uIdSubclass );
+				break;
+			}
+		}
+		return ::DefSubclassProc( _hWnd, _uMsg, _wParam, _lParam );
 	}
 
 	/**
