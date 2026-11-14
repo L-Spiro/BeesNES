@@ -1443,6 +1443,12 @@
     <ClInclude Include="Src\Cheats\LSNCheatManager.h">
       <Filter>Header Files\Cheats</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatEditWindow.h">
+      <Filter>Header Files\Windows\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatEditWindowLayout.h">
+      <Filter>Header Files\Windows\Cheats</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h">
       <Filter>Header Files\Windows\Cheats</Filter>
     </ClInclude>
@@ -2068,6 +2074,12 @@
     </ClCompile>
     <ClCompile Include="Src\Cheats\LSNCheatManager.cpp">
       <Filter>Source Files\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatEditWindow.cpp">
+      <Filter>Source Files\Windows\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatEditWindowLayout.cpp">
+      <Filter>Source Files\Windows\Cheats</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp">
       <Filter>Source Files\Windows\Cheats</Filter>

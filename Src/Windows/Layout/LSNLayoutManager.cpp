@@ -13,6 +13,7 @@
 #include "../Audio/LSNAudioOptionsGeneralPage.h"
 #include "../Audio/LSNAudioOptionsRecordingPage.h"
 #include "../Audio/LSNAudioOptionsWindow.h"
+#include "../Cheats/LSNCheatEditWindow.h"
 #include "../Cheats/LSNCheatsWindow.h"
 #include "../Input/LSNControllerSetupWindow.h"
 #include "../Input/LSNInputConfigurePage.h"
@@ -110,6 +111,9 @@ namespace lsn {
 
 			case LSN_LT_CHEATS : {
 				return new CCheatsWindow( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );;
+			}
+			case LSN_LT_CHEAT_EDIT : {
+				return new CCheatEditWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
 			}
 
 			case LSN_LT_VIDEO_RECORDING_DIALOG : {

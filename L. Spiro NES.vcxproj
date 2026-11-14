@@ -2152,6 +2152,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.h" />
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatEditWindow.h" />
+    <ClInclude Include="Src\Windows\Cheats\LSNCheatEditWindowLayout.h" />
     <ClInclude Include="Src\Windows\Cheats\LSNCheatsWindow.h" />
     <ClInclude Include="Src\Windows\About\LSNAboutWindowLayout.h" />
     <ClInclude Include="Src\Windows\About\LSNAboutWindow.h" />
@@ -2362,6 +2364,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindowLayout.cpp" />
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatEditWindow.cpp" />
+    <ClCompile Include="Src\Windows\Cheats\LSNCheatEditWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Cheats\LSNCheatsWindow.cpp" />
     <ClCompile Include="Src\Windows\About\LSNAboutWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\About\LSNAboutWindow.cpp" />

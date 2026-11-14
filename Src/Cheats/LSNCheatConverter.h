@@ -121,6 +121,34 @@ namespace lsn {
 		static bool										ParseCompareCode( const std::string &_sCode, uint16_t &_ui16Address, uint8_t &_ui8Data, uint8_t &_ui8Compare );
 
 		/**
+		 * Parses a code in any supported format:  6- or 8-character Game Genie, AAAA:VV, AAAA:VV:CC, or AAAA?CC:VV.  Surrounding whitespace is
+		 *	ignored.
+		 * 
+		 * \param _sCode The code to parse.
+		 * \param _aAddress Holds the decoded address, value, and compare value.  sCode is set to the trimmed code.
+		 * \param _bGameGenie Set to true if the code is a Game Genie code.
+		 * \return Returns true if the code was parsed.
+		 **/
+		static bool										ParseAnyCode( const std::string &_sCode, LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress, bool &_bGameGenie );
+
+		/**
+		 * Formats a decoded code as AAAA:VV or, if it uses a compare value, AAAA:VV:CC.
+		 * 
+		 * \param _aAddress The decoded code.
+		 * \return Returns the formatted code.
+		 **/
+		static std::string								FormatRawCode( const LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress );
+
+		/**
+		 * Formats a decoded code as a Game Genie code (6 characters, or 8 if it uses a compare value).  Game Genie codes can only address
+		 *	$8000-$FFFF.
+		 * 
+		 * \param _aAddress The decoded code.
+		 * \return Returns the Game Genie code or an empty string if the address is below $8000.
+		 **/
+		static std::string								FormatGameGenie( const LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress );
+
+		/**
 		 * Reads a Mesen .JSON file and returns all contained cheats inside it.
 		 * 
 		 * \param _vJson The JSON file loaded into memory.

@@ -134,6 +134,23 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles WM_COMMAND without a source control.  The dialog manager sends IDOK (Enter) and IDCANCEL (Escape) this way.
+	 *
+	 * \param _wId The command identifier.
+	 * \return Returns an LSW_HANDLED code.
+	 */
+	CWidget::LSW_HANDLED CWavEditorFindLoopsWindow::MenuCommand( WORD _wId ) {
+		switch ( _wId ) {
+			case IDOK : {}													LSN_FALLTHROUGH
+			case IDCANCEL : {
+				return Command( BN_CLICKED, _wId, nullptr );
+			}
+			default : {}
+		}
+		return Parent::MenuCommand( _wId );
+	}
+
+	/**
 	 * Reads the search parameters, searches for loops, and fills the list box with the results.
 	 */
 	void CWavEditorFindLoopsWindow::Find() {

@@ -63,6 +63,7 @@ namespace lsn {
 			LSN_VOWI_NONE										= 0,	// CVideoOptionsWindowLayout (the Video Options dialog).
 			LSN_ABWI_NONE										= 0,	// CAboutWindowLayout (the About dialog).
 			LSN_WFLI_NONE										= 0,	// CWavEditorFindLoopsWindowLayout (the Find Loop Points dialog).
+			LSN_CEWI_NONE										= 0,	// CCheatEditWindowLayout (the Add/Edit/Duplicate Cheat dialog).
 			// CStdControllerPageLayout::LSN_STD_CONTROLLER_PAGE_IDS ====== //
 			LSN_SCPI_NONE										= 0,
 
@@ -804,6 +805,31 @@ namespace lsn {
 			LSN_WFLI_DETAILS_EDIT,
 			LSN_WFLI_APPLY,
 			LSN_WFLI_CANCEL,
+
+
+			// CCheatEditWindowLayout (the Add/Edit/Duplicate Cheat dialog).
+			LSN_CEWI_DIALOG,
+			LSN_CEWI_CHEAT_GROUP,
+			LSN_CEWI_TITLE_LABEL,
+			LSN_CEWI_TITLE_EDIT,
+			LSN_CEWI_DESC_LABEL,
+			LSN_CEWI_DESC_EDIT,
+			LSN_CEWI_GG_LABEL,
+			LSN_CEWI_GG_EDIT,
+			LSN_CEWI_RAW_LABEL,
+			LSN_CEWI_RAW_EDIT,
+			LSN_CEWI_HINT_LABEL,
+			LSN_CEWI_ENABLED_CHECK,
+			LSN_CEWI_HOTKEY_GROUP,
+			LSN_CEWI_TOGGLE_RADIO,
+			LSN_CEWI_ENABLE_DISABLE_RADIO,
+			LSN_CEWI_CLEAR_BUTTON,
+			LSN_CEWI_KEY1_LABEL,
+			LSN_CEWI_KEY1_BUTTON,
+			LSN_CEWI_KEY2_LABEL,
+			LSN_CEWI_KEY2_BUTTON,
+			LSN_CEWI_OK,
+			LSN_CEWI_CANCEL,
 		};
 #endif	// #if defined( LSN_WINDOWS )
 

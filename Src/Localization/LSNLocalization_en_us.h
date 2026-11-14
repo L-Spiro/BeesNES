@@ -752,6 +752,24 @@
 #define LSN_STR_HOTKEY_S_													Hotkey(s)
 #define LSN_STR_VALID_JSON_BUT_INVALID_STRUCTURE							Valid .JSON file but invalid cheat-file structure.
 #define LSN_STR_INVALID_CODE												Invalid code.
+#define LSN_STR_TITLE_														Title:
+#define LSN_STR_GAME_GENIE													Game Genie\u00AE
+#define LSN_STR_RAW_CODE_FORMAT												AAAA:VV or AAAA:VV:CC
+#define LSN_STR_CHEAT_EDIT_HINT												One code per line.  Typing on either side updates the other.  Game Genie\u00AE codes can only address $8000\u2013$FFFF.
+#define LSN_STR_ENABLED														Enabled
+#define LSN_STR_HOTKEYS														Hotkeys
+#define LSN_STR_ENABLE_DISABLE												Enable/Disable
+#define LSN_STR_TOGGLE_KEY_													Toggle Key:
+#define LSN_STR_ENABLE_KEY_													Enable Key:
+#define LSN_STR_DISABLE_KEY_												Disable Key:
+#define LSN_STR_CLEAR_HOTKEYS												Clear Hotkeys
+#define LSN_STR_NO_HOTKEY													(None)
+#define LSN_STR_PRESS_A_KEY													Press a key\u2026
+#define LSN_STR_CHEAT_ERR_NO_TITLE											Enter a title for the cheat.
+#define LSN_STR_CHEAT_ERR_NO_CODES											Enter at least one code.
+#define LSN_STR_CHEAT_ERR_BAD_CODE											Line {} is not a valid code: {}
+#define LSN_STR_CHEAT_ERR_SAME_KEY											The Enable and Disable hotkeys cannot be the same key.  To control the cheat with one key use Toggle instead.
+#define LSN_STR_DELETE_CHEATS_CONFIRM										Delete the selected custom cheats?  Built-in cheats are not affected.
 
 
 // Video export.

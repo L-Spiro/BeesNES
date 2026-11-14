@@ -12,6 +12,7 @@
  #include "../Utilities/LSNUtilities.h"
 
  #include <EEExpEval.h>
+ #include <format>
 
 
  namespace lsn {
@@ -208,7 +209,7 @@
 		uint8_t aui8Nibbles[8];
 		aui8Nibbles[0] = static_cast<uint8_t>(((_ui8Data >> 4) & 0x8) | (_ui8Data & 0x7));
 		aui8Nibbles[1] = static_cast<uint8_t>(((_ui16Address >> 4) & 0x8) | ((_ui8Data >> 4) & 0x7));
-		aui8Nibbles[2] = static_cast<uint8_t>((_ui16Address >> 4) & 0x7); 
+		aui8Nibbles[2] = static_cast<uint8_t>(0x8 | ((_ui16Address >> 4) & 0x7));	// The high bit of the 3rd letter marks an 8-letter code.
 		aui8Nibbles[3] = static_cast<uint8_t>((_ui16Address & 0x8) | ((_ui16Address >> 12) & 0x7));
 		aui8Nibbles[4] = static_cast<uint8_t>(((_ui16Address >> 8) & 0x8) | (_ui16Address & 0x7));
 		aui8Nibbles[5] = static_cast<uint8_t>((_ui8Compare & 0x8) | ((_ui16Address >> 8) & 0x7));
@@ -322,6 +323,77 @@
 		
 
 		return true;
+	}
+
+	/**
+	 * Parses a code in any supported format:  6- or 8-character Game Genie, AAAA:VV, AAAA:VV:CC, or AAAA?CC:VV.  Surrounding whitespace is
+	 *	ignored.
+	 * 
+	 * \param _sCode The code to parse.
+	 * \param _aAddress Holds the decoded address, value, and compare value.  sCode is set to the trimmed code.
+	 * \param _bGameGenie Set to true if the code is a Game Genie code.
+	 * \return Returns true if the code was parsed.
+	 **/
+	bool CCheatConverter::ParseAnyCode( const std::string &_sCode, LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress, bool &_bGameGenie ) {
+		size_t stStart = _sCode.find_first_not_of( " \t\r\n" );
+		if ( stStart == std::string::npos ) { return false; }
+		size_t stEnd = _sCode.find_last_not_of( " \t\r\n" );
+		std::string sCode = _sCode.substr( stStart, stEnd - stStart + 1 );
+
+		_aAddress = LSN_CHEAT_ENTRY::LSN_ADDRESS();
+		_bGameGenie = false;
+		if ( sCode.size() == 6 ) {
+			if ( !DecodeGameGenie6( sCode, _aAddress.ui16Address, _aAddress.ui8Value ) ) { return false; }
+			_bGameGenie = true;
+		}
+		else if ( sCode.size() == 8 ) {
+			if ( !DecodeGameGenie8( sCode, _aAddress.ui16Address, _aAddress.ui8Value, _aAddress.ui8CompareValue ) ) { return false; }
+			_aAddress.bUseCompare = true;
+			_bGameGenie = true;
+		}
+		else if ( sCode.size() == 7 ) {
+			if ( !ParseRawCode( sCode, _aAddress.ui16Address, _aAddress.ui8Value ) ) { return false; }
+		}
+		else if ( sCode.size() == 10 ) {
+			if ( !ParseCompareCode( sCode, _aAddress.ui16Address, _aAddress.ui8Value, _aAddress.ui8CompareValue ) ) { return false; }
+			_aAddress.bUseCompare = true;
+		}
+		else { return false; }
+		if ( _bGameGenie ) {
+			for ( auto & cThis : sCode ) {
+				if ( cThis >= 'a' && cThis <= 'z' ) { cThis = char( cThis - ('a' - 'A') ); }
+			}
+		}
+		_aAddress.sCode = std::move( sCode );
+		return true;
+	}
+
+	/**
+	 * Formats a decoded code as AAAA:VV or, if it uses a compare value, AAAA:VV:CC.
+	 * 
+	 * \param _aAddress The decoded code.
+	 * \return Returns the formatted code.
+	 **/
+	std::string CCheatConverter::FormatRawCode( const LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress ) {
+		if ( _aAddress.bUseCompare ) {
+			return std::format( "{:04X}:{:02X}:{:02X}", _aAddress.ui16Address, _aAddress.ui8Value, _aAddress.ui8CompareValue );
+		}
+		return std::format( "{:04X}:{:02X}", _aAddress.ui16Address, _aAddress.ui8Value );
+	}
+
+	/**
+	 * Formats a decoded code as a Game Genie code (6 characters, or 8 if it uses a compare value).  Game Genie codes can only address
+	 *	$8000-$FFFF.
+	 * 
+	 * \param _aAddress The decoded code.
+	 * \return Returns the Game Genie code or an empty string if the address is below $8000.
+	 **/
+	std::string CCheatConverter::FormatGameGenie( const LSN_CHEAT_ENTRY::LSN_ADDRESS &_aAddress ) {
+		if ( _aAddress.ui16Address < 0x8000 ) { return std::string(); }
+		if ( _aAddress.bUseCompare ) {
+			return EncodeGameGenie8( _aAddress.ui16Address, _aAddress.ui8Value, _aAddress.ui8CompareValue );
+		}
+		return EncodeGameGenie6( _aAddress.ui16Address, _aAddress.ui8Value );
 	}
 
 	/**

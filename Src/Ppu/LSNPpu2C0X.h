@@ -30,6 +30,11 @@
 #define LSN_CTRL_NAMETABLE_Y( OBJ )						((OBJ.s.ui8Nametable >> 1) & 0x01)
 
 //#define LSN_USE_PHI2
+
+#ifndef LSN_PPU_2007_READ_DELAY
+/** The number of PPU cycles from a CPU read of $2007 made while rendering to the PPUDATA state machine's memory read. */
+#define LSN_PPU_2007_READ_DELAY							4
+#endif	// #ifndef LSN_PPU_2007_READ_DELAY
 #define LSN_INT_OAM_DECAY
 //#define LSN_GEN_PPU
 
@@ -191,6 +196,9 @@ namespace lsn {
 			/*m_ui16CurX = GetCurrentRowPos();
 			m_ui16CurY = GetCurrentScanline();*/
 
+			if LSN_UNLIKELY( m_ui64DataReadCycle < m_ui64Cycle ) {
+				FinishDataRead( m_bBus.Read( m_paPpuAddrV.ui16Addr ) );
+			}
 			if LSN_UNLIKELY( m_bUpdateVramAddr ) {
 				//__assume( 0 );
 				UpdateVramAddr();
@@ -292,6 +300,7 @@ namespace lsn {
 
 			m_bSuppressNmi = false;
 			m_bUpdateVramAddr = false;
+			m_ui64DataReadCycle = ~0ULL;
 		}
 
 		/**
@@ -1257,6 +1266,10 @@ namespace lsn {
 					ui16Mirrored = ui16Mirrored & ~0x0010;
 				}
 				_ui8Ret = ppPpu->SetIoBus( ppPpu->m_ui8PaletteRam[ui16Mirrored] & (ppPpu->m_dvPpuMaskDelay.MostRecentValue().s.ui8Greyscale ? 0x30 : 0x3F), 0x3F );
+				if ( ppPpu->FetchingNow() ) {
+					ppPpu->BeginDataRead();
+					return;
+				}
 				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 				
 			}
@@ -1264,6 +1277,10 @@ namespace lsn {
 				// For every other address the floating-bus contents are returned and the floater is updated with the requested value
 				//	to be fetched on the next read.
 				_ui8Ret = ppPpu->SetIoBus( ppPpu->m_ui8DataBuffer );
+				if ( ppPpu->FetchingNow() ) {
+					ppPpu->BeginDataRead();
+					return;
+				}
 				ppPpu->m_ui8DataBuffer = ppPpu->Read<true>( ui16Addr );
 			}
 			//ppPpu->UpdateVramAddr();
@@ -1504,6 +1521,8 @@ namespace lsn {
 		uint64_t										m_ui64IoBusDecay[8] = {};						/**< The PPU cycle at which each bit of the I/O bus decays to 0 unless it is refreshed first. */
 		uint8_t											m_ui8IoBusLatch;								/**< The I/O bus floater. */
 		uint8_t											m_ui8DataBuffer;								/**< The $2007 (PPUDATA) buffer. */
+		uint8_t											m_ui8LastFetch = 0;								/**< The last value read by a background/sprite fetch (what the octal latch holds after it). */
+		uint64_t										m_ui64DataReadCycle = ~0ULL;					/**< The PPU cycle on which a pending PPUDATA ($2007) read made while rendering fills the read buffer, or ~0. */
 		uint8_t											m_ui8StatusPreClear;							/**< PPUSTATUS as it was just before the pre-render scanline's dot-1 clear.  A $2002 read that resolves to the dot before the clear takes its V-blank flag from here. */
 		uint8_t											m_ui8FineScrollX;								/**< The fine X scroll position. */
 		uint8_t											m_ui8NtAtBuffer;								/**< I guess the 2 cycles of the NT/AT load first store the value into a temprary and then into the latch (to later be masked out every 8th cycle)? */
@@ -1561,6 +1580,61 @@ namespace lsn {
 			else {
 				//::OutputDebugStringA( ("NMI NOT TRIGGINATED DUE TO SUPPRESSION: " + std::to_string( m_ui16CurY ) + ", " + std::to_string( m_ui16CurX ) + ".  Frame: " + std::to_string( m_ui64Frame ) + "\r\n").c_str() );
 			}
+		}
+
+		/**
+		 * Determines whether the PPU is currently performing background/sprite fetches (rendering is on and the scanline is visible or
+		 *	pre-render).  Called from the CPU, so the position is adjusted back to the PPU cycle that just ran.
+		 * 
+		 * \return Returns true if the PPU address/data bus is busy with rendering fetches.
+		 **/
+		inline bool										FetchingNow() {
+			if ( !m_bRendering ) { return false; }
+			int16_t i16AdjustedX = m_ui16CurX;
+			int16_t i16AdjustedY = m_ui16CurY;
+			AdjustScanlineBack( i16AdjustedX, i16AdjustedY );
+			return (i16AdjustedY >= 0 && i16AdjustedY < (_tPreRender + _tRender)) || (i16AdjustedY == _tDotHeight - 1);
+		}
+
+		/**
+		 * Starts the PPUDATA state machine for a $2007 read made while rendering.  Its memory read (which fills the read buffer) happens
+		 *	LSN_PPU_2007_READ_DELAY PPU cycles later.  Until then neither the buffer nor v changes.
+		 **/
+		inline void										BeginDataRead() {
+			m_ui64DataReadCycle = m_ui64Cycle + LSN_PPU_2007_READ_DELAY;
+		}
+
+		/**
+		 * Finishes the PPUDATA state machine's read:  fills the read buffer and increments v.
+		 * 
+		 * \param _ui8Val The value read into the buffer.
+		 **/
+		inline void										FinishDataRead( uint8_t _ui8Val ) {
+			m_ui8DataBuffer = _ui8Val;
+			m_ui64DataReadCycle = ~0ULL;
+			m_bUpdateVramAddr = true;
+		}
+
+		/**
+		 * Performs a background/sprite fetch read.  The PPU multiplexes the low 8 bits of its address with its data bus:  each fetch latches
+		 *	the low byte of its address on one dot (ALE) and reads on the next.  This emulator performs each fetch on its ALE dot, so a PPUDATA
+		 *	read (BeginDataRead()) that lands on the dot after this one reads alongside this fetch and gets the same value, and one that lands on
+		 *	this dot (ALE and Read at once) keeps the octal latch holding the last value on the data bus, so both this fetch and the buffer read
+		 *	from that low byte instead.
+		 * 
+		 * \param _ui16Addr The address to fetch.
+		 * \return Returns the fetched value.
+		 **/
+		inline uint8_t									FetchRead( uint16_t _ui16Addr ) {
+			if LSN_UNLIKELY( m_ui64DataReadCycle <= m_ui64Cycle + 1 ) {
+				if ( m_ui64DataReadCycle == m_ui64Cycle ) {
+					_ui16Addr = (_ui16Addr & 0xFF00) | m_ui8LastFetch;
+				}
+				m_ui8LastFetch = m_bBus.Read( _ui16Addr );
+				FinishDataRead( m_ui8LastFetch );
+				return m_ui8LastFetch;
+			}
+			return m_ui8LastFetch = m_bBus.Read( _ui16Addr );
 		}
 
 		/**
@@ -1648,7 +1722,12 @@ namespace lsn {
 				if ( _ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( _ui16Addr );
 				}
-				return m_bBus.Read( _ui16Addr );
+				if constexpr ( !_bFromCpu && !_bDebug ) {
+					return FetchRead( _ui16Addr );
+				}
+				else {
+					return m_bBus.Read( _ui16Addr );
+				}
 			}
 			if constexpr ( _bDebug ) { m_ui16LastBusAddr = m_paPpuAddrV.ui16Addr; }
 			if constexpr ( !_bFromCpu ) {

@@ -143,9 +143,10 @@ namespace lsn {
 		 * Creates the string representation for a given cheat entry intended for use in the TreeListView.
 		 * 
 		 * \param _ceEntry The cheat entry whose string representation is to be generated.
+		 * \param _bEnabled Whether the cheat is enabled.
 		 * \return Returns the string representation of the given cheat entry.
 		 **/
-		static std::wstring									CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry );
+		static std::wstring									CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled );
 
 		/**
 		 * Reveals enabled cheats.
@@ -154,6 +155,39 @@ namespace lsn {
 		 **/
 		void												RevealEnabled( bool _bSelect = false );
 		
+		/**
+		 * Adds a custom cheat via the Add Cheat dialog.  The cheat goes to the game of the selection, else the only game shown, else the game
+		 *	named by the filter.
+		 **/
+		void												AddCheat();
+
+		/**
+		 * Edits the selected custom cheat or duplicates the selected cheat (built-in or custom) via the Edit/Duplicate Cheat dialog.  A
+		 *	duplicate is a new custom cheat for the same game.
+		 * 
+		 * \param _bDuplicate If true, the selected cheat is duplicated, otherwise it is edited.
+		 **/
+		void												EditCheat( bool _bDuplicate );
+
+		/**
+		 * Deletes the selected custom cheats after asking.  Built-in cheats in the selection are left alone.
+		 **/
+		void												DeleteCheats();
+
+		/**
+		 * Selects a single cheat in the TreeListView, expanding its game if needed.
+		 * 
+		 * \param _ui32Idx The extended index of the cheat to select.
+		 **/
+		void												SelectCheat( uint32_t _ui32Idx );
+
+		/**
+		 * Gets the game to which a new cheat is added:  the game of the selected cheat or game, else the only game shown, else the filter text.
+		 * 
+		 * \return Returns the name of the game for a new cheat.
+		 **/
+		std::u16string										GameForNewCheat() const;
+
 		/**
 		 * Gathers selected cheats, omitting the game namess from the return.
 		 * 

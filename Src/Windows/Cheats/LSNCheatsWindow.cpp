@@ -9,6 +9,7 @@
  */
 
 #include "LSNCheatsWindow.h"
+#include "LSNCheatEditWindowLayout.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -231,6 +232,23 @@ namespace lsn {
 				break;
 			}
 
+			case Layout::LSN_CWI_ADD_BUTTON : {
+				AddCheat();
+				break;
+			}
+			case Layout::LSN_CWI_EDIT_BUTTON : {
+				EditCheat( false );
+				break;
+			}
+			case Layout::LSN_CWI_DUPLICATE_BUTTON : {
+				EditCheat( true );
+				break;
+			}
+			case Layout::LSN_CWI_DELETE_BUTTON : {
+				DeleteCheats();
+				break;
+			}
+
 			case Layout::LSN_CWI_SHOW_ENABLED : {
 				RevealEnabled();
 				break;
@@ -389,7 +407,7 @@ namespace lsn {
 				auto vCheats = m_pcmCheatManager->GatherCheatsForGame( (*I) );
 				std::vector<std::pair<uint32_t, std::wstring>> vMatches;
 				for ( size_t J = 0; J < vCheats.size(); ++J ) {
-					std::wstring wsText = CheatEntryToString( m_pcmCheatManager->CheatByIdx( vCheats[J] ) );
+					std::wstring wsText = CheatEntryToString( m_pcmCheatManager->CheatByIdx( vCheats[J] ), m_pcmCheatManager->IsEnabled( vCheats[J] ) );
 					if ( !m_wsSearch.empty() && CUtilities::ToLower( wsText ).find( m_wsSearch ) == std::wstring::npos ) { continue; }
 					vMatches.emplace_back( uint32_t( vCheats[J] ), std::move( wsText ) );
 				}
@@ -448,7 +466,7 @@ namespace lsn {
 			std::wstring wsNotes;
 			for ( size_t I = 0; I < vSelected.size(); ++I ) {
 				//bHasBuiltIn |= (uint32_t( vSelected[I] ) & 0x800000) == 0;
-				bHasCustom |= (uint32_t( vSelected[I] ) & 0x800000) != 0;
+				bHasCustom |= CCheatManager::IsCustom( uint32_t( vSelected[I] ) );
 				auto ceEntry = m_pcmCheatManager->CheatByIdx( uint32_t( vSelected[I] ) );
 				if ( vSelected.size() > 1 ) {
 					if ( wsCodes.size() ) {
@@ -511,8 +529,8 @@ namespace lsn {
 	 * \param _ceEntry The cheat entry whose string representation is to be generated.
 	 * \return Returns the string representation of the given cheat entry.
 	 **/
-	std::wstring CCheatsWindow::CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry ) {
-		std::wstring wsText = _ceEntry.bEnabled ? L"\u25A0 " : L"\u25A1 ";
+	std::wstring CCheatsWindow::CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled ) {
+		std::wstring wsText = _bEnabled ? L"\u25A0 " : L"\u25A1 ";
 		if ( _ceEntry.wsNotes.size() ) {
 			wsText += std::format( L"{}: {}",
 				_ceEntry.wsDescription, _ceEntry.wsNotes );
@@ -539,7 +557,7 @@ namespace lsn {
 			while ( hThis ) {
 				auto lpParm = ptlvTree->GetItemLParam( hThis );
 				if ( (lpParm & 0x80000000U) == 0 ) {
-					bool bEnabled = m_pcmCheatManager->CheatByIdx( uint32_t( lpParm ) ).bEnabled;
+					bool bEnabled = m_pcmCheatManager->IsEnabled( uint32_t( lpParm ) );
 					if ( htiParent ) {
 						ptlvTree->SetItemExpand( htiParent, bEnabled );
 						if ( bEnabled ) {
@@ -558,6 +576,145 @@ namespace lsn {
 			}
 			ptlvTree->FinishUpdate();
 		}
+	}
+
+	/**
+	 * Adds a custom cheat via the Add Cheat dialog.  The cheat goes to the game of the selection, else the only game shown, else the game
+	 *	named by the filter.
+	 **/
+	void CCheatsWindow::AddCheat() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			CCheatEditWindowLayout::LSN_CHEAT_EDIT_DATA cedData;
+			cedData.ceEntry.u16sFile = GameForNewCheat();
+			cedData.pwcTitle = LSN_LSTR( LSN_STR_ADD_CHEAT );
+			if ( !CCheatEditWindowLayout::CreateCheatEditDialog( this, cedData ) ) { return; }
+			uint32_t ui32Idx = m_pcmCheatManager->AddCustomCheat( cedData.ceEntry, &cedData.acActive );
+			if ( ui32Idx == LSN_CHEAT_MAN_INVALID_IDX ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			AddCheats();
+			SelectCheat( ui32Idx );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Edits the selected custom cheat or duplicates the selected cheat (built-in or custom) via the Edit/Duplicate Cheat dialog.  A duplicate
+	 *	is a new custom cheat for the same game.
+	 * 
+	 * \param _bDuplicate If true, the selected cheat is duplicated, otherwise it is edited.
+	 **/
+	void CCheatsWindow::EditCheat( bool _bDuplicate ) {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			if ( vSelected.size() != 1 ) { return; }
+			uint32_t ui32Idx = uint32_t( vSelected[0] );
+			if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { return; }
+			// Built-in cheats can only be duplicated.
+			if ( !_bDuplicate && !CCheatManager::IsCustom( ui32Idx ) ) { return; }
+
+			CCheatEditWindowLayout::LSN_CHEAT_EDIT_DATA cedData;
+			cedData.ceEntry = m_pcmCheatManager->CheatByIdx( ui32Idx );
+			m_pcmCheatManager->GetActiveCheat( ui32Idx, cedData.acActive );
+			cedData.pwcTitle = _bDuplicate ? LSN_LSTR( LSN_STR_DUPLICATE_CHEAT ) : LSN_LSTR( LSN_STR_EDIT_CHEAT );
+			if ( !CCheatEditWindowLayout::CreateCheatEditDialog( this, cedData ) ) { return; }
+
+			if ( _bDuplicate ) {
+				ui32Idx = m_pcmCheatManager->AddCustomCheat( cedData.ceEntry, &cedData.acActive );
+				if ( ui32Idx == LSN_CHEAT_MAN_INVALID_IDX ) {
+					lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+					return;
+				}
+			}
+			else if ( !m_pcmCheatManager->UpdateCustomCheat( ui32Idx, cedData.ceEntry, &cedData.acActive ) ) {
+				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+				return;
+			}
+			AddCheats();
+			SelectCheat( ui32Idx );
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Deletes the selected custom cheats after asking.  Built-in cheats in the selection are left alone.
+	 **/
+	void CCheatsWindow::DeleteCheats() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			if ( !HasCustom( vSelected ) ) { return; }
+			if ( ::MessageBoxW( Wnd(), LSN_LSTR( LSN_STR_DELETE_CHEATS_CONFIRM ), LSN_LSTR( LSN_STR_DELETE_CHEAT ), MB_YESNO | MB_ICONQUESTION ) != IDYES ) { return; }
+			for ( auto I = vSelected.size(); I--; ) {
+				if ( CCheatManager::IsCustom( uint32_t( vSelected[I] ) ) ) {
+					m_pcmCheatManager->DeleteCustomCheat( uint32_t( vSelected[I] ) );
+				}
+			}
+			AddCheats();
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Selects a single cheat in the TreeListView, expanding its game if needed.
+	 * 
+	 * \param _ui32Idx The extended index of the cheat to select.
+	 **/
+	void CCheatsWindow::SelectCheat( uint32_t _ui32Idx ) {
+		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlvTree ) { return; }
+		ptlvTree->BeginLargeUpdate();
+		HTREEITEM htiParent = NULL;
+		for ( auto hThis = ptlvTree->GetNext( TVI_ROOT ); hThis; hThis = ptlvTree->GetNext( hThis ) ) {
+			auto lpParm = ptlvTree->GetItemLParam( hThis );
+			if ( lpParm & 0x80000000U ) {
+				htiParent = hThis;
+				ptlvTree->SetItemSelection( hThis, false );
+				continue;
+			}
+			bool bThis = uint32_t( lpParm ) == _ui32Idx;
+			if ( bThis && htiParent ) { ptlvTree->SetItemExpand( htiParent, TRUE ); }
+			ptlvTree->SetItemSelection( hThis, bThis );
+		}
+		ptlvTree->FinishUpdate();
+		UpdateSelection();
+	}
+
+	/**
+	 * Gets the game to which a new cheat is added:  the game of the selected cheat or game, else the only game shown, else the filter text.
+	 * 
+	 * \return Returns the name of the game for a new cheat.
+	 **/
+	std::u16string CCheatsWindow::GameForNewCheat() const {
+		std::u16string u16sGame;
+		if ( nullptr == m_pcmCheatManager ) { return u16sGame; }
+		try {
+			auto ptlvTree = reinterpret_cast<const CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+			if ( ptlvTree ) {
+				std::vector<LPARAM> vSelected;
+				ptlvTree->GatherSelectedLParam( vSelected, true );
+				for ( auto lpThis : vSelected ) {
+					if ( lpThis & 0x80000000U ) {
+						auto aFound = m_mGameNameAssociation.find( lpThis );
+						if ( aFound != m_mGameNameAssociation.end() ) {
+							return CUtilities::XStringToU16String( aFound->second.c_str(), aFound->second.size() );
+						}
+					}
+					else if ( m_pcmCheatManager->IsValidIdx( uint32_t( lpThis ) ) ) {
+						return m_pcmCheatManager->CheatByIdx( uint32_t( lpThis ) ).u16sFile;
+					}
+				}
+			}
+			auto sGames = m_pcmCheatManager->GatherGamesWithFilter();
+			if ( sGames.size() == 1 ) { return (*sGames.begin()); }
+			const auto & wsFilter = m_pcmCheatManager->GetCheatFilter();
+			u16sGame = CUtilities::XStringToU16String( wsFilter.c_str(), wsFilter.size() );
+		}
+		catch ( ... ) {}
+		return u16sGame;
 	}
 
 	/**

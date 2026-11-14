@@ -13,6 +13,7 @@
 
 #include <cstring>
 #include <filesystem>
+#include <mutex>
 
 namespace lsn {
 
@@ -273,7 +274,180 @@ namespace lsn {
 	 * Shuts down the cheat manager at the end of the application life cycle.
 	 **/
 	void CCheatManager::DestroyCheatLibrary() {
+		std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
 		m_vBuiltInCheats = std::vector<LSN_CHEAT_ENTRY>();
+		// The indices of built-in cheats are about to mean something else.
+		for ( auto I = m_mActiveCheats.begin(); I != m_mActiveCheats.end(); ) {
+			if ( !IsCustom( I->first ) ) { I = m_mActiveCheats.erase( I ); }
+			else { ++I; }
+		}
+	}
+
+	/**
+	 * Determines whether an extended index refers to an existing cheat.
+	 * 
+	 * \param _ui32Idx The extended index to check.
+	 * \return Returns true if the index refers to a built-in cheat or a custom cheat that has not been deleted.
+	 **/
+	bool CCheatManager::IsValidIdx( uint32_t _ui32Idx ) const {
+		if ( IsCustom( _ui32Idx ) ) {
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			uint32_t ui32Slot = CustomSlot( _ui32Idx );
+			return ui32Slot < m_vCustomCheats.size() && m_vCustomCheats[ui32Slot].bInUse;
+		}
+		return _ui32Idx < m_vBuiltInCheats.size();
+	}
+
+	/**
+	 * Adds a custom (user-defined) cheat.
+	 * 
+	 * \param _ceEntry The cheat to add.
+	 * \param _pacActive Optional run-time state (enabled state and hotkeys) for the cheat.  Its ui32Idx is ignored.
+	 * \return Returns the extended index of the new cheat or LSN_CHEAT_MAN_INVALID_IDX on failure.
+	 **/
+	uint32_t CCheatManager::AddCustomCheat( const LSN_CHEAT_ENTRY &_ceEntry, const LSN_ACTIVE_CHEAT * _pacActive ) {
+		uint32_t ui32Idx = LSN_CHEAT_MAN_INVALID_IDX;
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			// Reuse a deleted slot if there is one.
+			size_t stSlot = m_vCustomCheats.size();
+			for ( size_t I = 0; I < m_vCustomCheats.size(); ++I ) {
+				if ( !m_vCustomCheats[I].bInUse ) {
+					stSlot = I;
+					break;
+				}
+			}
+			if ( stSlot >= LSN_CHEAT_MAN_CUSTOM_FLAG ) { return LSN_CHEAT_MAN_INVALID_IDX; }
+			if ( stSlot == m_vCustomCheats.size() ) { m_vCustomCheats.emplace_back(); }
+			m_vCustomCheats[stSlot].ceEntry = _ceEntry;
+			m_vCustomCheats[stSlot].bInUse = true;
+			ui32Idx = uint32_t( stSlot ) | LSN_CHEAT_MAN_CUSTOM_FLAG;
+			m_mActiveCheats.erase( ui32Idx );
+		}
+		catch ( ... ) { return LSN_CHEAT_MAN_INVALID_IDX; }
+		if ( _pacActive ) {
+			LSN_ACTIVE_CHEAT acTmp = (*_pacActive);
+			acTmp.ui32Idx = ui32Idx;
+			SetActiveCheat( acTmp );
+		}
+		return ui32Idx;
+	}
+
+	/**
+	 * Replaces a custom cheat.  Built-in cheats cannot be changed.
+	 * 
+	 * \param _ui32Idx The extended index of the custom cheat to replace.
+	 * \param _ceEntry The new cheat data.
+	 * \param _pacActive Optional new run-time state (enabled state and hotkeys) for the cheat.  Its ui32Idx is ignored.
+	 * \return Returns true if _ui32Idx refers to an existing custom cheat and it was replaced.
+	 **/
+	bool CCheatManager::UpdateCustomCheat( uint32_t _ui32Idx, const LSN_CHEAT_ENTRY &_ceEntry, const LSN_ACTIVE_CHEAT * _pacActive ) {
+		if ( !IsCustom( _ui32Idx ) ) { return false; }
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			uint32_t ui32Slot = CustomSlot( _ui32Idx );
+			if ( ui32Slot >= m_vCustomCheats.size() || !m_vCustomCheats[ui32Slot].bInUse ) { return false; }
+			m_vCustomCheats[ui32Slot].ceEntry = _ceEntry;
+		}
+		catch ( ... ) { return false; }
+		if ( _pacActive ) {
+			LSN_ACTIVE_CHEAT acTmp = (*_pacActive);
+			acTmp.ui32Idx = _ui32Idx;
+			return SetActiveCheat( acTmp );
+		}
+		return true;
+	}
+
+	/**
+	 * Deletes a custom cheat and its run-time state.  Built-in cheats cannot be deleted.  The extended indices of the other cheats do not
+	 *	change; the slot is reused by a later AddCustomCheat().
+	 * 
+	 * \param _ui32Idx The extended index of the custom cheat to delete.
+	 * \return Returns true if _ui32Idx referred to an existing custom cheat.
+	 **/
+	bool CCheatManager::DeleteCustomCheat( uint32_t _ui32Idx ) {
+		if ( !IsCustom( _ui32Idx ) ) { return false; }
+		std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+		uint32_t ui32Slot = CustomSlot( _ui32Idx );
+		if ( ui32Slot >= m_vCustomCheats.size() || !m_vCustomCheats[ui32Slot].bInUse ) { return false; }
+		m_vCustomCheats[ui32Slot].bInUse = false;
+		m_vCustomCheats[ui32Slot].ceEntry = LSN_CHEAT_ENTRY();
+		m_mActiveCheats.erase( _ui32Idx );
+		// Trailing free slots can go.
+		while ( m_vCustomCheats.size() && !m_vCustomCheats.back().bInUse ) {
+			m_vCustomCheats.pop_back();
+		}
+		return true;
+	}
+
+	/**
+	 * Gets the run-time state of a cheat.
+	 * 
+	 * \param _ui32Idx The extended index of the cheat.
+	 * \param _acRet Holds the returned state.  If the cheat has none, it is filled with the defaults (disabled, no hotkeys).
+	 * \return Returns true if the cheat has run-time state (it is enabled or has a hotkey).
+	 **/
+	bool CCheatManager::GetActiveCheat( uint32_t _ui32Idx, LSN_ACTIVE_CHEAT &_acRet ) const {
+		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+		auto aFound = m_mActiveCheats.find( _ui32Idx );
+		if ( aFound == m_mActiveCheats.end() ) {
+			_acRet = LSN_ACTIVE_CHEAT();
+			_acRet.ui32Idx = _ui32Idx;
+			return false;
+		}
+		_acRet = aFound->second;
+		return true;
+	}
+
+	/**
+	 * Sets the run-time state of a cheat.  If the cheat is disabled and has no hotkeys, its record is removed.
+	 * 
+	 * \param _acState The state to set.  ui32Idx selects the cheat.
+	 * \return Returns false if the index is invalid or there was a memory failure.
+	 **/
+	bool CCheatManager::SetActiveCheat( const LSN_ACTIVE_CHEAT &_acState ) {
+		if ( !IsValidIdx( _acState.ui32Idx ) ) { return false; }
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			if ( !_acState.IsNeeded() ) {
+				m_mActiveCheats.erase( _acState.ui32Idx );
+			}
+			else {
+				m_mActiveCheats[_acState.ui32Idx] = _acState;
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Determines whether a cheat is enabled.
+	 * 
+	 * \param _ui32Idx The extended index of the cheat.
+	 * \return Returns true if the cheat is enabled.
+	 **/
+	bool CCheatManager::IsEnabled( uint32_t _ui32Idx ) const {
+		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+		auto aFound = m_mActiveCheats.find( _ui32Idx );
+		return aFound != m_mActiveCheats.end() && aFound->second.bEnabled;
+	}
+
+	/**
+	 * Gets a copy of the run-time state of every cheat that has one.  Safe to call from any thread.
+	 * 
+	 * \return Returns the run-time states of all enabled cheats and cheats with hotkeys.
+	 **/
+	std::vector<CCheatManager::LSN_ACTIVE_CHEAT> CCheatManager::GatherActiveCheats() const {
+		std::vector<LSN_ACTIVE_CHEAT> vRet;
+		try {
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			vRet.reserve( m_mActiveCheats.size() );
+			for ( const auto & aThis : m_mActiveCheats ) {
+				vRet.push_back( aThis.second );
+			}
+		}
+		catch ( ... ) {}
+		return vRet;
 	}
 
 	/**
@@ -315,17 +489,7 @@ namespace lsn {
 	 * \return Returns the number of games that are unfiltered via SetCheatFilter().
 	 **/
 	size_t CCheatManager::CountUnfiltered() const {
-		std::set<std::u16string> sCnt;
-		try {
-			std::wstring wsCompareMe = CUtilities::ToLower( m_wsFilter );
-			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
-				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( CUtilities::XStringToWString( m_vBuiltInCheats[I].u16sFile.c_str(), m_vBuiltInCheats[I].u16sFile.size() ), wsCompareMe, wsCompareMe.size() ) ) {
-					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
-				}
-			}
-		}
-		catch ( ... ) {}
-		return sCnt.size();
+		return GatherGamesWithFilter().size();
 	}
 
 	/**
@@ -340,6 +504,15 @@ namespace lsn {
 			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
 				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( CUtilities::XStringToWString( m_vBuiltInCheats[I].u16sFile.c_str(), m_vBuiltInCheats[I].u16sFile.size() ), wsCompareMe, wsCompareMe.size() ) ) {
 					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
+					if ( sCnt.size() > 1 ) { return true; }
+				}
+			}
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			for ( size_t I = 0; I < m_vCustomCheats.size(); ++I ) {
+				if ( !m_vCustomCheats[I].bInUse ) { continue; }
+				const auto & u16sFile = m_vCustomCheats[I].ceEntry.u16sFile;
+				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( CUtilities::XStringToWString( u16sFile.c_str(), u16sFile.size() ), wsCompareMe, wsCompareMe.size() ) ) {
+					sCnt.insert( u16sFile );
 					if ( sCnt.size() > 1 ) { return true; }
 				}
 			}
@@ -363,6 +536,15 @@ namespace lsn {
 					sCnt.insert( m_vBuiltInCheats[I].u16sFile );
 				}
 			}
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			for ( size_t I = 0; I < m_vCustomCheats.size(); ++I ) {
+				if ( !m_vCustomCheats[I].bInUse ) { continue; }
+				const auto & u16sFile = m_vCustomCheats[I].ceEntry.u16sFile;
+				std::wstring wsTmp = CUtilities::XStringToWString( u16sFile.c_str(), u16sFile.size() );
+				if ( wsCompareMe.size() == 0 || CUtilities::StrICmp_RightIsLowered( wsTmp, wsCompareMe, wsCompareMe.size() ) ) {
+					sCnt.insert( u16sFile );
+				}
+			}
 		}
 		catch ( ... ) {}
 		return sCnt;
@@ -384,12 +566,12 @@ namespace lsn {
 				}
 			}
 			// Customs.
-			/*
-			for ( size_t I = 0; I < m_vBuiltInCheats.size(); ++I ) {
-				if ( m_vBuiltInCheats[I].u16sFile == _u16sGame ) {
-					vTmp.push_back( uint32_t( I ) );
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			for ( size_t I = 0; I < m_vCustomCheats.size(); ++I ) {
+				if ( m_vCustomCheats[I].bInUse && m_vCustomCheats[I].ceEntry.u16sFile == _u16sGame ) {
+					vTmp.push_back( uint32_t( I ) | LSN_CHEAT_MAN_CUSTOM_FLAG );
 				}
-			}*/
+			}
 		}
 		catch ( ... ) {}
 		return vTmp;

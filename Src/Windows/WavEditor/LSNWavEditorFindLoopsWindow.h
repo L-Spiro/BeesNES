@@ -64,6 +64,14 @@ namespace lsn {
 		 */
 		virtual LSW_HANDLED												Command( WORD _wCtrlCode, WORD _wId, CWidget * _pwSrc );
 
+		/**
+		 * Handles WM_COMMAND without a source control.  The dialog manager sends IDOK (Enter) and IDCANCEL (Escape) this way.
+		 *
+		 * \param _wId The command identifier.
+		 * \return Returns an LSW_HANDLED code.
+		 */
+		virtual LSW_HANDLED												MenuCommand( WORD _wId );
+
 
 	protected :
 		// == Members.
