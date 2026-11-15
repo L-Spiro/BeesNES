@@ -125,6 +125,10 @@ namespace lsn {
 					if ( m_pmbMapper.get() ) {
 						m_pmbMapper->ApplyMap( &m_bBus, &m_pPpu.GetBus() );
 					}
+					// Remapping replaced every read/write function, including any trampolines (such as cheats).
+					if ( m_pfBusMapped ) {
+						m_pfBusMapped( m_pvBusMappedParm, &m_bBus );
+					}
 				}
 
 				m_cCpu.ResetToKnown();

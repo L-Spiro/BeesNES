@@ -42,6 +42,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <random>
 #ifdef LSN_CPU_VERIFY
 #include <vector>
@@ -311,7 +312,7 @@ namespace lsn {
 		 * \param _ptTrampoline A pointer to receive the trampoline's "original" data.
 		 */
 		void								SetTrampolineReadFunc( uint16_t _ui16Address, PfReadFunc _pfReadFunc, void * _pvParm0, uint16_t _ui16Parm1, LSN_TRAMPOLINE * _ptTrampoline ) {
-			if ( _ui16Parm1 < Size() && _ptTrampoline ) {
+			if ( _ui16Address < Size() && _ptTrampoline ) {
 				_ptTrampoline->pvReaderParm0 = _pvParm0;
 				_ptTrampoline->aaOriginalFuncs.pfReader = m_aaAccessors[_ui16Address].pfReader;
 				_ptTrampoline->aaOriginalFuncs.pvReaderParm0 = m_aaAccessors[_ui16Address].pvReaderParm0;
@@ -332,7 +333,7 @@ namespace lsn {
 		 * \param _ptTrampoline A pointer to receive the trampoline's "original" data.
 		 */
 		void								SetTrampolineWriteFunc( uint16_t _ui16Address, PfWriteFunc _pfWriteFunc, void * _pvParm0, uint16_t _ui16Parm1, LSN_TRAMPOLINE * _ptTrampoline ) {
-			if ( _ui16Parm1 < Size() && _ptTrampoline ) {
+			if ( _ui16Address < Size() && _ptTrampoline ) {
 				_ptTrampoline->pvWriterParm0 = _pvParm0;
 				_ptTrampoline->aaOriginalFuncs.pfWriter = m_aaAccessors[_ui16Address].pfWriter;
 				_ptTrampoline->aaOriginalFuncs.pvWriterParm0 = m_aaAccessors[_ui16Address].pvWriterParm0;
@@ -341,6 +342,45 @@ namespace lsn {
 				m_aaAccessors[_ui16Address].pvWriterParm0 = _ptTrampoline;
 				m_aaAccessors[_ui16Address].ui16WriterParm1 = _ui16Parm1;
 			}
+		}
+
+		/**
+		 * Removes a read trampoline inserted by SetTrampolineReadFunc(), restoring the read function, parameter, and 16-bit parameter that it
+		 *	replaced.  Only the outermost trampoline at an address can be removed (the one inserted last), so remove trampolines in the reverse
+		 *	order of insertion.  If the address no longer uses the trampoline (for example ApplyMap() has replaced it), nothing is changed.
+		 *
+		 * \param _ui16Address The address from which to remove the trampoline.
+		 * \param _ptTrampoline The trampoline that was passed to SetTrampolineReadFunc().
+		 * \return Returns true if the trampoline was the address's read function and was removed.
+		 */
+		bool								RemoveTrampolineReadFunc( uint16_t _ui16Address, const LSN_TRAMPOLINE * _ptTrampoline ) {
+			if LSN_UNLIKELY( _ui16Address >= Size() || !_ptTrampoline ) { return false; }
+			LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Address];
+			if LSN_UNLIKELY( aaAcc.pvReaderParm0 != _ptTrampoline ) { return false; }
+			aaAcc.pfReader = _ptTrampoline->aaOriginalFuncs.pfReader;
+			aaAcc.pvReaderParm0 = _ptTrampoline->aaOriginalFuncs.pvReaderParm0;
+			aaAcc.ui16ReaderParm1 = _ptTrampoline->aaOriginalFuncs.ui16ReaderParm1;
+			return true;
+		}
+
+		/**
+		 * Removes a write trampoline inserted by SetTrampolineWriteFunc(), restoring the write function, parameter, and 16-bit parameter that
+		 *	it replaced.  Only the outermost trampoline at an address can be removed (the one inserted last), so remove trampolines in the
+		 *	reverse order of insertion.  If the address no longer uses the trampoline (for example ApplyMap() has replaced it), nothing is
+		 *	changed.
+		 *
+		 * \param _ui16Address The address from which to remove the trampoline.
+		 * \param _ptTrampoline The trampoline that was passed to SetTrampolineWriteFunc().
+		 * \return Returns true if the trampoline was the address's write function and was removed.
+		 */
+		bool								RemoveTrampolineWriteFunc( uint16_t _ui16Address, const LSN_TRAMPOLINE * _ptTrampoline ) {
+			if LSN_UNLIKELY( _ui16Address >= Size() || !_ptTrampoline ) { return false; }
+			LSN_ADDR_ACCESSOR & aaAcc = m_aaAccessors[_ui16Address];
+			if LSN_UNLIKELY( aaAcc.pvWriterParm0 != _ptTrampoline ) { return false; }
+			aaAcc.pfWriter = _ptTrampoline->aaOriginalFuncs.pfWriter;
+			aaAcc.pvWriterParm0 = _ptTrampoline->aaOriginalFuncs.pvWriterParm0;
+			aaAcc.ui16WriterParm1 = _ptTrampoline->aaOriginalFuncs.ui16WriterParm1;
+			return true;
 		}
 
 		/**

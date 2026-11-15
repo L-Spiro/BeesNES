@@ -350,11 +350,13 @@ namespace lsn {
 			m_vCustomCheats[ui32Slot].ceEntry = _ceEntry;
 		}
 		catch ( ... ) { return false; }
-		if ( _pacActive ) {
-			LSN_ACTIVE_CHEAT acTmp = (*_pacActive);
-			acTmp.ui32Idx = _ui32Idx;
-			return SetActiveCheat( acTmp );
-		}
+		// Even with the same state, the new codes may now conflict with another enabled cheat.  A conflict leaves the cheat stored but
+		//	disabled; callers can tell by checking IsEnabled().
+		LSN_ACTIVE_CHEAT acTmp;
+		if ( _pacActive ) { acTmp = (*_pacActive); }
+		else { GetActiveCheat( _ui32Idx, acTmp ); }
+		acTmp.ui32Idx = _ui32Idx;
+		SetActiveCheat( acTmp );
 		return true;
 	}
 
@@ -396,28 +398,394 @@ namespace lsn {
 			return false;
 		}
 		_acRet = aFound->second;
+		// A cheat enabled for another ROM is not enabled here.
+		_acRet.bEnabled = ShowsEnabled( aFound->second );
 		return true;
 	}
 
 	/**
-	 * Sets the run-time state of a cheat.  If the cheat is disabled and has no hotkeys, its record is removed.
+	 * Sets the run-time state of a cheat.  If the cheat is disabled and has no hotkeys, its record is removed.  Enabling a cheat binds
+	 *	it to the running ROM and puts it in effect.  ui32RomCrc and bHotkeyOn are managed here and ignored in _acState.  A cheat whose
+	 *	addresses are used by another enabled cheat is stored disabled (see FindConflict()).
 	 * 
 	 * \param _acState The state to set.  ui32Idx selects the cheat.
-	 * \return Returns false if the index is invalid or there was a memory failure.
+	 * \return Returns false if the index is invalid, there was a memory failure, or the cheat could not be enabled because of a conflict.
 	 **/
 	bool CCheatManager::SetActiveCheat( const LSN_ACTIVE_CHEAT &_acState ) {
 		if ( !IsValidIdx( _acState.ui32Idx ) ) { return false; }
 		try {
 			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
-			if ( !_acState.IsNeeded() ) {
-				m_mActiveCheats.erase( _acState.ui32Idx );
+			LSN_ACTIVE_CHEAT acNew = _acState;
+			auto aFound = m_mActiveCheats.find( _acState.ui32Idx );
+			bool bWasShown = aFound != m_mActiveCheats.end() && ShowsEnabled( aFound->second );
+			if ( acNew.bEnabled && bWasShown ) {
+				// Still enabled:  keep its ROM and whether a hotkey has turned it off.
+				acNew.ui32RomCrc = aFound->second.ui32RomCrc ? aFound->second.ui32RomCrc : m_ui32RomCrc.load();
+				acNew.bHotkeyOn = aFound->second.bHotkeyOn;
 			}
 			else {
-				m_mActiveCheats[_acState.ui32Idx] = _acState;
+				acNew.ui32RomCrc = acNew.bEnabled ? m_ui32RomCrc.load() : (aFound != m_mActiveCheats.end() ? aFound->second.ui32RomCrc : 0);
+				acNew.bHotkeyOn = true;
 			}
-			return true;
+
+			bool bRet = true;
+			if ( acNew.bEnabled ) {
+				// No two applied cheats may use the same address.
+				const LSN_CHEAT_ENTRY * pceEntry = CheatByIdx_NoLock( acNew.ui32Idx );
+				if ( pceEntry ) {
+					for ( const auto & aOther : m_mActiveCheats ) {
+						if ( aOther.first == acNew.ui32Idx || !aOther.second.bEnabled || aOther.second.ui32RomCrc != acNew.ui32RomCrc ) { continue; }
+						const LSN_CHEAT_ENTRY * pceOther = CheatByIdx_NoLock( aOther.first );
+						if ( !pceOther ) { continue; }
+						for ( const auto & aMine : pceEntry->vAddresses ) {
+							for ( const auto & aTheirs : pceOther->vAddresses ) {
+								if ( aMine.ui16Address == aTheirs.ui16Address ) {
+									acNew.bEnabled = false;
+									bRet = false;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if ( !acNew.IsNeeded() ) {
+				m_mActiveCheats.erase( acNew.ui32Idx );
+			}
+			else {
+				m_mActiveCheats[acNew.ui32Idx] = acNew;
+			}
+			return bRet;
 		}
 		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Sets whether cheats are enabled, leaving their hotkeys alone.  A cheat whose addresses are used by another enabled cheat is not
+	 *	enabled.
+	 * 
+	 * \param _vIdx The extended indices of the cheats.
+	 * \param _bEnabled Whether to enable or disable them.
+	 * \param _vConflicts Holds the indices of the cheats that could not be enabled because of a conflict.
+	 **/
+	void CCheatManager::SetEnabled( const std::vector<uint32_t> &_vIdx, bool _bEnabled, std::vector<uint32_t> &_vConflicts ) {
+		_vConflicts.clear();
+		for ( auto ui32Idx : _vIdx ) {
+			LSN_ACTIVE_CHEAT acState;
+			GetActiveCheat( ui32Idx, acState );
+			if ( acState.bEnabled == _bEnabled ) { continue; }
+			acState.bEnabled = _bEnabled;
+			if ( !SetActiveCheat( acState ) && _bEnabled ) {
+				try { _vConflicts.push_back( ui32Idx ); }
+				catch ( ... ) {}
+			}
+		}
+	}
+
+	/**
+	 * Sets the ROM that is about to run (call before the ROM is loaded into the system) or clears it (_ui32Crc = 0).  Enabled cheats that
+	 *	are not yet bound to a ROM are bound to this one.  Only cheats enabled for the running ROM are applied.
+	 * 
+	 * \param _ui32Crc The CRC of the ROM, or 0 if no ROM is running.
+	 * \param _u16sName The name of the ROM (its file name; the extension is removed).  New cheats are added to this game.
+	 **/
+	void CCheatManager::SetRunningRom( uint32_t _ui32Crc, const std::u16string &_u16sName ) {
+		std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+		m_ui32RomCrc = _ui32Crc;
+		try {
+			m_u16sRunningGame = _ui32Crc ? std::filesystem::path( _u16sName ).replace_extension( u"" ).generic_u16string() : std::u16string();
+		}
+		catch ( ... ) { m_u16sRunningGame.clear(); }
+		if ( _ui32Crc ) {
+			for ( auto & aThis : m_mActiveCheats ) {
+				if ( aThis.second.bEnabled && aThis.second.ui32RomCrc == 0 ) {
+					aThis.second.ui32RomCrc = _ui32Crc;
+					aThis.second.bHotkeyOn = true;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Finds an enabled cheat (applied to the running ROM) that uses one of the addresses of a given cheat.  No two applied cheats may
+	 *	use the same address.
+	 * 
+	 * \param _ui32Idx The extended index of the cheat to check (it is skipped when found among the enabled cheats).
+	 * \param _ceEntry The codes to check.
+	 * \param _ui32OtherIdx Holds the extended index of the conflicting cheat.
+	 * \param _ui16Address Holds the shared address.
+	 * \return Returns true if a conflicting cheat was found.
+	 **/
+	bool CCheatManager::FindConflict( uint32_t _ui32Idx, const LSN_CHEAT_ENTRY &_ceEntry, uint32_t &_ui32OtherIdx, uint16_t &_ui16Address ) const {
+		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+		uint32_t ui32Crc = m_ui32RomCrc.load();
+		for ( const auto & aOther : m_mActiveCheats ) {
+			if ( aOther.first == _ui32Idx || !aOther.second.bEnabled ) { continue; }
+			// Compare against the cheats that are (or will be) applied together with this one.
+			uint32_t ui32OtherCrc = aOther.second.ui32RomCrc ? aOther.second.ui32RomCrc : ui32Crc;
+			if ( ui32OtherCrc != ui32Crc ) { continue; }
+			const LSN_CHEAT_ENTRY * pceOther = CheatByIdx_NoLock( aOther.first );
+			if ( !pceOther ) { continue; }
+			for ( const auto & aMine : _ceEntry.vAddresses ) {
+				for ( const auto & aTheirs : pceOther->vAddresses ) {
+					if ( aMine.ui16Address == aTheirs.ui16Address ) {
+						_ui32OtherIdx = aOther.first;
+						_ui16Address = aMine.ui16Address;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Gets a cheat by extended index with no locking, or nullptr if the index is invalid.  The caller must hold m_smtxCheats.
+	 * 
+	 * \param _ui32Idx The extended index.
+	 * \return Returns a pointer to the cheat or nullptr.
+	 **/
+	const LSN_CHEAT_ENTRY * CCheatManager::CheatByIdx_NoLock( uint32_t _ui32Idx ) const {
+		if ( IsCustom( _ui32Idx ) ) {
+			uint32_t ui32Slot = CustomSlot( _ui32Idx );
+			if ( ui32Slot < m_vCustomCheats.size() && m_vCustomCheats[ui32Slot].bInUse ) { return &m_vCustomCheats[ui32Slot].ceEntry; }
+			return nullptr;
+		}
+		return _ui32Idx < m_vBuiltInCheats.size() ? &m_vBuiltInCheats[_ui32Idx] : nullptr;
+	}
+
+	/**
+	 * Informs the manager that cheats were enabled, disabled, edited, added, or deleted.  Schedules the trampolines to be updated on the
+	 *	emulation thread (see ProcessPendingSync()) and updates the registered hotkeys.  Call from the UI thread.
+	 **/
+	void CCheatManager::CheatsChanged() {
+		m_abSyncRequested.store( true );
+		UpdateHotkeys();
+	}
+
+	/**
+	 * Updates the trampolines on the bus to match the enabled cheats.  Call only from the emulation thread (between ticks) or while the
+	 *	emulation thread is stopped.
+	 **/
+	void CCheatManager::ProcessPendingSync() {
+		SyncToBus( false );
+	}
+
+	/**
+	 * Removes every cheat trampoline from the bus.  Call when the ROM is closed (before the mapper is destroyed), from the UI thread
+	 *	with the emulation thread stopped.
+	 **/
+	void CCheatManager::RemoveFromBus() {
+		std::lock_guard<std::mutex> lgLock( m_mtxTrampolines );
+		if ( m_pbBus ) {
+			// Reverse order:  only the outermost trampoline at an address can be removed.
+			for ( auto I = m_vTrampolines.size(); I--; ) {
+				m_pbBus->RemoveTrampolineReadFunc( m_vTrampolines[I]->ui16Address, &m_vTrampolines[I]->tTrampoline );
+			}
+		}
+		m_vTrampolines.clear();
+	}
+
+	/**
+	 * The CSystemBase bus-mapped callback (see CSystemBase::SetBusMappedCallback()).  Remapping the bus removed every trampoline, so
+	 *	they are inserted again.
+	 * 
+	 * \param _pvParm Pointer to the CCheatManager object.
+	 * \param _pbBus The CPU bus.
+	 **/
+	void CCheatManager::BusMapped( void * _pvParm, CCpuBus * _pbBus ) {
+		CCheatManager * pcmThis = reinterpret_cast<CCheatManager *>(_pvParm);
+		pcmThis->m_pbBus = _pbBus;
+		pcmThis->SyncToBus( true );
+	}
+
+	/**
+	 * Rebuilds the trampolines on the bus to match the cheats applied to the running ROM.
+	 * 
+	 * \param _bFreshMap If true, the bus was just remapped, so the old trampolines are no longer on it and are not removed from it.
+	 **/
+	void CCheatManager::SyncToBus( bool _bFreshMap ) {
+		m_abSyncRequested.store( false );
+
+		// Gather the codes first so that m_smtxCheats and m_mtxTrampolines are never held together.
+		std::vector<LSN_PENDING_CODE> vCodes;
+		try {
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			for ( const auto & aThis : m_mActiveCheats ) {
+				if ( !AppliesNow( aThis.second ) ) { continue; }
+				const LSN_CHEAT_ENTRY * pceEntry = CheatByIdx_NoLock( aThis.first );
+				if ( !pceEntry ) { continue; }
+				for ( const auto & aAddr : pceEntry->vAddresses ) {
+					LSN_PENDING_CODE pcCode = {
+						.ui32CheatIdx = aThis.first,
+						.ui16Address = aAddr.ui16Address,
+						.ui8Value = aAddr.ui8Value,
+						.ui8Compare = aAddr.ui8CompareValue,
+						.bUseCompare = aAddr.bUseCompare,
+						.bActive = aThis.second.bHotkeyOn,
+					};
+					vCodes.push_back( pcCode );
+				}
+			}
+		}
+		catch ( ... ) { vCodes.clear(); }
+
+		std::lock_guard<std::mutex> lgLock( m_mtxTrampolines );
+		if ( !_bFreshMap && m_pbBus ) {
+			// Reverse order:  only the outermost trampoline at an address can be removed.
+			for ( auto I = m_vTrampolines.size(); I--; ) {
+				m_pbBus->RemoveTrampolineReadFunc( m_vTrampolines[I]->ui16Address, &m_vTrampolines[I]->tTrampoline );
+			}
+		}
+		m_vTrampolines.clear();
+		if ( !m_pbBus ) { return; }
+
+		try {
+			// Never 2 codes on 1 address (enabling a cheat already refuses conflicts; this also covers repeats within one cheat).
+			std::vector<bool> vUsed( 0x10000 );
+			for ( const auto & pcCode : vCodes ) {
+				if ( vUsed[pcCode.ui16Address] ) { continue; }
+				if ( m_vTrampolines.size() >= 0xFFFF ) { break; }
+				vUsed[pcCode.ui16Address] = true;
+
+				auto pctTramp = std::make_unique<LSN_CHEAT_TRAMPOLINE>();
+				pctTramp->abActive.store( pcCode.bActive );
+				pctTramp->bUseCompare = pcCode.bUseCompare;
+				pctTramp->ui8Value = pcCode.ui8Value;
+				pctTramp->ui8Compare = pcCode.ui8Compare;
+				pctTramp->ui16Address = pcCode.ui16Address;
+				pctTramp->ui32CheatIdx = pcCode.ui32CheatIdx;
+				// pvReaderParm0 = this manager; the 16-bit parameter = which code (index into m_vTrampolines).
+				m_pbBus->SetTrampolineReadFunc( pcCode.ui16Address, &CCheatManager::CheatRead_Trampoline, this, uint16_t( m_vTrampolines.size() ), &pctTramp->tTrampoline );
+				m_vTrampolines.push_back( std::move( pctTramp ) );
+			}
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * The trampoline read function for cheat codes.  Reads through to the original read function (reads can have side effects and the
+	 *	real value is needed for compare codes), then substitutes the cheat value if the code is in effect.
+	 * 
+	 * \param _pvParm0 Pointer to the LSN_CHEAT_TRAMPOLINE (via its CCpuBus::LSN_TRAMPOLINE).
+	 * \param _ui16Parm1 The index of the LSN_CHEAT_TRAMPOLINE in m_vTrampolines.
+	 * \param _pui8Data The buffer from which to read.
+	 * \param _ui8Ret The read value.
+	 **/
+	void LSN_FASTCALL CCheatManager::CheatRead_Trampoline( void * _pvParm0, uint16_t /*_ui16Parm1*/, uint8_t * _pui8Data, uint8_t &_ui8Ret ) {
+		const CCpuBus::LSN_TRAMPOLINE * ptTramp = reinterpret_cast<const CCpuBus::LSN_TRAMPOLINE *>(_pvParm0);
+		// Always read:  the read may have side effects, and compare codes need the real value.
+		ptTramp->aaOriginalFuncs.pfReader( ptTramp->aaOriginalFuncs.pvReaderParm0, ptTramp->aaOriginalFuncs.ui16ReaderParm1, _pui8Data, _ui8Ret );
+
+		// tTrampoline is the first member, so this is also the LSN_CHEAT_TRAMPOLINE.
+		const LSN_CHEAT_TRAMPOLINE * pctCheat = reinterpret_cast<const LSN_CHEAT_TRAMPOLINE *>(ptTramp);
+		if LSN_LIKELY( pctCheat->abActive.load( std::memory_order_relaxed ) ) {
+			if LSN_LIKELY( !pctCheat->bUseCompare ) {
+				_ui8Ret = pctCheat->ui8Value;
+			}
+			else if ( _ui8Ret == pctCheat->ui8Compare ) {
+				_ui8Ret = pctCheat->ui8Value;
+			}
+		}
+	}
+
+	/**
+	 * Registers the hotkeys of the cheats applied to the running ROM, replacing those registered before.  Call from the UI thread (hotkeys
+	 *	belong to the thread that owns the window).
+	 **/
+	void CCheatManager::UpdateHotkeys() {
+#ifdef LSN_USE_WINDOWS
+		if ( !m_phmHotkeyManager ) { return; }
+		for ( auto i32Id : m_vHotkeyIds ) {
+			m_phmHotkeyManager->DeleteHotkey( i32Id );
+		}
+		m_vHotkeyIds.clear();
+
+		try {
+			// Each distinct key is registered once; its handler updates every cheat that uses it.
+			std::vector<lsw::LSW_KEY> vKeys;
+			{
+				std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+				for ( const auto & aThis : m_mActiveCheats ) {
+					if ( !AppliesNow( aThis.second ) ) { continue; }
+					const lsw::LSW_KEY * pkKeys[2] = { &aThis.second.kToggleOrEnable, aThis.second.bToggle ? nullptr : &aThis.second.kDisable };
+					for ( auto pkKey : pkKeys ) {
+						if ( !pkKey || !PackKey( (*pkKey) ) ) { continue; }
+						bool bHave = false;
+						for ( const auto & kHave : vKeys ) {
+							if ( PackKey( kHave ) == PackKey( (*pkKey) ) ) {
+								bHave = true;
+								break;
+							}
+						}
+						if ( !bHave ) { vKeys.push_back( (*pkKey) ); }
+					}
+				}
+			}
+			for ( const auto & kThis : vKeys ) {
+				int32_t i32Id = m_phmHotkeyManager->AddHotkey( kThis.bKeyCode, kThis.bKeyModifier, kThis.dwScanCode, &CCheatManager::HotkeyFunc, this, PackKey( kThis ), 0 );
+				if ( i32Id ) { m_vHotkeyIds.push_back( i32Id ); }
+			}
+		}
+		catch ( ... ) {}
+#endif	// #ifdef LSN_USE_WINDOWS
+	}
+
+	/**
+	 * The hotkey callback.
+	 * 
+	 * \param _pvParm0 Pointer to the CCheatManager object.
+	 * \param _ui64Parm1 The packed key (see PackKey()).
+	 * \param _ui32Parm2 Unused.
+	 * \return Returns true to keep the hotkey.
+	 **/
+	bool CCheatManager::HotkeyFunc( void * _pvParm0, uint64_t _ui64Parm1, uint32_t /*_ui32Parm2*/ ) {
+		reinterpret_cast<CCheatManager *>(_pvParm0)->HandleHotkey( _ui64Parm1 );
+		return true;
+	}
+
+	/**
+	 * Handles a cheat hotkey:  updates the in-effect state of every applied cheat that uses the key.  Several cheats can share a key.
+	 * 
+	 * \param _ui64Key The packed key (see PackKey()).
+	 **/
+	void CCheatManager::HandleHotkey( uint64_t _ui64Key ) {
+#ifdef LSN_USE_WINDOWS
+		std::vector<std::pair<uint32_t, bool>> vChanged;
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			for ( auto & aThis : m_mActiveCheats ) {
+				auto & acCheat = aThis.second;
+				if ( !AppliesNow( acCheat ) ) { continue; }
+				bool bOn = acCheat.bHotkeyOn;
+				if ( acCheat.bToggle ) {
+					if ( PackKey( acCheat.kToggleOrEnable ) == _ui64Key ) { bOn = !bOn; }
+				}
+				else {
+					if ( PackKey( acCheat.kToggleOrEnable ) == _ui64Key ) { bOn = true; }
+					else if ( PackKey( acCheat.kDisable ) == _ui64Key ) { bOn = false; }
+				}
+				if ( bOn != acCheat.bHotkeyOn ) {
+					acCheat.bHotkeyOn = bOn;
+					vChanged.push_back( { aThis.first, bOn } );
+				}
+			}
+		}
+		catch ( ... ) {}
+		if ( vChanged.empty() ) { return; }
+
+		// Only the flags change; the trampolines stay on the bus.
+		std::lock_guard<std::mutex> lgLock( m_mtxTrampolines );
+		for ( auto & pctThis : m_vTrampolines ) {
+			for ( const auto & aChange : vChanged ) {
+				if ( pctThis->ui32CheatIdx == aChange.first ) {
+					pctThis->abActive.store( aChange.second, std::memory_order_relaxed );
+				}
+			}
+		}
+#else
+		(void)_ui64Key;
+#endif	// #ifdef LSN_USE_WINDOWS
 	}
 
 	/**
@@ -429,7 +797,7 @@ namespace lsn {
 	bool CCheatManager::IsEnabled( uint32_t _ui32Idx ) const {
 		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
 		auto aFound = m_mActiveCheats.find( _ui32Idx );
-		return aFound != m_mActiveCheats.end() && aFound->second.bEnabled;
+		return aFound != m_mActiveCheats.end() && ShowsEnabled( aFound->second );
 	}
 
 	/**

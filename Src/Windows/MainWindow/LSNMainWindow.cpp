@@ -2047,6 +2047,19 @@ namespace lsn {
 	}
 
 	/**
+	 * Handles WM_HOTKEY.  Hotkeys registered through the hotkey manager (such as cheat hotkeys) are dispatched to it.
+	 * 
+	 * \param _iIdentifier The identifier of the hotkey that generated the message.
+	 * \param _iVirtualKey The virtual-key code of the hotkey.
+	 * \param _iMod The modifier keys.
+	 * \return Returns an LSW_HANDLED code.
+	 **/
+	CWidget::LSW_HANDLED CMainWindow::Hotkey( INT _iIdentifier, INT /*_iVirtualKey*/, INT /*_iMod*/ ) {
+		if ( m_bnEmulator.HotkeyManager().HandleHotkey( _iIdentifier ) ) { return LSW_H_HANDLED; }
+		return LSW_H_CONTINUE;
+	}
+
+	/**
 	 * Advances the emulation state by the amount of time that has passed since the last advancement.
 	 */
 	void CMainWindow::Tick() {
@@ -2879,7 +2892,12 @@ namespace lsn {
 		lsn::CScopedNoSubnormals snsNoSubnormals;
 		//::SetThreadAffinity( 1 );
 
+		CCheatManager & cmCheats = _pmwWindow->m_bnEmulator.CheatManager();
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
+			// Cheat trampolines can only be changed between ticks on this thread.
+			if LSN_UNLIKELY( cmCheats.SyncPending() ) {
+				cmCheats.ProcessPendingSync();
+			}
 			_pmwWindow->m_bnEmulator.GetSystem()->Tick();
 			//::Sleep( 1 );
 		}

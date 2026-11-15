@@ -35,6 +35,7 @@ namespace lsn {
 			LSN_CHEAT_ENTRY											ceEntry;									/**< The cheat to show and the returned cheat.  u16sFile is passed through unchanged. */
 			CCheatManager::LSN_ACTIVE_CHEAT							acActive;									/**< The cheat's enabled state and hotkeys, shown and returned.  ui32Idx is passed through unchanged. */
 			const wchar_t *											pwcTitle = nullptr;							/**< The dialog title. */
+			bool													bReadOnlyContent = false;					/**< If true, the title, description, and codes are shown but cannot be changed (built-in cheats); only the enabled state and hotkeys are returned. */
 		};
 
 

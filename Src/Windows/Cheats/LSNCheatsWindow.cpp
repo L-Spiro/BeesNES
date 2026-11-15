@@ -248,6 +248,14 @@ namespace lsn {
 				DeleteCheats();
 				break;
 			}
+			case Layout::LSN_CWI_ACTIVATE_BUTTON : {
+				ActivateCheats();
+				break;
+			}
+			case Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON : {
+				ActivateWithHotkey();
+				break;
+			}
 
 			case Layout::LSN_CWI_SHOW_ENABLED : {
 				RevealEnabled();
@@ -519,6 +527,22 @@ namespace lsn {
 					plvToolBar->EnableButton( WORD( cControls[I].wId ), cControls[I].bCloseCondition0 );
 				}
 			}
+
+			// Activate becomes Deactivate when every selected cheat is enabled.
+			bool bAllEnabled = bSelected;
+			for ( auto lpThis : vSelected ) {
+				if ( !m_pcmCheatManager->IsEnabled( uint32_t( lpThis ) ) ) {
+					bAllEnabled = false;
+					break;
+				}
+			}
+			auto pwActivate = FindChild( Layout::LSN_CWI_ACTIVATE_BUTTON );
+			if ( pwActivate ) {
+				pwActivate->SetEnabled( bSelected );
+				pwActivate->SetTextW( bAllEnabled ? LSN_LSTR( LSN_STR_DEACTIVATE ) : LSN_LSTR( LSN_STR_ACTIVATE ) );
+			}
+			auto pwActivateHotkey = FindChild( Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON );
+			if ( pwActivateHotkey ) { pwActivateHotkey->SetEnabled( vSelected.size() == 1 ); }
 		}
 		catch ( ... ) {}
 	}
@@ -594,8 +618,10 @@ namespace lsn {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
+			m_pcmCheatManager->CheatsChanged();
 			AddCheats();
 			SelectCheat( ui32Idx );
+			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
 		}
 		catch ( ... ) {}
 	}
@@ -617,6 +643,7 @@ namespace lsn {
 			if ( !_bDuplicate && !CCheatManager::IsCustom( ui32Idx ) ) { return; }
 
 			CCheatEditWindowLayout::LSN_CHEAT_EDIT_DATA cedData;
+			// Editing and duplicating keep the cheat's game (ceEntry.u16sFile).
 			cedData.ceEntry = m_pcmCheatManager->CheatByIdx( ui32Idx );
 			m_pcmCheatManager->GetActiveCheat( ui32Idx, cedData.acActive );
 			cedData.pwcTitle = _bDuplicate ? LSN_LSTR( LSN_STR_DUPLICATE_CHEAT ) : LSN_LSTR( LSN_STR_EDIT_CHEAT );
@@ -633,8 +660,101 @@ namespace lsn {
 				lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
 				return;
 			}
+			m_pcmCheatManager->CheatsChanged();
 			AddCheats();
 			SelectCheat( ui32Idx );
+			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Enables the selected cheats, or disables them if they are all enabled already.
+	 **/
+	void CCheatsWindow::ActivateCheats() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			std::vector<uint32_t> vIdx;
+			bool bAllEnabled = true;
+			for ( auto lpThis : vSelected ) {
+				if ( !m_pcmCheatManager->IsValidIdx( uint32_t( lpThis ) ) ) { continue; }
+				vIdx.push_back( uint32_t( lpThis ) );
+				bAllEnabled = bAllEnabled && m_pcmCheatManager->IsEnabled( uint32_t( lpThis ) );
+			}
+			if ( vIdx.empty() ) { return; }
+			std::vector<uint32_t> vConflicts;
+			m_pcmCheatManager->SetEnabled( vIdx, !bAllEnabled, vConflicts );
+			m_pcmCheatManager->CheatsChanged();
+			AddCheats();
+			UpdateSelection();
+			if ( vConflicts.size() ) { ReportConflicts( vConflicts ); }
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Opens the cheat dialog for the selected cheat so that it can be enabled with hotkeys.  The content of built-in cheats is shown but
+	 *	cannot be changed.
+	 **/
+	void CCheatsWindow::ActivateWithHotkey() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			if ( vSelected.size() != 1 ) { return; }
+			uint32_t ui32Idx = uint32_t( vSelected[0] );
+			if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { return; }
+			bool bCustom = CCheatManager::IsCustom( ui32Idx );
+
+			CCheatEditWindowLayout::LSN_CHEAT_EDIT_DATA cedData;
+			cedData.ceEntry = m_pcmCheatManager->CheatByIdx( ui32Idx );
+			m_pcmCheatManager->GetActiveCheat( ui32Idx, cedData.acActive );
+			cedData.acActive.bEnabled = true;
+			cedData.bReadOnlyContent = !bCustom;
+			cedData.pwcTitle = LSN_LSTR( LSN_STR_ACTIVATE_WITH_HOTKEY );
+			if ( !CCheatEditWindowLayout::CreateCheatEditDialog( this, cedData ) ) { return; }
+
+			cedData.acActive.ui32Idx = ui32Idx;
+			if ( bCustom ) {
+				if ( !m_pcmCheatManager->UpdateCustomCheat( ui32Idx, cedData.ceEntry, &cedData.acActive ) ) {
+					lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+					return;
+				}
+			}
+			else {
+				m_pcmCheatManager->SetActiveCheat( cedData.acActive );
+			}
+			m_pcmCheatManager->CheatsChanged();
+			AddCheats();
+			SelectCheat( ui32Idx );
+			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Tells the user which cheats could not be enabled because another enabled cheat uses the same address.
+	 * 
+	 * \param _vIdx The extended indices of the cheats that could not be enabled.
+	 **/
+	void CCheatsWindow::ReportConflicts( const std::vector<uint32_t> &_vIdx ) {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::wstring wsMsg;
+			for ( auto ui32Idx : _vIdx ) {
+				if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { continue; }
+				const LSN_CHEAT_ENTRY & ceEntry = m_pcmCheatManager->CheatByIdx( ui32Idx );
+				uint32_t ui32Other = 0;
+				uint16_t ui16Addr = 0;
+				if ( !m_pcmCheatManager->FindConflict( ui32Idx, ceEntry, ui32Other, ui16Addr ) || !m_pcmCheatManager->IsValidIdx( ui32Other ) ) { continue; }
+				const std::wstring & wsMine = ceEntry.wsDescription;
+				const std::wstring & wsTheirs = m_pcmCheatManager->CheatByIdx( ui32Other ).wsDescription;
+				if ( wsMsg.size() ) { wsMsg += L"\r\n\r\n"; }
+				wsMsg += std::vformat( std::wstring( LSN_LSTR( LSN_STR_CHEAT_CONFLICT ) ), std::make_wformat_args( wsMine, ui16Addr, wsTheirs ) );
+			}
+			if ( wsMsg.size() ) {
+				lsw::CBase::MessageBoxError( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_ERROR ) );
+			}
 		}
 		catch ( ... ) {}
 	}
@@ -653,6 +773,7 @@ namespace lsn {
 					m_pcmCheatManager->DeleteCustomCheat( uint32_t( vSelected[I] ) );
 				}
 			}
+			m_pcmCheatManager->CheatsChanged();
 			AddCheats();
 		}
 		catch ( ... ) {}
@@ -692,6 +813,7 @@ namespace lsn {
 		std::u16string u16sGame;
 		if ( nullptr == m_pcmCheatManager ) { return u16sGame; }
 		try {
+			if ( m_pcmCheatManager->RunningGame().size() ) { return m_pcmCheatManager->RunningGame(); }
 			auto ptlvTree = reinterpret_cast<const CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
 			if ( ptlvTree ) {
 				std::vector<LPARAM> vSelected;

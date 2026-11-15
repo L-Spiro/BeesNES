@@ -11,15 +11,20 @@
 
 
 #include "../LSNLSpiroNes.h"
+#include "../Bus/LSNBus.h"
 #include "../Utilities/LSNHotkeyManager.h"
 #include "LSNCheatConverter.h"
 #include "LSNCheatEntry.h"
 
 #include <Helpers/LSWHelpers.h>
 
+#include <atomic>
 #include <filesystem>
+#include <memory>
+#include <mutex>
 #include <set>
 #include <shared_mutex>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -50,7 +55,9 @@ namespace lsn {
 		 **/
 		struct LSN_ACTIVE_CHEAT {
 			uint32_t								ui32Idx = 0;				/**< The "extended" or "virtual" index of the item (LSN_CHEAT_MAN_CUSTOM_FLAG set = custom cheat). */
-			bool									bEnabled = false;			/**< Whether the cheat is enabled. */
+			bool									bEnabled = false;			/**< Whether the cheat is enabled (its trampolines are on the bus while its ROM runs).  Hotkeys do not change this. */
+			bool									bHotkeyOn = true;			/**< Whether an enabled cheat is currently in effect.  Only hotkeys change this; it is reset to true when the cheat is enabled. */
+			uint32_t								ui32RomCrc = 0;				/**< The CRC of the ROM for which the cheat was enabled (0 = not yet bound to a ROM).  An enabled cheat is only applied while that ROM runs. */
 			bool									bToggle = true;				/**< If true, kToggleOrEnable toggles the cheat (kDisable is unused), otherwise kToggleOrEnable enables it and kDisable disables it. */
 #ifdef LSN_USE_WINDOWS
 			lsw::LSW_KEY							kToggleOrEnable = {};		/**< The Toggle key, or the Enable key in Enable/Disable mode.  A bKeyCode of 0 means no key. */
@@ -245,12 +252,24 @@ namespace lsn {
 		bool										GetActiveCheat( uint32_t _ui32Idx, LSN_ACTIVE_CHEAT &_acRet ) const;
 
 		/**
-		 * Sets the run-time state of a cheat.  If the cheat is disabled and has no hotkeys, its record is removed.
+		 * Sets the run-time state of a cheat.  If the cheat is disabled and has no hotkeys, its record is removed.  Enabling a cheat binds
+		 *	it to the running ROM and puts it in effect.  ui32RomCrc and bHotkeyOn are managed here and ignored in _acState.  A cheat whose
+		 *	addresses are used by another enabled cheat is stored disabled (see FindConflict()).
 		 * 
 		 * \param _acState The state to set.  ui32Idx selects the cheat.
-		 * \return Returns false if the index is invalid or there was a memory failure.
+		 * \return Returns false if the index is invalid, there was a memory failure, or the cheat could not be enabled because of a conflict.
 		 **/
 		bool										SetActiveCheat( const LSN_ACTIVE_CHEAT &_acState );
+
+		/**
+		 * Sets whether cheats are enabled, leaving their hotkeys alone.  A cheat whose addresses are used by another enabled cheat is not
+		 *	enabled.
+		 * 
+		 * \param _vIdx The extended indices of the cheats.
+		 * \param _bEnabled Whether to enable or disable them.
+		 * \param _vConflicts Holds the indices of the cheats that could not be enabled because of a conflict.
+		 **/
+		void										SetEnabled( const std::vector<uint32_t> &_vIdx, bool _bEnabled, std::vector<uint32_t> &_vConflicts );
 
 		/**
 		 * Determines whether a cheat is enabled.
@@ -294,9 +313,105 @@ namespace lsn {
 		 **/
 		inline CHotkeyManager *						HotkeyManager() { return m_phmHotkeyManager; }
 
+		/**
+		 * Sets the ROM that is about to run (call before the ROM is loaded into the system) or clears it (_ui32Crc = 0).  Enabled cheats that
+		 *	are not yet bound to a ROM are bound to this one.  Only cheats enabled for the running ROM are applied.
+		 * 
+		 * \param _ui32Crc The CRC of the ROM, or 0 if no ROM is running.
+		 * \param _u16sName The name of the ROM (its file name; the extension is removed).  New cheats are added to this game.
+		 **/
+		void										SetRunningRom( uint32_t _ui32Crc, const std::u16string &_u16sName );
+
+		/**
+		 * Gets the name of the game that is running (see SetRunningRom()).
+		 * 
+		 * \return Returns the name of the running game or an empty string if no ROM is running.
+		 **/
+		inline const std::u16string &				RunningGame() const { return m_u16sRunningGame; }
+
+		/**
+		 * Finds an enabled cheat (applied to the running ROM) that uses one of the addresses of a given cheat.  No two applied cheats may
+		 *	use the same address.
+		 * 
+		 * \param _ui32Idx The extended index of the cheat to check (it is skipped when found among the enabled cheats).
+		 * \param _ceEntry The codes to check.
+		 * \param _ui32OtherIdx Holds the extended index of the conflicting cheat.
+		 * \param _ui16Address Holds the shared address.
+		 * \return Returns true if a conflicting cheat was found.
+		 **/
+		bool										FindConflict( uint32_t _ui32Idx, const LSN_CHEAT_ENTRY &_ceEntry, uint32_t &_ui32OtherIdx, uint16_t &_ui16Address ) const;
+
+		/**
+		 * Informs the manager that cheats were enabled, disabled, edited, added, or deleted.  Schedules the trampolines to be updated on the
+		 *	emulation thread (see ProcessPendingSync()) and updates the registered hotkeys.  Call from the UI thread.
+		 **/
+		void										CheatsChanged();
+
+		/**
+		 * Determines whether the trampolines on the bus need to be updated.  Called by the emulation thread between ticks.
+		 * 
+		 * \return Returns true if ProcessPendingSync() needs to be called.
+		 **/
+		inline bool									SyncPending() const { return m_abSyncRequested.load( std::memory_order_relaxed ); }
+
+		/**
+		 * Updates the trampolines on the bus to match the enabled cheats.  Call only from the emulation thread (between ticks) or while the
+		 *	emulation thread is stopped.
+		 **/
+		void										ProcessPendingSync();
+
+		/**
+		 * Removes every cheat trampoline from the bus.  Call when the ROM is closed (before the mapper is destroyed), from the UI thread
+		 *	with the emulation thread stopped.
+		 **/
+		void										RemoveFromBus();
+
+		/**
+		 * The CSystemBase bus-mapped callback (see CSystemBase::SetBusMappedCallback()).  Remapping the bus removed every trampoline, so
+		 *	they are inserted again.
+		 * 
+		 * \param _pvParm Pointer to the CCheatManager object.
+		 * \param _pbBus The CPU bus.
+		 **/
+		static void									BusMapped( void * _pvParm, CCpuBus * _pbBus );
+
+		/**
+		 * Registers the hotkeys of the cheats applied to the running ROM, replacing those registered before.  Call from the UI thread (hotkeys
+		 *	belong to the thread that owns the window).
+		 **/
+		void										UpdateHotkeys();
+
 
 	protected :
 		// == Types.
+		/**
+		 * One cheat code inserted into the bus.  The trampoline function receives a pointer to tTrampoline (the first member, so it is also a
+		 *	pointer to this object).  tTrampoline.pvReaderParm0 points to the CCheatManager and the 16-bit parameter of the trampoline function is
+		 *	the index of this object in m_vTrampolines, but everything the read needs is copied here so that it costs no extra indirection.
+		 *	These are allocated individually and never move while they are on the bus.
+		 **/
+		struct LSN_CHEAT_TRAMPOLINE {
+			CCpuBus::LSN_TRAMPOLINE					tTrampoline;					/**< The bus trampoline.  Must be first. */
+			std::atomic<bool>						abActive = true;				/**< Whether the code is in effect (hotkeys change this without removing the trampoline). */
+			bool									bUseCompare = false;			/**< Whether the value is only replaced when it matches ui8Compare. */
+			uint8_t									ui8Value = 0;					/**< The value returned instead of the real value. */
+			uint8_t									ui8Compare = 0;					/**< The value the real value must match for ui8Value to be returned. */
+			uint16_t								ui16Address = 0;				/**< The address of the code. */
+			uint32_t								ui32CheatIdx = 0;				/**< The extended index of the cheat this code belongs to. */
+		};
+		static_assert( std::is_standard_layout_v<LSN_CHEAT_TRAMPOLINE>, "LSN_CHEAT_TRAMPOLINE must be standard-layout so that a pointer to tTrampoline is a pointer to it." );
+
+		/** A code to apply, gathered from the enabled cheats. */
+		struct LSN_PENDING_CODE {
+			uint32_t								ui32CheatIdx;					/**< The extended index of the cheat. */
+			uint16_t								ui16Address;					/**< The address. */
+			uint8_t									ui8Value;						/**< The value. */
+			uint8_t									ui8Compare;						/**< The compare value. */
+			bool									bUseCompare;					/**< Whether the compare value is used. */
+			bool									bActive;						/**< The hotkey state of the cheat. */
+		};
+
+
 		/** A slot in the custom-cheat table. */
 		struct LSN_CUSTOM_CHEAT {
 			LSN_CHEAT_ENTRY							ceEntry;						/**< The cheat. */
@@ -316,6 +431,95 @@ namespace lsn {
 		 *	cheats) read through the locking functions (GatherActiveCheats() etc.). */
 		mutable std::shared_mutex					m_smtxCheats;
 		CHotkeyManager *							m_phmHotkeyManager = nullptr;	/**< A pointer to the hotkey manager. */
+		/** The cheat codes on the bus.  Each is allocated separately so that it stays at the same address while it is on the bus. */
+		std::vector<std::unique_ptr<LSN_CHEAT_TRAMPOLINE>>
+													m_vTrampolines;
+		std::mutex									m_mtxTrampolines;				/**< Guards m_vTrampolines (the hotkey handler on the UI thread walks it while the emulation thread may rebuild it). */
+		CCpuBus *									m_pbBus = nullptr;				/**< The bus on which the trampolines are inserted. */
+		std::atomic<bool>							m_abSyncRequested = false;		/**< Set when the trampolines need to be rebuilt (see ProcessPendingSync()). */
+		std::atomic<uint32_t>						m_ui32RomCrc = 0;				/**< The CRC of the running ROM, or 0. */
+		std::u16string								m_u16sRunningGame;				/**< The name of the running game (without extension). */
+		std::vector<int32_t>						m_vHotkeyIds;					/**< The IDs of the hotkeys registered for cheats. */
+
+
+		// == Functions.
+		/**
+		 * The trampoline read function for cheat codes.  Reads through to the original read function (reads can have side effects and the
+		 *	real value is needed for compare codes), then substitutes the cheat value if the code is in effect.
+		 * 
+		 * \param _pvParm0 Pointer to the LSN_CHEAT_TRAMPOLINE (via its CCpuBus::LSN_TRAMPOLINE).
+		 * \param _ui16Parm1 The index of the LSN_CHEAT_TRAMPOLINE in m_vTrampolines.
+		 * \param _pui8Data The buffer from which to read.
+		 * \param _ui8Ret The read value.
+		 **/
+		static void LSN_FASTCALL					CheatRead_Trampoline( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t &_ui8Ret );
+
+		/**
+		 * Determines whether an active-cheat record is applied to the running ROM.
+		 * 
+		 * \param _acCheat The record to check.
+		 * \return Returns true if the cheat is enabled for the running ROM.
+		 **/
+		inline bool									AppliesNow( const LSN_ACTIVE_CHEAT &_acCheat ) const {
+			uint32_t ui32Crc = m_ui32RomCrc.load( std::memory_order_relaxed );
+			return _acCheat.bEnabled && ui32Crc != 0 && _acCheat.ui32RomCrc == ui32Crc;
+		}
+
+		/**
+		 * Determines whether a record shows as enabled:  it applies to the running ROM, or no ROM is running and it is enabled.
+		 * 
+		 * \param _acCheat The record to check.
+		 * \return Returns true if the cheat should be shown as enabled.
+		 **/
+		inline bool									ShowsEnabled( const LSN_ACTIVE_CHEAT &_acCheat ) const {
+			uint32_t ui32Crc = m_ui32RomCrc.load( std::memory_order_relaxed );
+			return _acCheat.bEnabled && (ui32Crc == 0 || _acCheat.ui32RomCrc == 0 || _acCheat.ui32RomCrc == ui32Crc);
+		}
+
+		/**
+		 * Gets a cheat by extended index with no locking, or nullptr if the index is invalid.  The caller must hold m_smtxCheats.
+		 * 
+		 * \param _ui32Idx The extended index.
+		 * \return Returns a pointer to the cheat or nullptr.
+		 **/
+		const LSN_CHEAT_ENTRY *						CheatByIdx_NoLock( uint32_t _ui32Idx ) const;
+
+		/**
+		 * Rebuilds the trampolines on the bus to match the cheats applied to the running ROM.
+		 * 
+		 * \param _bFreshMap If true, the bus was just remapped, so the old trampolines are no longer on it and are not removed from it.
+		 **/
+		void										SyncToBus( bool _bFreshMap );
+
+		/**
+		 * The hotkey callback.
+		 * 
+		 * \param _pvParm0 Pointer to the CCheatManager object.
+		 * \param _ui64Parm1 The packed key (see PackKey()).
+		 * \param _ui32Parm2 Unused.
+		 * \return Returns true to keep the hotkey.
+		 **/
+		static bool									HotkeyFunc( void * _pvParm0, uint64_t _ui64Parm1, uint32_t _ui32Parm2 );
+
+		/**
+		 * Handles a cheat hotkey:  updates the in-effect state of every applied cheat that uses the key.  Several cheats can share a key.
+		 * 
+		 * \param _ui64Key The packed key (see PackKey()).
+		 **/
+		void										HandleHotkey( uint64_t _ui64Key );
+
+#ifdef LSN_USE_WINDOWS
+		/**
+		 * Packs a key into 64 bits for comparison and for passing to the hotkey callback.
+		 * 
+		 * \param _kKey The key to pack.
+		 * \return Returns the packed key, or 0 if no key is assigned.
+		 **/
+		static inline uint64_t						PackKey( const lsw::LSW_KEY &_kKey ) {
+			if ( !_kKey.bKeyCode ) { return 0; }
+			return (uint64_t( _kKey.dwScanCode ) << 16) | (uint64_t( _kKey.bKeyModifier ) << 8) | _kKey.bKeyCode;
+		}
+#endif	// #ifdef LSN_USE_WINDOWS
 
 
 		// == Functions.

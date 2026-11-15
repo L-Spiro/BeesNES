@@ -230,6 +230,16 @@ namespace lsn {
 		virtual LSW_HANDLED						SysCommand( WORD _wCommand, int /*_iMouseX*/, int /*_iMouseY*/ );
 
 		/**
+		 * Handles WM_HOTKEY.  Hotkeys registered through the hotkey manager (such as cheat hotkeys) are dispatched to it.
+		 * 
+		 * \param _iIdentifier The identifier of the hotkey that generated the message.
+		 * \param _iVirtualKey The virtual-key code of the hotkey.
+		 * \param _iMod The modifier keys.
+		 * \return Returns an LSW_HANDLED code.
+		 **/
+		virtual LSW_HANDLED						Hotkey( INT _iIdentifier, INT _iVirtualKey, INT _iMod );
+
+		/**
 		 * Advances the emulation state by the amount of time that has passed since the last advancement.
 		 */
 		void									Tick();

@@ -120,6 +120,14 @@ namespace lsn {
 		auto pwEnabled = FindChild( Layout::LSN_CEWI_ENABLED_CHECK );
 		if ( pwEnabled ) { pwEnabled->SetCheck( acActive.bEnabled ); }
 
+		if ( m_pcedData->bReadOnlyContent ) {
+			// Built-in cheats:  only the enabled state and hotkeys can change.
+			for ( WORD wId : { WORD( Layout::LSN_CEWI_TITLE_EDIT ), WORD( Layout::LSN_CEWI_DESC_EDIT ), WORD( Layout::LSN_CEWI_GG_EDIT ), WORD( Layout::LSN_CEWI_RAW_EDIT ) } ) {
+				auto pwThis = FindChild( wId );
+				if ( pwThis ) { ::SendMessageW( pwThis->Wnd(), EM_SETREADONLY, TRUE, 0 ); }
+			}
+		}
+
 		m_bToggleMode = acActive.IsToggle();
 		m_kKey1 = acActive.kToggleOrEnable;
 		m_kKey2 = m_bToggleMode ? lsw::LSW_KEY() : acActive.kDisable;
@@ -361,6 +369,18 @@ namespace lsn {
 			::SetFocus( _pwFocus->Wnd() );
 			return false;
 		};
+
+		if ( m_pcedData->bReadOnlyContent ) {
+			if ( !m_bToggleMode && SameKey( m_kKey1, m_kKey2 ) ) {
+				return aError( LSN_LSTR( LSN_STR_CHEAT_ERR_SAME_KEY ), FindChild( Layout::LSN_CEWI_KEY2_BUTTON ) );
+			}
+			auto & acActive = m_pcedData->acActive;
+			acActive.bEnabled = pwEnabled->IsChecked() != FALSE;
+			acActive.bToggle = m_bToggleMode;
+			acActive.kToggleOrEnable = m_kKey1;
+			acActive.kDisable = m_bToggleMode ? lsw::LSW_KEY() : m_kKey2;
+			return true;
+		}
 
 		try {
 			std::wstring wsTitle = pwTitle->GetTextW();

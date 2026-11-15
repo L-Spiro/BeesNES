@@ -770,6 +770,7 @@
 #define LSN_STR_CHEAT_ERR_BAD_CODE											Line {} is not a valid code: {}
 #define LSN_STR_CHEAT_ERR_SAME_KEY											The Enable and Disable hotkeys cannot be the same key.  To control the cheat with one key use Toggle instead.
 #define LSN_STR_DELETE_CHEATS_CONFIRM										Delete the selected custom cheats?  Built-in cheats are not affected.
+#define LSN_STR_CHEAT_CONFLICT												\u201C{}\u201D was not enabled because address ${:04X} is already used by the enabled cheat \u201C{}\u201D.
 
 
 // Video export.

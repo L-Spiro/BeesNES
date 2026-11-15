@@ -175,6 +175,24 @@ namespace lsn {
 		void												DeleteCheats();
 
 		/**
+		 * Enables the selected cheats, or disables them if they are all enabled already.
+		 **/
+		void												ActivateCheats();
+
+		/**
+		 * Opens the cheat dialog for the selected cheat so that it can be enabled with hotkeys.  The content of built-in cheats is shown but
+		 *	cannot be changed.
+		 **/
+		void												ActivateWithHotkey();
+
+		/**
+		 * Tells the user which cheats could not be enabled because another enabled cheat uses the same address.
+		 * 
+		 * \param _vIdx The extended indices of the cheats that could not be enabled.
+		 **/
+		void												ReportConflicts( const std::vector<uint32_t> &_vIdx );
+
+		/**
 		 * Selects a single cheat in the TreeListView, expanding its game if needed.
 		 * 
 		 * \param _ui32Idx The extended index of the cheat to select.

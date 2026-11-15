@@ -45,6 +45,12 @@ namespace lsn {
 
 
 		// == Types.
+		/** A function called after the CPU bus is remapped.  Receives the parameter given to SetBusMappedCallback() and the CPU bus. */
+		typedef void (*									PfBusMappedFunc)( void * _pvParm, CCpuBus * _pbBus );
+
+
+
+		// == Types.
 		/** Scoped pausing for system events such as resizing the main window. */
 		struct LSN_TEMP_PAUSE {
 			LSN_TEMP_PAUSE( CSystemBase &_sbSystem ) :
@@ -394,6 +400,26 @@ namespace lsn {
 		 */
 		static bool										LoadRom( const std::vector<uint8_t> &_vRom, LSN_ROM &_rRom, const std::u16string &_s16Path );
 
+		/**
+		 * Sets the function called each time the CPU bus is remapped (on a power-on/hard reset, including when a ROM is loaded), after the
+		 *	mapper has applied its map.  Things that insert trampolines into the bus (such as cheats) use it to insert them again, since
+		 *	remapping replaces every read/write function.  It is called on the thread that performs the reset.
+		 *
+		 * \param _pfFunc The function to call or nullptr.
+		 * \param _pvParm The parameter to pass to _pfFunc.
+		 */
+		inline void										SetBusMappedCallback( PfBusMappedFunc _pfFunc, void * _pvParm ) {
+			m_pfBusMapped = _pfFunc;
+			m_pvBusMappedParm = _pvParm;
+		}
+
+		/**
+		 * Gets the CPU bus.  It is shared by all systems.
+		 *
+		 * \return Returns a pointer to the CPU bus.
+		 */
+		static inline CCpuBus *							CpuBus() { return &m_bBus; }
+
 
 	protected :
 		// == Members.
@@ -407,6 +433,8 @@ namespace lsn {
 		std::unique_ptr<CMapperBase>					m_pmbMapper;						/**< The mapper. */
 		volatile std::atomic<int32_t>					m_i32PauseCount = 0;				/**< The pause count.  For the game to run, m_bPaused must be false and this must be 0. */
 		volatile bool									m_bPaused = false;					/**< Pause flag. */
+		PfBusMappedFunc									m_pfBusMapped = nullptr;			/**< Called after the CPU bus is remapped (see SetBusMappedCallback()). */
+		void *											m_pvBusMappedParm = nullptr;		/**< The parameter passed to m_pfBusMapped. */
 
 
 		static CCpuBus									m_bBus;								/**< The bus. */

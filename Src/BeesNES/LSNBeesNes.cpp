@@ -192,6 +192,12 @@ namespace lsn {
 		m_psbSystems[LSN_PM_DENDY] = &m_nsDendySystem;
 		m_psbSystems[LSN_PM_PALM] = &m_nsPalMSystem;
 		m_psbSystems[LSN_PM_PALN] = &m_nsPalNSystem;
+		// Cheats are trampolines on the CPU bus; every remap of the bus removes them, so they are inserted again afterwards.
+		for ( auto I = std::size( m_psbSystems ); I--; ) {
+			if ( m_psbSystems[I] ) {
+				m_psbSystems[I]->SetBusMappedCallback( &CCheatManager::BusMapped, &m_cmCheatManager );
+			}
+		}
 
 		//CNesPalette								m_npPalettes[LSN_PM_CONSOLE_TOTAL]
 
@@ -1240,15 +1246,19 @@ namespace lsn {
 			LoadPerGameSettings( m_u16PerGameSettings );
 			ApplyFilterOptions();
 			UpdateCurrentSystem();
+			// Before loading, so that the cheats for this ROM are applied when the system maps the bus.
+			m_cmCheatManager.SetRunningRom( rTmp.riInfo.ui32Crc, rTmp.riInfo.s16RomName );
 			if ( m_psbSystem->LoadRom( rTmp ) ) {
 				if LSN_LIKELY( m_psbSystem->GetRom() ) {
 					m_cmCheatManager.AutoSetCheatFilter( m_psbSystem->GetRom()->riInfo.s16RomName );
 				}
+				m_cmCheatManager.UpdateHotkeys();
 				//m_psbSystem->ResetState( false );
 				m_trTemperatureReader.StartThread();
 				AddPath( _s16Path );
 				return true;
 			}
+			m_cmCheatManager.SetRunningRom( 0, std::u16string() );
 		}
 		return false;
 	}
@@ -1257,6 +1267,10 @@ namespace lsn {
 	 * Closes the current ROM.
 	 **/
 	void CBeesNes::CloseRom() {
+		// The cheat trampolines call the mapper's read functions; take them off the bus before the mapper goes away.
+		m_cmCheatManager.RemoveFromBus();
+		m_cmCheatManager.SetRunningRom( 0, std::u16string() );
+		m_cmCheatManager.UpdateHotkeys();
 		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
 		}
 		m_trTemperatureReader.StopThread();
@@ -2142,6 +2156,9 @@ namespace lsn {
 	 * Shuts down the emulator.  Needs to happen outside of the destructor in order for some inheritance parts to work properly.
 	 **/
 	void CBeesNes::ShutDown() {
+		m_cmCheatManager.RemoveFromBus();
+		m_cmCheatManager.SetRunningRom( 0, std::u16string() );
+		m_cmCheatManager.UpdateHotkeys();
 		if ( m_psbSystem && !m_psbSystem->CloseRom() ) {
 		}
 		auto pfbThis = m_pfbFilterTable[m_oOptions.fFilter][GetCurPpuRegion()];
