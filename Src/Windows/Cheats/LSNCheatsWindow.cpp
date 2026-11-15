@@ -359,11 +359,24 @@ namespace lsn {
 
 			bool bSelected = vSelected.size() != 0;
 			bool bAllSelectedAreCustom = !HasBuiltIn( vSelected );
+			// Enable becomes Disable when every selected cheat is enabled (the same toggle as the Activate button).
+			bool bAllEnabled = bSelected;
+			if ( m_pcmCheatManager ) {
+				for ( auto lpThis : vSelected ) {
+					if ( !m_pcmCheatManager->IsEnabled( uint32_t( lpThis ) ) ) {
+						bAllEnabled = false;
+						break;
+					}
+				}
+			}
 			lsw::LSW_MENU_ITEM miMenuBar[] = {
 				{ FALSE,		Layout::LSN_CWI_ADD_BUTTON,						FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__ADD_CHEAT ),				FALSE },
 				{ FALSE,		Layout::LSN_CWI_DELETE_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR_DE_LETE_CHEAT ),			FALSE },
 				{ FALSE,		Layout::LSN_CWI_DUPLICATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								LSN_LSTR( LSN_STR__DUPLICATE_CHEAT ),		FALSE },
 				{ FALSE,		Layout::LSN_CWI_EDIT_BUTTON,					FALSE,		FALSE,		bSelected && bHasItems && bAllSelectedAreCustom,	LSN_LSTR( LSN_STR__EDIT_CHEAT ),			FALSE },
+				{ TRUE,			0,												FALSE,		FALSE,		bSelected && bHasItems,								nullptr,									FALSE },
+				{ FALSE,		Layout::LSN_CWI_ACTIVATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								bAllEnabled ? LSN_LSTR( LSN_STR_DISA_BLE_CHEATS ) : LSN_LSTR( LSN_STR_E_NABLE_CHEATS ),	FALSE },
+				{ FALSE,		Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON,	FALSE,		FALSE,		vSelected.size() == 1 && bHasItems,					LSN_LSTR( LSN_STR_ENABLE_WITH__HOTKEY ),	FALSE },
 				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
 				{ FALSE,		Layout::LSN_CWI_SHOW_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__REVEAL_ENABLED_CHEATS ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_SELECT_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__SELECT_ENABLED_CHEATS ),	FALSE },

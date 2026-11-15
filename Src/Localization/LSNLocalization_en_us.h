@@ -739,6 +739,9 @@
 #define LSN_STR__DUPLICATE_CHEAT											&Duplicate Cheat
 #define LSN_STR__REVEAL_ENABLED_CHEATS										&Reveal Enabled Cheats
 #define LSN_STR__SELECT_ENABLED_CHEATS										&Select Enabled Cheats
+#define LSN_STR_E_NABLE_CHEATS												E&nable Cheats
+#define LSN_STR_DISA_BLE_CHEATS												Disa&ble Cheats
+#define LSN_STR_ENABLE_WITH__HOTKEY											Enable With &Hotkey\u2026
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code
