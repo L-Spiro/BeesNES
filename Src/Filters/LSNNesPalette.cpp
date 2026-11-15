@@ -200,6 +200,21 @@ namespace lsn {
 				fDst.x[2] = std::pow( _fEntry.x[2], 2.79999999999999982236431605997495353221893310546875 );
 				break;
 			}
+			case LSN_G_POW_1_8 : {
+				fDst.x[0] = std::pow( _fEntry.x[0], 1.8000000000000000444089209850062616169452667236328125 );
+				fDst.x[1] = std::pow( _fEntry.x[1], 1.8000000000000000444089209850062616169452667236328125 );
+				fDst.x[2] = std::pow( _fEntry.x[2], 1.8000000000000000444089209850062616169452667236328125 );
+				break;
+			}
+			case LSN_G_ROMM : {
+				fDst.x[0] = CUtilities::ROMMtoLinear( _fEntry.x[0] );
+				fDst.x[1] = CUtilities::ROMMtoLinear( _fEntry.x[1] );
+				fDst.x[2] = CUtilities::ROMMtoLinear( _fEntry.x[2] );
+				break;
+			}
+			default : {
+				fDst = _fEntry;
+			}
 		}
 
 		switch ( _gMonitorGamma ) {
@@ -302,6 +317,19 @@ namespace lsn {
 				fDst.x[2] = std::pow( fDst.x[2], 0.357142857142857150787307318751118145883083343505859375 );	// 1.0 / 2.8
 				break;
 			}
+			case LSN_G_POW_1_8 : {
+				fDst.x[0] = std::pow( fDst.x[0], 0.55555555555555558022717832500347867608070373535156250 );	// 1.0 / 1.8
+				fDst.x[1] = std::pow( fDst.x[1], 0.55555555555555558022717832500347867608070373535156250 );	// 1.0 / 1.8
+				fDst.x[2] = std::pow( fDst.x[2], 0.55555555555555558022717832500347867608070373535156250 );	// 1.0 / 1.8
+				break;
+			}
+			case LSN_G_ROMM : {
+				fDst.x[0] = CUtilities::LinearToROMM( fDst.x[0] );
+				fDst.x[1] = CUtilities::LinearToROMM( fDst.x[1] );
+				fDst.x[2] = CUtilities::LinearToROMM( fDst.x[2] );
+				break;
+			}
+			default : {}
 		}
 
 		return fDst;

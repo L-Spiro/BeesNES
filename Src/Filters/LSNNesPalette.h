@@ -52,6 +52,8 @@ namespace lsn {
 			LSN_G_POW_2_5,							/**< std::pow( X, 2.5 )/std::pow( X, 1.0 / 2.5 ). */
 			LSN_G_POW_2_7,							/**< std::pow( X, 2.7 )/std::pow( X, 1.0 / 2.7 ). */
 			LSN_G_POW_2_8,							/**< std::pow( X, 2.8 )/std::pow( X, 1.0 / 2.8 ). */
+			LSN_G_POW_1_8,							/**< std::pow( X, 1.8 )/std::pow( X, 1.0 / 1.8 ) (Apple RGB, ColorMatch RGB, and Apple Generic RGB). */
+			LSN_G_ROMM,								/**< CUtilities::ROMMtoLinear()/CUtilities::LinearToROMM() (ProPhoto RGB:  1.8 with a linear segment near black). */
 
 			LSN_G_TOTAL
 		};

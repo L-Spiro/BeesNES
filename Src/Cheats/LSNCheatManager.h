@@ -262,6 +262,15 @@ namespace lsn {
 		bool										SetActiveCheat( const LSN_ACTIVE_CHEAT &_acState );
 
 		/**
+		 * Removes the hotkeys of cheats, leaving their enabled states alone.  A cheat that a hotkey had turned off is put back in effect,
+		 *	since it no longer has a key to turn it on.  Call CheatsChanged() afterwards.
+		 * 
+		 * \param _vIdx The extended indices of the cheats.
+		 * \return Returns the number of cheats that had hotkeys.
+		 **/
+		size_t										ClearHotkeys( const std::vector<uint32_t> &_vIdx );
+
+		/**
 		 * Sets whether cheats are enabled, leaving their hotkeys alone.  A cheat whose addresses are used by another enabled cheat is not
 		 *	enabled.
 		 * 

@@ -631,6 +631,28 @@ namespace lsn {
 		}
 
 		/**
+		 * Converts from ROMM RGB (ProPhoto RGB, ISO 22028-2) to linear.  Values below 16 / 512 are on a linear segment with a slope of 1 / 16,
+		 *	the rest on a power curve of 1.8.
+		 * 
+		 * \param _dVal The value to convert.
+		 * \return Returns the color value converted to linear space.
+		 **/
+		static inline double LSN_FASTCALL					ROMMtoLinear( double _dVal ) {
+			return _dVal < 16.0 / 512.0 ? _dVal / 16.0 : std::pow( _dVal, 1.8 );
+		}
+
+		/**
+		 * Converts from linear to ROMM RGB (ProPhoto RGB, ISO 22028-2).  Values below 1 / 512 are on a linear segment with a slope of 16, the
+		 *	rest on a power curve of 1 / 1.8.
+		 *
+		 * \param _dVal The value to convert.
+		 * \return Returns the value converted to ROMM RGB space.
+		 */
+		static inline double LSN_FASTCALL					LinearToROMM( double _dVal ) {
+			return _dVal < 1.0 / 512.0 ? _dVal * 16.0 : std::pow( _dVal, 1.0 / 1.8 );
+		}
+
+		/**
 		 * Converts from SMPTE 240M to linear.  Performs a conversion according to the standard.
 		 * 
 		 * \param _dVal The value to convert.

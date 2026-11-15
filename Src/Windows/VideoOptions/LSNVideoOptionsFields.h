@@ -56,6 +56,7 @@ namespace lsn {
 		/** The fields.  The control ID's of a field are LSN_VOWI_FIELD_FIRST + (field * 2) (label) and + 1 (control). */
 		enum LSN_VIDEO_FIELD : uint32_t {
 			// Host machine.
+			LSN_VF_MONITOR_PRESET,																				/**< The monitor preset (fills the color space and gamma curve; holds no value of its own). */
 			LSN_VF_MONITOR_COLOR_SPACE,																			/**< The monitor's color space. */
 			LSN_VF_MONITOR_GAMMA,																				/**< The monitor's gamma curve. */
 			LSN_VF_WHITE_ADAPTATION,																			/**< White-point adaptation. */

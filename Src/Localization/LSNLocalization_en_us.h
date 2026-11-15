@@ -742,6 +742,7 @@
 #define LSN_STR_E_NABLE_CHEATS												E&nable Cheats
 #define LSN_STR_DISA_BLE_CHEATS												Disa&ble Cheats
 #define LSN_STR_ENABLE_WITH__HOTKEY											Enable With &Hotkey\u2026
+#define LSN_STR_CLEAR_HOT_KEYS												Clear Hot&keys
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code
@@ -750,6 +751,9 @@
 #define LSN_STR_TOGGLE_ON_OFF												Toggle On/Off
 #define LSN_STR_ACTIVATE_DEACTIVATE											Activate/Deactivate
 #define LSN_STR_TOGGLE														Toggle
+#define LSN_STR_TOGGLE_														Toggle:
+#define LSN_STR_ENABLE_														Enable:
+#define LSN_STR_DISABLE_													Disable:
 #define LSN_STR_FILTER_														Filter\u2026
 #define LSN_STR_SEARCH_														Search\u2026
 #define LSN_STR_HOTKEY_S_													Hotkey(s)
@@ -832,6 +836,16 @@
 #define LSN_STR_CSP_NTSC_J													NTSC-J (Japan)
 #define LSN_STR_CSP_BT470_PAL												BT.470 System B/G (PAL)
 #define LSN_STR_CSP_BT601_625												BT.601 625 (PAL)
+#define LSN_STR_CSP_ADOBE_RGB												Adobe RGB 1998
+#define LSN_STR_CSP_APPLE_RGB												Apple RGB
+#define LSN_STR_CSP_COLORMATCH_RGB											ColorMatch RGB
+#define LSN_STR_CSP_APPLE_GENERIC_RGB										Apple Generic RGB
+#define LSN_STR_CSP_DISPLAY_P3												Display P3
+#define LSN_STR_CSP_DCI_P3													DCI-P3 (Digital Cinema)
+#define LSN_STR_CSP_PROPHOTO_RGB											ProPhoto RGB
+#define LSN_STR_CSP_WIDE_GAMUT_RGB											Adobe Wide Gamut RGB
+#define LSN_STR_CSP_ACES_AP0												ACES2065-1 (AP0)
+#define LSN_STR_CSP_ACES_AP1												ACEScg (AP1)
 #define LSN_STR_CSP_TOSHIBA_CF2005											Toshiba Blackstripe CF2005 (US, 1985)
 #define LSN_STR_CSP_TOSHIBA_CF2005_GM										Toshiba Blackstripe CF2005 (US, 1985, Geometric Mean)
 #define LSN_STR_CSP_RCA_COLORTRAK											RCA ColorTrak Remote E13169GM (US, 1989)
@@ -857,6 +871,31 @@
 #define LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705								Apple Multiple Scan 1705 Monitor
 #define LSN_STR_CSP_NEC_MULTISYNC_C400										NEC MultiSync C400 Monitor
 #define LSN_STR_CSP_KDS_VS19												KDS VS19 Monitor
+#define LSN_STR_CSP_BENQ_XL2420Z_100HZ										BenQ XL2420Z Monitor (100 Hz)
+#define LSN_STR_CSP_BENQ_XL2420Z_120HZ										BenQ XL2420Z Monitor (120 Hz)
+#define LSN_STR_CSP_BENQ_XL2420Z_144HZ										BenQ XL2420Z Monitor (144 Hz)
+#define LSN_STR_MP_SRGB														sRGB
+#define LSN_STR_MP_SCRGB													scRGB (sRGB Primaries and Linear)
+#define LSN_STR_MP_REC709													Rec. 709
+#define LSN_STR_MP_REC2020													Rec. 2020
+#define LSN_STR_MP_REC2020_G24												Rec. 2020 (Gamma 2.4)
+#define LSN_STR_MP_REC601_NTSC												Rec. 601 NTSC
+#define LSN_STR_MP_REC601_PAL												Rec. 601 PAL
+#define LSN_STR_MP_SMPTE_C													SMPTE C (Gamma 2.2)
+#define LSN_STR_MP_PAL_SECAM												PAL/SECAM (Gamma 2.2)
+#define LSN_STR_MP_ADOBE_RGB												Adobe RGB 1998
+#define LSN_STR_MP_APPLE_RGB												Apple RGB
+#define LSN_STR_MP_COLORMATCH_RGB											ColorMatch RGB
+#define LSN_STR_MP_APPLE_GENERIC_RGB										Apple Generic RGB
+#define LSN_STR_MP_DISPLAY_P3												Display P3
+#define LSN_STR_MP_DCI_P3													DCI-P3 (Digital Cinema)
+#define LSN_STR_MP_PROPHOTO_RGB												ProPhoto RGB
+#define LSN_STR_MP_WIDE_GAMUT_RGB											Adobe Wide Gamut RGB
+#define LSN_STR_MP_ACES_AP0													ACES2065-1 (AP0 and Linear)
+#define LSN_STR_MP_ACES_AP1													ACEScg (AP1 and Linear)
+#define LSN_STR_MP_BENQ_XL2420Z_100HZ										BenQ XL2420Z (100 Hz)
+#define LSN_STR_MP_BENQ_XL2420Z_120HZ										BenQ XL2420Z (120 Hz)
+#define LSN_STR_MP_BENQ_XL2420Z_144HZ										BenQ XL2420Z (144 Hz)
 
 #define LSN_STR_DM_NONE														None (Standard Axes; PAL and SMPTE C)
 #define LSN_STR_DM_CXA1464AS_JP												Sony CXA1464AS (Japan, 1993)
@@ -1008,6 +1047,7 @@
 
 // Video Options:  labels.
 #define LSN_STR_VO_MONITOR_COLOR_SPACE												Monitor Color Space:
+#define LSN_STR_VO_MONITOR_PRESET													Monitor Preset:
 #define LSN_STR_VO_MONITOR_GAMMA													Monitor Gamma:
 #define LSN_STR_VO_WHITE_ADAPTATION													White-Point Adaptation:
 #define LSN_STR_VO_GAMUT															Out-of-Gamut Handling:
@@ -1095,6 +1135,8 @@
 #define LSN_STR_VO_GAMMA_POW_2_5													Power 2.5
 #define LSN_STR_VO_GAMMA_POW_2_7													Power 2.7
 #define LSN_STR_VO_GAMMA_POW_2_8													Power 2.8
+#define LSN_STR_VO_GAMMA_POW_1_8													Power 1.8
+#define LSN_STR_VO_GAMMA_ROMM														ProPhoto (ROMM)
 #define LSN_STR_VO_WA_BRADFORD														Bradford
 #define LSN_STR_VO_WA_VON_KRIES														Von Kries
 #define LSN_STR_VO_WA_XYZ_SCALING													XYZ Scaling
@@ -1167,6 +1209,7 @@
 
 // Video Options:  tool tips.
 #define LSN_STR_VO_TT_MONITOR_COLOR_SPACE											Select your monitor\u2019s color space.  sRGB is the most common on Microsoft\u00AE Windows\u00AE.
+#define LSN_STR_VO_TT_MONITOR_PRESET												Select a standard monitor color space or a measured monitor.  This sets the monitor color space and gamma curve.  Each preset comes from an ICC monitor profile that is only a color space and a gamma curve.
 #define LSN_STR_VO_TT_MONITOR_GAMMA													Select your monitor\u2019s gamma curve.  sRGB is the most common on Microsoft\u00AE Windows\u00AE.
 #define LSN_STR_VO_TT_WHITE_ADAPTATION												How the white point of the emulated CRT is mapped to the white point of your monitor.  None keeps the CRT\u2019s own white (such as the bluish white of Japanese televisions), as it looked on the original screen.  Bradford (the most common), Von Kries, XYZ Scaling, and CAT02 turn the CRT\u2019s white into your monitor\u2019s white, the way your eyes would adapt to it.
 #define LSN_STR_VO_TT_GAMUT															How colors that your monitor cannot show are brought into its range.  Preserve Hue desaturates such a color toward gray just enough to fit, keeping its hue.  Clip clamps each color channel separately, which keeps more saturation but can shift the hue.

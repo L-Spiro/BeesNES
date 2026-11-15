@@ -175,6 +175,123 @@ namespace lsn {
 		0.281f, 0.311f
 	};
 
+	float CColorSpace::m_fAdobeRgb[8] = {															/**< Chromaticities and white point for Adobe RGB (1998). */
+		// Adobe RGB (1998) Color Image Encoding (AdobeRGB1998.icc).
+		0.640f, 0.330f,
+		0.210f, 0.710f,
+		0.150f, 0.060f,
+		// D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fAppleRgb[8] = {															/**< Chromaticities and white point for Apple RGB. */
+		// AppleRGB.icc.
+		0.625f, 0.340f,
+		0.280f, 0.595f,
+		0.155f, 0.070f,
+		// D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fColorMatchRgb[8] = {														/**< Chromaticities and white point for ColorMatch RGB. */
+		// ColorMatchRGB.icc (Radius PressView monitor phosphors).
+		0.630f, 0.340f,
+		0.295f, 0.605f,
+		0.150f, 0.075f,
+		// D50.
+		0.3457f, 0.3585f
+	};
+
+	float CColorSpace::m_fAppleGenericRgb[8] = {													/**< Chromaticities and white point for Apple Generic RGB. */
+		// Generic RGB Profile.icc (macOS).
+		0.630f, 0.340f,
+		0.295f, 0.605f,
+		0.155f, 0.077f,
+		// D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fDisplayP3[8] = {															/**< Chromaticities and white point for Display P3. */
+		// Display P3.icc.
+		0.680f, 0.320f,
+		0.265f, 0.690f,
+		0.150f, 0.060f,
+		// D65.
+		0.3127f, 0.3290f
+	};
+
+	float CColorSpace::m_fDciP3[8] = {																/**< Chromaticities and white point for DCI-P3. */
+		// SMPTE RP 431-2 (DCI(P3) RGB.icc).
+		0.680f, 0.320f,
+		0.265f, 0.690f,
+		0.150f, 0.060f,
+		// The DCI white point.
+		0.314f, 0.351f
+	};
+
+	float CColorSpace::m_fProPhotoRgb[8] = {														/**< Chromaticities and white point for ProPhoto RGB (ROMM RGB). */
+		// ISO 22028-2 (ProPhoto-v4.icc and ROMM RGB.icc).
+		0.7347f, 0.2653f,
+		0.1596f, 0.8404f,
+		0.0366f, 0.0001f,
+		// D50.
+		0.3457f, 0.3585f
+	};
+
+	float CColorSpace::m_fWideGamutRgb[8] = {														/**< Chromaticities and white point for Adobe Wide Gamut RGB. */
+		// WideGamutCompat-v2.icc and WideGamutCompat-v4.icc.
+		0.7347f, 0.2653f,
+		0.1152f, 0.8264f,
+		0.1566f, 0.0177f,
+		// D50.
+		0.3457f, 0.3585f
+	};
+
+	float CColorSpace::m_fAcesAp0[8] = {															/**< Chromaticities and white point for ACES2065-1 (AP0). */
+		// SMPTE ST 2065-1 (ACES2065-1.icc).
+		0.7347f, 0.2653f,
+		0.0000f, 1.0000f,
+		0.0001f, -0.0770f,
+		// The ACES white point (about D60).
+		0.32168f, 0.33767f
+	};
+
+	float CColorSpace::m_fAcesAp1[8] = {															/**< Chromaticities and white point for ACEScg (AP1). */
+		// Academy S-2014-004 (ACEScg.icc and ACESCG Linear.icc).
+		0.713f, 0.293f,
+		0.165f, 0.830f,
+		0.128f, 0.044f,
+		// The ACES white point (about D60).
+		0.32168f, 0.33767f
+	};
+
+	float CColorSpace::m_fBenQXl2420Z100[8] = {														/**< Chromaticities and white point for a BenQ XL2420Z at 100 Hz. */
+		// BenQ XL2420Z 100Hz.icm (the colorants adapted from D50 back to the white point of the profile with Bradford).
+		0.647322f, 0.324654f,
+		0.309483f, 0.619542f,
+		0.153447f, 0.072428f,
+		// The measured white point of the profile.
+		0.313345f, 0.329245f
+	};
+
+	float CColorSpace::m_fBenQXl2420Z120[8] = {														/**< Chromaticities and white point for a BenQ XL2420Z at 120 Hz. */
+		// BenQ XL2420Z 120Hz.icm (the colorants adapted from D50 back to the white point of the profile with Bradford).
+		0.646316f, 0.324572f,
+		0.309696f, 0.619090f,
+		0.153524f, 0.072675f,
+		// The measured white point of the profile.
+		0.312348f, 0.328602f
+	};
+
+	float CColorSpace::m_fBenQXl2420Z144[8] = {														/**< Chromaticities and white point for a BenQ XL2420Z at 144 Hz. */
+		// BenQ XL2420Z 144Hz.icm (the colorants adapted from D50 back to the white point of the profile with Bradford).
+		0.645627f, 0.324503f,
+		0.310093f, 0.618669f,
+		0.153630f, 0.073063f,
+		// The measured white point of the profile.
+		0.312294f, 0.328578f
+	};
+
 	// The following were harvested from CustomPalette.java and from measurements found online.
 	float CColorSpace::m_fToshibaCF2005Gm[8] = {													/**< Chromaticities and white point for a Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
 		// https://forums.libretro.com/t/plainoldpantss-shader-presets/45498?page=5
@@ -295,6 +412,16 @@ namespace lsn {
 		{ m_fNtscJ,								LSN_LSTR( LSN_STR_CSP_NTSC_J ),							"ntsc_j",							1.0f,		false,		LSN_DM_NONE },
 		{ m_fBt470_PAL,							LSN_LSTR( LSN_STR_CSP_BT470_PAL ),						"bt470_pal",						1.0f,		false,		LSN_DM_NONE },
 		{ m_fBt601_625,							LSN_LSTR( LSN_STR_CSP_BT601_625 ),						"bt601_625",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fAdobeRgb,							LSN_LSTR( LSN_STR_CSP_ADOBE_RGB ),						"adobe_rgb_1998",					1.0f,		false,		LSN_DM_NONE },
+		{ m_fAppleRgb,							LSN_LSTR( LSN_STR_CSP_APPLE_RGB ),						"apple_rgb",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fColorMatchRgb,						LSN_LSTR( LSN_STR_CSP_COLORMATCH_RGB ),					"colormatch_rgb",					1.0f,		false,		LSN_DM_NONE },
+		{ m_fAppleGenericRgb,					LSN_LSTR( LSN_STR_CSP_APPLE_GENERIC_RGB ),				"apple_generic_rgb",				1.0f,		false,		LSN_DM_NONE },
+		{ m_fDisplayP3,							LSN_LSTR( LSN_STR_CSP_DISPLAY_P3 ),						"display_p3",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fDciP3,								LSN_LSTR( LSN_STR_CSP_DCI_P3 ),							"dci_p3",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fProPhotoRgb,						LSN_LSTR( LSN_STR_CSP_PROPHOTO_RGB ),					"prophoto_rgb",						1.0f,		false,		LSN_DM_NONE },
+		{ m_fWideGamutRgb,						LSN_LSTR( LSN_STR_CSP_WIDE_GAMUT_RGB ),					"adobe_wide_gamut_rgb",				1.0f,		false,		LSN_DM_NONE },
+		{ m_fAcesAp0,							LSN_LSTR( LSN_STR_CSP_ACES_AP0 ),						"aces_ap0",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fAcesAp1,							LSN_LSTR( LSN_STR_CSP_ACES_AP1 ),						"aces_ap1",							1.0f,		false,		LSN_DM_NONE },
 		{ m_fToshibaCF2005,						LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005 ),					"toshiba_cf2005",					1.1155f,	true,		LSN_DM_TA7644BP },
 		{ m_fToshibaCF2005Gm,					LSN_LSTR( LSN_STR_CSP_TOSHIBA_CF2005_GM ),				"toshiba_cf2005_gm",				1.0f,		true,		LSN_DM_TA7644BP_MEASURED },
 		{ m_fRcaColorTrak,						LSN_LSTR( LSN_STR_CSP_RCA_COLORTRAK ),					"rca_colortrak_e13169gm",			1.0f,		true,		LSN_DM_RCA_COLORTRAK },
@@ -320,7 +447,41 @@ namespace lsn {
 		{ m_fAppleMultipleScan1705,				LSN_LSTR( LSN_STR_CSP_APPLE_MULTIPLE_SCAN_1705 ),		"apple_multiple_scan_1705",			1.0f,		false,		LSN_DM_NONE },
 		{ m_fNecMultiSyncC400,					LSN_LSTR( LSN_STR_CSP_NEC_MULTISYNC_C400 ),				"nec_multisync_c400",				1.0f,		false,		LSN_DM_NONE },
 		{ m_fKdsVs19,							LSN_LSTR( LSN_STR_CSP_KDS_VS19 ),						"kds_vs19",							1.0f,		false,		LSN_DM_NONE },
+		{ m_fBenQXl2420Z100,					LSN_LSTR( LSN_STR_CSP_BENQ_XL2420Z_100HZ ),				"benq_xl2420z_100hz",				1.0f,		false,		LSN_DM_NONE },
+		{ m_fBenQXl2420Z120,					LSN_LSTR( LSN_STR_CSP_BENQ_XL2420Z_120HZ ),				"benq_xl2420z_120hz",				1.0f,		false,		LSN_DM_NONE },
+		{ m_fBenQXl2420Z144,					LSN_LSTR( LSN_STR_CSP_BENQ_XL2420Z_144HZ ),				"benq_xl2420z_144hz",				1.0f,		false,		LSN_DM_NONE },
 	};
+
+	/** The monitor presets, each made from parametric ICC monitor profiles (a gamma curve and a color space, with no lookup tables).  The
+	 *	profiles that describe the same color space and curve share a preset. */
+	const CColorSpace::LSN_MONITOR_PRESET CColorSpace::m_mpMonitorPresets[] = {
+		// Name												Color space							Gamma curve								Profiles
+		{ LSN_LSTR( LSN_STR_MP_SRGB ),						LSN_CSP_SRGB,						CNesPalette::LSN_G_sRGB },				// sRGB-v4.icc, sRGBlcms2.icc.
+		{ LSN_LSTR( LSN_STR_MP_SCRGB ),						LSN_CSP_SRGB,						CNesPalette::LSN_G_NONE },				// scRGB-v2.icc.
+		{ LSN_LSTR( LSN_STR_MP_REC709 ),					LSN_CSP_BT709,						CNesPalette::LSN_G_SMPTE170M },			// ITU-709.icc, Rec709-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_REC2020 ),					LSN_CSP_BT2020,						CNesPalette::LSN_G_SMPTE170M },			// ITU-2020.icc, Rec2020-v4.icc, Rec2020Compat-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_REC2020_G24 ),				LSN_CSP_BT2020,						CNesPalette::LSN_G_POW_2_4 },			// Rec2020-g24-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_REC601_NTSC ),				LSN_CSP_SMPTE_C,					CNesPalette::LSN_G_SMPTE170M },			// Rec601NTSC-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_REC601_PAL ),				LSN_CSP_BT601_625,					CNesPalette::LSN_G_SMPTE170M },			// Rec601PAL-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_SMPTE_C ),					LSN_CSP_SMPTE_C,					CNesPalette::LSN_G_ADOBERGB },			// SMPTE-C.icc (gamma 2.2).
+		{ LSN_LSTR( LSN_STR_MP_PAL_SECAM ),					LSN_CSP_BT601_625,					CNesPalette::LSN_G_ADOBERGB },			// PAL_SECAM.icc (gamma 2.2).
+		{ LSN_LSTR( LSN_STR_MP_ADOBE_RGB ),					LSN_CSP_ADOBE_RGB,					CNesPalette::LSN_G_ADOBERGB },			// AdobeRGB1998.icc, AdobeCompat-v2.icc, AdobeCompat-v4.icc, aRGBlcms2.icc.
+		{ LSN_LSTR( LSN_STR_MP_APPLE_RGB ),					LSN_CSP_APPLE_RGB,					CNesPalette::LSN_G_POW_1_8 },			// AppleRGB.icc, AppleCompat-v2.icc, AppleCompat-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_COLORMATCH_RGB ),			LSN_CSP_COLORMATCH_RGB,				CNesPalette::LSN_G_POW_1_8 },			// ColorMatchRGB.icc, ColorMatchCompat-v2.icc, ColorMatchCompat-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_APPLE_GENERIC_RGB ),			LSN_CSP_APPLE_GENERIC_RGB,			CNesPalette::LSN_G_POW_1_8 },			// Generic RGB Profile.icc.
+		{ LSN_LSTR( LSN_STR_MP_DISPLAY_P3 ),				LSN_CSP_DISPLAY_P3,					CNesPalette::LSN_G_sRGB },				// Display P3.icc, DisplayP3-v4.icc, DisplayP3Compat-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_DCI_P3 ),					LSN_CSP_DCI_P3,						CNesPalette::LSN_G_DCIP3 },				// DCI(P3) RGB.icc, DCI-P3-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_PROPHOTO_RGB ),				LSN_CSP_PROPHOTO_RGB,				CNesPalette::LSN_G_ROMM },				// ProPhoto-v4.icc, ROMM RGB.icc.
+		{ LSN_LSTR( LSN_STR_MP_WIDE_GAMUT_RGB ),			LSN_CSP_WIDE_GAMUT_RGB,				CNesPalette::LSN_G_ADOBERGB },			// WideGamutCompat-v2.icc, WideGamutCompat-v4.icc.
+		{ LSN_LSTR( LSN_STR_MP_ACES_AP0 ),					LSN_CSP_ACES_AP0,					CNesPalette::LSN_G_NONE },				// ACES2065-1.icc.
+		{ LSN_LSTR( LSN_STR_MP_ACES_AP1 ),					LSN_CSP_ACES_AP1,					CNesPalette::LSN_G_NONE },				// ACEScg.icc, ACESCG Linear.icc.
+		{ LSN_LSTR( LSN_STR_MP_BENQ_XL2420Z_100HZ ),		LSN_CSP_BENQ_XL2420Z_100HZ,			CNesPalette::LSN_G_ADOBERGB },			// BenQ XL2420Z 100Hz.icm (gamma 2.2).
+		{ LSN_LSTR( LSN_STR_MP_BENQ_XL2420Z_120HZ ),		LSN_CSP_BENQ_XL2420Z_120HZ,			CNesPalette::LSN_G_ADOBERGB },			// BenQ XL2420Z 120Hz.icm (gamma 2.2).
+		{ LSN_LSTR( LSN_STR_MP_BENQ_XL2420Z_144HZ ),		LSN_CSP_BENQ_XL2420Z_144HZ,			CNesPalette::LSN_G_ADOBERGB },			// BenQ XL2420Z 144Hz.icm (gamma 2.2).
+	};
+
+	/** The number of monitor presets. */
+	const size_t CColorSpace::m_sMonitorPresets = std::size( CColorSpace::m_mpMonitorPresets );
 
 	/** The information about each decoder chip, in LSN_DEMODULATOR order.  From gamutthingy (https://github.com/ChthonVII/gamutthingy/blob/master/src/constants.h):
 	 *	datasheets, and measurements by patchy68k.  LSN_DM_NONE lists the standard NTSC axes (DemodulatorMatrix() uses the exact standard coefficients for it). */
@@ -424,6 +585,31 @@ namespace lsn {
 	 */
 	const CColorSpace::LSN_COLOR_SPACE_DATA & CColorSpace::Data( LSN_COLOR_SPACE _cspColorSpace ) {
 		return m_csdData[(_cspColorSpace < LSN_CSP_TOTAL) ? _cspColorSpace : LSN_CSP_SRGB];
+	}
+
+	/**
+	 * Gets the monitor presets (color spaces and gamma curves made from parametric ICC monitor profiles).
+	 *
+	 * \param _sTotal Holds the returned number of presets.
+	 * \return Returns the monitor presets.
+	 */
+	const CColorSpace::LSN_MONITOR_PRESET * CColorSpace::MonitorPresets( size_t &_sTotal ) {
+		_sTotal = m_sMonitorPresets;
+		return m_mpMonitorPresets;
+	}
+
+	/**
+	 * Finds the monitor preset that matches a color space and a gamma curve.
+	 *
+	 * \param _cspColorSpace The color space.
+	 * \param _gGamma The gamma curve.
+	 * \return Returns the index of the matching preset, or size_t( -1 ) if no preset matches.
+	 */
+	size_t CColorSpace::FindMonitorPreset( LSN_COLOR_SPACE _cspColorSpace, CNesPalette::LSN_GAMMA _gGamma ) {
+		for ( size_t I = 0; I < m_sMonitorPresets; ++I ) {
+			if ( m_mpMonitorPresets[I].cspColorSpace == _cspColorSpace && m_mpMonitorPresets[I].gGamma == _gGamma ) { return I; }
+		}
+		return size_t( -1 );
 	}
 
 	/**
@@ -710,6 +896,12 @@ namespace lsn {
 			case CNesPalette::LSN_G_POW_2_5 :		{ sGammaCall = aPow( "2.5" ); break; }
 			case CNesPalette::LSN_G_POW_2_7 :		{ sGammaCall = aPow( "2.7" ); break; }
 			case CNesPalette::LSN_G_POW_2_8 :		{ sGammaCall = aPow( "2.8" ); break; }
+			case CNesPalette::LSN_G_POW_1_8 :		{ sGammaCall = aPow( "1.8" ); break; }
+			case CNesPalette::LSN_G_ROMM :			{
+				// Linear (c / 16) below 16 / 512, otherwise c^1.8.  Written inline (it needs no function in LSNGamma.hlsl or the Vulkan gamma pass).
+				sGammaCall = "(c.rgb * 6.25e-02 + step( " + sVec3 + "( 3.125e-02, 3.125e-02, 3.125e-02 ), c.rgb ) * (" + aPow( "1.8" ) + " - c.rgb * 6.25e-02))";
+				break;
+			}
 			default : { break; }
 		}
 		// With a color-space conversion, out-of-gamut (negative) inputs must survive the gamma curve (it would make them NaN).
@@ -761,6 +953,12 @@ namespace lsn {
 			case CNesPalette::LSN_G_POW_2_5 :		{ sRet += aPow( 2.5 ); break; }
 			case CNesPalette::LSN_G_POW_2_7 :		{ sRet += aPow( 2.7 ); break; }
 			case CNesPalette::LSN_G_POW_2_8 :		{ sRet += aPow( 2.8 ); break; }
+			case CNesPalette::LSN_G_POW_1_8 :		{ sRet += aPow( 1.8 ); break; }
+			case CNesPalette::LSN_G_ROMM : {
+				// ProPhoto RGB:  16 * x below 1 / 512, otherwise x^(1 / 1.8).
+				sRet += aPiecewise( 1.0 / 512.0, 16.0, 1.0, 1.0 / 1.8 );
+				break;
+			}
 			default : {
 				// sRGB (and automatic).  The CRT curves are not monitor curves (and LSN_G_CRT2 cannot be inverted in real time), so they
 				//	also land here.

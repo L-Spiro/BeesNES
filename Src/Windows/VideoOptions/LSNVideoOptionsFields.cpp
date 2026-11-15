@@ -35,6 +35,7 @@ namespace lsn {
 	/** The fields. */
 	static const CVideoOptionsFields::LSN_FIELD_INFO		s_fiFields[CVideoOptionsFields::LSN_VF_TOTAL] = {
 		// Host machine.
+		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_MONITOR_PRESET ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_MONITOR_PRESET )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_MONITOR_COLOR_SPACE ),		reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_MONITOR_COLOR_SPACE )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_MONITOR_GAMMA ),			reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_MONITOR_GAMMA )) },
 		{ CVideoOptionsFields::LSN_VFT_COMBO,		LSN_LSTR( LSN_STR_VO_WHITE_ADAPTATION ),		reinterpret_cast<const char *>(LSN_U8STR( LSN_STR_VO_TT_WHITE_ADAPTATION )) },
@@ -115,8 +116,8 @@ namespace lsn {
 	// == Groups.
 	/** The Host Machine display fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfHostDisplay[] = {
-		CVideoOptionsFields::LSN_VF_MONITOR_COLOR_SPACE, CVideoOptionsFields::LSN_VF_MONITOR_GAMMA, CVideoOptionsFields::LSN_VF_WHITE_ADAPTATION,
-		CVideoOptionsFields::LSN_VF_GAMUT, CVideoOptionsFields::LSN_VF_OUTPUT_RANGE,
+		CVideoOptionsFields::LSN_VF_MONITOR_PRESET, CVideoOptionsFields::LSN_VF_MONITOR_COLOR_SPACE, CVideoOptionsFields::LSN_VF_MONITOR_GAMMA,
+		CVideoOptionsFields::LSN_VF_WHITE_ADAPTATION, CVideoOptionsFields::LSN_VF_GAMUT, CVideoOptionsFields::LSN_VF_OUTPUT_RANGE,
 	};
 	/** The color-correction fields. */
 	static const CVideoOptionsFields::LSN_VIDEO_FIELD		s_vfColorCorrection[] = {
@@ -347,6 +348,8 @@ namespace lsn {
 			case CNesPalette::LSN_G_POW_2_5 : { return LSN_LSTR( LSN_STR_VO_GAMMA_POW_2_5 ); }
 			case CNesPalette::LSN_G_POW_2_7 : { return LSN_LSTR( LSN_STR_VO_GAMMA_POW_2_7 ); }
 			case CNesPalette::LSN_G_POW_2_8 : { return LSN_LSTR( LSN_STR_VO_GAMMA_POW_2_8 ); }
+			case CNesPalette::LSN_G_POW_1_8 : { return LSN_LSTR( LSN_STR_VO_GAMMA_POW_1_8 ); }
+			case CNesPalette::LSN_G_ROMM : { return LSN_LSTR( LSN_STR_VO_GAMMA_ROMM ); }
 			default : { return L""; }
 		}
 	}
@@ -628,7 +631,26 @@ namespace lsn {
 		if ( !_pcbCombo ) { return; }
 		_pcbCombo->ResetContent();
 		switch ( _vfField ) {
-			case LSN_VF_MONITOR_COLOR_SPACE : {}	LSN_FALLTHROUGH
+			case LSN_VF_MONITOR_PRESET : {
+				AddEntry( _pcbCombo, LSN_LSTR( LSN_STR_VO_CUSTOM ), -1 );
+				size_t sTotal = 0;
+				const CColorSpace::LSN_MONITOR_PRESET * pmpPresets = CColorSpace::MonitorPresets( sTotal );
+				for ( size_t I = 0; I < sTotal; ++I ) {
+					AddEntry( _pcbCombo, pmpPresets[I].pwcName, LPARAM( I ) );
+				}
+				break;
+			}
+			case LSN_VF_MONITOR_COLOR_SPACE : {
+				// Only the color spaces that monitors use (the television color spaces are for the emulated CRT).  A television color space
+				//	chosen before this list was limited stays listed while it is selected.
+				const CColorSpace::LSN_COLOR_SPACE cspCur = _ftTarget.phdoHost ? _ftTarget.phdoHost->dsDisplay.cspColorSpace : CColorSpace::LSN_CSP_SRGB;
+				for ( uint32_t I = 0; I < CColorSpace::LSN_CSP_TOTAL; ++I ) {
+					if ( CColorSpace::IsMonitorColorSpace( CColorSpace::LSN_COLOR_SPACE( I ) ) || I == cspCur ) {
+						AddEntry( _pcbCombo, CColorSpace::Data( CColorSpace::LSN_COLOR_SPACE( I ) ).pwcName, LPARAM( I ) );
+					}
+				}
+				break;
+			}
 			case LSN_VF_COLOR_SPACE : {
 				for ( uint32_t I = 0; I < CColorSpace::LSN_CSP_TOTAL; ++I ) {
 					AddEntry( _pcbCombo, CColorSpace::Data( CColorSpace::LSN_COLOR_SPACE( I ) ).pwcName, LPARAM( I ) );
@@ -762,6 +784,11 @@ namespace lsn {
 		if ( _ftTarget.phdoHost ) {
 			const CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _ftTarget.phdoHost->dsDisplay;
 			switch ( _vfField ) {
+				case LSN_VF_MONITOR_PRESET : {
+					const size_t sIdx = CColorSpace::FindMonitorPreset( dsDisplay.cspColorSpace, dsDisplay.gGamma );
+					_dValue = (sIdx == size_t( -1 )) ? -1.0 : double( sIdx );
+					return true;
+				}
 				case LSN_VF_MONITOR_COLOR_SPACE : { _dValue = dsDisplay.cspColorSpace; return true; }
 				case LSN_VF_MONITOR_GAMMA : { _dValue = dsDisplay.gGamma; return true; }
 				case LSN_VF_WHITE_ADAPTATION : { _dValue = dsDisplay.waWhiteAdaptation; return true; }
@@ -931,6 +958,15 @@ namespace lsn {
 		if ( _ftTarget.phdoHost ) {
 			CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = _ftTarget.phdoHost->dsDisplay;
 			switch ( _vfField ) {
+				case LSN_VF_MONITOR_PRESET : {
+					size_t sTotal = 0;
+					const CColorSpace::LSN_MONITOR_PRESET * pmpPresets = CColorSpace::MonitorPresets( sTotal );
+					// Custom (-1) changes nothing.
+					if ( _dValue < 0.0 || ui32Enum >= sTotal ) { return false; }
+					dsDisplay.cspColorSpace = pmpPresets[ui32Enum].cspColorSpace;
+					dsDisplay.gGamma = pmpPresets[ui32Enum].gGamma;
+					return true;
+				}
 				case LSN_VF_MONITOR_COLOR_SPACE : {
 					if ( ui32Enum >= CColorSpace::LSN_CSP_TOTAL ) { return false; }
 					dsDisplay.cspColorSpace = CColorSpace::LSN_COLOR_SPACE( ui32Enum );

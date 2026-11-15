@@ -128,11 +128,28 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Fills the TreeListView with filtered cheats.
+		 * Fills the TreeListView with filtered cheats.  Games that were already shown keep their expanded/collapsed states.
 		 * 
+		 * \param _bKeepScroll If true, the list keeps its scroll position (used when cheats are added or deleted), otherwise it scrolls to
+		 *	the top (used when the filter or search changes).
 		 * \return Returns the number of cheats added to the TreeListView.
 		 **/
-		size_t												AddCheats();
+		size_t												AddCheats( bool _bKeepScroll = false );
+
+		/**
+		 * Updates the texts (both columns) of the cheats already in the TreeListView without rebuilding it, so that the scroll position,
+		 *	selection, and expanded/collapsed states do not change.  Use after cheats are edited, enabled, or disabled, or have their hotkeys
+		 *	changed.
+		 **/
+		void												RefreshCheatItems();
+
+		/**
+		 * Creates the text of the Hotkey(s) column for a cheat.
+		 * 
+		 * \param _ui32Idx The extended index of the cheat.
+		 * \return Returns the text describing the hotkeys of the cheat, or an empty string if it has none.
+		 **/
+		std::wstring										HotkeyText( uint32_t _ui32Idx ) const;
 
 		/**
 		 * Updates the addresses and notes edits based on the TreeListView selection.
@@ -184,6 +201,19 @@ namespace lsn {
 		 *	cannot be changed.
 		 **/
 		void												ActivateWithHotkey();
+
+		/**
+		 * Removes the hotkeys of the selected cheats (built-in or custom).  Their enabled states are not changed.
+		 **/
+		void												ClearHotkeys();
+
+		/**
+		 * Determines whether any of the given cheats has a hotkey.
+		 * 
+		 * \param _vSelected The extended indices of the cheats to check.
+		 * \return Returns true if at least one of the cheats has a hotkey.
+		 **/
+		bool												HasHotkey( const std::vector<LPARAM> &_vSelected ) const;
 
 		/**
 		 * Tells the user which cheats could not be enabled because another enabled cheat uses the same address.

@@ -20,6 +20,10 @@
 
 #include "../../../resource.h"
 
+#include <Helpers/LSWHelpers.h>
+
+#include <map>
+
 namespace lsn {
 
 	CCheatsWindow::CCheatsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
@@ -256,6 +260,10 @@ namespace lsn {
 				ActivateWithHotkey();
 				break;
 			}
+			case Layout::LSN_CWI_CLEAR_HOTKEYS : {
+				ClearHotkeys();
+				break;
+			}
 
 			case Layout::LSN_CWI_SHOW_ENABLED : {
 				RevealEnabled();
@@ -377,6 +385,7 @@ namespace lsn {
 				{ TRUE,			0,												FALSE,		FALSE,		bSelected && bHasItems,								nullptr,									FALSE },
 				{ FALSE,		Layout::LSN_CWI_ACTIVATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								bAllEnabled ? LSN_LSTR( LSN_STR_DISA_BLE_CHEATS ) : LSN_LSTR( LSN_STR_E_NABLE_CHEATS ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON,	FALSE,		FALSE,		vSelected.size() == 1 && bHasItems,					LSN_LSTR( LSN_STR_ENABLE_WITH__HOTKEY ),	FALSE },
+				{ FALSE,		Layout::LSN_CWI_CLEAR_HOTKEYS,					FALSE,		FALSE,		bSelected && bHasItems && HasHotkey( vSelected ),	LSN_LSTR( LSN_STR_CLEAR_HOT_KEYS ),			FALSE },
 				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
 				{ FALSE,		Layout::LSN_CWI_SHOW_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__REVEAL_ENABLED_CHEATS ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_SELECT_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__SELECT_ENABLED_CHEATS ),	FALSE },
@@ -405,15 +414,27 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills the TreeListView with filtered cheats.
+	 * Fills the TreeListView with filtered cheats.  Games that were already shown keep their expanded/collapsed states.
 	 * 
+	 * \param _bKeepScroll If true, the list keeps its scroll position (used when cheats are added or deleted), otherwise it scrolls to
+	 *	the top (used when the filter or search changes).
 	 * \return Returns the number of cheats added to the TreeListView.
 	 **/
-	size_t CCheatsWindow::AddCheats() {
+	size_t CCheatsWindow::AddCheats( bool _bKeepScroll ) {
 		if ( nullptr == m_pcmCheatManager ) { return 0; }
 		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
 		if ( !ptlvTree ) { return 0; }
 		try {
+			// Remember the view:  the first visible row and which games are expanded (by name, since game IDs are reassigned below).
+			INT iTopIdx = _bKeepScroll ? INT( ::SendMessageW( ptlvTree->Wnd(), LVM_GETTOPINDEX, 0, 0 ) ) : 0;
+			std::map<std::wstring, BOOL> mExpanded;
+			for ( auto hThis = ptlvTree->GetNext( TVI_ROOT ); hThis; hThis = ptlvTree->GetNext( hThis ) ) {
+				auto aFound = m_mGameNameAssociation.find( ptlvTree->GetItemLParam( hThis ) );
+				if ( aFound != m_mGameNameAssociation.end() ) {
+					mExpanded[aFound->second] = ptlvTree->ItemIsExpanded( hThis );
+				}
+			}
+
 			ptlvTree->BeginLargeUpdate();
 			std::vector<LPARAM> vSelected = GatherSelectedGames();
 			ptlvTree->DeleteAll();
@@ -449,21 +470,88 @@ namespace lsn {
 					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(wsTmp.c_str()),
 						ui32Id, TVI_ROOT );
 					hParent = ptlvTree->InsertItem( &isInsertMe );
+					auto aFound = mExpanded.find( wsTmp );
+					if ( aFound != mExpanded.end() ) { ptlvTree->SetItemExpand( hParent, aFound->second ); }
 					m_mGameNameAssociation.insert( std::make_pair( ui32Id, wsTmp ) );
 				}
 				for ( size_t J = 0; J < vMatches.size(); ++J ) {
 					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(vMatches[J].second.c_str()),
 						vMatches[J].first, hParent );
-					ptlvTree->InsertItem( &isInsertMe );
+					HTREEITEM htiItem = ptlvTree->InsertItem( &isInsertMe );
+					if ( htiItem ) { ptlvTree->SetItemText( htiItem, HotkeyText( vMatches[J].first ).c_str(), 1 ); }
 				}
 			}
 
 			ptlvTree->SetItemSelectionByLParam( vSelected );
 			ptlvTree->FinishUpdate();
+			if ( iTopIdx > 0 ) {
+				// Scroll back to the same first visible row (LVM_SCROLL scrolls report views by pixels).
+				RECT rRow = {};
+				rRow.left = LVIR_BOUNDS;
+				if ( ::SendMessageW( ptlvTree->Wnd(), LVM_GETITEMRECT, 0, reinterpret_cast<LPARAM>(&rRow) ) ) {
+					::SendMessageW( ptlvTree->Wnd(), LVM_SCROLL, 0, LPARAM( iTopIdx * (rRow.bottom - rRow.top) ) );
+				}
+			}
 			UpdateSelection();
 		}
 		catch ( ... ) {}
 		return ptlvTree->GetItemCount();
+	}
+
+	/**
+	 * Updates the texts (both columns) of the cheats already in the TreeListView without rebuilding it, so that the scroll position,
+	 *	selection, and expanded/collapsed states do not change.  Use after cheats are edited, enabled, or disabled, or have their hotkeys
+	 *	changed.
+	 **/
+	void CCheatsWindow::RefreshCheatItems() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
+		if ( !ptlvTree ) { return; }
+		try {
+			for ( auto hThis = ptlvTree->GetNext( TVI_ROOT ); hThis; hThis = ptlvTree->GetNext( hThis ) ) {
+				auto lpParm = ptlvTree->GetItemLParam( hThis );
+				if ( lpParm & 0x80000000U ) { continue; }
+				uint32_t ui32Idx = uint32_t( lpParm );
+				if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { continue; }
+				ptlvTree->SetItemText( hThis, CheatEntryToString( m_pcmCheatManager->CheatByIdx( ui32Idx ), m_pcmCheatManager->IsEnabled( ui32Idx ) ).c_str(), 0 );
+				ptlvTree->SetItemText( hThis, HotkeyText( ui32Idx ).c_str(), 1 );
+			}
+		}
+		catch ( ... ) {}
+		// The list view is virtual and asks for its texts when it paints.
+		::InvalidateRect( ptlvTree->Wnd(), nullptr, FALSE );
+		UpdateSelection();
+	}
+
+	/**
+	 * Creates the text of the Hotkey(s) column for a cheat.
+	 * 
+	 * \param _ui32Idx The extended index of the cheat.
+	 * \return Returns the text describing the hotkeys of the cheat, or an empty string if it has none.
+	 **/
+	std::wstring CCheatsWindow::HotkeyText( uint32_t _ui32Idx ) const {
+		std::wstring wsRet;
+		if ( nullptr == m_pcmCheatManager ) { return wsRet; }
+		try {
+			CCheatManager::LSN_ACTIVE_CHEAT acState;
+			if ( !m_pcmCheatManager->GetActiveCheat( _ui32Idx, acState ) || !acState.HasHotkey() ) { return wsRet; }
+			if ( acState.IsToggle() ) {
+				if ( acState.kToggleOrEnable.bKeyCode ) {
+					wsRet = std::wstring( LSN_LSTR( LSN_STR_TOGGLE_ ) ) + L" " + lsw::CHelpers::ToString( acState.kToggleOrEnable, false );
+				}
+			}
+			else {
+				if ( acState.kToggleOrEnable.bKeyCode ) {
+					wsRet = std::wstring( LSN_LSTR( LSN_STR_ENABLE_ ) ) + L" " + lsw::CHelpers::ToString( acState.kToggleOrEnable, false );
+				}
+				if ( acState.kDisable.bKeyCode ) {
+					if ( wsRet.size() ) { wsRet += L"; "; }
+					wsRet += std::wstring( LSN_LSTR( LSN_STR_DISABLE_ ) ) + L" " + lsw::CHelpers::ToString( acState.kDisable, false );
+				}
+			}
+		}
+		catch ( ... ) {}
+		return wsRet;
 	}
 
 	/**
@@ -632,7 +720,7 @@ namespace lsn {
 				return;
 			}
 			m_pcmCheatManager->CheatsChanged();
-			AddCheats();
+			AddCheats( true );
 			SelectCheat( ui32Idx );
 			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
 		}
@@ -674,8 +762,15 @@ namespace lsn {
 				return;
 			}
 			m_pcmCheatManager->CheatsChanged();
-			AddCheats();
-			SelectCheat( ui32Idx );
+			if ( _bDuplicate ) {
+				// A new item:  rebuild (keeping the view) and select it.
+				AddCheats( true );
+				SelectCheat( ui32Idx );
+			}
+			else {
+				// The same item with new texts:  the view does not change.
+				RefreshCheatItems();
+			}
 			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
 		}
 		catch ( ... ) {}
@@ -699,8 +794,7 @@ namespace lsn {
 			std::vector<uint32_t> vConflicts;
 			m_pcmCheatManager->SetEnabled( vIdx, !bAllEnabled, vConflicts );
 			m_pcmCheatManager->CheatsChanged();
-			AddCheats();
-			UpdateSelection();
+			RefreshCheatItems();
 			if ( vConflicts.size() ) { ReportConflicts( vConflicts ); }
 		}
 		catch ( ... ) {}
@@ -738,11 +832,43 @@ namespace lsn {
 				m_pcmCheatManager->SetActiveCheat( cedData.acActive );
 			}
 			m_pcmCheatManager->CheatsChanged();
-			AddCheats();
-			SelectCheat( ui32Idx );
+			RefreshCheatItems();
 			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
 		}
 		catch ( ... ) {}
+	}
+
+	/**
+	 * Removes the hotkeys of the selected cheats (built-in or custom).  Their enabled states are not changed.
+	 **/
+	void CCheatsWindow::ClearHotkeys() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			std::vector<uint32_t> vIdx;
+			for ( auto lpThis : vSelected ) {
+				if ( m_pcmCheatManager->IsValidIdx( uint32_t( lpThis ) ) ) { vIdx.push_back( uint32_t( lpThis ) ); }
+			}
+			if ( !m_pcmCheatManager->ClearHotkeys( vIdx ) ) { return; }
+			m_pcmCheatManager->CheatsChanged();
+			RefreshCheatItems();
+		}
+		catch ( ... ) {}
+	}
+
+	/**
+	 * Determines whether any of the given cheats has a hotkey.
+	 * 
+	 * \param _vSelected The extended indices of the cheats to check.
+	 * \return Returns true if at least one of the cheats has a hotkey.
+	 **/
+	bool CCheatsWindow::HasHotkey( const std::vector<LPARAM> &_vSelected ) const {
+		if ( nullptr == m_pcmCheatManager ) { return false; }
+		for ( auto lpThis : _vSelected ) {
+			CCheatManager::LSN_ACTIVE_CHEAT acState;
+			if ( m_pcmCheatManager->GetActiveCheat( uint32_t( lpThis ), acState ) && acState.HasHotkey() ) { return true; }
+		}
+		return false;
 	}
 
 	/**
@@ -787,7 +913,7 @@ namespace lsn {
 				}
 			}
 			m_pcmCheatManager->CheatsChanged();
-			AddCheats();
+			AddCheats( true );
 		}
 		catch ( ... ) {}
 	}
@@ -814,6 +940,15 @@ namespace lsn {
 			ptlvTree->SetItemSelection( hThis, bThis );
 		}
 		ptlvTree->FinishUpdate();
+		// Scroll as little as possible to show it.
+		try {
+			std::vector<size_t> vRows;
+			ptlvTree->GatherSelected( vRows );
+			if ( vRows.size() && vRows[0] < size_t( INT_MAX ) ) {
+				::SendMessageW( ptlvTree->Wnd(), LVM_ENSUREVISIBLE, static_cast<WPARAM>(vRows[0]), FALSE );
+			}
+		}
+		catch ( ... ) {}
 		UpdateSelection();
 	}
 

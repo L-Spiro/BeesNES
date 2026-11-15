@@ -461,6 +461,32 @@ namespace lsn {
 	}
 
 	/**
+	 * Removes the hotkeys of cheats, leaving their enabled states alone.  A cheat that a hotkey had turned off is put back in effect,
+	 *	since it no longer has a key to turn it on.  Call CheatsChanged() afterwards.
+	 * 
+	 * \param _vIdx The extended indices of the cheats.
+	 * \return Returns the number of cheats that had hotkeys.
+	 **/
+	size_t CCheatManager::ClearHotkeys( const std::vector<uint32_t> &_vIdx ) {
+		size_t sRet = 0;
+#ifdef LSN_USE_WINDOWS
+		std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+		for ( auto ui32Idx : _vIdx ) {
+			auto aFound = m_mActiveCheats.find( ui32Idx );
+			if ( aFound == m_mActiveCheats.end() || !aFound->second.HasHotkey() ) { continue; }
+			++sRet;
+			aFound->second.kToggleOrEnable = {};
+			aFound->second.kDisable = {};
+			aFound->second.bHotkeyOn = true;
+			if ( !aFound->second.IsNeeded() ) { m_mActiveCheats.erase( aFound ); }
+		}
+#else
+		static_cast<void>(_vIdx);
+#endif	// #ifdef LSN_USE_WINDOWS
+		return sRet;
+	}
+
+	/**
 	 * Sets whether cheats are enabled, leaving their hotkeys alone.  A cheat whose addresses are used by another enabled cheat is not
 	 *	enabled.
 	 * 

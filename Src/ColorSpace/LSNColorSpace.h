@@ -45,6 +45,18 @@ namespace lsn {
 			LSN_CSP_BT470_PAL,																					/**< BT.470 PAL. */
 			LSN_CSP_BT601_625,																					/**< BT.601 625 (PAL). */
 
+			// Computer and studio color spaces (from ICC monitor profiles).
+			LSN_CSP_ADOBE_RGB,																					/**< Adobe RGB (1998). */
+			LSN_CSP_APPLE_RGB,																					/**< Apple RGB. */
+			LSN_CSP_COLORMATCH_RGB,																				/**< ColorMatch RGB (D50). */
+			LSN_CSP_APPLE_GENERIC_RGB,																			/**< Apple Generic RGB. */
+			LSN_CSP_DISPLAY_P3,																					/**< Display P3 (DCI-P3 primaries with a D65 white point). */
+			LSN_CSP_DCI_P3,																						/**< DCI-P3 (SMPTE RP 431-2, digital cinema). */
+			LSN_CSP_PROPHOTO_RGB,																				/**< ProPhoto RGB (ROMM RGB, ISO 22028-2; D50). */
+			LSN_CSP_WIDE_GAMUT_RGB,																				/**< Adobe Wide Gamut RGB (D50). */
+			LSN_CSP_ACES_AP0,																					/**< ACES2065-1 (the AP0 primaries; D60). */
+			LSN_CSP_ACES_AP1,																					/**< ACEScg (the AP1 primaries; D60). */
+
 			// US televisions.
 			LSN_CSP_TOSHIBA_CF2005,																				/**< A Toshiba Blackstripe CF2005 (US, 1985) as measured by patchy68k. */
 			LSN_CSP_TOSHIBA_CF2005_GM,																			/**< A Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
@@ -77,6 +89,9 @@ namespace lsn {
 			LSN_CSP_APPLE_MULTIPLE_SCAN_1705,																	/**< An Apple Multiple Scan 1705 monitor (manufacturer data). */
 			LSN_CSP_NEC_MULTISYNC_C400,																			/**< An NEC MultiSync C400 monitor. */
 			LSN_CSP_KDS_VS19,																					/**< A KDS VS19 monitor. */
+			LSN_CSP_BENQ_XL2420Z_100HZ,																			/**< A BenQ XL2420Z monitor at 100 Hz (from its ICC profile). */
+			LSN_CSP_BENQ_XL2420Z_120HZ,																			/**< A BenQ XL2420Z monitor at 120 Hz (from its ICC profile). */
+			LSN_CSP_BENQ_XL2420Z_144HZ,																			/**< A BenQ XL2420Z monitor at 144 Hz (from its ICC profile). */
 			LSN_CSP_TOTAL,																						/**< The number of color spaces. */
 		};
 
@@ -177,6 +192,55 @@ namespace lsn {
 		static constexpr bool											IsMonitorGamma( CNesPalette::LSN_GAMMA _gGamma ) {
 			return _gGamma != CNesPalette::LSN_G_CRT1 && _gGamma != CNesPalette::LSN_G_CRT2 && _gGamma != CNesPalette::LSN_G_AUTO && _gGamma < CNesPalette::LSN_G_TOTAL;
 		}
+
+		/**
+		 * Determines whether a color space is one that monitors use (and is listed as a monitor color space):  the computer and video
+		 *	standards that monitors are made or calibrated to (including the SMPTE C and EBU phosphors of studio monitors), the working color
+		 *	spaces of monitor profiles, and measured computer monitors.  The color spaces of television systems and of physical televisions are
+		 *	not.
+		 *
+		 * \param _cspColorSpace The color space to test.
+		 * \return Returns true if the color space is a monitor color space.
+		 */
+		static constexpr bool											IsMonitorColorSpace( LSN_COLOR_SPACE _cspColorSpace ) {
+			switch ( _cspColorSpace ) {
+				case LSN_CSP_SRGB : {}						LSN_FALLTHROUGH
+				case LSN_CSP_BT709 : {}						LSN_FALLTHROUGH
+				case LSN_CSP_BT2020 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_SMPTE_C : {}					LSN_FALLTHROUGH
+				case LSN_CSP_BT601_625 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_ADOBE_RGB : {}					LSN_FALLTHROUGH
+				case LSN_CSP_APPLE_RGB : {}					LSN_FALLTHROUGH
+				case LSN_CSP_COLORMATCH_RGB : {}			LSN_FALLTHROUGH
+				case LSN_CSP_APPLE_GENERIC_RGB : {}			LSN_FALLTHROUGH
+				case LSN_CSP_DISPLAY_P3 : {}				LSN_FALLTHROUGH
+				case LSN_CSP_DCI_P3 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_PROPHOTO_RGB : {}				LSN_FALLTHROUGH
+				case LSN_CSP_WIDE_GAMUT_RGB : {}			LSN_FALLTHROUGH
+				case LSN_CSP_ACES_AP0 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_ACES_AP1 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_SONY_GDM_17SE1 : {}			LSN_FALLTHROUGH
+				case LSN_CSP_APPLE_MULTIPLE_SCAN_1705 : {}	LSN_FALLTHROUGH
+				case LSN_CSP_NEC_MULTISYNC_C400 : {}		LSN_FALLTHROUGH
+				case LSN_CSP_KDS_VS19 : {}					LSN_FALLTHROUGH
+				case LSN_CSP_BENQ_XL2420Z_100HZ : {}		LSN_FALLTHROUGH
+				case LSN_CSP_BENQ_XL2420Z_120HZ : {}		LSN_FALLTHROUGH
+				case LSN_CSP_BENQ_XL2420Z_144HZ : { return true; }
+				default : { return false; }
+			}
+		}
+
+		/**
+		 * Struct LSN_MONITOR_PRESET
+		 * \brief A monitor preset:  a color space and a gamma curve that describe a monitor (each made from a parametric ICC monitor profile).
+		 *
+		 * Description: A monitor preset:  a color space and a gamma curve that describe a monitor.
+		 */
+		struct LSN_MONITOR_PRESET {
+			const wchar_t *												pwcName;								/**< The name shown to the user. */
+			LSN_COLOR_SPACE												cspColorSpace;							/**< The color space of the monitor. */
+			CNesPalette::LSN_GAMMA										gGamma;									/**< The gamma curve of the monitor. */
+		};
 
 		/**
 		 * Struct LSN_DISPLAY_SETTINGS
@@ -341,6 +405,23 @@ namespace lsn {
 		 * \return Returns the information about the color space, or the information about sRGB if _cspColorSpace is invalid.
 		 */
 		static const LSN_COLOR_SPACE_DATA &									Data( LSN_COLOR_SPACE _cspColorSpace );
+
+		/**
+		 * Gets the monitor presets (color spaces and gamma curves made from parametric ICC monitor profiles).
+		 *
+		 * \param _sTotal Holds the returned number of presets.
+		 * \return Returns the monitor presets.
+		 */
+		static const LSN_MONITOR_PRESET *									MonitorPresets( size_t &_sTotal );
+
+		/**
+		 * Finds the monitor preset that matches a color space and a gamma curve.
+		 *
+		 * \param _cspColorSpace The color space.
+		 * \param _gGamma The gamma curve.
+		 * \return Returns the index of the matching preset, or size_t( -1 ) if no preset matches.
+		 */
+		static size_t														FindMonitorPreset( LSN_COLOR_SPACE _cspColorSpace, CNesPalette::LSN_GAMMA _gGamma );
 
 		/**
 		 * Finds a color space by the ID returned in LSN_COLOR_SPACE_DATA::pcId.
@@ -541,6 +622,23 @@ namespace lsn {
 		static float														m_fAppleMultipleScan1705[8];		/**< Chromaticities and white point for an Apple Multiple Scan 1705 monitor. */
 		static float														m_fNecMultiSyncC400[8];				/**< Chromaticities and white point for an NEC MultiSync C400 monitor. */
 		static float														m_fKdsVs19[8];						/**< Chromaticities and white point for a KDS VS19 monitor. */
+
+		// From ICC monitor profiles (the standard values of each color space; the BenQ values are read from the profiles of the monitor).
+		static float														m_fAdobeRgb[8];						/**< Chromaticities and white point for Adobe RGB (1998). */
+		static float														m_fAppleRgb[8];						/**< Chromaticities and white point for Apple RGB. */
+		static float														m_fColorMatchRgb[8];				/**< Chromaticities and white point for ColorMatch RGB. */
+		static float														m_fAppleGenericRgb[8];				/**< Chromaticities and white point for Apple Generic RGB. */
+		static float														m_fDisplayP3[8];					/**< Chromaticities and white point for Display P3. */
+		static float														m_fDciP3[8];						/**< Chromaticities and white point for DCI-P3. */
+		static float														m_fProPhotoRgb[8];					/**< Chromaticities and white point for ProPhoto RGB (ROMM RGB). */
+		static float														m_fWideGamutRgb[8];					/**< Chromaticities and white point for Adobe Wide Gamut RGB. */
+		static float														m_fAcesAp0[8];						/**< Chromaticities and white point for ACES2065-1 (AP0). */
+		static float														m_fAcesAp1[8];						/**< Chromaticities and white point for ACEScg (AP1). */
+		static float														m_fBenQXl2420Z100[8];				/**< Chromaticities and white point for a BenQ XL2420Z at 100 Hz. */
+		static float														m_fBenQXl2420Z120[8];				/**< Chromaticities and white point for a BenQ XL2420Z at 120 Hz. */
+		static float														m_fBenQXl2420Z144[8];				/**< Chromaticities and white point for a BenQ XL2420Z at 144 Hz. */
+		static const LSN_MONITOR_PRESET										m_mpMonitorPresets[];				/**< The monitor presets. */
+		static const size_t													m_sMonitorPresets;					/**< The number of monitor presets. */
 
 		// Harvested from CustomPalette.java and measurements found online (the sources are given with each).
 		static float														m_fToshibaCF2005Gm[8];				/**< Chromaticities and white point for a Toshiba Blackstripe CF2005 (US, 1985):  the geometric mean of 10 samples by PlainOldPants. */
