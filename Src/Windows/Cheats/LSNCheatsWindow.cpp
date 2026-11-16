@@ -122,6 +122,12 @@ namespace lsn {
 				if ( plvToolBar->CreateIconEditBox( Layout::LSN_CWI_SEARCH_BUTTON_PLACHOLDER, Layout::LSN_CWI_SEARCH_BUTTON,
 					IMAGE_BITMAP, m_bBitmaps16[LSN_I_SEARCH], LSN_LSTR( LSN_STR_SEARCH_ ), pwEdit ) ) {
 					m_peSearchEdit = reinterpret_cast<CEdit *>(pwEdit);
+					if ( m_pcmCheatManager ) {
+						// The search from the last time the dialog was open.  m_wsSearch is set first so that the EN_CHANGE this causes does
+						//	not rebuild the list.
+						m_wsSearch = CUtilities::ToLower( m_pcmCheatManager->GetCheatSearch() );
+						m_peSearchEdit->SetTextW( m_pcmCheatManager->GetCheatSearch().c_str() );
+					}
 				}
 			}
 
@@ -227,7 +233,9 @@ namespace lsn {
 			}
 			case Layout::LSN_CWI_SEARCH_BUTTON : {
 				if ( _pwSrc && _wCtrlCode == EN_CHANGE ) {
-					std::wstring wsSearch = CUtilities::ToLower( _pwSrc->GetTextW() );
+					std::wstring wsText = _pwSrc->GetTextW();
+					if ( m_pcmCheatManager ) { m_pcmCheatManager->SetCheatSearch( wsText ); }
+					std::wstring wsSearch = CUtilities::ToLower( wsText );
 					if ( wsSearch != m_wsSearch ) {
 						m_wsSearch = std::move( wsSearch );
 						AddCheats();
@@ -262,6 +270,10 @@ namespace lsn {
 			}
 			case Layout::LSN_CWI_CLEAR_HOTKEYS : {
 				ClearHotkeys();
+				break;
+			}
+			case Layout::LSN_CWI_DISABLE_ALL : {
+				DisableAll();
 				break;
 			}
 
@@ -386,6 +398,7 @@ namespace lsn {
 				{ FALSE,		Layout::LSN_CWI_ACTIVATE_BUTTON,				FALSE,		FALSE,		bSelected && bHasItems,								bAllEnabled ? LSN_LSTR( LSN_STR_DISA_BLE_CHEATS ) : LSN_LSTR( LSN_STR_E_NABLE_CHEATS ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON,	FALSE,		FALSE,		vSelected.size() == 1 && bHasItems,					LSN_LSTR( LSN_STR_ENABLE_WITH__HOTKEY ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_CLEAR_HOTKEYS,					FALSE,		FALSE,		bSelected && bHasItems && HasHotkey( vSelected ),	LSN_LSTR( LSN_STR_CLEAR_HOT_KEYS ),			FALSE },
+				{ FALSE,		Layout::LSN_CWI_DISABLE_ALL,					FALSE,		FALSE,		m_pcmCheatManager && m_pcmCheatManager->AnyEnabled(),	LSN_LSTR( LSN_STR_DISABLE_A_LL_CHEATS ),	FALSE },
 				{ TRUE,			0,												FALSE,		FALSE,		bHasItems,											nullptr,									FALSE },
 				{ FALSE,		Layout::LSN_CWI_SHOW_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__REVEAL_ENABLED_CHEATS ),	FALSE },
 				{ FALSE,		Layout::LSN_CWI_SELECT_ENABLED,					FALSE,		FALSE,		TRUE,												LSN_LSTR( LSN_STR__SELECT_ENABLED_CHEATS ),	FALSE },
@@ -854,6 +867,16 @@ namespace lsn {
 			RefreshCheatItems();
 		}
 		catch ( ... ) {}
+	}
+
+	/**
+	 * Disables every enabled cheat (including cheats enabled for other ROMs).  Hotkeys are kept.
+	 **/
+	void CCheatsWindow::DisableAll() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		if ( !m_pcmCheatManager->DisableAll() ) { return; }
+		m_pcmCheatManager->CheatsChanged();
+		RefreshCheatItems();
 	}
 
 	/**

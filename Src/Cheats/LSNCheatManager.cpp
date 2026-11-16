@@ -11,6 +11,7 @@
 #include "../File/LSNZipFile.h"
 #include "../Localization/LSNLocalization.h"
 
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <mutex>
@@ -19,15 +20,33 @@ namespace lsn {
 
 	// == Functions.
 	/**
-	 * Loads all of the built-in cheats given a path to the .ZIP file.
+	 * Loads all of the built-in cheats given a path to the .ZIP file, then the custom (user) cheats from the file next to it (see
+	 *	CustomCheatsPath()).  The parsed built-in cheats are cached in a binary file next to the .ZIP file (the same name with the
+	 *	extension .lsch), which is loaded instead of the .ZIP file as long as it matches the size and time of the .ZIP file.
 	 * 
 	 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
 	 * \param _phmHotkeyManager A pointer to a hotkey manager to be used by this object.
 	 * \return Returns an error string to present to the user or an empty string on success.
 	 **/
 	std::wstring CCheatManager::InitializeCheatLibrary( const std::filesystem::path &_pPath, CHotkeyManager * _phmHotkeyManager ) {
-		DestroyCheatLibrary();
 		m_phmHotkeyManager = _phmHotkeyManager;
+		std::wstring wsRet = LoadBuiltInCheats( _pPath );
+		try {
+			m_pCustomPath = _pPath.parent_path() / L"CustomCheats.lscc";
+		}
+		catch ( ... ) { m_pCustomPath.clear(); }
+		LoadCustomCheats();
+		return wsRet;
+	}
+
+	/**
+	 * Loads all of the built-in cheats given a path to the .ZIP file (or the cache next to it).
+	 * 
+	 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
+	 * \return Returns an error string to present to the user or an empty string on success.
+	 **/
+	std::wstring CCheatManager::LoadBuiltInCheats( const std::filesystem::path &_pPath ) {
+		DestroyCheatLibrary();
 
 		// The binary cache is much faster to load than the .JSON files.
 		std::filesystem::path pCache = _pPath;
@@ -270,6 +289,227 @@ namespace lsn {
 		catch ( ... ) { return false; }
 	}
 
+	/** The magic number of the custom-cheats file ("LSCC"). */
+	static constexpr uint32_t						LSN_CUSTOM_CHEATS_MAGIC = 0x4343534CU;
+	/** The version of the custom-cheats file.  Change it whenever the file layout changes. */
+	static constexpr uint32_t						LSN_CUSTOM_CHEATS_VERSION = 1;
+
+	/**
+	 * Appends a wide string to a buffer as UTF-16 (a 32-bit length in UTF-16 units then the units), so that the file does not depend on the
+	 *	size of wchar_t.
+	 * 
+	 * \param _vBuffer The buffer.
+	 * \param _wsStr The string to append.
+	 **/
+	static void										CustomCheatsWriteWStr( std::vector<uint8_t> &_vBuffer, const std::wstring &_wsStr ) {
+		CheatCacheWriteStr( _vBuffer, CUtilities::XStringToU16String( _wsStr.c_str(), _wsStr.size() ) );
+	}
+
+	/**
+	 * Reads a wide string written by CustomCheatsWriteWStr().
+	 * 
+	 * \param _ccrReader The reader.
+	 * \param _wsStr Holds the read string.
+	 * \return Returns true if there was enough data.
+	 **/
+	static bool										CustomCheatsReadWStr( CCheatCacheReader &_ccrReader, std::wstring &_wsStr ) {
+		std::u16string u16sTmp;
+		if ( !_ccrReader.ReadStr( u16sTmp ) ) { return false; }
+		_wsStr = CUtilities::XStringToWString( u16sTmp.c_str(), u16sTmp.size() );
+		return true;
+	}
+
+	/**
+	 * Saves the custom cheats (with their hotkeys) to CustomCheatsPath() if they changed since they were loaded or last saved.
+	 *	CheatsChanged() calls this.
+	 * 
+	 * \return Returns true if the cheats were saved or did not need to be saved.
+	 **/
+	bool CCheatManager::SaveCustomCheats() {
+		if ( m_pCustomPath.empty() ) { return false; }
+		try {
+			std::vector<uint8_t> vBuffer;
+			if ( !SerializeCustomCheats( vBuffer ) ) { return false; }
+			if ( vBuffer == m_vLastSavedCustom ) { return true; }
+
+			std::error_code ecErr;
+			std::filesystem::create_directories( m_pCustomPath.parent_path(), ecErr );
+			// Write to a temporary file and rename it so that a partial file never replaces the user's cheats.
+			std::filesystem::path pTmp = m_pCustomPath;
+			pTmp += L".tmp";
+			if ( !CStdFile::WriteToFile( pTmp.native().c_str(), vBuffer ) ) { return false; }
+			std::filesystem::rename( pTmp, m_pCustomPath, ecErr );
+			if ( ecErr ) {
+				std::filesystem::remove( pTmp, ecErr );
+				return false;
+			}
+			m_vLastSavedCustom = std::move( vBuffer );
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Creates the contents of the custom-cheats file.
+	 * 
+	 * \param _vBuffer Holds the returned file contents.
+	 * \return Returns true if there was enough memory.
+	 **/
+	bool CCheatManager::SerializeCustomCheats( std::vector<uint8_t> &_vBuffer ) const {
+		try {
+			std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+			uint32_t ui32Total = 0;
+			for ( const auto & ccThis : m_vCustomCheats ) {
+				if ( ccThis.bInUse ) { ++ui32Total; }
+			}
+			_vBuffer.clear();
+			CheatCacheWrite( _vBuffer, LSN_CUSTOM_CHEATS_MAGIC );
+			CheatCacheWrite( _vBuffer, LSN_CUSTOM_CHEATS_VERSION );
+			CheatCacheWrite( _vBuffer, ui32Total );
+			for ( size_t I = 0; I < m_vCustomCheats.size(); ++I ) {
+				if ( !m_vCustomCheats[I].bInUse ) { continue; }
+				const LSN_CHEAT_ENTRY & ceThis = m_vCustomCheats[I].ceEntry;
+				CustomCheatsWriteWStr( _vBuffer, ceThis.wsDescription );
+				CustomCheatsWriteWStr( _vBuffer, ceThis.wsNotes );
+				CheatCacheWriteStr( _vBuffer, ceThis.u16sFile );
+				CheatCacheWrite( _vBuffer, uint16_t( ceThis.ctType ) );
+				CheatCacheWrite( _vBuffer, uint8_t( ceThis.bEnabled ? 1 : 0 ) );
+				CheatCacheWrite( _vBuffer, uint32_t( ceThis.vAddresses.size() ) );
+				for ( const auto & aThis : ceThis.vAddresses ) {
+					CheatCacheWriteStr( _vBuffer, aThis.sCode );
+					CheatCacheWrite( _vBuffer, aThis.ui16Address );
+					CheatCacheWrite( _vBuffer, aThis.ui8Value );
+					CheatCacheWrite( _vBuffer, aThis.ui8CompareValue );
+					CheatCacheWrite( _vBuffer, uint8_t( aThis.bUseCompare ? 1 : 0 ) );
+				}
+
+				// The hotkeys (enabled states are not saved; cheats start disabled, as built-in cheats do).
+				LSN_ACTIVE_CHEAT acState;
+				auto aFound = m_mActiveCheats.find( uint32_t( I ) | LSN_CHEAT_MAN_CUSTOM_FLAG );
+				if ( aFound != m_mActiveCheats.end() ) { acState = aFound->second; }
+				CheatCacheWrite( _vBuffer, uint8_t( acState.bToggle ? 1 : 0 ) );
+#ifdef LSN_USE_WINDOWS
+				const lsw::LSW_KEY * pkKeys[2] = { &acState.kToggleOrEnable, &acState.kDisable };
+				for ( auto pkThis : pkKeys ) {
+					CheatCacheWrite( _vBuffer, uint32_t( (*pkThis).dwScanCode ) );
+					CheatCacheWrite( _vBuffer, uint8_t( (*pkThis).bKeyCode ) );
+					CheatCacheWrite( _vBuffer, uint8_t( (*pkThis).bKeyModifier ) );
+				}
+#else
+				for ( size_t J = 0; J < 2; ++J ) {
+					CheatCacheWrite( _vBuffer, uint32_t( 0 ) );
+					CheatCacheWrite( _vBuffer, uint8_t( 0 ) );
+					CheatCacheWrite( _vBuffer, uint8_t( 0 ) );
+				}
+#endif	// #ifdef LSN_USE_WINDOWS
+			}
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Loads the custom cheats (and their hotkeys) from CustomCheatsPath(), replacing any custom cheats.  A damaged file is renamed (with
+	 *	".bad" added) so that saving does not overwrite it.
+	 * 
+	 * \return Returns true if the file was loaded or does not exist.
+	 **/
+	bool CCheatManager::LoadCustomCheats() {
+		{
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			m_vCustomCheats.clear();
+			for ( auto I = m_mActiveCheats.begin(); I != m_mActiveCheats.end(); ) {
+				if ( IsCustom( I->first ) ) { I = m_mActiveCheats.erase( I ); }
+				else { ++I; }
+			}
+		}
+		m_vLastSavedCustom.clear();
+		if ( m_pCustomPath.empty() ) { return false; }
+		std::error_code ecErr;
+		if ( !std::filesystem::exists( m_pCustomPath, ecErr ) ) {
+			// Nothing saved yet; an empty set matches the missing file.
+			SerializeCustomCheats( m_vLastSavedCustom );
+			return true;
+		}
+
+		std::vector<uint8_t> vFile;
+		bool bLoaded = false;
+		std::vector<LSN_CUSTOM_CHEAT> vCheats;
+		std::vector<LSN_ACTIVE_CHEAT> vStates;
+		if ( CStdFile::LoadToMemory( m_pCustomPath.native().c_str(), vFile ) ) {
+			try {
+				CCheatCacheReader ccrReader( vFile );
+				uint32_t ui32Magic, ui32Version, ui32Total;
+				bLoaded = ccrReader.Read( ui32Magic ) && ui32Magic == LSN_CUSTOM_CHEATS_MAGIC &&
+					ccrReader.Read( ui32Version ) && ui32Version == LSN_CUSTOM_CHEATS_VERSION &&
+					ccrReader.Read( ui32Total ) && size_t( ui32Total ) <= vFile.size() / 32 && ui32Total < LSN_CHEAT_MAN_CUSTOM_FLAG;
+				if ( bLoaded ) {
+					vCheats.resize( ui32Total );
+					for ( uint32_t I = 0; I < ui32Total && bLoaded; ++I ) {
+						LSN_CHEAT_ENTRY & ceThis = vCheats[I].ceEntry;
+						vCheats[I].bInUse = true;
+						uint16_t ui16Type;
+						uint8_t ui8Enabled, ui8Toggle;
+						uint32_t ui32Addresses;
+						if ( !CustomCheatsReadWStr( ccrReader, ceThis.wsDescription ) || !CustomCheatsReadWStr( ccrReader, ceThis.wsNotes ) ||
+							!ccrReader.ReadStr( ceThis.u16sFile ) ||
+							!ccrReader.Read( ui16Type ) || !ccrReader.Read( ui8Enabled ) || !ccrReader.Read( ui32Addresses ) ||
+							ui16Type > LSN_CHEAT_ENTRY::LSN_CT_CUSTOM || ui32Addresses > 0x10000 ) { bLoaded = false; break; }
+						ceThis.ctType = LSN_CHEAT_ENTRY::LSN_CHEAT_TYPE( ui16Type );
+						ceThis.bEnabled = ui8Enabled != 0;
+						ceThis.vAddresses.resize( ui32Addresses );
+						for ( auto & aThis : ceThis.vAddresses ) {
+							uint8_t ui8UseCompare;
+							if ( !ccrReader.ReadStr( aThis.sCode ) || !ccrReader.Read( aThis.ui16Address ) || !ccrReader.Read( aThis.ui8Value ) ||
+								!ccrReader.Read( aThis.ui8CompareValue ) || !ccrReader.Read( ui8UseCompare ) ) { bLoaded = false; break; }
+							aThis.bUseCompare = ui8UseCompare != 0;
+						}
+						if ( !bLoaded ) { break; }
+
+						LSN_ACTIVE_CHEAT acState;
+						acState.ui32Idx = I | LSN_CHEAT_MAN_CUSTOM_FLAG;
+						if ( !ccrReader.Read( ui8Toggle ) ) { bLoaded = false; break; }
+						acState.bToggle = ui8Toggle != 0;
+						for ( size_t J = 0; J < 2; ++J ) {
+							uint32_t ui32Scan;
+							uint8_t ui8Code, ui8Mod;
+							if ( !ccrReader.Read( ui32Scan ) || !ccrReader.Read( ui8Code ) || !ccrReader.Read( ui8Mod ) ) { bLoaded = false; break; }
+#ifdef LSN_USE_WINDOWS
+							lsw::LSW_KEY & kThis = J == 0 ? acState.kToggleOrEnable : acState.kDisable;
+							kThis.dwScanCode = DWORD( ui32Scan );
+							kThis.bKeyCode = BYTE( ui8Code );
+							kThis.bKeyModifier = BYTE( ui8Mod );
+#endif	// #ifdef LSN_USE_WINDOWS
+						}
+						if ( bLoaded && acState.IsNeeded() ) { vStates.push_back( acState ); }
+					}
+				}
+			}
+			catch ( ... ) { bLoaded = false; }
+		}
+
+		if ( !bLoaded ) {
+			// Keep the damaged file for the user instead of overwriting it with the next save.
+			std::filesystem::path pBad = m_pCustomPath;
+			pBad += L".bad";
+			std::filesystem::remove( pBad, ecErr );
+			std::filesystem::rename( m_pCustomPath, pBad, ecErr );
+			SerializeCustomCheats( m_vLastSavedCustom );
+			return false;
+		}
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			m_vCustomCheats = std::move( vCheats );
+			for ( const auto & acThis : vStates ) {
+				m_mActiveCheats[acThis.ui32Idx] = acThis;
+			}
+		}
+		catch ( ... ) { return false; }
+		// What was loaded is what is on disk.
+		SerializeCustomCheats( m_vLastSavedCustom );
+		return true;
+	}
+
 	/**
 	 * Shuts down the cheat manager at the end of the application life cycle.
 	 **/
@@ -509,6 +749,123 @@ namespace lsn {
 	}
 
 	/**
+	 * Disables every enabled cheat (for any ROM), leaving their hotkeys alone.  Call CheatsChanged() afterwards.
+	 * 
+	 * \return Returns the number of cheats that were disabled.
+	 **/
+	size_t CCheatManager::DisableAll() {
+		size_t sRet = 0;
+		std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+		for ( auto I = m_mActiveCheats.begin(); I != m_mActiveCheats.end(); ) {
+			if ( I->second.bEnabled ) {
+				++sRet;
+				I->second.bEnabled = false;
+				I->second.bHotkeyOn = true;
+				if ( !I->second.IsNeeded() ) {
+					I = m_mActiveCheats.erase( I );
+					continue;
+				}
+			}
+			++I;
+		}
+		return sRet;
+	}
+
+	/**
+	 * Determines whether any cheat is enabled (for any ROM).
+	 * 
+	 * \return Returns true if at least one cheat is enabled.
+	 **/
+	bool CCheatManager::AnyEnabled() const {
+		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+		for ( const auto & aThis : m_mActiveCheats ) {
+			if ( aThis.second.bEnabled ) { return true; }
+		}
+		return false;
+	}
+
+	/**
+	 * Counts the cheats that are enabled for a ROM other than the running one.  These are the cheats that would come back when that ROM
+	 *	is loaded again (see ResolveOtherRomCheats()).
+	 * 
+	 * \return Returns the number of cheats enabled for another ROM, or 0 if no ROM is running.
+	 **/
+	size_t CCheatManager::CountEnabledForOtherRoms() const {
+		std::shared_lock<std::shared_mutex> slLock( m_smtxCheats );
+		const uint32_t ui32Crc = m_ui32RomCrc.load();
+		if ( !ui32Crc ) { return 0; }
+		size_t sRet = 0;
+		for ( const auto & aThis : m_mActiveCheats ) {
+			if ( aThis.second.bEnabled && aThis.second.ui32RomCrc != 0 && aThis.second.ui32RomCrc != ui32Crc ) { ++sRet; }
+		}
+		return sRet;
+	}
+
+	/**
+	 * Decides what happens to the cheats that are enabled for a ROM other than the running one (after switching ROMs).  They are either
+	 *	moved to the running ROM (and put in effect) or disabled.  A moved cheat that uses an address of a cheat already enabled for the
+	 *	running ROM (or of a cheat moved before it) is disabled instead.  Call CheatsChanged() afterwards.
+	 * 
+	 * \param _bKeep If true, the cheats are enabled for the running ROM, otherwise they are disabled.
+	 * \param _vConflicts Holds the indices of the cheats that could not be kept because of a conflict.
+	 **/
+	void CCheatManager::ResolveOtherRomCheats( bool _bKeep, std::vector<uint32_t> &_vConflicts ) {
+		_vConflicts.clear();
+		try {
+			std::unique_lock<std::shared_mutex> ulLock( m_smtxCheats );
+			const uint32_t ui32Crc = m_ui32RomCrc.load();
+			if ( !ui32Crc ) { return; }
+
+			// The cheats to move, in index order so that the result does not depend on the order of the map.
+			std::vector<uint32_t> vOthers;
+			std::set<uint16_t> sUsed;
+			for ( const auto & aThis : m_mActiveCheats ) {
+				if ( !aThis.second.bEnabled || aThis.second.ui32RomCrc == 0 ) { continue; }
+				if ( aThis.second.ui32RomCrc != ui32Crc ) { vOthers.push_back( aThis.first ); }
+				else if ( _bKeep ) {
+					// Already enabled here:  these addresses are taken.
+					const LSN_CHEAT_ENTRY * pceEntry = CheatByIdx_NoLock( aThis.first );
+					if ( pceEntry ) {
+						for ( const auto & aAddr : pceEntry->vAddresses ) { sUsed.insert( aAddr.ui16Address ); }
+					}
+				}
+			}
+			std::sort( vOthers.begin(), vOthers.end() );
+
+			for ( auto ui32Idx : vOthers ) {
+				auto aFound = m_mActiveCheats.find( ui32Idx );
+				if ( aFound == m_mActiveCheats.end() ) { continue; }
+				bool bKeepThis = _bKeep;
+				if ( bKeepThis ) {
+					const LSN_CHEAT_ENTRY * pceEntry = CheatByIdx_NoLock( ui32Idx );
+					if ( !pceEntry ) { bKeepThis = false; }
+					else {
+						for ( const auto & aAddr : pceEntry->vAddresses ) {
+							if ( sUsed.count( aAddr.ui16Address ) ) {
+								bKeepThis = false;
+								_vConflicts.push_back( ui32Idx );
+								break;
+							}
+						}
+						if ( bKeepThis ) {
+							for ( const auto & aAddr : pceEntry->vAddresses ) { sUsed.insert( aAddr.ui16Address ); }
+						}
+					}
+				}
+				aFound->second.bHotkeyOn = true;
+				if ( bKeepThis ) {
+					aFound->second.ui32RomCrc = ui32Crc;
+				}
+				else {
+					aFound->second.bEnabled = false;
+					if ( !aFound->second.IsNeeded() ) { m_mActiveCheats.erase( aFound ); }
+				}
+			}
+		}
+		catch ( ... ) {}
+	}
+
+	/**
 	 * Sets the ROM that is about to run (call before the ROM is loaded into the system) or clears it (_ui32Crc = 0).  Enabled cheats that
 	 *	are not yet bound to a ROM are bound to this one.  Only cheats enabled for the running ROM are applied.
 	 * 
@@ -582,11 +939,14 @@ namespace lsn {
 
 	/**
 	 * Informs the manager that cheats were enabled, disabled, edited, added, or deleted.  Schedules the trampolines to be updated on the
-	 *	emulation thread (see ProcessPendingSync()) and updates the registered hotkeys.  Call from the UI thread.
+	 *	emulation thread (see ProcessPendingSync()), updates the registered hotkeys, and saves the custom cheats if they changed.  Call from
+	 *	the UI thread.
 	 **/
 	void CCheatManager::CheatsChanged() {
 		m_abSyncRequested.store( true );
 		UpdateHotkeys();
+		// The custom cheats and their hotkeys are saved as soon as they change.
+		SaveCustomCheats();
 	}
 
 	/**

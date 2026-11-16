@@ -208,6 +208,11 @@ namespace lsn {
 		void												ClearHotkeys();
 
 		/**
+		 * Disables every enabled cheat (including cheats enabled for other ROMs).  Hotkeys are kept.
+		 **/
+		void												DisableAll();
+
+		/**
 		 * Determines whether any of the given cheats has a hotkey.
 		 * 
 		 * \param _vSelected The extended indices of the cheats to check.

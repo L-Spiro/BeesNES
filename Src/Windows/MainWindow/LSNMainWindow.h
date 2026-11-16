@@ -506,6 +506,13 @@ namespace lsn {
 		bool									LoadRom( const std::vector<uint8_t> &_vRom, const std::u16string &_s16Path );
 
 		/**
+		 * After a ROM is loaded (with the emulation thread stopped), asks whether the cheats that are still enabled for a different ROM should
+		 *	be kept (moved to the new ROM) or disabled, so that switching ROMs never silently applies or later re-applies cheats meant for
+		 *	another game.
+		 **/
+		void									ResolveCheatsFromOtherRom();
+
+		/**
 		 * Loads a ROM file given a path to a ZIP and a file name inside the ZIP.
 		 * 
 		 * \param _s16ZipPath The path to the ZIP file.

@@ -122,15 +122,44 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Loads all of the built-in cheats given a path to the .ZIP file.  The parsed cheats are cached in a binary file next to the .ZIP
-		 *	file (the same name with the extension .lsch), which is loaded instead of the .ZIP file as long as it matches the size and time
-		 *	of the .ZIP file.
+		 * Loads all of the built-in cheats given a path to the .ZIP file, then the custom (user) cheats from the file next to it (see
+		 *	CustomCheatsPath()).  The parsed built-in cheats are cached in a binary file next to the .ZIP file (the same name with the
+		 *	extension .lsch), which is loaded instead of the .ZIP file as long as it matches the size and time of the .ZIP file.
 		 * 
 		 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
 		 * \param _phmHotkeyManager A pointer to a hotkey manager to be used by this object.
 		 * \return Returns an error string to present to the user or an empty string on success.
 		 **/
 		std::wstring								InitializeCheatLibrary( const std::filesystem::path &_pPath, CHotkeyManager * _phmHotkeyManager );
+
+		/**
+		 * Gets the path of the file that holds the custom (user) cheats:  CustomCheats.lscc next to the built-in cheats.
+		 * 
+		 * \return Returns the path of the custom-cheats file, or an empty path before InitializeCheatLibrary() is called.
+		 **/
+		inline const std::filesystem::path &		CustomCheatsPath() const { return m_pCustomPath; }
+
+		/**
+		 * Saves the custom cheats (with their hotkeys) to CustomCheatsPath() if they changed since they were loaded or last saved.
+		 *	CheatsChanged() calls this.
+		 * 
+		 * \return Returns true if the cheats were saved or did not need to be saved.
+		 **/
+		bool										SaveCustomCheats();
+
+		/**
+		 * Gets the search string of the Cheats dialog (kept here so that it survives closing the dialog).
+		 * 
+		 * \return Returns a constant reference to the search string as the user typed it.
+		 **/
+		const std::wstring &						GetCheatSearch() const { return m_wsSearch; }
+
+		/**
+		 * Sets the search string of the Cheats dialog.
+		 * 
+		 * \param _wsSearch The search string as the user typed it.
+		 **/
+		void										SetCheatSearch( const std::wstring &_wsSearch ) { m_wsSearch = _wsSearch; }
 
 		/**
 		 * Shuts down the cheat manager at the end of the application life cycle.
@@ -281,6 +310,38 @@ namespace lsn {
 		void										SetEnabled( const std::vector<uint32_t> &_vIdx, bool _bEnabled, std::vector<uint32_t> &_vConflicts );
 
 		/**
+		 * Disables every enabled cheat (for any ROM), leaving their hotkeys alone.  Call CheatsChanged() afterwards.
+		 * 
+		 * \return Returns the number of cheats that were disabled.
+		 **/
+		size_t										DisableAll();
+
+		/**
+		 * Determines whether any cheat is enabled (for any ROM).
+		 * 
+		 * \return Returns true if at least one cheat is enabled.
+		 **/
+		bool										AnyEnabled() const;
+
+		/**
+		 * Counts the cheats that are enabled for a ROM other than the running one.  These are the cheats that would come back when that ROM
+		 *	is loaded again (see ResolveOtherRomCheats()).
+		 * 
+		 * \return Returns the number of cheats enabled for another ROM, or 0 if no ROM is running.
+		 **/
+		size_t										CountEnabledForOtherRoms() const;
+
+		/**
+		 * Decides what happens to the cheats that are enabled for a ROM other than the running one (after switching ROMs).  They are either
+		 *	moved to the running ROM (and put in effect) or disabled.  A moved cheat that uses an address of a cheat already enabled for the
+		 *	running ROM (or of a cheat moved before it) is disabled instead.  Call CheatsChanged() afterwards.
+		 * 
+		 * \param _bKeep If true, the cheats are enabled for the running ROM, otherwise they are disabled.
+		 * \param _vConflicts Holds the indices of the cheats that could not be kept because of a conflict.
+		 **/
+		void										ResolveOtherRomCheats( bool _bKeep, std::vector<uint32_t> &_vConflicts );
+
+		/**
 		 * Determines whether a cheat is enabled.
 		 * 
 		 * \param _ui32Idx The extended index of the cheat.
@@ -352,7 +413,8 @@ namespace lsn {
 
 		/**
 		 * Informs the manager that cheats were enabled, disabled, edited, added, or deleted.  Schedules the trampolines to be updated on the
-		 *	emulation thread (see ProcessPendingSync()) and updates the registered hotkeys.  Call from the UI thread.
+		 *	emulation thread (see ProcessPendingSync()), updates the registered hotkeys, and saves the custom cheats if they changed.  Call from
+		 *	the UI thread.
 		 **/
 		void										CheatsChanged();
 
@@ -449,6 +511,9 @@ namespace lsn {
 		std::atomic<uint32_t>						m_ui32RomCrc = 0;				/**< The CRC of the running ROM, or 0. */
 		std::u16string								m_u16sRunningGame;				/**< The name of the running game (without extension). */
 		std::vector<int32_t>						m_vHotkeyIds;					/**< The IDs of the hotkeys registered for cheats. */
+		std::wstring								m_wsSearch;						/**< The search string of the Cheats dialog. */
+		std::filesystem::path						m_pCustomPath;					/**< The path of the custom-cheats file. */
+		std::vector<uint8_t>						m_vLastSavedCustom;				/**< The contents of the custom-cheats file as last loaded or saved (to skip writing it when nothing changed). */
 
 
 		// == Functions.
@@ -532,6 +597,30 @@ namespace lsn {
 
 
 		// == Functions.
+		/**
+		 * Loads all of the built-in cheats given a path to the .ZIP file (or the cache next to it).
+		 * 
+		 * \param _pPath Path to the .ZIP file full of .JSON files full of cheats to load.
+		 * \return Returns an error string to present to the user or an empty string on success.
+		 **/
+		std::wstring								LoadBuiltInCheats( const std::filesystem::path &_pPath );
+
+		/**
+		 * Loads the custom cheats (and their hotkeys) from CustomCheatsPath(), replacing any custom cheats.  A damaged file is renamed (with
+		 *	".bad" added) so that saving does not overwrite it.
+		 * 
+		 * \return Returns true if the file was loaded or does not exist.
+		 **/
+		bool										LoadCustomCheats();
+
+		/**
+		 * Creates the contents of the custom-cheats file.
+		 * 
+		 * \param _vBuffer Holds the returned file contents.
+		 * \return Returns true if there was enough memory.
+		 **/
+		bool										SerializeCustomCheats( std::vector<uint8_t> &_vBuffer ) const;
+
 		/**
 		 * Loads the built-in cheats from a binary cache.
 		 * 

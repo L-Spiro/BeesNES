@@ -743,6 +743,10 @@
 #define LSN_STR_DISA_BLE_CHEATS												Disa&ble Cheats
 #define LSN_STR_ENABLE_WITH__HOTKEY											Enable With &Hotkey\u2026
 #define LSN_STR_CLEAR_HOT_KEYS												Clear Hot&keys
+#define LSN_STR_DISABLE_A_LL_CHEATS											Disable A&ll Cheats
+#define LSN_STR_CHEATS_OTHER_ROM_TITLE										Enabled Cheats
+#define LSN_STR_CHEATS_OTHER_ROM											{} cheat(s) are still enabled from the previous ROM.\r\n\r\nKeep them enabled for this ROM?\r\n\r\nYes:  Keep them enabled for this ROM.\r\nNo:  Disable them.
+#define LSN_STR_CHEATS_OTHER_ROM_CONFLICTS									{} cheat(s) could not be kept because they use the same addresses as other enabled cheats.  They were disabled.
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code

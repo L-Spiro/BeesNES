@@ -43,6 +43,7 @@
 #include <commdlg.h>
 #include <dbt.h>
 #include <filesystem>
+#include <format>
 #include <hidpi.h>
 
 #include "../../../resource.h"
@@ -2559,6 +2560,8 @@ namespace lsn {
 				UpdateOpenRecent();
 			}
 
+			ResolveCheatsFromOtherRom();
+
 			m_bnEmulator.GetSystem()->ResetState( false );
 			m_cClock.SetStartingTick();
 			StartThread();
@@ -2568,6 +2571,35 @@ namespace lsn {
 		}
 		::SetWindowTextW( Wnd(), LSN_LSTR( LSN_BEESNES ) );
 		return false;
+	}
+
+	/**
+	 * After a ROM is loaded (with the emulation thread stopped), asks whether the cheats that are still enabled for a different ROM should be
+	 *	kept (moved to the new ROM) or disabled, so that switching ROMs never silently applies or later re-applies cheats meant for another
+	 *	game.
+	 **/
+	void CMainWindow::ResolveCheatsFromOtherRom() {
+		CCheatManager & cmCheats = m_bnEmulator.CheatManager();
+		size_t sOthers = cmCheats.CountEnabledForOtherRoms();
+		if ( !sOthers ) { return; }
+		try {
+			std::wstring wsMsg = std::vformat( std::wstring_view( LSN_LSTR( LSN_STR_CHEATS_OTHER_ROM ) ), std::make_wformat_args( sOthers ) );
+			const bool bKeep = ::MessageBoxW( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_STR_CHEATS_OTHER_ROM_TITLE ), MB_YESNO | MB_ICONQUESTION ) == IDYES;
+			std::vector<uint32_t> vConflicts;
+			cmCheats.ResolveOtherRomCheats( bKeep, vConflicts );
+			cmCheats.CheatsChanged();
+			if ( vConflicts.size() ) {
+				size_t sConflicts = vConflicts.size();
+				wsMsg = std::vformat( std::wstring_view( LSN_LSTR( LSN_STR_CHEATS_OTHER_ROM_CONFLICTS ) ), std::make_wformat_args( sConflicts ) );
+				::MessageBoxW( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_STR_CHEATS_OTHER_ROM_TITLE ), MB_OK | MB_ICONWARNING );
+			}
+		}
+		catch ( ... ) {
+			// Without memory for the question, the safe choice is to not apply cheats meant for another game.
+			std::vector<uint32_t> vConflicts;
+			cmCheats.ResolveOtherRomCheats( false, vConflicts );
+			cmCheats.CheatsChanged();
+		}
 	}
 
 	/**
