@@ -414,13 +414,36 @@ namespace lsn {
 		void									Swap( bool _bActuallySwap = true );
 
 		/**
-		 * Prepares a black frame for the next Render(), for use before anything has been rendered (at start-up):  a temporary buffer in
-		 *	the input format of the current filter, filled with black, becomes the render target.  Does nothing once a frame has been
-		 *	swapped in.  Should be called inside the same citical section/mutex as Render().
+		 * Prepares a black frame (palette entry 0x0F) for the next Render():  a temporary buffer in the input format of the selected filter
+		 *	(the pending one if a filter change is pending), filled with black, becomes the render target and the selected filter renders
+		 *	it.  Unless forced, does nothing once anything has been rendered (it is then only for start-up).  Should be called inside the
+		 *	same citical section/mutex as Render().
 		 *
+		 * \param _bForce If true, the black frame is prepared even if something has already been rendered.
 		 * \return Returns true if a black frame was prepared.
 		 */
-		bool									PrepareBlankFrame();
+		bool									PrepareBlankFrame( bool _bForce = false );
+
+		/**
+		 * Shows the selected filter right away after a filter change (or a change to the settings of the filter), so that the window never
+		 *	shows the leftovers of another filter.  If no ROM has made a frame yet, the new filter renders black (palette entry 0x0F).
+		 *	Otherwise, if the new filter takes the same PPU output (format and size) as the filter that rendered the last frame, the last
+		 *	frame is passed to the new filter and rendered again; if not, the new filter renders black (and the PPU writes the rest of the
+		 *	current frame over black).  Call only while the emulation thread is stopped (or no ROM is loaded), inside the same critical
+		 *	section/mutex as Render().
+		 *
+		 * \return Returns true if there is something to draw.
+		 **/
+		bool									ShowFilterChange();
+
+		/**
+		 * Prepares the frame on screen to be drawn again without changing filters (after the window or its swap chain changed size, entered
+		 *	or left full screen, or was uncovered):  black (palette entry 0x0F) if no ROM has made a frame yet, otherwise the last PPU output
+		 *	through the filter that rendered it.  Should be called inside the same citical section/mutex as Render().
+		 *
+		 * \return Returns true if there is something to draw.
+		 **/
+		bool									RefreshFrame();
 
 		/**
 		 * Determines if swapping is safe (the new filter has all of the same inputs as the current filter).
@@ -897,6 +920,8 @@ namespace lsn {
 		LSN_CUR_FILTER_AND_RENDER_TARGET		m_cfartCurFilterAndTargets;
 		/** The black frame drawn at start-up (see PrepareBlankFrame()); it stays the render target until the first Swap(). */
 		std::vector<uint8_t>					m_vBlankFrame;
+		/** Set once a ROM has made a frame (Swap() with a real frame), after which a filter change shows the last frame instead of black. */
+		bool									m_bHaveRomFrame = false;
 		/** The most recently captured frame, filled by Render() while capturing video. */
 		LSN_CAPTURE_BUFFER						m_cbVideoCapture;
 		/** True while capturing video. */

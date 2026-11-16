@@ -400,6 +400,20 @@ namespace lsn {
 		 **/
 		void									ApplyVideoOptions();
 
+		/**
+		 * Draws the frame on screen again after the window changed size, entered or left full screen, or changed scale:  black if no ROM has
+		 *	made a frame yet, otherwise the last PPU output through the current filter (see CBeesNes::RefreshFrame()).  GPU filters also
+		 *	resize their swap chains first.  Does nothing while a ROM is running (its next frame is drawn soon enough).
+		 **/
+		void									RefreshView();
+
+		/**
+		 * Determines whether a ROM is loaded and running (not paused), in which case new frames are drawn as they are made.
+		 *
+		 * \return Returns true if a ROM is loaded and not paused.
+		 **/
+		bool									RomIsRunning();
+
 
 	protected :
 		// == Enumerations.
@@ -457,6 +471,8 @@ namespace lsn {
 		volatile std::atomic_int				m_aiThreadState;
 		/** True while an LSN_GPU_DRAW is waiting in the message queue.  Posted messages outrank input and WM_PAINT, so only one is ever queued. */
 		std::atomic_bool						m_abGpuDrawQueued = false;
+		/** True while Paint() is called by this window (a draw request or a video-export frame) rather than by Windows (WM_PAINT). */
+		bool									m_bInternalPaint = false;
 		/** Set when a video-export error has been posted to the window and not yet handled. */
 		std::atomic_bool						m_abVideoExportErrorPosted = false;
 		/** If true, StopThread() renders any frame the emulation thread is waiting on while exporting a movie (false while the window is being destroyed). */

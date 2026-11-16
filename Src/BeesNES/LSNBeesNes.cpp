@@ -1025,15 +1025,56 @@ namespace lsn {
 	}
 
 	/**
-	 * Prepares a black frame for the next Render(), for use before anything has been rendered (at start-up):  a temporary buffer in
-	 *	the input format of the current filter, filled with black, becomes the render target.  Does nothing once a frame has been
-	 *	swapped in.  Should be called inside the same citical section/mutex as Render().
+	 * Fills a PPU render target with black (palette entry 0x0F, or RGB 0 with opaque alpha).
 	 *
+	 * \param _pui8Dst The render target to fill.
+	 * \param _ui32W The width of the render target in pixels.
+	 * \param _ui32H The height of the render target in pixels.
+	 * \param _ui32Stride The stride of the render target in bytes.
+	 * \param _pofFormat The format of the render target.
+	 */
+	static void FillPpuBlack( uint8_t * _pui8Dst, uint32_t _ui32W, uint32_t _ui32H, uint32_t _ui32Stride, CDisplayClient::LSN_PPU_OUT_FORMAT _pofFormat ) {
+		if ( !_pui8Dst ) { return; }
+		for ( uint32_t Y = 0; Y < _ui32H; ++Y ) {
+			uint8_t * pui8Row = &_pui8Dst[size_t( Y )*_ui32Stride];
+			switch ( _pofFormat ) {
+				case CDisplayClient::LSN_POF_6BIT_PALETTE : {
+					std::memset( pui8Row, 0x0F, _ui32W );
+					break;
+				}
+				case CDisplayClient::LSN_POF_9BIT_PALETTE : {
+					uint16_t * pui16Row = reinterpret_cast<uint16_t *>(pui8Row);
+					for ( uint32_t X = 0; X < _ui32W; ++X ) { pui16Row[X] = 0x0F; }
+					break;
+				}
+				case CDisplayClient::LSN_POF_RGB32 : {
+					for ( uint32_t X = 0; X < _ui32W; ++X ) {
+						pui8Row[X*4+0] = 0;
+						pui8Row[X*4+1] = 0;
+						pui8Row[X*4+2] = 0;
+						pui8Row[X*4+3] = 0xFF;
+					}
+					break;
+				}
+				default : {
+					std::memset( pui8Row, 0, size_t( _ui32W ) * 3 );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Prepares a black frame (palette entry 0x0F) for the next Render():  a temporary buffer in the input format of the selected filter
+	 *	(the pending one if a filter change is pending), filled with black, becomes the render target and the selected filter renders
+	 *	it.  Unless forced, does nothing once anything has been rendered (it is then only for start-up).  Should be called inside the
+	 *	same citical section/mutex as Render().
+	 *
+	 * \param _bForce If true, the black frame is prepared even if something has already been rendered.
 	 * \return Returns true if a black frame was prepared.
 	 */
-	bool CBeesNes::PrepareBlankFrame() {
-		if ( m_cfartCurFilterAndTargets.pfbPrevFilter ) { return false; }
-		CFilterBase * pfbFilter = m_cfartCurFilterAndTargets.pfbCurFilter ? m_cfartCurFilterAndTargets.pfbCurFilter : m_cfartCurFilterAndTargets.pfbNextFilter;
+	bool CBeesNes::PrepareBlankFrame( bool _bForce ) {
+		if ( !_bForce && m_cfartCurFilterAndTargets.pfbPrevFilter ) { return false; }
+		CFilterBase * pfbFilter = m_cfartCurFilterAndTargets.pfbNextFilter ? m_cfartCurFilterAndTargets.pfbNextFilter : m_cfartCurFilterAndTargets.pfbCurFilter;
 		if ( !pfbFilter || !pfbFilter->OutputBuffer() ) { return false; }
 		const uint32_t ui32W = pfbFilter->OutputWidth(), ui32H = pfbFilter->OutputHeight();
 		const uint32_t ui32Stride = uint32_t( pfbFilter->OutputStride() );
@@ -1042,32 +1083,10 @@ namespace lsn {
 			m_vBlankFrame.assign( size_t( ui32Stride ) * ui32H, 0 );
 		}
 		catch ( ... ) { return false; }
-		// Black in the input format of the filter (palette entry 0x0F, or RGB 0 with opaque alpha).
-		switch ( pfbFilter->InputFormat() ) {
-			case CDisplayClient::LSN_POF_6BIT_PALETTE : {
-				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
-					std::memset( &m_vBlankFrame[size_t( Y )*ui32Stride], 0x0F, ui32W );
-				}
-				break;
-			}
-			case CDisplayClient::LSN_POF_9BIT_PALETTE : {
-				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
-					uint16_t * pui16Row = reinterpret_cast<uint16_t *>(&m_vBlankFrame[size_t( Y )*ui32Stride]);
-					for ( uint32_t X = 0; X < ui32W; ++X ) { pui16Row[X] = 0x0F; }
-				}
-				break;
-			}
-			case CDisplayClient::LSN_POF_RGB32 : {
-				for ( uint32_t Y = 0; Y < ui32H; ++Y ) {
-					uint8_t * pui8Row = &m_vBlankFrame[size_t( Y )*ui32Stride];
-					for ( uint32_t X = 0; X < ui32W; ++X ) { pui8Row[X*4+3] = 0xFF; }
-				}
-				break;
-			}
-			default : {}	// RGB:  all 0.
-		}
+		FillPpuBlack( m_vBlankFrame.data(), ui32W, ui32H, ui32Stride, pfbFilter->InputFormat() );
 		m_cfartCurFilterAndTargets.pfbPrevFilter = pfbFilter;
 		m_cfartCurFilterAndTargets.pui8CurRenderTarget = m_vBlankFrame.data();
+		m_cfartCurFilterAndTargets.pui8LastFilteredResult = nullptr;
 		m_cfartCurFilterAndTargets.ui16Bits = uint16_t( pfbFilter->OutputBits() );
 		m_cfartCurFilterAndTargets.ui32Width = ui32W;
 		m_cfartCurFilterAndTargets.ui32Height = ui32H;
@@ -1076,6 +1095,57 @@ namespace lsn {
 		m_cfartCurFilterAndTargets.ui64RenderStartCycle = 0;
 		m_cfartCurFilterAndTargets.bMirrored = pfbFilter->FlipInput();
 		m_cfartCurFilterAndTargets.bDirty = true;
+		return true;
+	}
+
+	/**
+	 * Shows the selected filter right away after a filter change (or a change to the settings of the filter), so that the window never
+	 *	shows the leftovers of another filter.  If no ROM has made a frame yet, the new filter renders black (palette entry 0x0F).
+	 *	Otherwise, if the new filter takes the same PPU output (format and size) as the filter that rendered the last frame, the last
+	 *	frame is passed to the new filter and rendered again; if not, the new filter renders black (and the PPU writes the rest of the
+	 *	current frame over black).  Call only while the emulation thread is stopped (or no ROM is loaded), inside the same critical
+	 *	section/mutex as Render().
+	 *
+	 * \return Returns true if there is something to draw.
+	 **/
+	bool CBeesNes::ShowFilterChange() {
+		LSN_CUR_FILTER_AND_RENDER_TARGET & cfartInfo = m_cfartCurFilterAndTargets;
+		CFilterBase * pfbNew = cfartInfo.pfbNextFilter ? cfartInfo.pfbNextFilter : cfartInfo.pfbCurFilter;
+		if ( !pfbNew ) { return false; }
+
+		if ( m_bHaveRomFrame ) {
+			if ( cfartInfo.pfbPrevFilter == pfbNew && cfartInfo.pfbCurFilter == pfbNew ) {
+				// Same filter (its settings changed):  render the last frame again.
+				DirtyRender();
+				return true;
+			}
+			// Same PPU output:  the last frame goes to the new filter.
+			if ( CommitPendingFilter() ) { return true; }
+		}
+
+		// Black.  If a ROM is loaded, the PPU first moves to the new filter (as Swap() would) so that it writes in the new format; the part
+		//	of the frame it has not written yet stays black.
+		if ( cfartInfo.pfbCurFilter && cfartInfo.pfbCurFilter != pfbNew && GetDisplayClient() ) {
+			cfartInfo.pfbCurFilter = pfbNew;
+			pfbNew->Swap();
+			FillPpuBlack( pfbNew->CurTarget(), pfbNew->OutputWidth(), pfbNew->OutputHeight(), uint32_t( pfbNew->OutputStride() ), pfbNew->InputFormat() );
+			GetDisplayClient()->SetRenderTarget( pfbNew->CurTarget(), pfbNew->OutputStride(), pfbNew->InputFormat(), pfbNew->FlipInput() );
+		}
+		return PrepareBlankFrame( true );
+	}
+
+	/**
+	 * Prepares the frame on screen to be drawn again without changing filters (after the window or its swap chain changed size, entered
+	 *	or left full screen, or was uncovered):  black (palette entry 0x0F) if no ROM has made a frame yet, otherwise the last PPU output
+	 *	through the filter that rendered it.  Should be called inside the same citical section/mutex as Render().
+	 *
+	 * \return Returns true if there is something to draw.
+	 **/
+	bool CBeesNes::RefreshFrame() {
+		if ( !m_bHaveRomFrame ) { return PrepareBlankFrame( true ); }
+		if ( !m_cfartCurFilterAndTargets.pfbPrevFilter || !m_cfartCurFilterAndTargets.pfbCurFilter || !m_cfartCurFilterAndTargets.pui8CurRenderTarget ) { return false; }
+		// The sizes of the filter can follow the window, so take them again (as a resize always did).
+		DirtyRender();
 		return true;
 	}
 
@@ -1104,6 +1174,8 @@ namespace lsn {
 		
 		if LSN_LIKELY( _bActuallySwap ) {
 			m_cfartCurFilterAndTargets.pfbCurFilter->Swap();
+			// A ROM made this frame.
+			m_bHaveRomFrame = true;
 		}
 		else if ( pfbPrev ) {
 			if ( m_cfartCurFilterAndTargets.bMirrored != bMirrired ) {

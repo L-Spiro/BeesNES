@@ -326,7 +326,7 @@ namespace lsn {
 			}
 		}
 
-		// Nothing has been rendered yet, so the window shows whatever was on the screen.  Draw a black frame through the current filter.
+		// Nothing has been rendered yet, so the window shows whatever was on the screen.  Draw a black frame (0x0F) through the current filter.
 		{
 			bool bPrepared;
 			{
@@ -510,6 +510,7 @@ namespace lsn {
 		m_bnEmulator.SetScale( SCALE );																		\
 		LSW_RECT rScreen = FinalWindowRect();																\
 		::MoveWindow( Wnd(), rScreen.left, rScreen.top, rScreen.Width(), rScreen.Height(), TRUE );			\
+		RefreshView();																						\
 		break;																								\
 	}
 			LSN_SET_SCALE( LSN_MWMI_VIDEO_SIZE_1X, 1.0 )
@@ -536,9 +537,6 @@ namespace lsn {
 #ifdef LSN_DX9
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_PALETTE : {
 				m_bnEmulator.SetCurFilter( CFilterBase::LSN_F_INDEXED_DX9 );
-				if ( m_bnEmulator.SwapIsSafe() ) {
-					SwapInternal( false );
-				}
 				break;
 			}
 			case CMainWindowLayout::LSN_MWMI_VIDEO_FILTER_DX9_NTSC_BLARGG_UPSCALED : {
@@ -854,8 +852,9 @@ namespace lsn {
 				break;
 			}
 		}
-		if ( m_bnEmulator.GetCurFilter() != fPrevFilter && m_bnEmulator.GetSystem() && m_bnEmulator.RomIsPaused() ) {
-			// Show the new filter right away (a paused game makes no new frames to switch filters on).
+		if ( m_bnEmulator.GetCurFilter() != fPrevFilter ) {
+			// Show the new filter right away:  the last frame if the new filter takes the same PPU output, otherwise black (see
+			//	CBeesNes::ShowFilterChange()).
 			ApplyVideoOptions();
 		}
 		return LSW_H_CONTINUE;
@@ -884,7 +883,9 @@ namespace lsn {
 			case CWinUtilities::LSN_GPU_DRAW : {
 				// Clear before rendering so that a frame finished during this one queues its own draw.
 				m_abGpuDrawQueued = false;
+				m_bInternalPaint = true;
 				Paint();
+				m_bInternalPaint = false;
 				FlushPendingPaints();
 				break;
 			}
@@ -1008,6 +1009,13 @@ namespace lsn {
 
 		// ==== GPU path (if initialized) ==== //
 		if ( m_bnEmulator.RenderInfo().pfbPrevFilter && m_bnEmulator.RenderInfo().pfbPrevFilter->IsGpuFilter() ) {
+			if ( !m_bInternalPaint && !RomIsRunning() ) {
+				// Windows asked for this paint (the window was resized, went full screen, or was uncovered) and no new frames are coming (no
+				//	ROM, or paused).  The swap chain holds nothing current for it, and presenting without drawing would show an old or undefined
+				//	back buffer, so draw the frame again.  A running ROM draws its next frame soon enough.
+				lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+				m_bnEmulator.RefreshFrame();
+			}
 			switch ( m_bnEmulator.RenderInfo().pfbPrevFilter->GpuApi() ) {
 #ifdef LSN_DX9
 				case CFilterBase::LSN_GA_DX9 : {
@@ -1469,6 +1477,11 @@ namespace lsn {
 			m_bnEmulator.WindowResized();
 		}
 		m_bnEmulator.DirtyRender();
+		if ( !RomIsRunning() ) {
+			// No new frames are coming (no ROM, or paused), so redraw now:  black if no ROM has made a frame, otherwise the last frame.
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			m_bnEmulator.RefreshFrame();
+		}
 		return LSW_H_HANDLED;
 	}
 
@@ -1480,6 +1493,7 @@ namespace lsn {
 	CWidget::LSW_HANDLED CMainWindow::ExitSizeMove() {
 		m_bnEmulator.WindowResized();
 		m_bnEmulator.DirtyRender();
+		RefreshView();
 		return LSW_H_HANDLED;
 	}
 
@@ -2172,7 +2186,9 @@ namespace lsn {
 						bAborted = true;
 					}
 					else if ( m_bnEmulator.ExportFramePending() && m_bExportRenderOnStop ) {
+						m_bInternalPaint = true;
 						Paint();
+						m_bInternalPaint = false;
 						if ( !m_bnEmulator.ExportFramePending() ) { aLastProgress = std::chrono::steady_clock::now(); }
 					}
 					if ( !bAborted && std::chrono::steady_clock::now() - aLastProgress > std::chrono::seconds( m_bExportRenderOnStop ? 10 : 0 ) ) {
@@ -2482,16 +2498,43 @@ namespace lsn {
 		StopThread();
 		m_bnEmulator.ApplyFilterOptions();
 		m_bnEmulator.ApplyPaletteOptions();
+		bool bDraw;
 		{
 			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
-			// A paused game makes no new frames, so a filter changed while paused (for example from Vulkan to Direct3D 12) would never
-			//	become current and the changes would be drawn by the old filter (or not at all once it is deactivated).
-			if ( m_bnEmulator.GetSystem() && m_bnEmulator.RomIsPaused() ) {
-				m_bnEmulator.CommitPendingFilter();
-			}
-			m_bnEmulator.DirtyRender();
+			// Make a changed filter current now and draw with it:  the last frame if it takes the same PPU output, otherwise black.  The
+			//	old filter is deactivated after the next draw, so waiting for the next frame (or forever while paused or with no ROM) would
+			//	draw with a deactivated filter.
+			bDraw = m_bnEmulator.ShowFilterChange();
 		}
 		if ( bWasRunning ) { StartThread(); }
+		if ( bDraw ) { RequestDraw(); }
+		::InvalidateRect( Wnd(), NULL, FALSE );
+	}
+
+	/**
+	 * Determines whether a ROM is loaded and running (not paused), in which case new frames are drawn as they are made.
+	 *
+	 * \return Returns true if a ROM is loaded and not paused.
+	 **/
+	bool CMainWindow::RomIsRunning() {
+		return m_bnEmulator.GetSystem() && m_bnEmulator.GetSystem()->IsRomLoaded() && !m_bnEmulator.RomIsPaused() && m_ptThread.get() != nullptr;
+	}
+
+	/**
+	 * Draws the frame on screen again after the window changed size, entered or left full screen, or changed scale:  black if no ROM has
+	 *	made a frame yet, otherwise the last PPU output through the current filter (see CBeesNes::RefreshFrame()).  GPU filters also
+	 *	resize their swap chains first.  Does nothing while a ROM is running (its next frame is drawn soon enough).
+	 **/
+	void CMainWindow::RefreshView() {
+		// A running ROM draws its next frame soon enough; nothing special is done for it.
+		if ( RomIsRunning() ) { return; }
+		m_bnEmulator.WindowResized();
+		bool bDraw;
+		{
+			lsw::CCriticalSection::CEnterCrit ecCrit( m_csRenderCrit );
+			bDraw = m_bnEmulator.RefreshFrame();
+		}
+		if ( bDraw ) { RequestDraw(); }
 		::InvalidateRect( Wnd(), NULL, FALSE );
 	}
 
@@ -2864,6 +2907,8 @@ namespace lsn {
 			}
 			
 			m_rMaxRect = VirtualClientRect( this );
+			// The size messages came while the window was changing; draw again at the final size.
+			RefreshView();
 		}
 		else {
 			m_bMaximized = bMaxCopy;
@@ -2884,6 +2929,8 @@ namespace lsn {
 				m_psbCachedBar->SetVisible( TRUE );
 			}
 			m_rMaxRect = VirtualClientRect( this );
+			// The size messages came while the window was changing; draw again at the final size.
+			RefreshView();
 		}
 		else {
 			m_bMaximized = bMaxCopy;
