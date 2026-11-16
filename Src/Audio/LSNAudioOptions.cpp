@@ -53,7 +53,8 @@ namespace lsn {
 
 		// 1662577.1085126209072768688201904296875 Hz.
 		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_PM313006 ),				14912.561817246404f,		188764.928831997269f,		99.713059858228f,			64.057801563356f,			8.189826234573f,		1.062f,		0.882f,		0.859f,		0.814f,		0.771f,		0.808f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false,	 false },
-		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_V7 ),						64000.0f,					0.0f,						94.986785805568559f,		8.851913371856071f,			8.8518991011365298f,	1.57f,		1.0f,		1.0f,		0.957f,		1.0f,		1.0f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false,	 false },
+		// 1662607.565033351071178913116455078125
+		{ LSN_LSTR( LSN_AUDIO_OPTIONS_NES_PAL_V7 ),						17587.320627885502f,		0.0f,						92.398131948144f,			8.863322166442f,			8.863319446845f,		1.57f,		1.0f,		1.0f,		0.957f,		0.897f,		0.933f,		LSN_FM_NORMAL,	true,		true,		true,		true,		true,	true,	false,	 false },
 	};
 
 
