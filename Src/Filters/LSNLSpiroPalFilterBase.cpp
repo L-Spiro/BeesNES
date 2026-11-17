@@ -458,19 +458,27 @@ namespace lsn {
 		//	offset:  Y' = Y * Contrast + Brightness.
 		const float fContrast = m_fContrastSetting;
 		const float fBrightness = m_fBrightnessSetting;
-		uint16_t ui16HalfSig = m_ui16PixelToSignal >> 1;
 		const int16_t i16HalfLeft = int16_t( std::floorf( m_ui32FilterKernelSize / 2.0f ) );
 		const int16_t i16HalfRight = int16_t( std::ceilf( m_ui32FilterKernelSize / 2.0f ) );
 		const int16_t i16HalfLeftY = int16_t( std::floorf( m_ui32FilterKernelSizeY / 2.0f ) );
 		const int16_t i16HalfRightY = int16_t( std::ceilf( m_ui32FilterKernelSizeY / 2.0f ) );
+		const int32_t i32CenterDen = 2 * int32_t( m_ui16WidthScale );
+		const bool bOddKernel = (m_ui32FilterKernelSize & 1) != 0;
+		const bool bOddKernelY = (m_ui32FilterKernelSizeY & 1) != 0;
 		for ( uint16_t I = 0; I < m_ui16ScaledWidth; ++I ) {
-			int16_t i16Center = int16_t( I * m_ui16PixelToSignal / m_ui16WidthScale ) + ui16HalfSig;
+			// 2 * Scale * the center of the output pixel in signals.
+			const int32_t i32CenterNum = (2 * int32_t( I ) + 1) * int32_t( m_ui16PixelToSignal );
+			// round( Center ) for even kernels, round( Center - 0.5 ) for odd kernels.
+			const int16_t i16CenterEven = int16_t( (i32CenterNum + int32_t( m_ui16WidthScale )) / i32CenterDen );
+			const int16_t i16CenterOdd = int16_t( i32CenterNum / i32CenterDen );
+			const int16_t i16Center = bOddKernel ? i16CenterOdd : i16CenterEven;
+			const int16_t i16CenterY = bOddKernelY ? i16CenterOdd : i16CenterEven;
 			// Chroma.
 			int16_t i16Start = i16Center - i16HalfLeft;
 			int16_t i16End = i16Center + i16HalfRight;
 			// Y.
-			int16_t i16StartY = i16Center - i16HalfLeftY;
-			int16_t i16EndY = i16Center + i16HalfRightY;
+			int16_t i16StartY = i16CenterY - i16HalfLeftY;
+			int16_t i16EndY = i16CenterY + i16HalfRightY;
 
 			(*_pfDstY) = (*_pfDstI) = (*_pfDstQ) = 0.0f;
 			int16_t J = i16Start;
