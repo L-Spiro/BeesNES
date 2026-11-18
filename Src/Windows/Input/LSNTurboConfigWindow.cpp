@@ -17,6 +17,7 @@
 #include <Base/LSWBase.h>
 #include <ListBox/LSWListBox.h>
 
+#include <algorithm>
 #include <format>
 
 
@@ -69,6 +70,7 @@ namespace lsn {
 		if ( pwThis ) { ::SendMessageW( pwThis->Wnd(), EM_LIMITTEXT, 2, 0 ); }
 		pwThis = FindChild( Layout::LSN_TCWI_FPS_EDIT );
 		if ( pwThis ) { ::SendMessageW( pwThis->Wnd(), EM_LIMITTEXT, 3, 0 ); }
+		AlignStateChecks();
 
 		const LSN_TURBO_PATTERN * ptpFirst = m_ptcdData->ptpPatterns->Find( m_ptcdData->u16Select );
 		if ( !ptpFirst && m_ptcdData->ptpPatterns->Patterns().size() ) { ptpFirst = &m_ptcdData->ptpPatterns->Patterns()[0]; }
@@ -82,6 +84,45 @@ namespace lsn {
 			NewPattern( false );
 		}
 		return LSW_H_CONTINUE;
+	}
+
+	/**
+	 * Places the 64 state check boxes and their index labels on whole pixels.  Dialog units do not map to a whole number of pixels, so
+	 *	the layout's positions and widths round differently from column to column and some check boxes overlapped their neighbors.  Each
+	 *	column is given the same whole-pixel pitch, each check box is made as wide as the check mark and centered in its column, and each
+	 *	index label spans its column.
+	 */
+	void CTurboConfigWindow::AlignStateChecks() {
+		// Gets a child's rectangle in the client coordinates of this dialog.
+		auto aClientRect = [this]( WORD _wId, RECT &_rRet ) {
+			CWidget * pwCtrl = FindChild( _wId );
+			if ( !pwCtrl || !::GetWindowRect( pwCtrl->Wnd(), &_rRet ) ) { return false; }
+			::MapWindowPoints( NULL, Wnd(), reinterpret_cast<POINT *>(&_rRet), 2 );
+			return true;
+		};
+		RECT rFirst, rLast;
+		if ( !aClientRect( Layout::LSN_TCWI_CHECK_FIRST, rFirst ) || !aClientRect( Layout::LSN_TCWI_CHECK_FIRST + 31, rLast ) ) { return; }
+
+		// The span the layout gave the 32 columns, divided into equal whole-pixel columns and centered in that span.
+		const LONG lSpan = rLast.right - rFirst.left;
+		const LONG lPitch = lSpan / 32;
+		if ( lPitch <= 0 ) { return; }
+		const LONG lStart = rFirst.left + (lSpan - lPitch * 32) / 2;
+		// The check box is as wide as its check mark (never wider than its column less a 1-pixel gap).
+		const LONG lCheckW = std::clamp<LONG>( ::GetSystemMetrics( SM_CXMENUCHECK ), 1, std::max<LONG>( lPitch - 1, 1 ) );
+		const LONG lCheckOff = (lPitch - lCheckW) / 2;
+
+		for ( uint32_t I = 0; I < 64; ++I ) {
+			const LONG lLeft = lStart + LONG( I % 32 ) * lPitch;
+			RECT rThis;
+			if ( aClientRect( WORD( Layout::LSN_TCWI_CHECK_FIRST + I ), rThis ) ) {
+				::MoveWindow( FindChild( WORD( Layout::LSN_TCWI_CHECK_FIRST + I ) )->Wnd(), lLeft + lCheckOff, rThis.top, lCheckW, rThis.bottom - rThis.top, FALSE );
+			}
+			if ( aClientRect( WORD( Layout::LSN_TCWI_INDEX_FIRST + I ), rThis ) ) {
+				::MoveWindow( FindChild( WORD( Layout::LSN_TCWI_INDEX_FIRST + I ) )->Wnd(), lLeft, rThis.top, lPitch, rThis.bottom - rThis.top, FALSE );
+			}
+		}
+		::InvalidateRect( Wnd(), NULL, TRUE );
 	}
 
 	/**

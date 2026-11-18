@@ -93,6 +93,14 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Places the 64 state check boxes and their index labels on whole pixels.  Dialog units do not map to a whole number of pixels, so
+		 *	the layout's positions and widths round differently from column to column and some check boxes overlapped their neighbors.  Each
+		 *	column is given the same whole-pixel pitch, each check box is made as wide as the check mark and centered in its column, and each
+		 *	index label spans its column.
+		 */
+		void															AlignStateChecks();
+
+		/**
 		 * Fills the list of presets.
 		 *
 		 * \param _u16Select The preset to select, or an empty string to select nothing.
