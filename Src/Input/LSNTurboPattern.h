@@ -39,8 +39,8 @@ namespace lsn {
 	 * Description: A turbo pattern and how it is played.  Plain data, copied into each turbo button.
 	 */
 	struct LSN_TURBO_PLAYBACK {
-		uint64_t									ui64Bits = 0x3333333333333333ULL;			/**< The states.  Bit N is state N (1 = pressed).  The default is 1100 repeated. */
-		uint8_t										ui8Length = 64;								/**< The number of states used (1-64), from state 0. */
+		uint64_t									ui64Bits = 0x5555555555555555ULL;			/**< The states.  Bit N is state N (1 = pressed).  The default is 10 (repeated if the length is raised). */
+		uint8_t										ui8Length = 2;								/**< The number of states used (1-64), from state 0. */
 		uint8_t										ui8FramesPerState = 1;						/**< The number of frames each state lasts (1-255), before the global multiplier. */
 		bool										bLoop = true;								/**< If true, the pattern repeats while the button is held, otherwise it plays once. */
 		bool										bRestartOnPress = true;						/**< Looping patterns only:  if true, the pattern restarts each time the button is pressed, otherwise it continues where it left off.  One-shot patterns always restart. */

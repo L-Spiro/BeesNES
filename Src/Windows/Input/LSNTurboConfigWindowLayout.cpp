@@ -17,8 +17,8 @@
 
 namespace lsn {
 
-#define LSN_TC_W												424
-#define LSN_TC_LEFT_GROUP_W										112
+#define LSN_TC_W												453
+#define LSN_TC_LEFT_GROUP_W										143		// The 3 preset buttons are LSN_DEF_BUTTON_WIDTH wide.
 #define LSN_TC_LEFT_INNER_W										(LSN_TC_LEFT_GROUP_W - LSN_GROUP_LEFT * 2)
 #define LSN_TC_RIGHT_L											(LSN_LEFT_JUST + LSN_TC_LEFT_GROUP_W + LSN_LEFT_JUST)
 #define LSN_TC_RIGHT_W											(LSN_TC_W - LSN_TC_RIGHT_L - LSN_LEFT_JUST)
@@ -50,7 +50,7 @@ namespace lsn {
 #define LSN_TC_RESTART_T										(LSN_TC_RADIO_T + LSN_DEF_RADIO_HEIGHT + LSN_TOP_JUST + 1)
 #define LSN_TC_HOLD_T											(LSN_TC_RESTART_T + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST + 1)
 #define LSN_TC_FPS_T											(LSN_TC_HOLD_T + LSN_DEF_CHECK_HEIGHT + LSN_TOP_JUST * 2)
-#define LSN_TC_FPS_LABEL_W										62
+#define LSN_TC_FPS_LABEL_W										66
 #define LSN_TC_FPS_EDIT_W										30
 #define LSN_TC_GLOBAL_L											(LSN_TC_R_INNER_L + LSN_TC_RADIO_W + 4)
 #define LSN_TC_INFO_T											(LSN_TC_FPS_T + LSN_DEF_EDIT_HEIGHT + LSN_TOP_JUST * 2)

@@ -750,9 +750,9 @@
 #define LSN_STR_CHEATS_CUSTOM_TAG											[Custom]
 #define LSN_STR_TURBO_GROUP													Turbo
 #define LSN_STR_TURBO_CONFIGURE												Configure Turbo Patterns\u2026
-#define LSN_STR_TURBO_SPEED													Global Speed Multiplier:
-#define LSN_STR_TURBO_SPEED_HINT											(higher is slower)
-#define LSN_STR_TURBO_STANDARD												Standard: 1100 repeating
+#define LSN_STR_TURBO_SPEED													Global Turbo Pattern Speed Multiplier:
+#define LSN_STR_TURBO_SPEED_HINT											Higher Is Slower: IE 2 Makes Every State Last Twice as Long, Etc.
+#define LSN_STR_TURBO_STANDARD												Standard: 10 Repeating
 #define LSN_STR_TT_TURBO_CONFIGURE											Opens the Turbo Button Configuration dialog to create and edit and delete turbo patterns.  Patterns can also be macros that press a button in a timed sequence.
 #define LSN_STR_TT_TURBO_SPEED												Multiplies how many frames each state of every turbo pattern lasts (for patterns that use the global speed multiplier).  1 to 60; higher is slower.
 #define LSN_STR_TC_TITLE													Turbo Button Configuration
@@ -765,16 +765,16 @@
 #define LSN_STR_TC_STATES													States:
 #define LSN_STR_TC_LENGTH													Length:
 #define LSN_STR_TC_PLAYBACK													Playback
-#define LSN_STR_TC_LOOP														&Repeat while held
-#define LSN_STR_TC_ONCE														&Play once
-#define LSN_STR_TC_RESTART													Restart from the &beginning on each press
-#define LSN_STR_TC_HOLD														&Hold the button down after the pattern ends
-#define LSN_STR_TC_FPS														&Frames per state:
-#define LSN_STR_TC_GLOBAL													Use the &global speed multiplier
+#define LSN_STR_TC_LOOP														&Repeat While Held
+#define LSN_STR_TC_ONCE														&Play Once
+#define LSN_STR_TC_RESTART													Restart From the &Beginning on Each Press
+#define LSN_STR_TC_HOLD														&Hold the Button Down After the Pattern Ends
+#define LSN_STR_TC_FPS														&Frames Per State:
+#define LSN_STR_TC_GLOBAL													Use the &Global Speed Multiplier
 #define LSN_STR_TC_SAVE														&Save
 #define LSN_STR_TC_CLOSE													Close
-#define LSN_STR_TC_INFO														One pass: {} frames (about {:.2f} seconds at 60 frames per second).
-#define LSN_STR_TC_INFO_GLOBAL												One pass: {} frames (about {:.2f} seconds at 60 frames per second) times the global speed multiplier.
+#define LSN_STR_TC_INFO														One Pass: {} Frames ({:.2f} Seconds at 60 FPS)
+#define LSN_STR_TC_INFO_GLOBAL												One Pass: {} Frames ({:.2f} Seconds at 60 FPS) \u00D7 the Global Speed Multiplier
 #define LSN_STR_TC_NEW_NAME													Pattern {}
 #define LSN_STR_TC_COPY_NAME												{} Copy
 #define LSN_STR_TC_COPY_NAME_N												{} Copy {}
