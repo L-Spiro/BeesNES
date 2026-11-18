@@ -277,6 +277,98 @@ namespace lsn {
 			0,												// sTextLen
 			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
 		},
+
+		// Turbo.
+		{
+			LSW_LT_GROUPBOX,								// ltType
+			CWinUtilities::LSN_SCPI_TURBO_GROUP,			// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT,							// iLeft
+			LSN_STD_CONT_TURBO_GROUP_TOP,					// iTop
+			LSN_STD_CONT_BUT_GROUP_W,						// dwWidth
+			LSN_STD_CONT_TURBO_GROUP_H,						// dwHeight
+			LSN_GROUPSTYLE,									// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_STR_TURBO_GROUP ),				// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
+		},
+		{
+			LSW_LT_BUTTON,									// ltType
+			CWinUtilities::LSN_SCPI_TURBO_CONFIGURE_BUTTON,	// wId
+			WC_BUTTONW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT + LSN_GROUP_LEFT,			// iLeft
+			LSN_STD_CONT_TURBO_GROUP_TOP + LSN_GROUP_TOP,	// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT,													// dwWidth
+			LSN_DEF_BUTTON_HEIGHT,							// dwHeight
+			LSN_BUTTONSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_STR_TURBO_CONFIGURE ),			// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
+
+			LSW_NO_SIZE_EXP,
+			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_STR_TT_TURBO_CONFIGURE )), 0,										// pcToolTip, sToolTipLen
+			WS_EX_TOPMOST,									// dwToolTipStyleEx
+			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			CWinUtilities::LSN_SCPI_TURBO_SPEED_LABEL,		// wId
+			WC_STATICW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT + LSN_GROUP_LEFT,			// iLeft
+			LSN_STD_CONT_TURBO_SPEED_TOP + (LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2,								// iTop
+			LSN_STD_CONT_TURBO_SPEED_LABEL_W,				// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_STR_TURBO_SPEED ),				// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
+		},
+		{
+			LSW_LT_EDIT,									// ltType
+			CWinUtilities::LSN_SCPI_TURBO_SPEED_EDIT,		// wId
+			WC_EDITW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT + LSN_GROUP_LEFT + LSN_STD_CONT_TURBO_SPEED_LABEL_W + LSN_LEFT_JUST,						// iLeft
+			LSN_STD_CONT_TURBO_SPEED_TOP,					// iTop
+			LSN_STD_CONT_TURBO_SPEED_EDIT_W,				// dwWidth
+			LSN_DEF_EDIT_HEIGHT,							// dwHeight
+			LSN_EDITSTYLE | ES_NUMBER,						// dwStyle
+			WS_EX_CLIENTEDGE,								// dwStyleEx
+			nullptr,										// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
+
+			LSW_NO_SIZE_EXP,
+			reinterpret_cast<const CHAR *>(LSN_U8STR( LSN_STR_TT_TURBO_SPEED )), 0,											// pcToolTip, sToolTipLen
+			WS_EX_TOPMOST,									// dwToolTipStyleEx
+			LSN_TOOLTIP_STYLE,								// dwToolTipStyle
+		},
+		{
+			LSW_LT_LABEL,									// ltType
+			CWinUtilities::LSN_SCPI_TURBO_SPEED_HINT_LABEL,	// wId
+			WC_STATICW,										// lpwcClass
+			TRUE,											// bEnabled
+			FALSE,											// bActive
+			LSN_STD_CONT_BUT_LEFT + LSN_GROUP_LEFT + LSN_STD_CONT_TURBO_SPEED_LABEL_W + LSN_LEFT_JUST * 3 + LSN_STD_CONT_TURBO_SPEED_EDIT_W,	// iLeft
+			LSN_STD_CONT_TURBO_SPEED_TOP + (LSN_DEF_EDIT_HEIGHT - LSN_DEF_STATIC_HEIGHT) / 2,								// iTop
+			LSN_STD_CONT_BUT_GROUP_W - LSN_GROUP_LEFT - LSN_GROUP_RIGHT - LSN_STD_CONT_TURBO_SPEED_LABEL_W - LSN_LEFT_JUST * 3 - LSN_STD_CONT_TURBO_SPEED_EDIT_W,	// dwWidth
+			LSN_DEF_STATIC_HEIGHT,							// dwHeight
+			LSN_STATICSTYLE,								// dwStyle
+			WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOPARENTNOTIFY,									// dwStyleEx
+			LSN_LSTR( LSN_STR_TURBO_SPEED_HINT ),			// pwcText
+			0,												// sTextLen
+			CWinUtilities::LSN_SCPI_MAINWINDOW,				// dwParentId
+		},
 	};
 
 #undef LSN_STD_CONT_H

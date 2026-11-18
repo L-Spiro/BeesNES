@@ -89,7 +89,18 @@ namespace lsn {
 			for ( auto pPage : m_vPages ) {
 				::MoveWindow( pPage->Wnd(), rDisplay.left, rDisplay.top, rDisplay.Width(), rDisplay.Height(), FALSE );
 			}
-			ptTab->SetCurSel( 0 );
+			// Start on the tab of the current filter.
+			int iStartTab = 0;
+			if ( m_ppdData->pvodData ) {
+				const auto vpkActive = CVideoOptionsFields::PageForFilter( m_ppdData->pvodData->fActiveFilter, m_ppdData->pvodData->pmActiveRegion );
+				for ( size_t I = 0; I < m_vPageData.size(); ++I ) {
+					if ( m_vPageData[I]->vpkKind == vpkActive ) {
+						iStartTab = int( I );
+						break;
+					}
+				}
+			}
+			ptTab->SetCurSel( iStartTab );
 
 			// Fit this page around the tab.
 			LSW_RECT rTabWindow = ptTab->WindowRect();

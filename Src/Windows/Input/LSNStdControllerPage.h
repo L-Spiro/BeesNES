@@ -258,6 +258,13 @@ namespace lsn {
 		/** Turbo presets. */
 		static LSN_INPUT_EVENT						m_ieTurboPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL];
 
+		/** The names of the turbo patterns of the turbo buttons (empty for the standard pattern). */
+		std::u16string								m_u16TurboPatterns[IPeripheralBase::LSN_B_TOTAL];
+		/** Set while the global turbo speed multiplier is being copied to the other pages, so that the copies are not copied again. */
+		bool										m_bSyncingSpeed = false;
+		/** Every open page (the pages that edit the same input options share the global turbo speed multiplier and the turbo presets). */
+		static std::vector<CStdControllerPage *>	s_vPages;
+
 
 		// == Functions.
 		/**
@@ -331,6 +338,22 @@ namespace lsn {
 		 * Sets up the presets.
 		 **/
 		static void									CreatePresets();
+
+		/**
+		 * Fills the turbo combo boxes with the standard pattern and the turbo-pattern presets and selects the pattern of each button.  A
+		 *	pattern whose preset no longer exists goes back to the standard pattern.
+		 **/
+		void										FillTurboCombos();
+
+		/**
+		 * Opens the Turbo Button Configuration dialog, then refreshes the turbo combo boxes of every open page.
+		 **/
+		void										ConfigureTurbo();
+
+		/**
+		 * Copies the global turbo speed multiplier shown on this page to the other open pages that edit the same input options.
+		 **/
+		void										SpeedChanged();
 
 	private :
 		//typedef class CStdControllerPageLayout		Layout;

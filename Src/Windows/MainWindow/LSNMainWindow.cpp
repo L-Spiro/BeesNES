@@ -848,6 +848,7 @@ namespace lsn {
 				vodData.poOptions = &m_bnEmulator.Options();
 				vodData.pmwMainWindow = this;
 				vodData.pmActiveRegion = m_bnEmulator.GetSystem() ? m_bnEmulator.GetCurPpuRegion() : LSN_PM_NTSC_M;
+				vodData.fActiveFilter = m_bnEmulator.GetCurFilter();
 				CVideoOptionsWindowLayout::CreateVideoOptionsDialog( this, vodData );
 				break;
 			}

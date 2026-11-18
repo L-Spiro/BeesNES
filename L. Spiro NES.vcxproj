@@ -1991,6 +1991,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Input\LSNDirectInput8Controller.h" />
     <ClInclude Include="Src\Input\LSNDirectInputDevice8.h" />
     <ClInclude Include="Src\Input\LSNInputEvent.h" />
+    <ClInclude Include="Src\Input\LSNTurboPattern.h" />
     <ClInclude Include="Src\Input\LSNInputPoller.h" />
     <ClInclude Include="Src\Input\LSNUsbControllerBase.h" />
     <ClInclude Include="Src\Input\LSNWindowsKeyboard.h" />
@@ -2170,6 +2171,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\Input\LSNInputWindowLayout.h" />
     <ClInclude Include="Src\Windows\Input\LSNStdControllerPage.h" />
     <ClInclude Include="Src\Windows\Input\LSNStdControllerPageLayout.h" />
+    <ClInclude Include="Src\Windows\Input\LSNTurboConfigWindow.h" />
+    <ClInclude Include="Src\Windows\Input\LSNTurboConfigWindowLayout.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutMacros.h" />
     <ClInclude Include="Src\Windows\Layout\LSNLayoutManager.h" />
     <ClInclude Include="Src\Windows\MainWindow\LSNMainWindow.h" />
@@ -2382,6 +2385,8 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\Input\LSNInputWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNStdControllerPage.cpp" />
     <ClCompile Include="Src\Windows\Input\LSNStdControllerPageLayout.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNTurboConfigWindow.cpp" />
+    <ClCompile Include="Src\Windows\Input\LSNTurboConfigWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\Layout\LSNLayoutManager.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindow.cpp" />
     <ClCompile Include="Src\Windows\MainWindow\LSNMainWindowLayout.cpp" />

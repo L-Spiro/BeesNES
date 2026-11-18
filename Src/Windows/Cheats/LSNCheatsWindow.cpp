@@ -462,7 +462,8 @@ namespace lsn {
 				auto vCheats = m_pcmCheatManager->GatherCheatsForGame( (*I) );
 				std::vector<std::pair<uint32_t, std::wstring>> vMatches;
 				for ( size_t J = 0; J < vCheats.size(); ++J ) {
-					std::wstring wsText = CheatEntryToString( m_pcmCheatManager->CheatByIdx( vCheats[J] ), m_pcmCheatManager->IsEnabled( vCheats[J] ) );
+					std::wstring wsText = CheatEntryToString( m_pcmCheatManager->CheatByIdx( vCheats[J] ), m_pcmCheatManager->IsEnabled( vCheats[J] ),
+						CCheatManager::IsCustom( uint32_t( vCheats[J] ) ) );
 					if ( !m_wsSearch.empty() && CUtilities::ToLower( wsText ).find( m_wsSearch ) == std::wstring::npos ) { continue; }
 					vMatches.emplace_back( uint32_t( vCheats[J] ), std::move( wsText ) );
 				}
@@ -491,7 +492,12 @@ namespace lsn {
 					TVINSERTSTRUCTW isInsertMe = lsw::CTreeListView::DefaultItemLParam( reinterpret_cast<const WCHAR *>(vMatches[J].second.c_str()),
 						vMatches[J].first, hParent );
 					HTREEITEM htiItem = ptlvTree->InsertItem( &isInsertMe );
-					if ( htiItem ) { ptlvTree->SetItemText( htiItem, HotkeyText( vMatches[J].first ).c_str(), 1 ); }
+					if ( htiItem ) {
+						ptlvTree->SetItemText( htiItem, HotkeyText( vMatches[J].first ).c_str(), 1 );
+						if ( CCheatManager::IsCustom( vMatches[J].first ) ) {
+							ptlvTree->SetItemColor( htiItem, RGBQUAD{ .rgbBlue = 0xFF, .rgbGreen = 0xC8, .rgbRed = 0xB4, .rgbReserved = 0x5F } );
+						}
+					}
 				}
 			}
 
@@ -526,7 +532,8 @@ namespace lsn {
 				if ( lpParm & 0x80000000U ) { continue; }
 				uint32_t ui32Idx = uint32_t( lpParm );
 				if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { continue; }
-				ptlvTree->SetItemText( hThis, CheatEntryToString( m_pcmCheatManager->CheatByIdx( ui32Idx ), m_pcmCheatManager->IsEnabled( ui32Idx ) ).c_str(), 0 );
+				ptlvTree->SetItemText( hThis, CheatEntryToString( m_pcmCheatManager->CheatByIdx( ui32Idx ), m_pcmCheatManager->IsEnabled( ui32Idx ),
+					CCheatManager::IsCustom( ui32Idx ) ).c_str(), 0 );
 				ptlvTree->SetItemText( hThis, HotkeyText( ui32Idx ).c_str(), 1 );
 			}
 		}
@@ -665,10 +672,16 @@ namespace lsn {
 	 * Creates the string representation for a given cheat entry intended for use in the TreeListView.
 	 * 
 	 * \param _ceEntry The cheat entry whose string representation is to be generated.
+	 * \param _bEnabled Whether the cheat is enabled.
+	 * \param _bCustom Whether the cheat was created by the user (it is then tagged).
 	 * \return Returns the string representation of the given cheat entry.
 	 **/
-	std::wstring CCheatsWindow::CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled ) {
+	std::wstring CCheatsWindow::CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled, bool _bCustom ) {
 		std::wstring wsText = _bEnabled ? L"\u25A0 " : L"\u25A1 ";
+		if ( _bCustom ) {
+			wsText += LSN_LSTR( LSN_STR_CHEATS_CUSTOM_TAG );
+			wsText += L' ';
+		}
 		if ( _ceEntry.wsNotes.size() ) {
 			wsText += std::format( L"{}: {}",
 				_ceEntry.wsDescription, _ceEntry.wsNotes );

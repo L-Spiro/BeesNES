@@ -610,6 +610,36 @@ namespace lsn {
 	}
 
 	/**
+	 * Gets the filter page that holds the settings of a filter.
+	 *
+	 * \param _fFilter The filter (software or GPU).
+	 * \param _pmRegion The region of the running game (decides the page of the automatic NTSC/PAL filters).
+	 * \return Returns the kind of page that holds the settings of the filter.
+	 */
+	CVideoOptionsFields::LSN_VIDEO_PAGE_KIND CVideoOptionsFields::PageForFilter( CFilterBase::LSN_FILTERS _fFilter, LSN_PPU_METRICS _pmRegion ) {
+		// Each GPU filter has a software counterpart (the converters return any other filter unchanged).
+		CFilterBase::LSN_FILTERS fSoftware = CBeesNes::Direct3D9FilterToSoftware( _fFilter );
+		fSoftware = CBeesNes::Direct3D12FilterToSoftware( fSoftware );
+		fSoftware = CBeesNes::Vulkan1FilterToSoftware( fSoftware );
+		fSoftware = CBeesNes::MetalFilterToSoftware( fSoftware );
+		const bool bNtsc = _pmRegion == LSN_PM_NTSC_M || _pmRegion == LSN_PM_NTSC_J;
+		switch ( fSoftware ) {
+			case CFilterBase::LSN_F_NTSC_BLARGG : { return LSN_VPK_BLARGG; }
+			case CFilterBase::LSN_F_NTSC_LSPIRO : { return LSN_VPK_LSPIRO_NTSC; }
+			case CFilterBase::LSN_F_PAL_LSPIRO : {}				LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_DENDY_LSPIRO : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PALM_LSPIRO : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_PALN_LSPIRO : { return LSN_VPK_LSPIRO_PAL; }
+			case CFilterBase::LSN_F_AUTO_LSPIRO : { return bNtsc ? LSN_VPK_LSPIRO_NTSC : LSN_VPK_LSPIRO_PAL; }
+			case CFilterBase::LSN_F_NTSC_CRT_FULL : { return LSN_VPK_LMP_NTSC; }
+			case CFilterBase::LSN_F_PAL_CRT_FULL : {}			LSN_FALLTHROUGH
+			case CFilterBase::LSN_F_DENDY_CRT_FULL : { return LSN_VPK_LMP_PAL; }
+			case CFilterBase::LSN_F_AUTO_CRT_FULL : { return bNtsc ? LSN_VPK_LMP_NTSC : LSN_VPK_LMP_PAL; }
+			default : { return LSN_VPK_PALETTE; }
+		}
+	}
+
+	/**
 	 * Gets the palette presets.
 	 *
 	 * \param _sTotal Holds the returned number of presets.

@@ -283,6 +283,13 @@ namespace lsn {
 		virtual uint8_t							Read( uint16_t _ui16Address );
 
 		/**
+		 * Gets the turbo-pattern presets.
+		 * 
+		 * \return Returns a reference to the turbo-pattern presets.
+		 **/
+		inline CTurboPatterns &					TurboPatterns() { return m_bnEmulator.TurboPatterns(); }
+
+		/**
 		 * Locks the controller array for external access.  Always pair with a call to UnlockControllers().
 		 **/
 		inline void								LockControllers() const {

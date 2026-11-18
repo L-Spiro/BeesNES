@@ -287,12 +287,20 @@ namespace lsn {
 		auto pNoFile = std::filesystem::path( _wsPath ).remove_filename();
 		if ( m_pwefFiles->AddToTree( ui32Id ) ) {
 			if ( !m_pwespSequencing || !m_pwefspSettings ) { return false; }
-			// New tracks start with the last-used values.
 			LSN_TRACK tTrack;
-			LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE pfDefault;
-			const auto & pfLast = m_wewoWindowOptions.vPerFileOptions.size() ? m_wewoWindowOptions.vPerFileOptions[0] : pfDefault;
-			m_pwespSequencing->Load( pfLast, tTrack.tSequencing );
-			m_pwefspSettings->Load( pfLast, tTrack.tSettings );
+			auto ptDefault = (m_ui32DefaultTrackId && m_ui32DefaultTrackId != ui32Id) ? TrackById( m_ui32DefaultTrackId ) : nullptr;
+			if ( ptDefault ) {
+				tTrack = (*ptDefault);
+			}
+			else if ( m_bHaveDefaultTrack ) {
+				tTrack = m_tDefaultTrack;
+			}
+			else {
+				LSN_WAV_EDITOR_WINDOW_OPTIONS::LSN_PER_FILE pfDefault;
+				const auto & pfLast = m_wewoWindowOptions.vPerFileOptions.size() ? m_wewoWindowOptions.vPerFileOptions[0] : pfDefault;
+				m_pwespSequencing->Load( pfLast, tTrack.tSequencing );
+				m_pwefspSettings->Load( pfLast, tTrack.tSettings );
+			}
 			m_pwespSequencing->InitTrack( ui32Id, tTrack.tSequencing );
 			m_pwefspSettings->InitTrack( ui32Id, tTrack.tSettings );
 			try {
@@ -345,10 +353,27 @@ namespace lsn {
 			m_weEditor.RemoveFile( uint32_t( _vIds[I] ) );
 			
 			if ( uint32_t( _vIds[I] ) ) {
+				if ( uint32_t( _vIds[I] ) == m_ui32DefaultTrackId ) { KeepDefaultTrack(); }
 				m_mTracks.erase( uint32_t( _vIds[I] ) );
 			}
 		}
 		Update( true );
+	}
+
+	/**
+	 * Copies the values of the last track that was selected on its own so that new tracks can still copy them after that track is removed.
+	 *	Clears m_ui32DefaultTrackId.
+	 **/
+	void CWavEditorWindow::KeepDefaultTrack() {
+		auto ptTrack = m_ui32DefaultTrackId ? TrackById( m_ui32DefaultTrackId ) : nullptr;
+		if ( ptTrack ) {
+			try {
+				m_tDefaultTrack = (*ptTrack);
+				m_bHaveDefaultTrack = true;
+			}
+			catch ( ... ) {}
+		}
+		m_ui32DefaultTrackId = 0;
 	}
 
 	/**
@@ -612,6 +637,7 @@ namespace lsn {
 			}
 			auto ptTrack = vSelected.size() == 1 ? TrackById( uint32_t( vSelected[0] ) ) : nullptr;
 			if ( ptTrack ) {
+				m_ui32DefaultTrackId = uint32_t( vSelected[0] );
 				// Select a specific WAV file.
 				if ( _bSelchanged || m_pwespSequencing->UniqueId() != uint32_t( vSelected[0] ) ) {
 					auto pwGroup = m_pwespSequencing->FindChild( Layout::LSN_WEWI_SEQ_GROUP );
@@ -880,6 +906,7 @@ namespace lsn {
 
 			
 
+			KeepDefaultTrack();
 			m_mTracks.clear();
 			if ( m_pwefFiles ) {
 				auto ptlTree = reinterpret_cast<CTreeListView *>(m_pwefFiles->FindChild( Layout::LSN_WEWI_FILES_TREELISTVIEW ));

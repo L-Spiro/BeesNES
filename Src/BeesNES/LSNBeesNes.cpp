@@ -49,6 +49,10 @@ namespace lsn {
 		m_hmHotkeyManager( 0x1000 ) {
 		
 		m_cmCheatManager.InitializeCheatLibrary( DefaultCheatsFolder() + L"Cheats.zip", &m_hmHotkeyManager );
+		try {
+			m_tpTurboPatterns.Load( std::filesystem::path( DefaultTurboFolder() ) );
+		}
+		catch ( ... ) {}
 
 		//CUtilities::GenGaussianNoise( 0.0225f );
 		//m_trTemperatureReader.SetBuffer( reinterpret_cast<float *>(CUtilities::m_fNoiseBuffers), std::size( CUtilities::m_fNoiseBuffers ) );
@@ -1424,6 +1428,23 @@ namespace lsn {
 	bool CBeesNes::ApplyInputs( const std::vector<lsn::CUsbControllerBase *> &_vControllers ) {
 		IPeripheralBase::LSN_INPUT_CONFIGURATION_APPLICATION_RECORD icarRecord;
 		bool bSuccess = true;
+		// The turbo patterns of the turbo buttons (by preset name; the standard pattern if the preset no longer exists).
+		{
+			const LSN_INPUT_OPTIONS & ioInput = m_oOptions.ioThisGameInputOptions.bUseGlobal ? m_oOptions.ioGlobalInputOptions : m_oOptions.ioThisGameInputOptions;
+			for ( size_t I = 0; I < m_vPeripherals.size() && I < std::size( ioInput.u16TurboPattern ); ++I ) {
+				if ( !m_vPeripherals[I].get() ) { continue; }
+				LSN_TURBO_PLAYBACK tpPatterns[IPeripheralBase::LSN_IS_INPUT_SETS][IPeripheralBase::LSN_B_TOTAL];
+				for ( size_t A = 0; A < IPeripheralBase::LSN_IS_INPUT_SETS; ++A ) {
+					for ( size_t B = 0; B < IPeripheralBase::LSN_B_TOTAL; ++B ) {
+						try {
+							tpPatterns[A][B] = m_tpTurboPatterns.Playback( ioInput.TurboPattern( I, A, B ) );
+						}
+						catch ( ... ) { tpPatterns[A][B] = LSN_TURBO_PLAYBACK(); }
+					}
+				}
+				m_vPeripherals[I]->SetTurboPatterns( tpPatterns, ioInput.TurboSpeed() );
+			}
+		}
 		// Apply inputs with a 2-pass approach.
 		// Pass 1: Peripherals look for specifically the USB controller they are assigned.
 		for ( size_t I = 0; I < m_vPeripherals.size(); ++I ) {
@@ -1493,6 +1514,13 @@ namespace lsn {
 	 **/
 	void CBeesNes::Write4016( uint8_t _ui8Value, bool _bPoll ) {
 		const bool bFamicom = m_pmSystem == LSN_PM_NTSC_J;
+		if ( _ui8Value & 1 ) {
+			// Turbo patterns advance by frames.
+			const uint64_t ui64Frame = m_psbSystem ? m_psbSystem->GetPpuFrameCount() : 0;
+			for ( auto & upThis : m_vPeripherals ) {
+				if ( upThis.get() ) { upThis->SetFrame( ui64Frame ); }
+			}
+		}
 		if LSN_LIKELY( m_vPeripherals.size() > 0 && m_vPeripherals[0].get() ) {
 			m_vPeripherals[0]->Write( _ui8Value, _bPoll );
 		}
@@ -1614,6 +1642,51 @@ namespace lsn {
 		size_t stPos = sPathStr.find_last_of( '/' );
 		std::string sDir = ( stPos != std::string::npos ) ? sPathStr.substr( 0, stPos + 1 ) : "";
 		sDir += "Cheats/";
+
+		return std::wstring( sDir.begin(), sDir.end() );
+#endif
+	}
+
+	/**
+	 * Gets the folder for turbo patterns (Turbo next to the executable).
+	 * 
+	 * \return Returns the folder in which turbo-pattern presets are saved, with a trailing separator.
+	 **/
+	std::wstring CBeesNes::DefaultTurboFolder() {
+#if defined( _WIN32 )
+		std::wstring wsBuffer;
+		const DWORD dwSize = 0xFFFF;
+		wsBuffer.resize( dwSize + 1 );
+		::GetModuleFileNameW( NULL, wsBuffer.data(), dwSize );
+		PWSTR pwsEnd = std::wcsrchr( wsBuffer.data(), L'\\' ) + 1;
+		std::wstring wsRoot = wsBuffer.substr( 0, pwsEnd - wsBuffer.data() );
+		return wsRoot + L"Turbo\\";
+#else
+		char szBuffer[PATH_MAX];
+		std::string sPathStr;
+
+#if defined( __APPLE__ )
+		uint32_t uiSize = sizeof( szBuffer );
+		if ( ::_NSGetExecutablePath( szBuffer, &uiSize ) == 0 ) {
+			char szRealPath[PATH_MAX];
+			if ( ::realpath( szBuffer, szRealPath ) != nullptr ) {
+				sPathStr = szRealPath;
+			}
+			else {
+				sPathStr = szBuffer;
+			}
+		}
+#elif defined( __linux__ )
+		ssize_t sLen = ::readlink( "/proc/self/exe", szBuffer, sizeof( szBuffer ) - 1 );
+		if ( sLen != -1 ) {
+			szBuffer[sLen] = '\0';
+			sPathStr = szBuffer;
+		}
+#endif
+
+		size_t stPos = sPathStr.find_last_of( '/' );
+		std::string sDir = ( stPos != std::string::npos ) ? sPathStr.substr( 0, stPos + 1 ) : "";
+		sDir += "Turbo/";
 
 		return std::wstring( sDir.begin(), sDir.end() );
 #endif
@@ -2497,6 +2570,20 @@ namespace lsn {
 				}
 			}
 		}
+		_ioInputOptions.ui8TurboSpeed = 1;
+		if ( _ui32Version >= LSN_BEESNES_SETTINGS_VERSION_TURBO ) {
+			if ( !_sFile.ReadUi8( _ioInputOptions.ui8TurboSpeed ) ) { return false; }
+			_ioInputOptions.ui8TurboSpeed = uint8_t( _ioInputOptions.TurboSpeed() );
+			for ( size_t I = 0; I < std::size( _ioInputOptions.u16TurboPattern ); ++I ) {
+				for ( size_t J = 0; J < std::size( _ioInputOptions.u16TurboPattern[0] ); ++J ) {
+					for ( size_t K = 0; K < std::size( _ioInputOptions.u16TurboPattern[0][0] ); ++K ) {
+						std::u16string u16Name;
+						if ( !_sFile.ReadStringU16( u16Name ) ) { return false; }
+						_ioInputOptions.SetTurboPattern( I, J, K, u16Name );
+					}
+				}
+			}
+		}
 		return true;
 	}
 
@@ -2527,6 +2614,15 @@ namespace lsn {
 			for ( size_t J = 0; J < std::size( _ioInputOptions.ieTurboButtonMap[0] ); ++J ) {
 				for ( size_t K = 0; K < std::size( _ioInputOptions.ieTurboButtonMap[0][0] ); ++K ) {
 					if ( !SaveInputSettings( _sFile, _ioInputOptions.ieTurboButtonMap[I][J][K] ) ) { return false; }
+				}
+			}
+		}
+		// LSN_BEESNES_SETTINGS_VERSION_TURBO.
+		if ( !_sFile.WriteUi8( uint8_t( _ioInputOptions.TurboSpeed() ) ) ) { return false; }
+		for ( size_t I = 0; I < std::size( _ioInputOptions.u16TurboPattern ); ++I ) {
+			for ( size_t J = 0; J < std::size( _ioInputOptions.u16TurboPattern[0] ); ++J ) {
+				for ( size_t K = 0; K < std::size( _ioInputOptions.u16TurboPattern[0][0] ); ++K ) {
+					if ( !_sFile.WriteStringU16( _ioInputOptions.TurboPattern( I, J, K ) ) ) { return false; }
 				}
 			}
 		}

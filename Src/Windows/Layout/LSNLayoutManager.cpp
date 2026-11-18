@@ -19,6 +19,7 @@
 #include "../Input/LSNInputConfigurePage.h"
 #include "../Input/LSNInputWindow.h"
 #include "../Input/LSNStdControllerPage.h"
+#include "../Input/LSNTurboConfigWindow.h"
 #include "../MainWindow/LSNMainWindow.h"
 #include "../Patch/LSNPatchWindowBottomPage.h"
 #include "../Patch/LSNPatchWindow.h"
@@ -114,6 +115,9 @@ namespace lsn {
 			}
 			case LSN_LT_CHEAT_EDIT : {
 				return new CCheatEditWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_TURBO_CONFIG_DIALOG : {
+				return new CTurboConfigWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );
 			}
 
 			case LSN_LT_VIDEO_RECORDING_DIALOG : {

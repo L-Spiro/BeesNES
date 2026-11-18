@@ -256,6 +256,7 @@ namespace lsn {
 					}
 
 					// Turbo buttons.
+					const size_t sTurboBefore = m_vTurboMappings[B].size();
 					switch ( _ieTurboConfig[A][B].dtType ) {
 						case LSN_INPUT_EVENT::LSN_DT_KEYBOARD : {
 							if ( _bStrictApply ) {
@@ -341,6 +342,11 @@ namespace lsn {
 							break;
 						}
 					}
+					// The turbo buttons added for this configuration play its pattern.
+					for ( size_t T = sTurboBefore; T < m_vTurboMappings[B].size(); ++T ) {
+						m_vTurboMappings[B][T].tpTurbo = m_tpTurboPatterns[A][B];
+						m_vTurboMappings[B][T].tsTurbo = LSN_TURBO_STATE();
+					}
 				}
 			}
 			return true;
@@ -410,6 +416,21 @@ namespace lsn {
 	}
 
 	/**
+	 * Sets the turbo patterns of the turbo buttons and the global turbo speed multiplier.  Call before ApplyConfiguration().
+	 *
+	 * \param _tpPatterns The patterns.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
+	 * \param _ui32Speed The global turbo speed multiplier (1-LSN_TURBO_SPEED_MAX).
+	 **/
+	void CStdController::SetTurboPatterns( const LSN_TURBO_PLAYBACK _tpPatterns[LSN_IS_INPUT_SETS][LSN_B_TOTAL], uint32_t _ui32Speed ) {
+		for ( size_t A = 0; A < LSN_IS_INPUT_SETS; ++A ) {
+			for ( size_t B = 0; B < LSN_B_TOTAL; ++B ) {
+				m_tpTurboPatterns[A][B] = _tpPatterns[A][B];
+			}
+		}
+		m_ui32TurboSpeed = std::clamp<uint32_t>( _ui32Speed, 1, LSN_TURBO_SPEED_MAX );
+	}
+
+	/**
 	 * Polls a button, returning 1 if it is pressed, 0 otherwise.
 	 * 
 	 * \param _bButton The button to poll.
@@ -417,17 +438,22 @@ namespace lsn {
 	 **/
 	uint8_t CStdController::Poll( LSN_BUTTONS _bButton ) {
 #ifdef LSN_WINDOWS
-		// Test turbo first.
+		// Test turbo first.  Each held turbo button plays its pattern (advancing once per frame, however often the game polls); the first
+		//	held one decides the button.
+		size_t sHeldTurbo = m_vTurboPollFuncs[_bButton].size();
 		for ( size_t I = 0; I < m_vTurboPollFuncs[_bButton].size(); ++I ) {
-			if ( (*m_vTurboPollFuncs[_bButton][I])( m_vTurboMappings[_bButton][I] ) ) {
-				if ( !m_ui8PrevPhysicalStatus[_bButton] ) {
-					m_vTurboMappings[_bButton][I].ui64TurboBits = m_vTurboMappings[_bButton][I].ui64OriginalTurboBits;
-				}
-				m_ui8PrevPhysicalStatus[_bButton] = true;
-				uint8_t ui8Ret = m_vTurboMappings[_bButton][I].ui64TurboBits & 1;
-				m_vTurboMappings[_bButton][I].ui64TurboBits = RotateRight64( m_vTurboMappings[_bButton][I].ui64TurboBits, 1 );
-				return ui8Ret;
+			LSN_RUNTIME_POLL & rpThis = m_vTurboMappings[_bButton][I];
+			if ( sHeldTurbo == m_vTurboPollFuncs[_bButton].size() && (*m_vTurboPollFuncs[_bButton][I])( rpThis ) ) {
+				sHeldTurbo = I;
 			}
+			else {
+				rpThis.tsTurbo.Released();
+			}
+		}
+		if ( sHeldTurbo < m_vTurboPollFuncs[_bButton].size() ) {
+			LSN_RUNTIME_POLL & rpThis = m_vTurboMappings[_bButton][sHeldTurbo];
+			m_ui8PrevPhysicalStatus[_bButton] = true;
+			return rpThis.tsTurbo.Held( rpThis.tpTurbo, m_ui64Frame, m_ui32TurboSpeed ) ? 1 : 0;
 		}
 		// Normal buttons.
 		for ( size_t I = 0; I < m_vNormalPollFuncs[_bButton].size(); ++I ) {

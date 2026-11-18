@@ -280,6 +280,12 @@ namespace lsn {
 		CWavEditorFileSettingsPage *						m_pwefspSettings = nullptr;
 		/** The values of the sequencing and settings controls for each track, by unique ID. */
 		std::map<uint32_t, LSN_TRACK>						m_mTracks;
+		/** The unique ID of the last track that was selected on its own (new tracks copy its values), or 0. */
+		uint32_t											m_ui32DefaultTrackId = 0;
+		/** A copy of the values of the last track that was selected on its own, taken when that track is removed. */
+		LSN_TRACK											m_tDefaultTrack;
+		/** If true, m_tDefaultTrack holds the values for new tracks (used when the track with ID m_ui32DefaultTrackId no longer exists). */
+		bool												m_bHaveDefaultTrack = false;
 		/** The files page. */
 		CWavEditorFilesPage *								m_pwefFiles = nullptr;
 		/** The output page. */
@@ -337,6 +343,12 @@ namespace lsn {
 			auto aFound = m_mTracks.find( _ui32Id );
 			return aFound == m_mTracks.end() ? nullptr : &aFound->second;
 		}
+
+		/**
+		 * Copies the values of the last track that was selected on its own so that new tracks can still copy them after that track is removed.
+		 *	Clears m_ui32DefaultTrackId.
+		 **/
+		void												KeepDefaultTrack();
 
 
 	private :

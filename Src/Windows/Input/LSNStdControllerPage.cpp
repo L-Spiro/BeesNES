@@ -14,6 +14,7 @@
 #include "../WinUtilities/LSNWinUtilities.h"
 
 #include "LSNStdControllerPageLayout.h"
+#include "LSNTurboConfigWindowLayout.h"
 #include <Helpers/LSWHelpers.h>
 
 #include <dbt.h>
@@ -28,12 +29,17 @@ namespace lsn {
 	/** Turbo presets. */
 	LSN_INPUT_EVENT CStdControllerPage::m_ieTurboPresets[LSN_P_TOTAL][IPeripheralBase::LSN_B_TOTAL] = {};
 
+	/** Every open page. */
+	std::vector<CStdControllerPage *> CStdControllerPage::s_vPages;
+
 
 	// == Contructors.
 	CStdControllerPage::~CStdControllerPage() {
 		if ( m_pwListenControl ) {
 			StopListening_Keyboard( m_pwListenControl, false );
 		}
+		auto aThis = std::find( s_vPages.begin(), s_vPages.end(), this );
+		if ( aThis != s_vPages.end() ) { s_vPages.erase( aThis ); }
 	}
 
 	// == Functions.
@@ -74,7 +80,17 @@ namespace lsn {
 			for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 				m_ieTurboButtons[I] = m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I];
 			}
+			for ( size_t I = 0; I < std::size( m_u16TurboPatterns ); ++I ) {
+				try {
+					m_u16TurboPatterns[I] = m_pioOptions->TurboPattern( m_stPlayerIdx, m_stConfigIdx, I );
+				}
+				catch ( ... ) {}
+			}
 		}
+		try {
+			s_vPages.push_back( this );
+		}
+		catch ( ... ) {}
 
 
 		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
@@ -82,12 +98,16 @@ namespace lsn {
 		UpdateButtons( true );
 		for ( size_t I = 0; I < vTurboCombos.size(); ++I ) {
 			vTurboCombos[I]->SetUserData( I );
-
-			static const CWinUtilities::LSN_COMBO_ENTRY ceEntries[] = {
-				//pwcName																					lpParm
-				{ L"Std: 1100110011001100110011001100110011001100110011001100110011001100",					-1,		},
-			};
-			CWinUtilities::FillComboBox( vTurboCombos[I], ceEntries, std::size( ceEntries ), -1 );
+		}
+		FillTurboCombos();
+		{
+			auto pwSpeed = FindChild( Layout::LSN_SCPI_TURBO_SPEED_EDIT );
+			if ( pwSpeed ) {
+				m_bSyncingSpeed = true;
+				::SendMessageW( pwSpeed->Wnd(), EM_LIMITTEXT, 2, 0 );
+				pwSpeed->SetTextW( std::to_wstring( m_pioOptions ? m_pioOptions->TurboSpeed() : 1 ).c_str() );
+				m_bSyncingSpeed = false;
+			}
 		}
 		for ( size_t I = 0; I < vDeadzoneTracks.size(); ++I ) {
 			vDeadzoneTracks[I]->SetTicFreq( 5 );
@@ -495,6 +515,42 @@ namespace lsn {
 				return LSW_H_HANDLED;
 			}
 
+			// Turbo.
+			case Layout::LSN_SCPI_TURBO_CONFIGURE_BUTTON : {
+				if ( _wCtrlCode == BN_CLICKED ) { ConfigureTurbo(); }
+				return LSW_H_HANDLED;
+			}
+			case Layout::LSN_SCPI_TURBO_SPEED_EDIT : {
+				if ( _wCtrlCode == EN_CHANGE && !m_bSyncingSpeed ) { SpeedChanged(); }
+				break;
+			}
+			case Layout::LSN_SCPI_BUTTON_UP_TURBO_COMBO : {}			LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_LEFT_TURBO_COMBO : {}			LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_RIGHT_TURBO_COMBO : {}			LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_DOWN_TURBO_COMBO : {}			LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_SELECT_TURBO_COMBO : {}		LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_START_TURBO_COMBO : {}			LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_B_TURBO_COMBO : {}				LSN_FALLTHROUGH
+			case Layout::LSN_SCPI_BUTTON_A_TURBO_COMBO : {
+				if ( _wCtrlCode == CBN_SELCHANGE && _pwSrc ) {
+					size_t sButton = size_t( _pwSrc->GetUserData() );
+					if ( sButton < std::size( m_u16TurboPatterns ) ) {
+						LPARAM lpData = static_cast<lsw::CComboBox *>(_pwSrc)->GetCurSelItemData();
+						const auto * ptpPatterns = m_pmwMainWindow ? &m_pmwMainWindow->TurboPatterns() : nullptr;
+						try {
+							if ( ptpPatterns && lpData >= 0 && size_t( lpData ) < ptpPatterns->Patterns().size() ) {
+								m_u16TurboPatterns[sButton] = ptpPatterns->Patterns()[size_t( lpData )].u16Name;
+							}
+							else {
+								m_u16TurboPatterns[sButton].clear();
+							}
+						}
+						catch ( ... ) {}
+					}
+				}
+				break;
+			}
+
 			// Combo Boxes.
 			case Layout::LSN_SCPI_QUICK_CONFIGURE_PRESET_COMBO : {
 				if ( _wCtrlCode == CBN_SELENDOK ) {
@@ -774,6 +830,96 @@ namespace lsn {
 			}
 			for ( size_t I = 0; I < std::size( m_ieTurboButtons ); ++I ) {
 				m_pioOptions->ieTurboButtonMap[m_stPlayerIdx][m_stConfigIdx][I] = m_ieTurboButtons[I];
+			}
+			for ( size_t I = 0; I < std::size( m_u16TurboPatterns ); ++I ) {
+				m_pioOptions->SetTurboPattern( m_stPlayerIdx, m_stConfigIdx, I, m_u16TurboPatterns[I] );
+			}
+			// Every page shows the same multiplier (see SpeedChanged()); an invalid value keeps the old one.
+			auto pwSpeed = FindChild( Layout::LSN_SCPI_TURBO_SPEED_EDIT );
+			if ( pwSpeed ) {
+				std::wstring wsText = pwSpeed->GetTextW();
+				uint32_t ui32Speed = 0;
+				bool bValid = wsText.size() != 0;
+				for ( auto wcThis : wsText ) {
+					if ( wcThis < L'0' || wcThis > L'9' ) { bValid = false; break; }
+					ui32Speed = ui32Speed * 10 + uint32_t( wcThis - L'0' );
+					if ( ui32Speed > LSN_TURBO_SPEED_MAX ) { break; }
+				}
+				if ( bValid && ui32Speed >= 1 && ui32Speed <= LSN_TURBO_SPEED_MAX ) {
+					m_pioOptions->ui8TurboSpeed = uint8_t( ui32Speed );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Fills the turbo combo boxes with the standard pattern and the turbo-pattern presets and selects the pattern of each button.  A
+	 *	pattern whose preset no longer exists goes back to the standard pattern.
+	 **/
+	void CStdControllerPage::FillTurboCombos() {
+		std::vector<lsw::CComboBox *> vTurboCombos = TurboCombos();
+		const CTurboPatterns * ptpPatterns = m_pmwMainWindow ? &m_pmwMainWindow->TurboPatterns() : nullptr;
+		for ( size_t I = 0; I < vTurboCombos.size() && I < std::size( m_u16TurboPatterns ); ++I ) {
+			if ( !vTurboCombos[I] ) { continue; }
+			try {
+				vTurboCombos[I]->ResetContent();
+				INT iIdx = vTurboCombos[I]->AddString( LSN_LSTR( LSN_STR_TURBO_STANDARD ) );
+				if ( iIdx >= 0 ) { vTurboCombos[I]->SetItemData( iIdx, -1 ); }
+				LPARAM lpSelect = -1;
+				if ( ptpPatterns ) {
+					const LSN_TURBO_PATTERN * ptpSelected = ptpPatterns->Find( m_u16TurboPatterns[I] );
+					const auto & vPatterns = ptpPatterns->Patterns();
+					for ( size_t J = 0; J < vPatterns.size(); ++J ) {
+						iIdx = vTurboCombos[I]->AddString( CUtilities::XStringToWString( vPatterns[J].u16Name.c_str(), vPatterns[J].u16Name.size() ).c_str() );
+						if ( iIdx >= 0 ) { vTurboCombos[I]->SetItemData( iIdx, LPARAM( J ) ); }
+						if ( ptpSelected == &vPatterns[J] ) { lpSelect = LPARAM( J ); }
+					}
+				}
+				// A preset that no longer exists plays the standard pattern.
+				if ( lpSelect < 0 ) { m_u16TurboPatterns[I].clear(); }
+				vTurboCombos[I]->SetCurSelByItemData( lpSelect );
+			}
+			catch ( ... ) {}
+		}
+	}
+
+	/**
+	 * Opens the Turbo Button Configuration dialog, then refreshes the turbo combo boxes of every open page.
+	 **/
+	void CStdControllerPage::ConfigureTurbo() {
+		if ( !m_pmwMainWindow ) { return; }
+		CTurboConfigWindowLayout::LSN_TURBO_CONFIG_DATA tcdData;
+		tcdData.ptpPatterns = &m_pmwMainWindow->TurboPatterns();
+		// Start on the pattern of the first turbo button that has one.
+		for ( size_t I = 0; I < std::size( m_u16TurboPatterns ); ++I ) {
+			if ( m_u16TurboPatterns[I].size() ) {
+				try {
+					tcdData.u16Select = m_u16TurboPatterns[I];
+				}
+				catch ( ... ) {}
+				break;
+			}
+		}
+		CTurboConfigWindowLayout::CreateTurboConfigDialog( this, tcdData );
+		for ( auto pscpPage : s_vPages ) {
+			pscpPage->FillTurboCombos();
+		}
+	}
+
+	/**
+	 * Copies the global turbo speed multiplier shown on this page to the other open pages that edit the same input options.
+	 **/
+	void CStdControllerPage::SpeedChanged() {
+		auto pwSpeed = FindChild( Layout::LSN_SCPI_TURBO_SPEED_EDIT );
+		if ( !pwSpeed ) { return; }
+		std::wstring wsText = pwSpeed->GetTextW();
+		for ( auto pscpPage : s_vPages ) {
+			if ( pscpPage == this || pscpPage->m_pioOptions != m_pioOptions ) { continue; }
+			auto pwOther = pscpPage->FindChild( Layout::LSN_SCPI_TURBO_SPEED_EDIT );
+			if ( pwOther ) {
+				pscpPage->m_bSyncingSpeed = true;
+				pwOther->SetTextW( wsText.c_str() );
+				pscpPage->m_bSyncingSpeed = false;
 			}
 		}
 	}

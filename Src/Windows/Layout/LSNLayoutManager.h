@@ -55,6 +55,8 @@ namespace lsn {
 		LSN_LT_ABOUT_DIALOG,
 
 		LSN_LT_WAV_EDITOR_FIND_LOOPS_DIALOG,
+
+		LSN_LT_TURBO_CONFIG_DIALOG,
 	};
 
 	class CLayoutManager : public lsw::CLayoutManager {

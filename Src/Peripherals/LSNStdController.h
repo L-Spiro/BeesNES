@@ -64,6 +64,21 @@ namespace lsn {
 		virtual bool									Microphone() const { return m_bMicrophone; }
 
 		/**
+		 * Sets the turbo patterns of the turbo buttons and the global turbo speed multiplier.  Call before ApplyConfiguration().
+		 *
+		 * \param _tpPatterns The patterns.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
+		 * \param _ui32Speed The global turbo speed multiplier (1-LSN_TURBO_SPEED_MAX).
+		 **/
+		virtual void									SetTurboPatterns( const LSN_TURBO_PLAYBACK _tpPatterns[LSN_IS_INPUT_SETS][LSN_B_TOTAL], uint32_t _ui32Speed );
+
+		/**
+		 * Sets the current frame (the number of frames the PPU has made).  Turbo patterns advance by frames.  Called before each $4016 write.
+		 *
+		 * \param _ui64Frame The current frame.
+		 **/
+		virtual void									SetFrame( uint64_t _ui64Frame ) { m_ui64Frame = _ui64Frame; }
+
+		/**
 		 * Applies controller configurations to the perpheral.
 		 * 
 		 * \param _ieConfig The configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
@@ -125,9 +140,10 @@ namespace lsn {
 		struct LSN_RUNTIME_POLL {
 			CUsbControllerBase *						pucbController = nullptr;					/**< The controller from which to read, if any. */
 			lsn::LSN_INPUT_EVENT						ieEvent;									/**< Holds information for polling. */
-			/** The bit pattern for turbo controls. */
-			uint64_t									ui64TurboBits = 0b1100110011001100110011001100110011001100110011001100110011001100;
-			uint64_t									ui64OriginalTurboBits = 0b1100110011001100110011001100110011001100110011001100110011001100;
+			/** The turbo pattern (turbo buttons only). */
+			LSN_TURBO_PLAYBACK							tpTurbo;
+			/** The playback state of the turbo pattern (turbo buttons only). */
+			LSN_TURBO_STATE								tsTurbo;
 		};
 
 		/** A poll function. */
@@ -143,6 +159,12 @@ namespace lsn {
 		std::vector<PfPollFunc>							m_vNormalPollFuncs[LSN_B_TOTAL];
 		/** The polling functions (1-to-1 with m_vTurboMappings) for all 8 turbo buttons. */
 		std::vector<PfPollFunc>							m_vTurboPollFuncs[LSN_B_TOTAL];
+		/** The turbo patterns of the turbo buttons, [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons. */
+		LSN_TURBO_PLAYBACK								m_tpTurboPatterns[LSN_IS_INPUT_SETS][LSN_B_TOTAL];
+		/** The global turbo speed multiplier. */
+		uint32_t										m_ui32TurboSpeed = 1;
+		/** The current frame (turbo patterns advance by frames). */
+		uint64_t										m_ui64Frame = 0;
 		/** The previous status of each button. */
 		uint8_t											m_ui8PrevStatus[LSN_B_TOTAL] = {};
 		/** The previous physical status of each button. */

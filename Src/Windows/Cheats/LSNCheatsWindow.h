@@ -161,9 +161,10 @@ namespace lsn {
 		 * 
 		 * \param _ceEntry The cheat entry whose string representation is to be generated.
 		 * \param _bEnabled Whether the cheat is enabled.
+		 * \param _bCustom Whether the cheat was created by the user (it is then tagged).
 		 * \return Returns the string representation of the given cheat entry.
 		 **/
-		static std::wstring									CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled );
+		static std::wstring									CheatEntryToString( const LSN_CHEAT_ENTRY &_ceEntry, bool _bEnabled, bool _bCustom = false );
 
 		/**
 		 * Reveals enabled cheats.

@@ -59,7 +59,7 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			6
+#define LSN_BEESNES_SETTINGS_VERSION			7
 /** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
 #define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
 /** The first settings version in which the parameters of the filter functions are the values used directly (Lanczos lobes, Kaiser beta, etc.). */
@@ -69,6 +69,8 @@
 /** The first settings version in which the brightness of the L. Spiro filters is a black-level offset and their contrast is a gain from black (as on a
  *	television), color spaces are saved by ID, and the GPU filters have no hue offset. */
 #define LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS	6
+/** The first settings version that saves the turbo patterns of the turbo buttons and the global turbo speed multiplier. */
+#define LSN_BEESNES_SETTINGS_VERSION_TURBO		7
 
 namespace lsn {
 
@@ -754,6 +756,20 @@ namespace lsn {
 		static std::wstring						DefaultCheatsFolder();
 
 		/**
+		 * Gets the folder for turbo patterns (Turbo next to the executable).
+		 * 
+		 * \return Returns the folder in which turbo-pattern presets are saved, with a trailing separator.
+		 **/
+		static std::wstring						DefaultTurboFolder();
+
+		/**
+		 * Gets the turbo-pattern presets.
+		 * 
+		 * \return Returns a reference to the turbo-pattern presets.
+		 **/
+		inline CTurboPatterns &					TurboPatterns() { return m_tpTurboPatterns; }
+
+		/**
 		 * Applies the current palette:  loads it, bakes its CRT gamma curve, its CRT color space, and the monitor settings into it, and
 		 *	sends it to the software palette and to the GPU palette filters (see BakedPalette() and UpdateGpuPalette()).
 		 * 
@@ -1133,6 +1149,8 @@ namespace lsn {
 
 		/** The Cheat Manager. */
 		CCheatManager							m_cmCheatManager;
+		/** The turbo-pattern presets. */
+		CTurboPatterns							m_tpTurboPatterns;
 		/** The Hotkey Manager. */
 		CHotkeyManager							m_hmHotkeyManager;
 

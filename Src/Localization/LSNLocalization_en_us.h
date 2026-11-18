@@ -747,6 +747,62 @@
 #define LSN_STR_CHEATS_OTHER_ROM_TITLE										Enabled Cheats
 #define LSN_STR_CHEATS_OTHER_ROM											{} cheat(s) are still enabled from the previous ROM.\r\n\r\nKeep them enabled for this ROM?\r\n\r\nYes:  Keep them enabled for this ROM.\r\nNo:  Disable them.
 #define LSN_STR_CHEATS_OTHER_ROM_CONFLICTS									{} cheat(s) could not be kept because they use the same addresses as other enabled cheats.  They were disabled.
+#define LSN_STR_CHEATS_CUSTOM_TAG											[Custom]
+#define LSN_STR_TURBO_GROUP													Turbo
+#define LSN_STR_TURBO_CONFIGURE												Configure Turbo Patterns\u2026
+#define LSN_STR_TURBO_SPEED													Global Speed Multiplier:
+#define LSN_STR_TURBO_SPEED_HINT											(higher is slower)
+#define LSN_STR_TURBO_STANDARD												Standard: 1100 repeating
+#define LSN_STR_TT_TURBO_CONFIGURE											Opens the Turbo Button Configuration dialog to create and edit and delete turbo patterns.  Patterns can also be macros that press a button in a timed sequence.
+#define LSN_STR_TT_TURBO_SPEED												Multiplies how many frames each state of every turbo pattern lasts (for patterns that use the global speed multiplier).  1 to 60; higher is slower.
+#define LSN_STR_TC_TITLE													Turbo Button Configuration
+#define LSN_STR_TC_PRESETS													Presets
+#define LSN_STR_TC_NEW														&New
+#define LSN_STR_TC_DUPLICATE												D&uplicate
+#define LSN_STR_TC_DELETE													&Delete
+#define LSN_STR_TC_PATTERN													Pattern
+#define LSN_STR_TC_NAME														Name:
+#define LSN_STR_TC_STATES													States:
+#define LSN_STR_TC_LENGTH													Length:
+#define LSN_STR_TC_PLAYBACK													Playback
+#define LSN_STR_TC_LOOP														&Repeat while held
+#define LSN_STR_TC_ONCE														&Play once
+#define LSN_STR_TC_RESTART													Restart from the &beginning on each press
+#define LSN_STR_TC_HOLD														&Hold the button down after the pattern ends
+#define LSN_STR_TC_FPS														&Frames per state:
+#define LSN_STR_TC_GLOBAL													Use the &global speed multiplier
+#define LSN_STR_TC_SAVE														&Save
+#define LSN_STR_TC_CLOSE													Close
+#define LSN_STR_TC_INFO														One pass: {} frames (about {:.2f} seconds at 60 frames per second).
+#define LSN_STR_TC_INFO_GLOBAL												One pass: {} frames (about {:.2f} seconds at 60 frames per second) times the global speed multiplier.
+#define LSN_STR_TC_NEW_NAME													Pattern {}
+#define LSN_STR_TC_COPY_NAME												{} Copy
+#define LSN_STR_TC_COPY_NAME_N												{} Copy {}
+#define LSN_STR_TC_ERR_NAME													The name must be 1 to 40 characters long and on one line.
+#define LSN_STR_TC_ERR_NAME_TAKEN											A preset with this name already exists.  Preset names must be unique.
+#define LSN_STR_TC_ERR_STATES												The states must be 1 to 64 characters that are each 1 (pressed) or 0 (released).
+#define LSN_STR_TC_ERR_LENGTH												The length must be a whole number from 1 to 64.
+#define LSN_STR_TC_ERR_FPS													The frames per state must be a whole number from 1 to 255.
+#define LSN_STR_TC_ERR_SAVE													The preset could not be saved to the Turbo folder.
+#define LSN_STR_TC_ERR_DELETE												The preset could not be deleted from the Turbo folder.
+#define LSN_STR_TC_CONFIRM_DELETE											Delete the preset \u201C{}\u201D?
+#define LSN_STR_TC_UNSAVED													The current pattern has unsaved changes.  Save them?
+#define LSN_STR_TT_TC_PRESETS												The saved turbo patterns (in the Turbo folder).  Select one to edit it.  Saved patterns can be chosen for any turbo button in the Input Configuration dialog.
+#define LSN_STR_TT_TC_NEW													Starts a new pattern.  It is added to the presets when it is saved.
+#define LSN_STR_TT_TC_DUPLICATE												Starts a new pattern that is a copy of the current one.
+#define LSN_STR_TT_TC_DELETE												Deletes the selected preset (and its file).  Turbo buttons that use it go back to the standard pattern.
+#define LSN_STR_TT_TC_NAME													The name of the pattern as it appears in the turbo combo boxes.  Names must be unique (not counting case).
+#define LSN_STR_TT_TC_STATES												The pattern as 1 (pressed) and 0 (released) states in the order they are played.  Typing here sets the length to the number of states typed.
+#define LSN_STR_TT_TC_LENGTH												The number of states played (1 to 64).  States past the length are kept but not played.
+#define LSN_STR_TT_TC_CHECK													Checked: the button is pressed during this state.  Unchecked: it is released.
+#define LSN_STR_TT_TC_LOOP													The pattern repeats for as long as the button is held.
+#define LSN_STR_TT_TC_ONCE													The pattern plays once each time the button is pressed (for macros such as special moves).
+#define LSN_STR_TT_TC_RESTART												Repeating patterns:  checked restarts the pattern each time the button is pressed; unchecked continues where it left off when the button was released.  Patterns that play once always restart.
+#define LSN_STR_TT_TC_HOLD													Patterns that play once:  checked keeps the button pressed after the pattern ends (for as long as it is held); unchecked releases it.
+#define LSN_STR_TT_TC_FPS													How many frames each state lasts (1 to 255) before the global speed multiplier.  1 means one state per frame.
+#define LSN_STR_TT_TC_GLOBAL												Checked: each state lasts this many times the global speed multiplier.  Unchecked: the timing is exact no matter the multiplier (best for macros).
+#define LSN_STR_TT_TC_SAVE													Saves the pattern to the Turbo folder (as a new preset or over the selected one).
+#define LSN_STR_TT_TC_CLOSE													Closes the dialog.  Unsaved changes can be saved first.
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code

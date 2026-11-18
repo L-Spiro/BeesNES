@@ -157,6 +157,21 @@ namespace lsn {
 		virtual bool									Microphone() const { return false; }
 
 		/**
+		 * Sets the turbo patterns of the turbo buttons and the global turbo speed multiplier.  Call before ApplyConfiguration().
+		 *
+		 * \param _tpPatterns The patterns.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.
+		 * \param _ui32Speed The global turbo speed multiplier (1-LSN_TURBO_SPEED_MAX).
+		 **/
+		virtual void									SetTurboPatterns( const LSN_TURBO_PLAYBACK /*_tpPatterns*/[LSN_IS_INPUT_SETS][LSN_B_TOTAL], uint32_t /*_ui32Speed*/ ) {}
+
+		/**
+		 * Sets the current frame (the number of frames the PPU has made).  Turbo patterns advance by frames.  Called before each $4016 write.
+		 *
+		 * \param _ui64Frame The current frame.
+		 **/
+		virtual void									SetFrame( uint64_t /*_ui64Frame*/ ) {}
+
+		/**
 		 * Applies controller configurations to the perpheral.
 		 * 
 		 * \param _ieConfig The configuration to apply.  [LSN_IS_INPUT_SETS] configurations, [LSN_B_TOTAL] buttons.

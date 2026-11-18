@@ -47,6 +47,7 @@ namespace lsn {
 			LSN_OPTIONS *									poOptions = nullptr;						/**< The options to edit. */
 			lsn::CMainWindow *								pmwMainWindow = nullptr;					/**< The main window, which applies changed options to the emulator. */
 			LSN_PPU_METRICS									pmActiveRegion = LSN_PM_NTSC_M;				/**< The region of the running game (each page starts on the preset nearest to it). */
+			CFilterBase::LSN_FILTERS						fActiveFilter = CFilterBase::LSN_F_INDEXED;	/**< The current filter (its tab is shown first). */
 		};
 
 		/**

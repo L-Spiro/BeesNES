@@ -237,6 +237,15 @@ namespace lsn {
 		static const wchar_t *								TabName( LSN_VIDEO_PAGE_KIND _vpkKind );
 
 		/**
+		 * Gets the filter page that holds the settings of a filter.
+		 *
+		 * \param _fFilter The filter (software or GPU).
+		 * \param _pmRegion The region of the running game (decides the page of the automatic NTSC/PAL filters).
+		 * \return Returns the kind of page that holds the settings of the filter.
+		 */
+		static LSN_VIDEO_PAGE_KIND							PageForFilter( CFilterBase::LSN_FILTERS _fFilter, LSN_PPU_METRICS _pmRegion );
+
+		/**
 		 * Gets the palette presets.
 		 *
 		 * \param _sTotal Holds the returned number of presets.

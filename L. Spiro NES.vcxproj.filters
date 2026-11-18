@@ -729,6 +729,12 @@
     <ClInclude Include="Src\Windows\Input\LSNStdControllerPage.h">
       <Filter>Header Files\Windows\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNTurboConfigWindow.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Windows\Input\LSNTurboConfigWindowLayout.h">
+      <Filter>Header Files\Windows\Input</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Options\LSNWindowOptions.h">
       <Filter>Header Files\Options</Filter>
     </ClInclude>
@@ -751,6 +757,9 @@
       <Filter>Header Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="Src\Input\LSNInputEvent.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Input\LSNTurboPattern.h">
       <Filter>Header Files\Input</Filter>
     </ClInclude>
     <ClInclude Include="Src\Audio\LSNBiQuadFilter.h">
@@ -1629,6 +1638,12 @@
       <Filter>Source Files\Windows\Input</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\Input\LSNStdControllerPage.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNTurboConfigWindow.cpp">
+      <Filter>Source Files\Windows\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\Input\LSNTurboConfigWindowLayout.cpp">
       <Filter>Source Files\Windows\Input</Filter>
     </ClCompile>
     <ClCompile Include="Src\Input\LSNControllerListener.cpp">
