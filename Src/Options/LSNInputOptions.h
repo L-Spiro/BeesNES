@@ -40,7 +40,7 @@ namespace lsn {
 		// Standard controller options for each player.
 		LSN_INPUT_EVENT							ieButtonMap[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/];								/**< The standard button map for up to 4 players, each with 8 alternatives and 8 buttons. */
 		LSN_INPUT_EVENT							ieTurboButtonMap[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/];							/**< The turbo button map for up to 4 players, each with 8 alternatives and 8 buttons. */
-		char16_t								u16TurboPattern[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/][LSN_TURBO_NAME_MAX+1];	/**< The names of the turbo patterns (presets) of the turbo buttons, terminated.  Empty for the standard pattern. */
+		char16_t								u16TurboPattern[4/** Up to 4 players. */][8/** 8 configurations. */][8/** 8 buttons.*/][LSN_TURBO_NAME_MAX+1];		/**< The names of the turbo patterns (presets) of the turbo buttons, terminated.  Empty for the standard pattern. */
 		uint8_t									ui8TurboSpeed = 1;																									/**< The global turbo speed multiplier (1-LSN_TURBO_SPEED_MAX):  every state of a turbo pattern that uses it lasts this many times longer. */
 
 
