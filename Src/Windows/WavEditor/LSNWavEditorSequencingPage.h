@@ -295,7 +295,8 @@ namespace lsn {
 
 		// == Functions.
 		/**
-		 * Fills a combo box with metadata.
+		 * Fills a combo box with metadata.  The items already in the combo box are kept (each item's data is its index), so only the
+		 *	difference in counts is added or removed.
 		 * 
 		 * \param _pwCombo The combo box to fill.
 		 * \param _vMetadata The metadata to use to fill the combo box.

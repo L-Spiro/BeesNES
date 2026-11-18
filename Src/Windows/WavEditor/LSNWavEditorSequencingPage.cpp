@@ -945,7 +945,7 @@ namespace lsn {
 			}
 			return;
 		}
-		// Filling them is slow with large metadata files, so only do it when they hold a different track's metadata.
+		// Only change them when they hold a different track's metadata (see FillComboWithMetadata()).
 		if ( m_ui32MetaId == m_ui32Id ) { return; }
 
 		m_ui32MetaId = m_ui32Id;
@@ -961,7 +961,8 @@ namespace lsn {
 	}
 
 	/**
-	 * Fills a combo box with metadata.
+	 * Fills a combo box with metadata.  The items already in the combo box are kept (each item's data is its index), so only the
+	 *	difference in counts is added or removed.
 	 * 
 	 * \param _pwCombo The combo box to fill.
 	 * \param _vMetadata The metadata to use to fill the combo box.
@@ -974,14 +975,35 @@ namespace lsn {
 			auto pcbCombo = static_cast<CComboBox *>(_pwCombo);
 			HWND hWnd = pcbCombo->Wnd();
 			if ( !hWnd ) { return false; }
-			pcbCombo->ResetContent();
-
 			// The combo box is owner-drawn without strings (CBS_OWNERDRAWFIXED, no CBS_HASSTRINGS): each item stores only its index into
 			//	_vMetadata as its item data, and DrawItem() builds the text of the few items that are actually drawn.
-			pcbCombo->InitStorage( _vMetadata.size(), 0 );
-			for ( size_t I = 0; I < _vMetadata.size(); ++I ) {
-				if ( ::SendMessageW( hWnd, CB_ADDSTRING, 0, LPARAM( I ) ) < 0 ) { return false; }	// CB_ERR or CB_ERRSPACE.
+			const size_t sWant = _vMetadata.size();
+			const LRESULT lrCount = ::SendMessageW( hWnd, CB_GETCOUNT, 0, 0 );
+			size_t sHave = lrCount > 0 ? size_t( lrCount ) : 0;
+			::SendMessageW( hWnd, WM_SETREDRAW, FALSE, 0 );
+			bool bOk = true;
+			if ( sHave > sWant ) {
+				if ( sWant < sHave - sWant ) {
+					// Fewer to add than to remove.
+					pcbCombo->ResetContent();
+					sHave = 0;
+				}
+				else {
+					// Remove from the end (no items move).
+					while ( sHave > sWant ) {
+						::SendMessageW( hWnd, CB_DELETESTRING, WPARAM( --sHave ), 0 );
+					}
+				}
 			}
+			if ( sHave < sWant ) {
+				pcbCombo->InitStorage( sWant - sHave, 0 );
+				for ( size_t I = sHave; I < sWant; ++I ) {
+					if ( ::SendMessageW( hWnd, CB_ADDSTRING, 0, LPARAM( I ) ) < 0 ) { bOk = false; break; }	// CB_ERR or CB_ERRSPACE.
+				}
+			}
+			::SendMessageW( hWnd, WM_SETREDRAW, TRUE, 0 );
+			::InvalidateRect( hWnd, NULL, FALSE );
+			if ( !bOk ) { return false; }
 
 			// Size the rows to the font (the fixed owner-draw height is otherwise based on the font the control had when it was created) and
 			//	widen the list to fit the entry with the longest text.
