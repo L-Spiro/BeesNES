@@ -163,6 +163,8 @@ namespace lsn {
 
 		/** The render pass defining the attachment formats and load/store operations. */
 		CVulkan::LSN_RENDER_PASS								m_rpRenderPass;
+		/** A render pass compatible with m_rpRenderPass that clears its target to 0 (used once when the targets are created). */
+		CVulkan::LSN_RENDER_PASS								m_rpClearPass;
 
 		/** The sampler used for reading the source and history textures. */
 		CVulkan::LSN_SAMPLER									m_sSampler;

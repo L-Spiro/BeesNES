@@ -49,6 +49,7 @@ namespace lsn {
 		m_pdmVbQuadMemory.reset();
 
 		m_rpRenderPass.Reset();
+		m_rpClearPass.Reset();
 
 		if LSN_LIKELY( m_ppShaderOutput.get() ) { m_ppShaderOutput->Reset(); }
 		m_ppShaderOutput.reset();
@@ -107,6 +108,10 @@ namespace lsn {
 		rpciInfo.subpassCount = 1;
 		rpciInfo.pSubpasses = &sdSubpass;
 		if ( !m_rpRenderPass.Create( _pvkDevice->GetDevice(), &rpciInfo ) ) { return false; }
+
+		// The same pass, but clearing its target.  Render-pass compatibility ignores load operations, so it works with the same framebuffers.
+		adPass.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		if ( !m_rpClearPass.Create( _pvkDevice->GetDevice(), &rpciInfo ) ) { return false; }
 
 
 		auto CreateTexture = [&]( std::unique_ptr<CVulkanImage> &_piTarget, std::unique_ptr<CVulkanDeviceMemory> &_pdmMemory, CVulkan::LSN_IMAGE_VIEW &_ivView, CVulkan::LSN_FRAMEBUFFER &_fbTarget ) {
@@ -184,6 +189,27 @@ namespace lsn {
 			std::memcpy( pvData, Quad, sizeof( Quad ) );
 			CVulkan::m_pfUnmapMemory( _pvkDevice->GetDevice(), m_pdmVbQuadMemory->Get() );
 		}
+
+		VkClearValue cvZero = {};
+		VkRenderPassBeginInfo rpbiClear = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		rpbiClear.renderPass = m_rpClearPass.rpRenderPass;
+		rpbiClear.renderArea.offset = { 0, 0 };
+		rpbiClear.renderArea.extent = { _ui32SrcW, _ui32SrcH };
+		rpbiClear.clearValueCount = 1;
+		rpbiClear.pClearValues = &cvZero;
+		const VkFramebuffer fbTargets[] = { m_fbOutput.fbFramebuffer, m_fbPhosphor[0].fbFramebuffer, m_fbPhosphor[1].fbFramebuffer };
+		for ( auto fbThis : fbTargets ) {
+			if LSN_UNLIKELY( fbThis == VK_NULL_HANDLE ) { return false; }
+			rpbiClear.framebuffer = fbThis;
+			CVulkan::m_pfCmdBeginRenderPass( _pcbCommandList->Get(), &rpbiClear, VK_SUBPASS_CONTENTS_INLINE );
+			CVulkan::m_pfCmdEndRenderPass( _pcbCommandList->Get() );
+		}
+		// The clears must finish before the phosphor passes sample the images.
+		VkMemoryBarrier mbCleared = { VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+		mbCleared.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		mbCleared.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		CVulkan::m_pfCmdPipelineBarrier( _pcbCommandList->Get(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			0, 1, &mbCleared, 0, nullptr, 0, nullptr );
 
 		m_ui32SrcW = _ui32SrcW;
 		m_ui32SrcH = _ui32SrcH;
