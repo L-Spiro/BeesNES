@@ -59,11 +59,8 @@ namespace lsn {
 		if ( !m_ptcdData || !m_ptcdData->ptpPatterns ) { return LSW_H_CONTINUE; }
 
 		auto pwThis = FindChild( Layout::LSN_TCWI_STATES_EDIT );
-		if ( pwThis ) {
-			pwThis->SetSystemFixedFont();
-			// 64 states plus room for spaces between groups.
-			::SendMessageW( pwThis->Wnd(), EM_LIMITTEXT, 128, 0 );
-		}
+		// 64 states plus room for spaces between groups.
+		if ( pwThis ) { ::SendMessageW( pwThis->Wnd(), EM_LIMITTEXT, 128, 0 ); }
 		pwThis = FindChild( Layout::LSN_TCWI_NAME_EDIT );
 		if ( pwThis ) { ::SendMessageW( pwThis->Wnd(), EM_LIMITTEXT, LSN_TURBO_NAME_MAX, 0 ); }
 		pwThis = FindChild( Layout::LSN_TCWI_LENGTH_EDIT );
@@ -211,6 +208,19 @@ namespace lsn {
 				break;
 			}
 			case IDOK : {}											LSN_FALLTHROUGH
+			case Layout::LSN_TCWI_ALL_OFF_BUTTON : {}				LSN_FALLTHROUGH
+			case Layout::LSN_TCWI_ALL_ON_BUTTON : {}				LSN_FALLTHROUGH
+			case Layout::LSN_TCWI_ALTERNATE_BUTTON : {
+				if ( _wCtrlCode == BN_CLICKED ) {
+					// All 64 states are set (not just those within the length) so that raising the length continues the pattern.
+					m_tpCurrent.ui64Bits = (_wId == Layout::LSN_TCWI_ALL_OFF_BUTTON) ? 0ULL :
+						(_wId == Layout::LSN_TCWI_ALL_ON_BUTTON) ? ~0ULL :
+						0x5555555555555555ULL;
+					UpdateStates( true, false );
+					UpdateControls();
+				}
+				return LSW_H_HANDLED;
+			}
 			case Layout::LSN_TCWI_SAVE_BUTTON : {
 				SavePattern();
 				return LSW_H_HANDLED;

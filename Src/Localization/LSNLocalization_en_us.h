@@ -773,6 +773,9 @@
 #define LSN_STR_TC_GLOBAL													Use the &Global Speed Multiplier
 #define LSN_STR_TC_SAVE														&Save
 #define LSN_STR_TC_CLOSE													Close
+#define LSN_STR_TC_ALL_OFF													Set All to &0
+#define LSN_STR_TC_ALL_ON													Set All to &1
+#define LSN_STR_TC_ALTERNATE												Set to 10 Repeating
 #define LSN_STR_TC_INFO														One Pass: {} Frames ({:.2f} Seconds at 60 FPS)
 #define LSN_STR_TC_INFO_GLOBAL												One Pass: {} Frames ({:.2f} Seconds at 60 FPS) \u00D7 the Global Speed Multiplier
 #define LSN_STR_TC_NEW_NAME													Pattern {}
@@ -803,6 +806,9 @@
 #define LSN_STR_TT_TC_GLOBAL												Checked: each state lasts this many times the global speed multiplier.  Unchecked: the timing is exact no matter the multiplier (best for macros).
 #define LSN_STR_TT_TC_SAVE													Saves the pattern to the Turbo folder (as a new preset or over the selected one).
 #define LSN_STR_TT_TC_CLOSE													Closes the dialog.  Unsaved changes can be saved first.
+#define LSN_STR_TT_TC_ALL_OFF												Sets every state to 0 (released).  The length does not change.
+#define LSN_STR_TT_TC_ALL_ON												Sets every state to 1 (pressed).  The length does not change.
+#define LSN_STR_TT_TC_ALTERNATE												Sets the states to 1 0 1 0 and so on (pressed on the first state).  The length does not change.
 #define LSN_STR_DESCRIPTION_												Description:
 #define LSN_STR_NOTES														Notes
 #define LSN_STR_CODE														Code
