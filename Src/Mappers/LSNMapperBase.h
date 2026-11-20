@@ -301,6 +301,8 @@ namespace lsn {
 		 * \param _pbPpuBus A pointer to the PPU bus.
 		 */
 		virtual void									ApplyMap( CCpuBus * /*_pbCpuBus*/, CPpuBus * _pbPpuBus ) {
+			// Mappers that watch the PPU address bus set their watcher after this.
+			_pbPpuBus->SetAddressWatcher( nullptr, nullptr );
 			if ( m_prRom->vChrRom.size() == 0 ) {
 				// RAM.
 				for ( uint32_t I = 0x0000; I < 0x2000; ++I ) {

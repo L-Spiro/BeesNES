@@ -242,7 +242,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[4] : pmThis->m_ui8ChrBanks[0];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -257,7 +256,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[5] : pmThis->m_ui8ChrBanks[1];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -272,7 +270,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[6] : pmThis->m_ui8ChrBanks[2];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -287,7 +284,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[7] : pmThis->m_ui8ChrBanks[3];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0C00 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -302,7 +298,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[0] : pmThis->m_ui8ChrBanks[4];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -317,7 +312,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[1] : pmThis->m_ui8ChrBanks[5];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -332,7 +326,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[2] : pmThis->m_ui8ChrBanks[6];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -347,7 +340,6 @@ namespace lsn {
 			CMapper037 * pmThis = reinterpret_cast<CMapper037 *>(_pvParm0);
 			uint8_t ui8Mmc3Bank = (pmThis->m_ui8Reg0 & 0b10000000) ? pmThis->m_ui8ChrBanks[3] : pmThis->m_ui8ChrBanks[7];
 			_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetEffectiveChrBank( ui8Mmc3Bank )*ChrBankSize()+_ui16Parm1];
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1C00 + _ui16Parm1 ) );
 		}
 	};
 

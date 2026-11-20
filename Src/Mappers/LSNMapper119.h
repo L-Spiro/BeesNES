@@ -222,7 +222,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -242,7 +241,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -262,7 +260,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -282,7 +279,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0C00 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -302,7 +298,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -322,7 +317,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -342,7 +336,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -362,7 +355,6 @@ namespace lsn {
 			else {
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->GetChrRomBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1C00 + _ui16Parm1 ) );
 		}
 
 
@@ -383,7 +375,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -400,7 +391,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -417,7 +407,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -434,7 +423,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0C00 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -451,7 +439,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -468,7 +455,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -485,7 +471,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -502,7 +487,6 @@ namespace lsn {
 			if ( pmThis->IsChrRam( ui8RawMmc3Bank ) ) {
 				pmThis->m_ui8ChrRam[pmThis->GetChrRamBank( ui8RawMmc3Bank ) * ChrBankSize() + _ui16Parm1] = _ui8Val;
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1C00 + _ui16Parm1 ) );
 		}
 	};
 

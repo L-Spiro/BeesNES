@@ -57,6 +57,8 @@ namespace lsn {
 			SetPgmBank<2, PgmBankSize()>( -2 );
 
 			m_ui8Reg0 = m_ui8Reg1 = 0;
+			// NES 2.0 submappers 1 (MMC6) and 4 (MMC3A) have the old IRQ behavior.
+			m_bAltIrqBehavior = _rRom.riInfo.ui16Mapper == 4 && (_rRom.riInfo.ui16SubMapper == 1 || _rRom.riInfo.ui16SubMapper == 4);
 
 			LoadBatteryRam( m_ui8PrgRam, sizeof( m_ui8PrgRam ) );
 		}
@@ -172,6 +174,11 @@ namespace lsn {
 
 
 
+			// The IRQ counter is clocked by PPU A12, which is watched on every address the PPU puts on its bus (fetches, $2007 accesses, and
+			//	v while rendering is off), so it works with CHR RAM and when A12 is toggled through $2006.
+			_pbPpuBus->SetAddressWatcher( &CMapper004::PpuAddressWatcher, this );
+
+
 			// ================
 			// MIRRORING
 			// ================
@@ -195,9 +202,8 @@ namespace lsn {
 			m_bIrqEnabled = false;
 			m_bIrqReloadPending = false;
 
-			m_ui64LastA12LowCpu = 0;
+			m_ui64A12LowSince = 0;
 			m_bA12PrevRaw = false;
-			m_bA12FilteredHigh = false;
 
 			// Clear any mapper IRQ line.
 			if ( m_pInterruptable ) {
@@ -232,21 +238,20 @@ namespace lsn {
 		/** Reload pending flag (set by $C001, consumed on next qualified rise). */
 		bool											m_bIrqReloadPending = false;
 
-		/** Selects alternate/old behavior (NEC) vs new (Sharp).  false = Sharp/new; true = NEC/old. */
+		/** The old IRQ behavior (NEC MMC3A and MMC6) instead of the new one (Sharp MMC3B/C).  Set from the NES 2.0 submapper. */
 		bool											m_bAltIrqBehavior = false;
 
 		/**
-		 * A12 must be low for at least this many **CPU cycles** before a rising edge
-		 * is considered "filtered" (empirically ~3 M2 falling edges).
+		 * A12 must have been low for at least this many PPU dots for a rise to clock the counter.  The MMC3 needs A12 to stay low across 3
+		 *	falling edges of M2.  A low stretch of exactly 9 dots (3 CPU cycles) is too short:  when the background uses $1000, that is the gap
+		 *	between the last background prefetch (dot 336) and the first pattern fetch of the next scanline, which must not clock it again.
 		 */
-		static constexpr uint32_t						LSN_MMC3_A12_LOW_CPU = 3;
+		static constexpr uint64_t						LSN_MMC3_A12_LOW_DOTS = 10;
 
-		/** Last CPU cycle at which A12 was observed low (anchors the low window). */
-		uint64_t										m_ui64LastA12LowCpu = 0;
-		/** Last RAW A12 level observed (false = low, true = high). */
+		/** The PPU cycle on which A12 last went low. */
+		uint64_t										m_ui64A12LowSince = 0;
+		/** The last A12 level seen (false = low, true = high). */
 		bool											m_bA12PrevRaw = false;
-		/** Whether the **filtered** A12 is currently considered high (disarmed). */
-		bool											m_bA12FilteredHigh = false;
 
 
 
@@ -434,6 +439,7 @@ namespace lsn {
 			 * 
 			 * Writing any value to this register clears the MMC3 IRQ counter immediately, and then reloads it at the NEXT rising edge of the PPU address, presumably at PPU cycle 260 of the current scanline.
 			 */
+			pmThis->m_ui8IrqCounter = 0;
 			pmThis->m_bIrqReloadPending = true;
 		}
 
@@ -537,7 +543,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[0]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -558,7 +563,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[1]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -579,7 +583,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[2]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -600,7 +603,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[3]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x0C00 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -621,7 +623,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[4]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1000 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -642,7 +643,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[5]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1400 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -663,7 +663,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[6]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1800 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -684,7 +683,6 @@ namespace lsn {
 				// $8000.D7 = 0
 				_ui8Ret = pmThis->m_prRom->vChrRom.data()[pmThis->m_ui8ChrBanks[7]*ChrBankSize()+_ui16Parm1];
 			}
-			pmThis->Mmc3_OnPpuA12Sample( uint16_t( 0x1C00 + _ui16Parm1 ) );
 		}
 
 		/**
@@ -737,89 +735,60 @@ namespace lsn {
 		}
 
 		/**
-		 * Tracks PPU A12 usage (PPU domain) and clocks the MMC3 counter on qualified filtered 0->1 edges.
-		 * Debounce is measured in **CPU cycles** so PAL/NTSC differences are handled exactly as on hardware.
+		 * Watches the PPU address bus (see CBus::SetAddressWatcher()).
 		 *
-		 * Arming/Disarming Rules:
-		 * - We "arm" the edge detector when A12 has been LOW for >= LSN_MMC3_A12_LOW_CPU cycles.
-		 * - When armed, the first qualified LOW->HIGH clocks the counter and disarms the filter.
-		 *
-		 * Call from **every** PPU access to $0000-$1FFF.
-		 *
-		 * @param _ui16PpuAddr The absolute PPU address being accessed (0x0000-0x1FFF).
+		 * \param _pvParm0 This object.
+		 * \param _ui16Addr The address the PPU put on its bus.
 		 */
-		inline void										Mmc3_OnPpuA12Sample( uint16_t _ui16PpuAddr ) {
-			const bool bA12Raw = ((_ui16PpuAddr & 0x1000) != 0);
-			const uint64_t ui64CpuNow = m_pcbCpu->GetCycleCount();
-
-			if ( !bA12Raw ) {
-				// RAW A12 is LOW: record the time and potentially arm the filter.
-				if ( m_bA12PrevRaw ) {
-					// High->Low edge: start a new low window.
-					m_ui64LastA12LowCpu = ui64CpuNow;
-				}
-				else {
-					// Stayed LOW: if enough low time has accumulated, arm the filter (filtered = LOW).
-					if ( (ui64CpuNow - m_ui64LastA12LowCpu) >= LSN_MMC3_A12_LOW_CPU ) {
-						m_bA12FilteredHigh = false;	// Armed.
-					}
-				}
-			}
-			else {
-				// RAW A12 is HIGH: check for a qualified LOW->HIGH transition.
-				if ( !m_bA12PrevRaw ) { // Rising edge.
-					if ( !m_bA12FilteredHigh && (ui64CpuNow - m_ui64LastA12LowCpu) >= LSN_MMC3_A12_LOW_CPU ) {
-						// Qualified filtered 0->1 rise: clock once, then disarm until we go LOW again.
-						Mmc3_ClockIrqCounter();
-						m_bA12FilteredHigh = true; // Disarmed.
-					}
-				}
-			}
-			m_bA12PrevRaw = bA12Raw;
+		static void LSN_FASTCALL						PpuAddressWatcher( void * _pvParm0, uint16_t _ui16Addr ) {
+			reinterpret_cast<CMapper004 *>(_pvParm0)->Mmc3_OnPpuA12Sample( _ui16Addr );
 		}
 
 		/**
-		 * \brief Clocks the MMC3 scanline counter on a *filtered* A12 rising edge.
+		 * Tracks PPU A12 and clocks the IRQ counter when it rises after having been low for at least LSN_MMC3_A12_LOW_DOTS dots, so the
+		 *	quick toggles during the background and sprite fetches clock it only once per scanline.
 		 *
-		 * Rules:
-		 *  - If reload-pending is set or the counter is 0, load counter := latch; else decrement.
-		 *  - Sharp/new behavior asserts when (counter == 0) after the update.
-		 *  - NEC/old behavior asserts on the 1->0 transition (kept via m_bAltIrqBehavior).
+		 * Called with every address the PPU puts on its bus (see PpuAddressWatcher()).
+		 *
+		 * \param _ui16PpuAddr The address on the PPU address bus.
 		 */
-		inline void Mmc3_ClockIrqCounter() {
-			bool bAssert = false;
+		inline void										Mmc3_OnPpuA12Sample( uint16_t _ui16PpuAddr ) {
+			const bool bA12 = (_ui16PpuAddr & 0x1000) != 0;
+			if ( bA12 != m_bA12PrevRaw ) {
+				const uint64_t ui64Now = m_ppbPpu->GetCycleCount();
+				if ( !bA12 ) {
+					m_ui64A12LowSince = ui64Now;
+				}
+				else if ( (ui64Now - m_ui64A12LowSince) >= LSN_MMC3_A12_LOW_DOTS ) {
+					Mmc3_ClockIrqCounter();
+				}
+				m_bA12PrevRaw = bA12;
+			}
+		}
 
-			if ( m_bAltIrqBehavior ) {
-				// NEC/old behavior: assert on the 1->0 transition.
-				const bool bReload = m_bIrqReloadPending || (m_ui8IrqCounter == 0);
-				if ( bReload ) {
-					const uint8_t ui8Prev = m_ui8IrqCounter;
-					m_ui8IrqCounter = m_ui8IrqLatch;
-					m_bIrqReloadPending = false;
-					if ( m_bIrqEnabled && ui8Prev == 1 && m_ui8IrqCounter == 0 ) { bAssert = true; }
-				}
-				else {
-					const uint8_t ui8Prev = m_ui8IrqCounter;
-					--m_ui8IrqCounter;
-					if ( m_bIrqEnabled && ui8Prev == 1 ) { bAssert = true; }
-				}
+
+		/**
+		 * Clocks the IRQ counter (on a filtered A12 rise).  If a reload was requested ($C001) or the counter is 0, the counter is reloaded
+		 *	from the latch; otherwise it is decremented.  Then, if IRQs are enabled and the counter is 0:
+		 *	- Sharp/new MMC3 (MMC3B/C):  an IRQ is raised every time, so a latch of 0 raises one on every clock.
+		 *	- NEC/old MMC3A and MMC6 (m_bAltIrqBehavior):  an IRQ is raised only if the counter was decremented to 0 or reloaded because of
+		 *		a $C001 write, not when it reloads to 0 because it had naturally reached 0.
+		 */
+		inline void										Mmc3_ClockIrqCounter() {
+			const bool bReloadRequested = m_bIrqReloadPending;
+			const uint8_t ui8Prev = m_ui8IrqCounter;
+			if ( bReloadRequested || ui8Prev == 0 ) {
+				m_ui8IrqCounter = m_ui8IrqLatch;
+				m_bIrqReloadPending = false;
 			}
 			else {
-				// Sharp/new behavior: assert when counter == 0 (after update).
-				if ( m_bIrqReloadPending || (m_ui8IrqCounter == 0) ) {
-					m_ui8IrqCounter = m_ui8IrqLatch;
-					m_bIrqReloadPending = false;
-				}
-				else {
-					--m_ui8IrqCounter;
-				}
-				if ( m_bIrqEnabled && m_ui8IrqCounter == 0 ) { bAssert = true; }
+				--m_ui8IrqCounter;
 			}
-
-			if ( bAssert ) {
+			if ( m_bIrqEnabled && m_ui8IrqCounter == 0 && (!m_bAltIrqBehavior || bReloadRequested || ui8Prev != 0) ) {
 				m_pInterruptable->Irq( LSN_IS_MAPPER );
 			}
 		}
+
 
 	};
 

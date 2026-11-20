@@ -105,6 +105,9 @@ namespace lsn {
 		/** An address-writing function. */
 		typedef void (LSN_FASTCALL *		PfWriteFunc)( void * _pvParm0, uint16_t _ui16Parm1, uint8_t * _pui8Data, uint8_t _ui8Val );
 
+		/** A function told about every address put on the bus (cartridges such as the MMC3 watch PPU A12). */
+		typedef void (LSN_FASTCALL *		PfAddressWatchFunc)( void * _pvParm0, uint16_t _ui16Addr );
+
 		/** An address accessor. */
 		struct LSN_ADDR_ACCESSOR {
 			PfReadFunc						pfReader;						/**< The function for reading the assigned address. */
@@ -150,9 +153,32 @@ namespace lsn {
 				SetWriteFunc( uint16_t( I ), StdWrite, nullptr, uint16_t( I ) );
 			}
 			std::memset( m_ui8OpenBusMask, 0xFF, sizeof( m_ui8OpenBusMask ) );
+			SetAddressWatcher( nullptr, nullptr );
 #ifdef LSN_CPU_VERIFY
 			m_vReadWriteLog.clear();
 #endif	// #ifdef LSN_CPU_VERIFY
+		}
+
+		/**
+		 * Sets the function told about every address put on the bus (see NotifyAddress()).  Only one watcher is kept.
+		 *
+		 * \param _pfFunc The function, or nullptr for none.
+		 * \param _pvParm0 The first parameter passed to the function.
+		 */
+		void								SetAddressWatcher( PfAddressWatchFunc _pfFunc, void * _pvParm0 ) {
+			m_pfAddressWatcher = _pfFunc;
+			m_pvAddressWatcherParm0 = _pvParm0;
+		}
+
+		/**
+		 * Tells the address watcher (if any) that an address has been put on the bus.  The owner of the bus (the PPU) calls this for every
+		 *	address it drives:  each memory access, and its VRAM address (v) whenever v changes while it is not fetching for rendering.  Reads
+		 *	and writes made through Read() and Write() do not call it, so debug inspection never disturbs the watcher.
+		 *
+		 * \param _ui16Addr The address on the bus.
+		 */
+		inline void							NotifyAddress( uint16_t _ui16Addr ) {
+			if LSN_UNLIKELY( m_pfAddressWatcher ) { m_pfAddressWatcher( m_pvAddressWatcherParm0, _ui16Addr ); }
 		}
 
 		/**
@@ -527,6 +553,8 @@ namespace lsn {
 		uint8_t								m_ui8OpenBusMask[_uSize];		/**< The open-bus update mask.  Usually 0xFF to update all bits, but $4015 is set to 0x00 to update no floating-bus bits (its open bits come from the internal bus instead). */
 		uint8_t								m_ui8Ram[_uSize];				/**< Memory of _uSize bytes. */
 		LSN_ADDR_ACCESSOR					m_aaAccessors[_uSize];			/**< Access functions. */
+		PfAddressWatchFunc					m_pfAddressWatcher = nullptr;	/**< Told about every address put on the bus (see NotifyAddress()). */
+		void *								m_pvAddressWatcherParm0 = nullptr;	/**< The address watcher's first parameter. */
 		uint8_t								m_ui8LastRead;					/**< The floating value. */
 		uint8_t								m_ui8InternalBus;				/**< The CPU's internal data bus. */
 

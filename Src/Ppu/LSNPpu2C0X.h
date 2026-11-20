@@ -188,6 +188,7 @@ namespace lsn {
 					}
 
 					m_paPpuAddrT.ui16Addr = m_paPpuAddrV.ui16Addr;
+					DriveIdleAddress();
 				}
 			}
 
@@ -197,6 +198,7 @@ namespace lsn {
 			m_ui16CurY = GetCurrentScanline();*/
 
 			if LSN_UNLIKELY( m_ui64DataReadCycle < m_ui64Cycle ) {
+				m_bBus.NotifyAddress( m_paPpuAddrV.ui16Addr & 0x3FFF );
 				FinishDataRead( m_bBus.Read( m_paPpuAddrV.ui16Addr ) );
 			}
 			if LSN_UNLIKELY( m_bUpdateVramAddr ) {
@@ -231,6 +233,7 @@ namespace lsn {
 					}
 
 					m_paPpuAddrT.ui16Addr = m_paPpuAddrV.ui16Addr;
+					DriveIdleAddress();
 				}
 			}
 
@@ -1303,6 +1306,7 @@ namespace lsn {
 			::OutputDebugStringA( szBuffer );*/
 
 			uint16_t ui16Addr = ppPpu->m_paPpuAddrV.ui16Addr & (LSN_PPU_MEM_FULL_SIZE - 1);
+			ppPpu->m_bBus.NotifyAddress( ui16Addr );
 			if ( ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 				ppPpu->WritePalette( ui16Addr, _ui8Val );
 			}
@@ -1630,10 +1634,12 @@ namespace lsn {
 				if ( m_ui64DataReadCycle == m_ui64Cycle ) {
 					_ui16Addr = (_ui16Addr & 0xFF00) | m_ui8LastFetch;
 				}
+				m_bBus.NotifyAddress( _ui16Addr & 0x3FFF );
 				m_ui8LastFetch = m_bBus.Read( _ui16Addr );
 				FinishDataRead( m_ui8LastFetch );
 				return m_ui8LastFetch;
 			}
+			m_bBus.NotifyAddress( _ui16Addr & 0x3FFF );
 			return m_ui8LastFetch = m_bBus.Read( _ui16Addr );
 		}
 
@@ -1654,6 +1660,25 @@ namespace lsn {
 				IncHorizontal();
 				IncVertical();
 			}
+			DriveIdleAddress();
+		}
+
+		/**
+		 * Determines whether the PPU is fetching for rendering (rendering is on during a visible or the pre-render scanline).  While it
+		 *	is, the fetches drive the address bus; otherwise the bus holds the VRAM address (v).
+		 *
+		 * \return Returns true if rendering fetches drive the address bus.
+		 */
+		inline bool										RenderingFetches() const {
+			return m_bRendering && (m_ui16CurY < (_tPreRender + _tRender) || m_ui16CurY == (_tDotHeight - 1));
+		}
+
+		/**
+		 * Puts v on the address bus (telling the cartridge, which may be watching it) unless rendering fetches drive the bus.  Called
+		 *	whenever v changes outside of rendering ($2006 and $2007), so that, for example, toggling A12 through $2006 clocks the MMC3.
+		 */
+		inline void										DriveIdleAddress() {
+			if ( !RenderingFetches() ) { m_bBus.NotifyAddress( m_paPpuAddrV.ui16Addr & 0x3FFF ); }
 		}
 
 		/**
@@ -1726,10 +1751,12 @@ namespace lsn {
 					return FetchRead( _ui16Addr );
 				}
 				else {
+					if constexpr ( !_bDebug ) { m_bBus.NotifyAddress( _ui16Addr & 0x3FFF ); }
 					return m_bBus.Read( _ui16Addr );
 				}
 			}
 			if constexpr ( _bDebug ) { m_ui16LastBusAddr = m_paPpuAddrV.ui16Addr; }
+			else { m_bBus.NotifyAddress( m_paPpuAddrV.ui16Addr & 0x3FFF ); }
 			if constexpr ( !_bFromCpu ) {
 				if ( m_paPpuAddrV.ui16Addr >= LSN_PPU_PALETTE_MEMORY ) {
 					return ReadPalette( m_paPpuAddrV.ui16Addr );
@@ -2132,6 +2159,7 @@ namespace lsn {
 			ppPpu->m_bShowBg = !!_tNewVal.s.ui8ShowBackground;
 			ppPpu->m_bShowSprites = !!_tNewVal.s.ui8ShowSprites;
 			ppPpu->m_bRendering = bool( ppPpu->m_bShowBg | ppPpu->m_bShowSprites );
+			if ( bWasRendering && !ppPpu->m_bRendering ) { ppPpu->DriveIdleAddress(); }
 
 			if ( bWasRendering != ppPpu->m_bRendering &&
 				(ppPpu->m_ui16CurY < (_tPreRender + _tRender) || ppPpu->m_ui16CurY == (_tDotHeight - 1)) ) {
