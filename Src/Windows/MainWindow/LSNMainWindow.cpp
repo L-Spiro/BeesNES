@@ -2972,15 +2972,35 @@ namespace lsn {
 		lsn::CScopedNoSubnormals snsNoSubnormals;
 		//::SetThreadAffinity( 1 );
 
+#ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+#define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION				0x00000002
+#endif	// #ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
+		HANDLE hTimer = ::CreateWaitableTimerExW( NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
+		constexpr auto LSN_SLICE = std::chrono::microseconds( 1000 );
+
 		CCheatManager & cmCheats = _pmwWindow->m_bnEmulator.CheatManager();
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
 			// Cheat trampolines can only be changed between ticks on this thread.
 			if LSN_UNLIKELY( cmCheats.SyncPending() ) {
 				cmCheats.ProcessPendingSync();
 			}
+			const auto aStart = std::chrono::steady_clock::now();
 			_pmwWindow->m_bnEmulator.GetSystem()->Tick();
-			//::Sleep( 1 );
+			if ( std::chrono::steady_clock::now() - aStart < LSN_SLICE ) {
+				if ( hTimer ) {
+					LARGE_INTEGER liDue;
+					liDue.QuadPart = -LONGLONG( std::chrono::duration_cast<std::chrono::nanoseconds>( LSN_SLICE ).count() / 100 );	// Relative, in 100-nanosecond units.
+					if ( ::SetWaitableTimer( hTimer, &liDue, 0, NULL, NULL, FALSE ) ) {
+						::WaitForSingleObject( hTimer, INFINITE );
+					}
+				}
+				else {
+					// Without high-resolution timers (before Windows 10 1803), timeBeginPeriod( 1 ) keeps this near 1 millisecond.
+					::Sleep( 1 );
+				}
+			}
 		}
+		if ( hTimer ) { ::CloseHandle( hTimer ); }
 		_pmwWindow->m_aiThreadState = LSN_TS_INACTIVE;
 	}
 

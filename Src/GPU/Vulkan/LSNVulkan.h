@@ -93,11 +93,11 @@ namespace lsn {
 		static bool												CheckDeviceExtensionSupport( VkPhysicalDevice _pdDevice, const std::vector<const char *> &_vExtensions );
 
 		/**
-		 * Gets the format of the back surface.
+		 * Gets the format for the swap-chain images:  an 8-bit sRGB format with the sRGB color space (B8G8R8A8 preferred, then R8G8B8A8).
 		 *
 		 * \param _pdDevice The device.
 		 * \param _sSurface The window/back surface.
-		 * \return Finds a valid format for the back buffer.
+		 * \return Returns the format, or VK_FORMAT_UNDEFINED if the surface offers no 8-bit sRGB format.
 		 */
 		static VkFormat											GetBackSurfaceFormat( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface );
 

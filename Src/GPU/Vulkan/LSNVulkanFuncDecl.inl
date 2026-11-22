@@ -1038,6 +1038,26 @@ static PFN_vkGetRayTracingShaderGroupStackSizeKHR          m_pfGetRayTracingShad
 static PFN_vkGetPhysicalDeviceMemoryProperties             m_pfGetPhysicalDeviceMemoryProperties;
 
 /**
+ * Reports properties of the queues of the specified physical device.
+ * 
+ * \param _physicalDevice The handle to the physical device whose properties will be queried.
+ * \param _pQueueFamilyPropertyCount A pointer to the number of queue families available or queried.
+ * \param _pQueueFamilyProperties Either NULL or a pointer to an array of VkQueueFamilyProperties structures.
+ **/
+static PFN_vkGetPhysicalDeviceQueueFamilyProperties        m_pfGetPhysicalDeviceQueueFamilyProperties;
+
+/**
+ * Queries whether a queue family of a physical device supports presentation to a given surface.
+ * 
+ * \param _physicalDevice The physical device.
+ * \param _queueFamilyIndex The queue family.
+ * \param _surface The surface.
+ * \param _pSupported A pointer to a VkBool32, which is set to VK_TRUE to indicate support, and VK_FALSE otherwise.
+ * \return Returns VK_SUCCESS on success.
+ **/
+static PFN_vkGetPhysicalDeviceSurfaceSupportKHR            m_pfGetPhysicalDeviceSurfaceSupportKHR;
+
+/**
  * Insert a memory dependency.
  * 
  * \param _commandBuffer The command buffer into which the command is recorded.

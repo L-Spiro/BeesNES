@@ -279,25 +279,19 @@ namespace lsn {
 			m_vSwapViews.resize( ui32ImageCount );
 			m_vSwapFramebuffers.resize( ui32ImageCount );
 
-			if ( !m_rpBackBufferPass.Valid() ) { CreateRenderPass( VK_FORMAT_B8G8R8A8_SRGB, m_rpBackBufferPass, true ); }
+			if ( !m_rpBackBufferPass.Valid() ) { CreateRenderPass( _pvkDevice->GetSwapFormat(), m_rpBackBufferPass, true ); }
 
-#ifdef LSN_WINDOWS
-			RECT rClient;
-			::GetClientRect( s_vgsState.hWndTarget, &rClient );
-			uint32_t ui32W = static_cast<uint32_t>(rClient.right - rClient.left);
-			uint32_t ui32H = static_cast<uint32_t>(rClient.bottom - rClient.top);
-#else
-			// TODO.
-			lsw::LSW_RECT rClient = s_vgsState.pwParent->VirtualClientRect( nullptr );
-			uint32_t ui32W = static_cast<uint32_t>(rClient.Width());
-			uint32_t ui32H = static_cast<uint32_t>(rClient.Height());
-#endif
+			// The framebuffers must match the swap-chain images, which can differ from the client area (the swap chain is clamped
+			//	to the surface limits, and it is re-created a little after the window changes size).
+			const VkExtent2D eSwapExtent = _pvkDevice->GetSwapExtent();
+			uint32_t ui32W = eSwapExtent.width;
+			uint32_t ui32H = eSwapExtent.height;
 
 			for ( uint32_t I = 0; I < ui32ImageCount; ++I ) {
 				VkImageViewCreateInfo ivciViewInfo = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
 				ivciViewInfo.image = m_vSwapImages[I];
 				ivciViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				ivciViewInfo.format = VK_FORMAT_B8G8R8A8_SRGB;
+				ivciViewInfo.format = _pvkDevice->GetSwapFormat();
 				ivciViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				ivciViewInfo.subresourceRange.levelCount = 1;
 				ivciViewInfo.subresourceRange.layerCount = 1;
@@ -479,7 +473,7 @@ namespace lsn {
 			 !m_tgGamma.EnsureShaders( _pvkDevice, m_rpGammaPass.rpRenderPass, GammaPass( effGamma ), fmtRt, vDummy, vDummy ) ) { return false; }
 
 		if LSN_UNLIKELY( !m_trRenderer.EnsureResources( _pvkDevice ) || 
-			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, VK_FORMAT_B8G8R8A8_SRGB, vDummy, vDummy, OutputTransform() ) ) { return false; }
+			 !m_trRenderer.EnsureShaders( _pvkDevice, m_rpBackBufferPass.rpRenderPass, _pvkDevice->GetSwapFormat(), vDummy, vDummy, OutputTransform() ) ) { return false; }
 
 		
 		if LSN_UNLIKELY( NeedsGammaPass( effGamma ) ) {
@@ -652,7 +646,9 @@ namespace lsn {
 		rpbiBackBuffer.framebuffer = m_vSwapFramebuffers[_ui32ImageIndex].fbFramebuffer;
 		rpbiBackBuffer.renderArea.offset = { 0, 0 };
 		
-		rpbiBackBuffer.renderArea.extent = { ui32WndW, ui32WndH };
+		// The render area must stay within the framebuffer (the swap-chain size), which can lag behind the window size.
+		const VkExtent2D eSwapExtent = _pvkDevice->GetSwapExtent();
+		rpbiBackBuffer.renderArea.extent = { std::min( ui32WndW, eSwapExtent.width ), std::min( ui32WndH, eSwapExtent.height ) };
 		/*rpbiBackBuffer.clearValueCount = 1;
 		rpbiBackBuffer.pClearValues = &cvClear;*/
 		

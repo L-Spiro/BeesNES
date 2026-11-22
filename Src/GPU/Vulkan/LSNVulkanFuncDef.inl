@@ -1036,6 +1036,8 @@ PFN_vkGetRayTracingShaderGroupStackSizeKHR CVulkan::m_pfGetRayTracingShaderGroup
  * \param _pMemoryProperties A pointer to a VkPhysicalDeviceMemoryProperties structure in which the properties are returned.
  **/
 PFN_vkGetPhysicalDeviceMemoryProperties CVulkan::m_pfGetPhysicalDeviceMemoryProperties = nullptr;
+PFN_vkGetPhysicalDeviceQueueFamilyProperties CVulkan::m_pfGetPhysicalDeviceQueueFamilyProperties = nullptr;
+PFN_vkGetPhysicalDeviceSurfaceSupportKHR CVulkan::m_pfGetPhysicalDeviceSurfaceSupportKHR = nullptr;
 
 /**
  * Insert a memory dependency.

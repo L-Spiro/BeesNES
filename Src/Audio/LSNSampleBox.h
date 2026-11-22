@@ -378,6 +378,13 @@ namespace lsn {
 			}
 			m_gGen.pvFinalParm = _pfParm;
 		}
+		/**
+		 * Gets the parameter passed to the output callback (see SetOutputCallback()).
+		 *
+		 * \return Returns the parameter passed to the output callback.
+		 **/
+		inline const void *									OutputCallbackParm() const { return m_gGen.pvFinalParm; }
+
 
 		/**
 		 * Calculates the _sM parameter for Init() given a transition bandwidth (the range of frequencies to transition from max volume to silence).

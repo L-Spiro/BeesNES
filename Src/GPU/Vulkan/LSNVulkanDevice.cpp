@@ -75,6 +75,23 @@ namespace lsn {
 				VK_KHR_SWAPCHAIN_EXTENSION_NAME
 			};
 
+			// Create surface.
+#ifdef LSN_WINDOWS
+			VkWin32SurfaceCreateInfoKHR sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
+			sciSurfaceCreateInfo.hwnd = _hWnd;
+			sciSurfaceCreateInfo.hinstance = ::GetModuleHandleW( NULL );
+			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
+#elif defined( LSN_APPLE )
+			VkMetalSurfaceCreateInfoEXT sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT };
+			sciSurfaceCreateInfo.pLayer = _hWnd; // Opaque pointer evaluated as CAMetalLayer
+			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
+#else
+			VkXlibSurfaceCreateInfoKHR sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
+			// Assign Xlib Display/Window parameters from _hWnd opaque pointer.
+			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
+#endif
+			if ( !sSurface.Valid() ) { return false; }
+
 			// Enumerate physical devices.
 			uint32_t ui32DeviceCount = 0;
 			CVulkan::m_pfEnumeratePhysicalDevices( iInstance.iInstance, &ui32DeviceCount, nullptr );
@@ -83,24 +100,61 @@ namespace lsn {
 			std::vector<VkPhysicalDevice> dDevices( ui32DeviceCount );
 			CVulkan::m_pfEnumeratePhysicalDevices( iInstance.iInstance, &ui32DeviceCount, dDevices.data() );
 
+			// Pick the device:  the named adapter if there is one, otherwise the best kind (discrete, then integrated, then virtual, then
+			//	anything else, then CPU/software devices).  The first listed device used to be taken, which can be a software or translation-
+			//	layer device (llvmpipe, the Vulkan-on-Direct3D 12 compatibility pack) that is far too slow or cannot present.  Each candidate
+			//	must support the swap-chain extension and have a queue family that can both draw and present to this surface (family 0 was
+			//	assumed before), and must offer an 8-bit sRGB surface format.
+			auto aKindScore = []( VkPhysicalDeviceType _pdtType ) -> int32_t {
+				switch ( _pdtType ) {
+					case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU : { return 4; }
+					case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : { return 3; }
+					case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU : { return 2; }
+					case VK_PHYSICAL_DEVICE_TYPE_CPU : { return 0; }
+					default : { return 1; }
+				}
+			};
+			int32_t i32BestScore = -1;
+			uint32_t ui32BestFamily = 0;
 			for ( const auto & dThisDevice : dDevices ) {
 				VkPhysicalDeviceProperties deviceProperties;
 				CVulkan::m_pfGetPhysicalDeviceProperties( dThisDevice, &deviceProperties );
 
-				if ( _sAdapter.empty() || _sAdapter == std::string( deviceProperties.deviceName ) ) {
-					if ( !CVulkan::CheckDeviceExtensionSupport( dThisDevice, vDeviceExtensions ) ) {
-						continue;
+				const bool bNamed = !_sAdapter.empty() && _sAdapter == std::string( deviceProperties.deviceName );
+				if ( !_sAdapter.empty() && !bNamed ) { continue; }
+				if ( !CVulkan::CheckDeviceExtensionSupport( dThisDevice, vDeviceExtensions ) ) { continue; }
+				if ( CVulkan::GetBackSurfaceFormat( dThisDevice, sSurface.sSurface ) == VK_FORMAT_UNDEFINED ) { continue; }
+
+				// A queue family that can draw and present.
+				uint32_t ui32Families = 0;
+				CVulkan::m_pfGetPhysicalDeviceQueueFamilyProperties( dThisDevice, &ui32Families, nullptr );
+				std::vector<VkQueueFamilyProperties> vFamilies( ui32Families );
+				if ( ui32Families ) { CVulkan::m_pfGetPhysicalDeviceQueueFamilyProperties( dThisDevice, &ui32Families, vFamilies.data() ); }
+				uint32_t ui32Family = UINT32_MAX;
+				for ( uint32_t I = 0; I < ui32Families; ++I ) {
+					if ( !vFamilies[I].queueCount || !(vFamilies[I].queueFlags & VK_QUEUE_GRAPHICS_BIT) ) { continue; }
+					VkBool32 bPresent = VK_FALSE;
+					if ( CVulkan::m_pfGetPhysicalDeviceSurfaceSupportKHR( dThisDevice, I, sSurface.sSurface, &bPresent ) == VK_SUCCESS && bPresent ) {
+						ui32Family = I;
+						break;
 					}
-					pdPhysicalDevice = dThisDevice;
-					break;
 				}
+				if ( ui32Family == UINT32_MAX ) { continue; }
+
+				const int32_t i32Score = aKindScore( deviceProperties.deviceType );
+				if ( i32Score > i32BestScore ) {
+					i32BestScore = i32Score;
+					pdPhysicalDevice = dThisDevice;
+					ui32BestFamily = ui32Family;
+				}
+				if ( bNamed ) { break; }
 			}
 
 			if ( pdPhysicalDevice == VK_NULL_HANDLE ) { return false; }
 			
 			// Create logical device and queues.
 			float fQueuePriority[] = { 1.0f };
-			m_ui32QueueFamilyIndex = 0;
+			m_ui32QueueFamilyIndex = ui32BestFamily;
 			
 			VkDeviceQueueCreateInfo dqciQueueCreateInfo = {};
 			dqciQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -120,23 +174,6 @@ namespace lsn {
 			
 			VkQueue qGraphicsQueue;
 			CVulkan::m_pfGetDeviceQueue( dDevice.dDevice, m_ui32QueueFamilyIndex, 0, &qGraphicsQueue );
-
-			// Create surface.
-#ifdef LSN_WINDOWS
-			VkWin32SurfaceCreateInfoKHR sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
-			sciSurfaceCreateInfo.hwnd = _hWnd;
-			sciSurfaceCreateInfo.hinstance = ::GetModuleHandleW( NULL );
-			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
-#elif defined( LSN_APPLE )
-			VkMetalSurfaceCreateInfoEXT sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT };
-			sciSurfaceCreateInfo.pLayer = _hWnd; // Opaque pointer evaluated as CAMetalLayer
-			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
-#else
-			VkXlibSurfaceCreateInfoKHR sciSurfaceCreateInfo = { VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR };
-			// Assign Xlib Display/Window parameters from _hWnd opaque pointer.
-			CVulkan::LSN_SURFACE sSurface( iInstance.iInstance, &sciSurfaceCreateInfo );
-#endif
-			if ( !sSurface.Valid() ) { return false; }
 
 			// Query capabilities.
 			VkSurfaceCapabilitiesKHR scCapabilities;
@@ -257,10 +294,13 @@ namespace lsn {
 	bool CVulkanDevice::ResizeSwapChain() {
 		if ( !m_sSwapchain.Valid() ) { return false; }
 
-		if ( !FlushCommandQueue() ) { return false; }
-
+		// A minimized window has no area, and a swap chain cannot be 0 pixels in size.  Keep the current one until the window has an
+		//	area again (checked before flushing the queue, since this is retried every frame while minimized).
 		RECT rClient;
 		::GetClientRect( m_hWnd, &rClient );
+		if ( rClient.right <= rClient.left || rClient.bottom <= rClient.top ) { return false; }
+
+		if ( !FlushCommandQueue() ) { return false; }
 
 		VkSurfaceCapabilitiesKHR scCapabilities;
 		if ( CVulkan::m_pfGetPhysicalDeviceSurfaceCapabilitiesKHR( m_pdPhysicalDevice, m_sBackbuffer.sSurface, &scCapabilities ) != VK_SUCCESS ) {
@@ -286,6 +326,7 @@ namespace lsn {
 		sciSwapChainCreateInfo.imageFormat = m_fSwapFormat;
 		sciSwapChainCreateInfo.imageExtent.width = std::clamp( ui32Width, scCapabilities.minImageExtent.width, scCapabilities.maxImageExtent.width );
 		sciSwapChainCreateInfo.imageExtent.height = std::clamp( ui32Height, scCapabilities.minImageExtent.height, scCapabilities.maxImageExtent.height );
+		if ( !sciSwapChainCreateInfo.imageExtent.width || !sciSwapChainCreateInfo.imageExtent.height ) { return false; }
 		sciSwapChainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 		sciSwapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		sciSwapChainCreateInfo.imageArrayLayers = 1;

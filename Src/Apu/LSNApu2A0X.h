@@ -443,11 +443,21 @@ namespace lsn {
 			
 
 			if LSN_LIKELY( m_bEnabled ) {
-				CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0,
-					200,
-					//CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3,
-					Hz(), CAudio::GetOutputFrequency() );
-				CAudio::SampleBox().SetOutputCallback( PostHpf, this );
+				// (Re-)initialize the resampler only when its settings change or another APU (another system) has taken it over (this
+				//	runs on every APU cycle).
+				const uint32_t ui32OutputHz = CAudio::GetOutputFrequency();
+				if LSN_UNLIKELY( ui32OutputHz != m_ui32SampleBoxHz || m_fSampleBoxLpf != m_fSampleBoxLpfSet || m_fHpf0 != m_fSampleBoxHpfSet ||
+					CAudio::SampleBox().OutputCallbackParm() != this ) {
+					if ( CAudio::InitSampleBox( m_fSampleBoxLpf, m_fHpf0,
+						200,
+						//CSampleBox::TransitionRangeToBandwidth( CSampleBox::TransitionRange( CAudio::GetOutputFrequency() ), CAudio::GetOutputFrequency() ) * 3,
+						Hz(), ui32OutputHz ) ) {
+						m_ui32SampleBoxHz = ui32OutputHz;
+						m_fSampleBoxLpfSet = m_fSampleBoxLpf;
+						m_fSampleBoxHpfSet = m_fHpf0;
+					}
+					CAudio::SampleBox().SetOutputCallback( PostHpf, this );
+				}
 			
 
 				/*bool bPulse1 = m_pPulse1.BasicallyOn( LSN_PULSE1_ENABLED( this ) );
@@ -1023,6 +1033,12 @@ namespace lsn {
 		CHpfFilter										m_hfHpfFilter2;
 		/** The sample-box LPF frequency. */
 		float											m_fSampleBoxLpf = 0.0f;
+		/** The output rate the resampler was last set up for (0 = not yet). */
+		uint32_t										m_ui32SampleBoxHz = 0;
+		/** The low-pass cut-off the resampler was last set up with. */
+		float											m_fSampleBoxLpfSet = -1.0f;
+		/** The high-pass cut-off the resampler was last set up with. */
+		float											m_fSampleBoxHpfSet = -1.0f;
 		/** The LPF frequency. */
 		float											m_fLpf = 0.0f;
 		/** the LPF zero frequency. */

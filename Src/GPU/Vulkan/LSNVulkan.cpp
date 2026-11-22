@@ -256,6 +256,8 @@ namespace lsn {
 
 		// Loading function pointers for general functionality.
 		LSN_LOAD_FUNC( GetPhysicalDeviceMemoryProperties );
+		LSN_LOAD_FUNC( GetPhysicalDeviceQueueFamilyProperties );
+		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceSupportKHR );
 		LSN_LOAD_FUNC( CmdPipelineBarrier );
 		LSN_LOAD_FUNC( CmdCopyBufferToImage );
 		LSN_LOAD_FUNC( CmdCopyImageToBuffer );
@@ -352,12 +354,15 @@ namespace lsn {
 	}
 
 	/**
-	 * Gets the format of the back surface.
+	 * Gets the format for the swap-chain images:  an 8-bit sRGB format with the sRGB color space (B8G8R8A8 preferred, then R8G8B8A8).  The
+	 *	back-buffer render pass, the swap-chain image views, and the final pipeline are all created in this format, and the final pass relies
+	 *	on the sRGB encoding being done when it writes.  The first listed format is no longer simply taken:  drivers often list a UNORM
+	 *	format first, and viewing those images as sRGB (or with the channels swapped) is invalid; some drivers hang on it.
 	 *
-	 * \param _pdDevice The device.
-	 * \param _sSurface The window/back surface.
-	 * \return Finds a valid format for the back buffer.
-	 */
+	 * \param _pdDevice The physical device.
+	 * \param _sSurface The surface.
+	 * \return Returns the format, or VK_FORMAT_UNDEFINED if the surface offers no 8-bit sRGB format.
+	 **/
 	VkFormat CVulkan::GetBackSurfaceFormat( VkPhysicalDevice _pdDevice, VkSurfaceKHR _sSurface ) {
 		uint32_t ui32Count = 0;
 		if ( CVulkan::m_pfGetPhysicalDeviceSurfaceFormatsKHR( _pdDevice, _sSurface,
@@ -374,14 +379,16 @@ namespace lsn {
 				return VK_FORMAT_UNDEFINED;
 			}
 
-			VkFormat fRet;
-			if ( ui32Count == 1 && vFormats[0].format == VK_FORMAT_UNDEFINED ) {
-				fRet = VK_FORMAT_B8G8R8A8_UNORM;
+			// A single undefined format means any format can be used.
+			if ( ui32Count == 1 && vFormats[0].format == VK_FORMAT_UNDEFINED ) { return VK_FORMAT_B8G8R8A8_SRGB; }
+
+			const VkFormat fPreferred[] = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB };
+			for ( auto fThis : fPreferred ) {
+				for ( uint32_t I = 0; I < ui32Count; ++I ) {
+					if ( vFormats[I].format == fThis && vFormats[I].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ) { return fThis; }
+				}
 			}
-			else {
-				fRet = vFormats[0].format;
-			}
-			return fRet;
+			return VK_FORMAT_UNDEFINED;
 		}
 		catch ( ... ) { return VK_FORMAT_UNDEFINED; }
 	}
