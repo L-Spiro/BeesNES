@@ -188,7 +188,7 @@ int WINAPI wWinMain( _In_ HINSTANCE _hInstance, _In_opt_ HINSTANCE /*_hPrevInsta
 			if ( !abIsAlive ) { break; }
 			if ( mMsg.message != WM_QUIT ) {
 				pwMainWindow->Tick();
-				::WaitMessage();
+				::MsgWaitForMultipleObjectsEx( 0, NULL, INFINITE, QS_ALLINPUT, MWMO_INPUTAVAILABLE );
 			}
 		}
 	}

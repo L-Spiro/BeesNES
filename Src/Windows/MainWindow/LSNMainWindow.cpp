@@ -2977,6 +2977,8 @@ namespace lsn {
 #endif	// #ifndef CREATE_WAITABLE_TIMER_HIGH_RESOLUTION
 		HANDLE hTimer = ::CreateWaitableTimerExW( NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
 		constexpr auto LSN_SLICE = std::chrono::microseconds( 1000 );
+		LARGE_INTEGER liDue;
+		liDue.QuadPart = -LONGLONG( std::chrono::duration_cast<std::chrono::nanoseconds>( LSN_SLICE ).count() / 100 );	// Relative, in 100-nanosecond units.
 
 		CCheatManager & cmCheats = _pmwWindow->m_bnEmulator.CheatManager();
 		while ( _pmwWindow->m_aiThreadState != LSN_TS_STOP ) {
@@ -2986,11 +2988,9 @@ namespace lsn {
 			}
 			const auto aStart = std::chrono::steady_clock::now();
 			_pmwWindow->m_bnEmulator.GetSystem()->Tick();
-			if ( std::chrono::steady_clock::now() - aStart < LSN_SLICE ) {
-				if ( hTimer ) {
-					LARGE_INTEGER liDue;
-					liDue.QuadPart = -LONGLONG( std::chrono::duration_cast<std::chrono::nanoseconds>( LSN_SLICE ).count() / 100 );	// Relative, in 100-nanosecond units.
-					if ( ::SetWaitableTimer( hTimer, &liDue, 0, NULL, NULL, FALSE ) ) {
+			if LSN_LIKELY( std::chrono::steady_clock::now() - aStart < LSN_SLICE ) {
+				if LSN_LIKELY( hTimer ) {
+					if LSN_LIKELY( ::SetWaitableTimer( hTimer, &liDue, 0, NULL, NULL, FALSE ) ) {
 						::WaitForSingleObject( hTimer, INFINITE );
 					}
 				}
