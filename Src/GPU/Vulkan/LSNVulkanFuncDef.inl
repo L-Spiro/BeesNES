@@ -1038,6 +1038,7 @@ PFN_vkGetRayTracingShaderGroupStackSizeKHR CVulkan::m_pfGetRayTracingShaderGroup
 PFN_vkGetPhysicalDeviceMemoryProperties CVulkan::m_pfGetPhysicalDeviceMemoryProperties = nullptr;
 PFN_vkGetPhysicalDeviceQueueFamilyProperties CVulkan::m_pfGetPhysicalDeviceQueueFamilyProperties = nullptr;
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR CVulkan::m_pfGetPhysicalDeviceSurfaceSupportKHR = nullptr;
+PFN_vkGetPhysicalDeviceFormatProperties CVulkan::m_pfGetPhysicalDeviceFormatProperties = nullptr;
 
 /**
  * Insert a memory dependency.

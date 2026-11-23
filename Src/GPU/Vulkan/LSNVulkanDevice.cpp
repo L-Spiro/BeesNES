@@ -11,7 +11,13 @@
 
 #include "LSNVulkanDevice.h"
 
+#include <cstring>
+
 namespace lsn {
+
+	// == Members.
+	/** The next swap-chain generation (shared so that a new device never repeats one). */
+	uint64_t CVulkanDevice::s_ui64NextGeneration = 1;
 
 	CVulkanDevice::CVulkanDevice() {}
 	CVulkanDevice::~CVulkanDevice() {
@@ -35,21 +41,18 @@ namespace lsn {
 #ifdef LSN_WINDOWS
 		const std::vector<const char*> vInstanceExtensions = {
 			VK_KHR_SURFACE_EXTENSION_NAME,
-			VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+			VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 			//VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 		};
 #elif defined( LSN_APPLE )
 		const std::vector<const char*> vInstanceExtensions = {
 			VK_KHR_SURFACE_EXTENSION_NAME,
-			VK_EXT_METAL_SURFACE_EXTENSION_NAME,
-			VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+			VK_EXT_METAL_SURFACE_EXTENSION_NAME
 		};
 #else
 		const std::vector<const char*> vInstanceExtensions = {
 			VK_KHR_SURFACE_EXTENSION_NAME,
-			VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
-			VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+			VK_KHR_XLIB_SURFACE_EXTENSION_NAME
 		};
 #endif
 		if ( !CVulkan::CheckInstanceExtensionSupport( vInstanceExtensions ) ) {
@@ -114,6 +117,11 @@ namespace lsn {
 					default : { return 1; }
 				}
 			};
+			// Layered implementations (the Vulkan-on-Direct3D 12 compatibility pack, "Microsoft Direct3D12 (...)") report the type of
+			//	the GPU under them, so they tie with the native driver for that GPU; they are slower and less stable, so they lose ties.
+			auto aIsLayered = []( const char * _pcName ) {
+				return std::strstr( _pcName, "Direct3D12" ) != nullptr || std::strstr( _pcName, "Microsoft Basic Render" ) != nullptr;
+			};
 			int32_t i32BestScore = -1;
 			uint32_t ui32BestFamily = 0;
 			for ( const auto & dThisDevice : dDevices ) {
@@ -141,7 +149,7 @@ namespace lsn {
 				}
 				if ( ui32Family == UINT32_MAX ) { continue; }
 
-				const int32_t i32Score = aKindScore( deviceProperties.deviceType );
+				const int32_t i32Score = aKindScore( deviceProperties.deviceType ) * 2 + (aIsLayered( deviceProperties.deviceName ) ? 0 : 1);
 				if ( i32Score > i32BestScore ) {
 					i32BestScore = i32Score;
 					pdPhysicalDevice = dThisDevice;
@@ -253,6 +261,7 @@ namespace lsn {
 			m_ui32SwapImages = ui32SwapImages;
 			m_eSwapExtent = eExtent;
 			m_bSwapCanCopy = bCanCopy;
+			m_ui64SwapGeneration = s_ui64NextGeneration++;
 			
 			m_fFence = std::move( fFence );
 			m_qGraphicsQueue = qGraphicsQueue;
@@ -347,13 +356,39 @@ namespace lsn {
 		CVulkan::LSN_SWAPCHAIN sNewSwapchain( m_dDevice.dDevice, &sciSwapChainCreateInfo );
 		if ( !sNewSwapchain.Valid() ) { return false; }
 
-		// This assignment invokes the RAII move assignment operator, which properly 
-		// destroys the *old* swapchain before taking ownership of the new one.
+		// The old swap chain is kept until the filter has destroyed the image views and framebuffers made from its images (destroying
+		//	the images first is invalid, and some drivers crash on it).  See DestroyRetiredSwapChains().
+		try {
+			m_vRetiredSwapchains.push_back( std::move( m_sSwapchain ) );
+		}
+		catch ( ... ) {}
 		m_sSwapchain = std::move( sNewSwapchain );
 		m_eSwapExtent = sciSwapChainCreateInfo.imageExtent;
 		m_bSwapCanCopy = bCanCopy;
+		m_ui64SwapGeneration = s_ui64NextGeneration++;
 
 		return true;
+	}
+
+	/**
+	 * Destroys the swap chains replaced by ResizeSwapChain().  They are kept until the image views and framebuffers made from their images
+	 *	have been destroyed (call this after releasing them).
+	 **/
+	void CVulkanDevice::DestroyRetiredSwapChains() {
+		m_vRetiredSwapchains.clear();
+	}
+
+	/**
+	 * Determines whether images of a format can be sampled with linear filtering (optional for 32-bit floating-point formats).
+	 *
+	 * \param _fFormat The format to check.
+	 * \return Returns true if images of the format can be sampled with VK_FILTER_LINEAR.
+	 **/
+	bool CVulkanDevice::SupportsLinearFilter( VkFormat _fFormat ) const {
+		if ( m_pdPhysicalDevice == VK_NULL_HANDLE || !CVulkan::m_pfGetPhysicalDeviceFormatProperties ) { return false; }
+		VkFormatProperties fpProps = {};
+		CVulkan::m_pfGetPhysicalDeviceFormatProperties( m_pdPhysicalDevice, _fFormat, &fpProps );
+		return (fpProps.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) != 0;
 	}
 
 	/**
@@ -361,6 +396,7 @@ namespace lsn {
 	 **/
 	void CVulkanDevice::Reset() {
 		m_fFence.Reset();
+		m_vRetiredSwapchains.clear();
 		m_sSwapchain.Reset();
 		m_sBackbuffer.Reset();
 		m_dDevice.Reset();
@@ -374,6 +410,7 @@ namespace lsn {
 		m_ui32SwapImages = 0;
 		m_eSwapExtent = { 0, 0 };
 		m_bSwapCanCopy = false;
+		m_ui64SwapGeneration = 0;
 	}
 
 }	// namespace lsn

@@ -14,6 +14,8 @@
 #include "../LSNGpuBase.h"
 #include "LSNVulkan.h"
 
+#include <vector>
+
 namespace lsn {
 
 	/**
@@ -88,6 +90,28 @@ namespace lsn {
 		inline bool												SwapChainCanCopy() const { return m_bSwapCanCopy; }
 
 		/**
+		 * Gets a number that changes every time the swap chain is created or re-created.  Image views and framebuffers made from the swap-chain
+		 *	images must be re-created when it changes (comparing image handles is not enough:  a driver can reuse them).
+		 *
+		 * \return Returns the generation of the swap chain.
+		 **/
+		inline uint64_t											SwapChainGeneration() const { return m_ui64SwapGeneration; }
+
+		/**
+		 * Destroys the swap chains replaced by ResizeSwapChain().  They are kept until the image views and framebuffers made from their images
+		 *	have been destroyed (call this after releasing them).
+		 **/
+		void													DestroyRetiredSwapChains();
+
+		/**
+		 * Determines whether images of a format can be sampled with linear filtering (optional for 32-bit floating-point formats).
+		 *
+		 * \param _fFormat The format to check.
+		 * \return Returns true if images of the format can be sampled with VK_FILTER_LINEAR.
+		 **/
+		bool													SupportsLinearFilter( VkFormat _fFormat ) const;
+
+		/**
 		 * Resizes the swap chain backbuffers to match the current target window dimensions.
 		 * Note: It is the caller's responsibility to release any active Render Target Views referencing the swap chain before calling this.
 		 *
@@ -114,6 +138,7 @@ namespace lsn {
 		CVulkan::LSN_SURFACE									m_sBackbuffer;						/**< Back buffer. */
 		CVulkan::LSN_DEVICE										m_dDevice;							/**< The Vulkan device. */
 		CVulkan::LSN_SWAPCHAIN									m_sSwapchain;						/**< The swapchain. */
+		std::vector<CVulkan::LSN_SWAPCHAIN>						m_vRetiredSwapchains;				/**< Swap chains replaced by ResizeSwapChain() whose image views may still exist. */
 		CVulkan::LSN_FENCE										m_fFence;							/**< The fence used to flush the command queue. */
 		
 		VkPhysicalDevice										m_pdPhysicalDevice = VK_NULL_HANDLE;/**< The physic device. */
@@ -126,6 +151,8 @@ namespace lsn {
 		uint32_t												m_ui32SwapImages = 0;				/**< The swap-chain image count chosen by Create().  ResizeSwapChain() must keep it. */
 		VkExtent2D												m_eSwapExtent = { 0, 0 };			/**< The size of the swap-chain images. */
 		bool													m_bSwapCanCopy = false;				/**< True if the swap-chain images were created with VK_IMAGE_USAGE_TRANSFER_SRC_BIT. */
+		uint64_t												m_ui64SwapGeneration = 0;			/**< Changes every time the swap chain is created. */
+		static uint64_t											s_ui64NextGeneration;				/**< The next swap-chain generation (shared so that a new device never repeats one). */
 	};
 
 }	// namespace lsn

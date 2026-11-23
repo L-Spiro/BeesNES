@@ -258,6 +258,7 @@ namespace lsn {
 		LSN_LOAD_FUNC( GetPhysicalDeviceMemoryProperties );
 		LSN_LOAD_FUNC( GetPhysicalDeviceQueueFamilyProperties );
 		LSN_LOAD_FUNC( GetPhysicalDeviceSurfaceSupportKHR );
+		LSN_LOAD_FUNC( GetPhysicalDeviceFormatProperties );
 		LSN_LOAD_FUNC( CmdPipelineBarrier );
 		LSN_LOAD_FUNC( CmdCopyBufferToImage );
 		LSN_LOAD_FUNC( CmdCopyImageToBuffer );

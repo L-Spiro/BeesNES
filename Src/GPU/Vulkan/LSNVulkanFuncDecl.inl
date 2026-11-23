@@ -1056,6 +1056,7 @@ static PFN_vkGetPhysicalDeviceQueueFamilyProperties        m_pfGetPhysicalDevice
  * \return Returns VK_SUCCESS on success.
  **/
 static PFN_vkGetPhysicalDeviceSurfaceSupportKHR            m_pfGetPhysicalDeviceSurfaceSupportKHR;
+static PFN_vkGetPhysicalDeviceFormatProperties             m_pfGetPhysicalDeviceFormatProperties;
 
 /**
  * Insert a memory dependency.
