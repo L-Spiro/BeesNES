@@ -10,6 +10,8 @@
 
 #include "LSNPaletteDisplay.h"
 
+#include <Base/LSWBase.h>
+
 #include <algorithm>
 #include <commctrl.h>
 #include <cmath>
@@ -29,6 +31,28 @@ namespace lsn {
 	}
 
 	// == Functions.
+	/**
+	 * Gets the name of the window class of the control, registering the class the first time.  The class uses ::DefWindowProcW()
+	 *	(everything else is done by SubclassProc()).
+	 *
+	 * \return Returns the name of the window class.
+	 */
+	const wchar_t * CPaletteDisplay::ClassName() {
+		static const wchar_t * pwcName = L"BeesNESPaletteDisplay";
+		static const bool bRegistered = []() {
+			WNDCLASSEXW wceClass = { sizeof( wceClass ) };
+			// Global so that the dialog manager finds it whatever instance handle the dialog was created with.
+			wceClass.style = CS_GLOBALCLASS | CS_DBLCLKS;
+			wceClass.lpfnWndProc = ::DefWindowProcW;
+			wceClass.hInstance = lsw::CBase::GetThisHandle();
+			wceClass.hCursor = ::LoadCursorW( NULL, IDC_ARROW );
+			wceClass.lpszClassName = pwcName;
+			return ::RegisterClassExW( &wceClass ) != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
+		}();
+		(void)bRegistered;
+		return pwcName;
+	}
+
 	/**
 	 * Attaches the window after the dialog creates it and subclasses it (dialog controls are not routed through CWidget::WindowProc()).
 	 *
@@ -323,9 +347,9 @@ namespace lsn {
 				ppdThis->MouseWheel( DWORD( _wParam ), pPos );
 				return 0;
 			}
-			case WM_NCHITTEST : {
-				// Static controls can report themselves as transparent, which would keep the scroll bar from being used.
-				return ::DefWindowProcW( _hWnd, _uMsg, _wParam, _lParam );
+			case WM_LBUTTONDOWN : {
+				::SetFocus( _hWnd );
+				return 0;
 			}
 			case WM_NCDESTROY : {
 				::RemoveWindowSubclass( _hWnd, SubclassProc, _uiptrId );

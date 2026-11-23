@@ -9,6 +9,7 @@
  */
 
 #include "LSNVideoOptionsWindowLayout.h"
+#include "LSNPaletteDisplay.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -527,14 +528,14 @@ namespace lsn {
 						break;
 					}
 					case CVideoOptionsFields::LSN_VFT_DISPLAY : {
-						// A custom-drawn static control (see CPaletteDisplay).
+						// A custom-drawn control (see CPaletteDisplay).
 						wlCtrl.ltType = LSN_LT_PALETTE_DISPLAY;
-						wlCtrl.lpwcClass = WC_STATICW;
+						wlCtrl.lpwcClass = CPaletteDisplay::ClassName();
 						wlCtrl.iLeft = iInnerL;
 						wlCtrl.iTop = iRowTop;
 						wlCtrl.dwWidth = DWORD( iInnerW );
 						wlCtrl.dwHeight = LSN_VO_DISPLAY_H;
-						wlCtrl.dwStyle = WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL | SS_NOTIFY;
+						wlCtrl.dwStyle = WS_CHILDWINDOW | WS_VISIBLE | WS_VSCROLL;
 						wlCtrl.dwStyleEx = WS_EX_CLIENTEDGE;
 						_vLayout.push_back( wlCtrl );
 						iRowTop += LSN_VO_DISPLAY_H + LSN_TOP_JUST;

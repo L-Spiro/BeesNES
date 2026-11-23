@@ -43,6 +43,14 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Gets the name of the window class of the control, registering the class the first time.  The class uses ::DefWindowProcW()
+		 *	(everything else is done by SubclassProc()).
+		 *
+		 * \return Returns the name of the window class.
+		 */
+		static const wchar_t *								ClassName();
+
+		/**
 		 * Attaches the window after the dialog creates it and subclasses it (dialog controls are not routed through CWidget::WindowProc()).
 		 *
 		 * \param _hWnd The created window.
