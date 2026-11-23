@@ -948,6 +948,9 @@
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.h">
       <Filter>Header Files\Windows\VideoOptions</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Windows\VideoOptions\LSNPaletteDisplay.h">
+      <Filter>Header Files\Windows\VideoOptions</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.h">
       <Filter>Header Files\Windows\VideoOptions</Filter>
     </ClInclude>
@@ -1794,6 +1797,9 @@
       <Filter>Source Files\Windows\Patch</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.cpp">
+      <Filter>Source Files\Windows\VideoOptions</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Windows\VideoOptions\LSNPaletteDisplay.cpp">
       <Filter>Source Files\Windows\VideoOptions</Filter>
     </ClCompile>
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.cpp">

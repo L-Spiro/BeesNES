@@ -1252,10 +1252,6 @@ namespace lsn {
 			case LSN_VF_NOISE_AMOUNT : {
 				return GetValue( LSN_VF_NOISE_TYPE, _ftTarget, dValue ) && LSN_NOISE_TYPE( dValue ) == LSN_NT_CUSTOM;
 			}
-			case LSN_VF_PALETTE_SHOW_INDICES : {
-				// The palette display does not exist yet.
-				return false;
-			}
 			default : { return true; }
 		}
 	}

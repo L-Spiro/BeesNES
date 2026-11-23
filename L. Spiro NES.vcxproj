@@ -2149,6 +2149,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindow.h" />
     <ClInclude Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.h" />
+    <ClInclude Include="Src\Windows\VideoOptions\LSNPaletteDisplay.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.h" />
     <ClInclude Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.h" />
@@ -2363,6 +2364,7 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindow.cpp" />
     <ClCompile Include="Src\Windows\Audio\LSNAudioOptionsWindowLayout.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsFields.cpp" />
+    <ClCompile Include="Src\Windows\VideoOptions\LSNPaletteDisplay.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsPage.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsSettingsPage.cpp" />
     <ClCompile Include="Src\Windows\VideoOptions\LSNVideoOptionsWindow.cpp" />

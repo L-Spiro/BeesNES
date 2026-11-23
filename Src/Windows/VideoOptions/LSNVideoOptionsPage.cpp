@@ -9,6 +9,7 @@
  */
 
 #include "LSNVideoOptionsPage.h"
+#include "LSNPaletteDisplay.h"
 #include "../../BeesNES/LSNBeesNes.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
@@ -18,6 +19,7 @@
 #include <ComboBox/LSWComboBox.h>
 
 #include <algorithm>
+#include <cmath>
 #include <commdlg.h>
 #include <filesystem>
 #include <string>
@@ -226,6 +228,7 @@ namespace lsn {
 		}
 		m_bUpdating = bWasUpdating;
 		UpdateEnabled();
+		UpdatePaletteDisplay();
 	}
 
 	/**
@@ -334,14 +337,7 @@ namespace lsn {
 		::AdjustWindowRectEx( &rClient, pwDisplay->GetStyle(), FALSE, pwDisplay->GetStyleEx() );
 		rClient.right += ::GetSystemMetrics( SM_CXVSCROLL );
 		::SetWindowPos( pwDisplay->Wnd(), NULL, 0, 0, rClient.Width(), rClient.Height(), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
-		// A 512-entry palette needs a second screen of rows (each row is 16 colors of 24-by-24 pixels).
-		SCROLLINFO siInfo = { sizeof( siInfo ) };
-		siInfo.fMask = SIF_RANGE | SIF_PAGE | SIF_POS | SIF_DISABLENOSCROLL;
-		siInfo.nMin = 0;
-		siInfo.nMax = CVideoOptionsWindowLayout::LSN_PALETTE_DISPLAY_H - 1;
-		siInfo.nPage = UINT( CVideoOptionsWindowLayout::LSN_PALETTE_DISPLAY_H );
-		siInfo.nPos = 0;
-		::SetScrollInfo( pwDisplay->Wnd(), SB_VERT, &siInfo, TRUE );
+		static_cast<CPaletteDisplay *>(pwDisplay)->UpdateScrollBar();
 
 		// The Load combo box ends where the display ends.
 		CWidget * pwLoad = FindChild( CVideoOptionsWindowLayout::ControlId( CVideoOptionsFields::LSN_VF_PALETTE_LOAD ) );
@@ -352,6 +348,53 @@ namespace lsn {
 				::SetWindowPos( pwLoad->Wnd(), NULL, 0, 0, rDisplay.right - rLoad.left, rLoad.Height(), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE );
 			}
 		}
+	}
+
+	/**
+	 * Shows the palette being edited (with its gamma curves and color spaces applied) in the palette display, if the page has one.
+	 */
+	void CVideoOptionsPage::UpdatePaletteDisplay() {
+		CPaletteDisplay * ppdDisplay = static_cast<CPaletteDisplay *>(FindChild( CVideoOptionsWindowLayout::ControlId( CVideoOptionsFields::LSN_VF_PALETTE_DISPLAY ) ));
+		if ( !ppdDisplay || !m_ppdData || !m_ppdData->pvodData || !m_ppdData->pvodData->poOptions ) { return; }
+		const CVideoOptionsFields::LSN_FIELD_TARGET ftTarget = Target();
+		double dShow = 0.0;
+		ppdDisplay->SetShowIndices( CVideoOptionsFields::GetValue( CVideoOptionsFields::LSN_VF_PALETTE_SHOW_INDICES, ftTarget, dShow ) && dShow != 0.0 );
+		try {
+			std::vector<COLORREF> vColors;
+			if ( ftTarget.ppoPalette && ftTarget.pfroFilters ) {
+				// The same files CBeesNes::ApplyPaletteOptions() loads.
+				const std::wstring wsDefault = (ftTarget.pmRegion == LSN_PM_NTSC_M || ftTarget.pmRegion == LSN_PM_NTSC_J) ?
+					CBeesNes::DefaultNtscPalette() : CBeesNes::DefaultPalPalette();
+				const std::wstring wsPath = ftTarget.ppoPalette->wsPath.empty() ? wsDefault : ftTarget.ppoPalette->wsPath;
+				if ( wsPath != m_wsPreviewPath ) {
+					m_wsPreviewPath = wsPath;
+					m_npPreview = CNesPalette();
+					if ( !m_npPreview.LoadFromFile( wsPath ) ) {
+						m_npPreview = CNesPalette();
+						m_npPreview.LoadFromFile( wsDefault );
+					}
+				}
+				const CNesPalette::PaletteF64 & pSrc = m_npPreview.Palette();
+				CNesPalette::PaletteF64 pBaked = CBeesNes::BakePalette( m_npPreview, ftTarget.ppoPalette->gCrtGamma[ftTarget.pmRegion],
+					ftTarget.pfroFilters->gfoPalette, m_ppdData->pvodData->poOptions->hdoHostDisplay.dsDisplay, true );
+				if ( pSrc.size() && pBaked.size() == 512 ) {
+					// Files with 64 colors are repeated to fill 512 entries; only the 64 are shown.
+					size_t sTotal = 64;
+					for ( size_t I = 64; I < pSrc.size() && sTotal == 64; ++I ) {
+						const auto & fA = pSrc[I];
+						const auto & fB = pSrc[I%64];
+						if ( fA.x[0] != fB.x[0] || fA.x[1] != fB.x[1] || fA.x[2] != fB.x[2] ) { sTotal = 512; }
+					}
+					vColors.resize( sTotal );
+					auto ToByte = []( double _dVal ) { return BYTE( std::round( std::clamp( _dVal, 0.0, 1.0 ) * 255.0 ) ); };
+					for ( size_t I = 0; I < sTotal; ++I ) {
+						vColors[I] = RGB( ToByte( pBaked[I].x[0] ), ToByte( pBaked[I].x[1] ), ToByte( pBaked[I].x[2] ) );
+					}
+				}
+			}
+			ppdDisplay->SetColors( vColors );
+		}
+		catch ( ... ) {}
 	}
 
 	/**

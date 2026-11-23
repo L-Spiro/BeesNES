@@ -527,7 +527,9 @@ namespace lsn {
 						break;
 					}
 					case CVideoOptionsFields::LSN_VFT_DISPLAY : {
-						wlCtrl.ltType = LSW_LT_LABEL;
+						// A custom-drawn static control (see CPaletteDisplay).
+						wlCtrl.ltType = LSN_LT_PALETTE_DISPLAY;
+						wlCtrl.lpwcClass = WC_STATICW;
 						wlCtrl.iLeft = iInnerL;
 						wlCtrl.iTop = iRowTop;
 						wlCtrl.dwWidth = DWORD( iInnerW );

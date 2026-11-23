@@ -626,6 +626,79 @@
 	}
 
 	/**
+	 * Creates the text of a Mesen .JSON cheat file.  Notes are appended to the descriptions as {{notes}} (as in the built-in library).
+	 *
+	 * \param _vCheats The cheats to write.  Their bEnabled members are written as "Enabled".
+	 * \param _sJson Holds the UTF-8 JSON text.
+	 * \return Returns true if there was enough memory to create the text.
+	 **/
+	bool CCheatConverter::CreateMesenJson( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, std::string &_sJson ) {
+		try {
+			_sJson = "{\n  \"Cheats\": [";
+			for ( size_t I = 0; I < _vCheats.size(); ++I ) {
+				const LSN_CHEAT_ENTRY & ceThis = _vCheats[I];
+				// Game Genie only if every code is one; otherwise every code is written as AAAA:VV or AAAA:VV:CC.
+				bool bGameGenie = ceThis.ctType == LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE && ceThis.vAddresses.size();
+				for ( size_t J = 0; J < ceThis.vAddresses.size() && bGameGenie; ++J ) {
+					LSN_CHEAT_ENTRY::LSN_ADDRESS aTmp;
+					bool bGg = false;
+					bGameGenie = ParseAnyCode( ceThis.vAddresses[J].sCode, aTmp, bGg ) && bGg;
+				}
+				std::string sCodes;
+				for ( size_t J = 0; J < ceThis.vAddresses.size(); ++J ) {
+					if ( J ) { sCodes += '\n'; }
+					if ( bGameGenie ) {
+						LSN_CHEAT_ENTRY::LSN_ADDRESS aTmp;
+						bool bGg = false;
+						ParseAnyCode( ceThis.vAddresses[J].sCode, aTmp, bGg );
+						sCodes += aTmp.sCode;
+					}
+					else { sCodes += FormatRawCode( ceThis.vAddresses[J] ); }
+				}
+				std::string sDesc = ee::CExpEval::ToUtf8( ceThis.wsDescription );
+				if ( ceThis.wsNotes.size() ) {
+					sDesc += " {{";
+					sDesc += ee::CExpEval::ToUtf8( ceThis.wsNotes );
+					sDesc += "}}";
+				}
+				_sJson += I ? ",\n    {\n" : "\n    {\n";
+				_sJson += "      \"Description\": \"" + JsonEscape( sDesc ) + "\",\n";
+				_sJson += std::string( "      \"Type\": \"" ) + (bGameGenie ? "NesGameGenie" : "NesCustom") + "\",\n";
+				_sJson += std::string( "      \"Enabled\": " ) + (ceThis.bEnabled ? "true" : "false") + ",\n";
+				_sJson += "      \"Codes\": \"" + JsonEscape( sCodes ) + "\"\n    }";
+			}
+			_sJson += _vCheats.size() ? "\n  ]\n}" : "]\n}";
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Escapes a UTF-8 string for use inside a JSON string.
+	 *
+	 * \param _sText The text to escape.
+	 * \return Returns the escaped text.
+	 **/
+	std::string CCheatConverter::JsonEscape( const std::string &_sText ) {
+		std::string sRet;
+		sRet.reserve( _sText.size() + 8 );
+		for ( char cThis : _sText ) {
+			switch ( cThis ) {
+				case '"' : { sRet += "\\\""; break; }
+				case '\\' : { sRet += "\\\\"; break; }
+				case '\n' : { sRet += "\\n"; break; }
+				case '\r' : { sRet += "\\r"; break; }
+				case '\t' : { sRet += "\\t"; break; }
+				default : {
+					if ( uint8_t( cThis ) < 0x20 ) { sRet += std::format( "\\u{:04X}", uint8_t( cThis ) ); }
+					else { sRet += cThis; }
+				}
+			}
+		}
+		return sRet;
+	}
+
+	/**
 	 * Parses and fixes the description of a cheat. Escapes will be handled, notes will be removed, and the description will be titlized.
 	 * 
 	 * \param _sDescription The cheat description to parse.

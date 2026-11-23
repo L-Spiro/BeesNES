@@ -10,6 +10,8 @@
 
 #include "LSNCheatsWindow.h"
 #include "LSNCheatEditWindowLayout.h"
+#include "../../Cheats/LSNCheatConverter.h"
+#include "../../File/LSNStdFile.h"
 #include "../../Localization/LSNLocalization.h"
 #include "../Layout/LSNLayoutMacros.h"
 #include "../Layout/LSNLayoutManager.h"
@@ -22,6 +24,9 @@
 
 #include <Helpers/LSWHelpers.h>
 
+#include <commdlg.h>
+#include <cwchar>
+#include <filesystem>
 #include <map>
 
 namespace lsn {
@@ -153,6 +158,7 @@ namespace lsn {
 		{
 			::MoveWindow( Wnd(), int( rThisRect.left ), int( rThisRect.top ), int( rThisRect.Width() ), int( rThisRect.Height() + rRebarRect.Height() ), FALSE );
 		}
+		FitToToolBar();
 
 		{
 			auto ptlvTree = reinterpret_cast<CTreeListView *>(FindChild( Layout::LSN_CWI_CHEAT_TREELISTVIEW ));
@@ -231,6 +237,14 @@ namespace lsn {
 				break;
 			}
 
+			case Layout::LSN_CWI_IMPORT_BUTTON : {
+				ImportCheats();
+				break;
+			}
+			case Layout::LSN_CWI_EXPORT_BUTTON : {
+				ExportCheats();
+				break;
+			}
 			case Layout::LSN_CWI_ADD_BUTTON : {
 				AddCheat();
 				break;
@@ -788,6 +802,284 @@ namespace lsn {
 			if ( cedData.acActive.bEnabled && !m_pcmCheatManager->IsEnabled( ui32Idx ) ) { ReportConflicts( { ui32Idx } ); }
 		}
 		catch ( ... ) {}
+	}
+
+	/**
+	 * Imports Mesen .JSON cheat files as custom cheats.  The name of each file (without its extension) is the game of its cheats.
+	 **/
+	void CCheatsWindow::ImportCheats() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			OPENFILENAMEW ofnOpenFile = { sizeof( ofnOpenFile ) };
+			std::wstring wsFileName;
+			wsFileName.resize( 0x1FFFF + 2 );
+			std::wstring wsFilter = std::wstring( LSN_LSTR( LSN_STR_CHEAT_JSON_TYPES ), std::size( LSN_LSTR( LSN_STR_CHEAT_JSON_TYPES ) ) - 1 );
+			const std::wstring & wsInitial = m_pcmCheatManager->LastImportFolder();
+			ofnOpenFile.hwndOwner = Wnd();
+			ofnOpenFile.lpstrFilter = wsFilter.c_str();
+			ofnOpenFile.nFilterIndex = 1;
+			ofnOpenFile.lpstrFile = wsFileName.data();
+			ofnOpenFile.nMaxFile = DWORD( wsFileName.size() );
+			ofnOpenFile.lpstrTitle = LSN_LSTR( LSN_STR_IMPORT_CHEATS );
+			ofnOpenFile.Flags = OFN_ALLOWMULTISELECT | OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+			ofnOpenFile.lpstrInitialDir = wsInitial.size() ? wsInitial.c_str() : nullptr;
+			if ( !::GetOpenFileNameW( &ofnOpenFile ) ) { return; }
+
+			// One file is a full path; several are the folder followed by the file names.
+			std::vector<std::filesystem::path> vFiles;
+			std::wstring wsDir = ofnOpenFile.lpstrFile;
+			const wchar_t * pwcTmp = ofnOpenFile.lpstrFile + wsDir.size() + 1;
+			if ( (*pwcTmp) == L'\0' ) { vFiles.push_back( wsDir ); }
+			else {
+				while ( (*pwcTmp) ) {
+					std::wstring wsFile = pwcTmp;
+					vFiles.push_back( std::filesystem::path( wsDir ) / wsFile );
+					pwcTmp += wsFile.size() + 1;
+				}
+			}
+			if ( vFiles.empty() ) { return; }
+			m_pcmCheatManager->SetLastImportFolder( vFiles[0].parent_path().native() );
+
+			// Same cheat:  same game, description, notes, and decoded codes.
+			auto SameCheat = []( const LSN_CHEAT_ENTRY &_ceA, const LSN_CHEAT_ENTRY &_ceB ) {
+				if ( _ceA.u16sFile != _ceB.u16sFile || _ceA.wsDescription != _ceB.wsDescription || _ceA.wsNotes != _ceB.wsNotes ||
+					_ceA.vAddresses.size() != _ceB.vAddresses.size() ) { return false; }
+				for ( size_t I = _ceA.vAddresses.size(); I--; ) {
+					const auto & aA = _ceA.vAddresses[I];
+					const auto & aB = _ceB.vAddresses[I];
+					if ( aA.ui16Address != aB.ui16Address || aA.ui8Value != aB.ui8Value || aA.bUseCompare != aB.bUseCompare ||
+						(aA.bUseCompare && aA.ui8CompareValue != aB.ui8CompareValue) ) { return false; }
+				}
+				return true;
+			};
+
+			size_t stImported = 0, stDuplicates = 0, stInvalid = 0;
+			std::wstring wsErrors;
+			std::map<std::u16string, std::vector<LSN_CHEAT_ENTRY>> mExisting;
+			for ( const auto & pFile : vFiles ) {
+				std::vector<uint8_t> vJson;
+				std::wstring wsError;
+				std::vector<LSN_CHEAT_ENTRY> vCheats;
+				if ( !CStdFile::LoadToMemory( pFile.native().c_str(), vJson ) ) { wsError = LSN_LSTR( LSN_FAILED_TO_OPEN_FILE ); }
+				else {
+					if ( vJson.size() >= 3 && vJson[0] == 0xEF && vJson[1] == 0xBB && vJson[2] == 0xBF ) { vJson.erase( vJson.begin(), vJson.begin() + 3 ); }
+					vJson.push_back( 0 );
+					vJson.push_back( 0 );
+					// Errors about single codes are handled below (the cheat is skipped), so only a failure that loaded nothing is reported.
+					if ( !CCheatConverter::LoadMesenJson( vJson, vCheats, pFile.filename().u16string(), wsError ) && vCheats.size() ) { wsError.clear(); }
+				}
+				if ( wsError.size() ) {
+					if ( wsErrors.size() ) { wsErrors += L"\r\n"; }
+					wsErrors += pFile.filename().wstring() + L": " + wsError;
+					continue;
+				}
+
+				for ( auto & ceThis : vCheats ) {
+					// Every code must be a valid NES code (other systems' cheats and unsupported types are skipped).
+					LSN_CHEAT_ENTRY ceNew = ceThis;
+					ceNew.vAddresses.clear();
+					ceNew.bEnabled = false;
+					bool bAllGameGenie = true, bValid = ceThis.vAddresses.size() != 0;
+					for ( size_t I = 0; I < ceThis.vAddresses.size() && bValid; ++I ) {
+						LSN_CHEAT_ENTRY::LSN_ADDRESS aTmp;
+						bool bGameGenie = false;
+						bValid = CCheatConverter::ParseAnyCode( ceThis.vAddresses[I].sCode, aTmp, bGameGenie );
+						bAllGameGenie = bAllGameGenie && bGameGenie;
+						ceNew.vAddresses.push_back( std::move( aTmp ) );
+					}
+					if ( !bValid ) {
+						++stInvalid;
+						continue;
+					}
+					ceNew.ctType = bAllGameGenie ? LSN_CHEAT_ENTRY::LSN_CT_GAME_GENIE : LSN_CHEAT_ENTRY::LSN_CT_CUSTOM;
+
+					auto aGame = mExisting.find( ceNew.u16sFile );
+					if ( aGame == mExisting.end() ) {
+						std::vector<LSN_CHEAT_ENTRY> vGame;
+						for ( auto ui32Idx : m_pcmCheatManager->GatherCheatsForGame( ceNew.u16sFile ) ) {
+							vGame.push_back( m_pcmCheatManager->CheatByIdx( ui32Idx ) );
+						}
+						aGame = mExisting.insert( std::make_pair( ceNew.u16sFile, std::move( vGame ) ) ).first;
+					}
+					bool bDuplicate = false;
+					for ( const auto & ceOld : aGame->second ) {
+						if ( SameCheat( ceOld, ceNew ) ) {
+							bDuplicate = true;
+							break;
+						}
+					}
+					if ( bDuplicate ) {
+						++stDuplicates;
+						continue;
+					}
+					if ( m_pcmCheatManager->AddCustomCheat( ceNew ) == LSN_CHEAT_MAN_INVALID_IDX ) {
+						lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+						break;
+					}
+					aGame->second.push_back( std::move( ceNew ) );
+					++stImported;
+				}
+			}
+			if ( stImported ) {
+				m_pcmCheatManager->CheatsChanged();
+				AddCheats( true );
+			}
+			std::wstring wsMsg = std::vformat( std::wstring( LSN_LSTR( LSN_STR_CHEAT_IMPORT_DONE ) ), std::make_wformat_args( stImported, stDuplicates, stInvalid ) );
+			if ( wsErrors.size() ) {
+				wsMsg += L"\r\n\r\n";
+				wsMsg += wsErrors;
+			}
+			::MessageBoxW( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_STR_IMPORT_CHEATS ), MB_OK | (wsErrors.size() ? MB_ICONWARNING : MB_ICONINFORMATION) );
+		}
+		catch ( ... ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+		}
+	}
+
+	/**
+	 * Exports the selected cheats to Mesen .JSON files (one per game, named after the game) in a folder chosen by the user.
+	 **/
+	void CCheatsWindow::ExportCheats() {
+		if ( nullptr == m_pcmCheatManager ) { return; }
+		try {
+			std::vector<LPARAM> vSelected = GatherSelectedGames();
+			// Grouped by file name (two games could make the same file name once invalid characters are replaced).
+			std::map<std::wstring, std::vector<LSN_CHEAT_ENTRY>> mFiles;
+			size_t stTotal = 0;
+			for ( auto lpThis : vSelected ) {
+				uint32_t ui32Idx = uint32_t( lpThis );
+				if ( !m_pcmCheatManager->IsValidIdx( ui32Idx ) ) { continue; }
+				LSN_CHEAT_ENTRY ceEntry = m_pcmCheatManager->CheatByIdx( ui32Idx );
+				ceEntry.bEnabled = m_pcmCheatManager->IsEnabled( ui32Idx );
+				std::wstring wsName = CUtilities::XStringToWString( ceEntry.u16sFile.c_str(), ceEntry.u16sFile.size() );
+				for ( auto & wcThis : wsName ) {
+					if ( wcThis < L' ' || std::wcschr( L"<>:\"/\\|?*", wcThis ) ) { wcThis = L'_'; }
+				}
+				while ( wsName.size() && (wsName.back() == L'.' || wsName.back() == L' ') ) { wsName.pop_back(); }
+				if ( wsName.empty() ) { wsName = LSN_LSTR( LSN_STR_CHEATS ); }
+				mFiles[wsName+L".json"].push_back( std::move( ceEntry ) );
+				++stTotal;
+			}
+			if ( mFiles.empty() ) { return; }
+
+			// Choose the folder.
+			std::filesystem::path pFolder;
+			{
+				std::wstring wsDisplayName;
+				wsDisplayName.resize( 0xFFFF + 2 );
+				BROWSEINFOW biBrowseInfo = {};
+				biBrowseInfo.hwndOwner = Wnd();
+				biBrowseInfo.pszDisplayName = wsDisplayName.data();
+				biBrowseInfo.lpszTitle = LSN_LSTR( LSN_STR_EXPORT_CHEATS_FOLDER );
+				biBrowseInfo.ulFlags = BIF_RETURNONLYFSDIRS;
+				biBrowseInfo.lpfn = CWinUtilities::BrowseCallbackProc;
+				biBrowseInfo.lParam = reinterpret_cast<LPARAM>(m_pcmCheatManager->LastExportFolder().c_str());
+				CWinUtilities::LSN_OLEINITIALIZE oOle;
+				if ( oOle.Success() ) { biBrowseInfo.ulFlags |= BIF_NEWDIALOGSTYLE; }
+				PIDLIST_ABSOLUTE pidlSelected = ::SHBrowseForFolderW( &biBrowseInfo );
+				if ( !pidlSelected ) { return; }
+				std::wstring wsPath;
+				wsPath.resize( 0xFFFF + 2 );
+				BOOL bGot = ::SHGetPathFromIDListW( pidlSelected, wsPath.data() );
+				::CoTaskMemFree( pidlSelected );
+				if ( !bGot ) { return; }
+				pFolder = wsPath.c_str();
+			}
+			m_pcmCheatManager->SetLastExportFolder( pFolder.native() );
+
+			// Ask before replacing files.
+			std::wstring wsExisting;
+			for ( const auto & aThis : mFiles ) {
+				std::error_code ecErr;
+				if ( std::filesystem::exists( pFolder / aThis.first, ecErr ) ) {
+					if ( wsExisting.size() ) { wsExisting += L"\r\n"; }
+					wsExisting += aThis.first;
+				}
+			}
+			if ( wsExisting.size() ) {
+				std::wstring wsMsg = std::vformat( std::wstring( LSN_LSTR( LSN_STR_CHEAT_EXPORT_OVERWRITE ) ), std::make_wformat_args( wsExisting ) );
+				if ( ::MessageBoxW( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_STR_EXPORT_SELECTED ), MB_YESNO | MB_ICONQUESTION ) != IDYES ) { return; }
+			}
+
+			size_t stFiles = 0, stCheats = 0;
+			std::wstring wsErrors;
+			for ( const auto & aThis : mFiles ) {
+				std::string sJson;
+				if ( !CCheatConverter::CreateMesenJson( aThis.second, sJson ) ) {
+					lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+					return;
+				}
+				std::filesystem::path pFile = pFolder / aThis.first;
+				if ( !CStdFile::WriteToFile( pFile.native().c_str(), reinterpret_cast<const uint8_t *>(sJson.data()), sJson.size() ) ) {
+					if ( wsErrors.size() ) { wsErrors += L"\r\n"; }
+					wsErrors += aThis.first + L": " + LSN_LSTR( LSN_FAILED_TO_WRITE_TO_FILE );
+					continue;
+				}
+				++stFiles;
+				stCheats += aThis.second.size();
+			}
+			std::wstring wsMsg = std::vformat( std::wstring( LSN_LSTR( LSN_STR_CHEAT_EXPORT_DONE ) ), std::make_wformat_args( stCheats, stFiles ) );
+			if ( wsErrors.size() ) {
+				wsMsg += L"\r\n\r\n";
+				wsMsg += wsErrors;
+			}
+			::MessageBoxW( Wnd(), wsMsg.c_str(), LSN_LSTR( LSN_STR_EXPORT_SELECTED ), MB_OK | (wsErrors.size() ? MB_ICONWARNING : MB_ICONINFORMATION) );
+		}
+		catch ( ... ) {
+			lsw::CBase::MessageBoxError( Wnd(), LSN_LSTR( LSN_OUT_OF_MEMORY ), LSN_LSTR( LSN_ERROR ) );
+		}
+	}
+
+	/**
+	 * Moves the controls on the right side of the dialog so that they line up with the right side of the toolbar, and resizes the
+	 *	TreeListView, group box, and dialog to match.
+	 **/
+	void CCheatsWindow::FitToToolBar() {
+		CToolBar * ptbToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_CWI_TOOLBAR ));
+		CWidget * pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
+		if ( !ptbToolBar || !pwCodes ) { return; }
+		DWORD dwButtons = ptbToolBar->GetButtonCount();
+		if ( !dwButtons ) { return; }
+		LONG lToolW = 0;
+		for ( DWORD I = dwButtons; I--; ) {
+			lToolW += ptbToolBar->GetButtonRect( I ).Width();
+		}
+		LONG lToolRight = ptbToolBar->WindowRect().ScreenToClient( Wnd() ).left + ptbToolBar->GetButtonRect( 0 ).left + lToolW;
+		LONG lDelta = lToolRight - pwCodes->WindowRect().ScreenToClient( Wnd() ).right;
+		if ( !lDelta ) { return; }
+
+		static const Layout::LSN_CONTROL_IDS ciMove[] = {
+			Layout::LSN_CWI_CODE_EDIT,
+			Layout::LSN_CWI_NOTES_EDIT,
+			Layout::LSN_CWI_ACTIVATE_BUTTON,
+			Layout::LSN_CWI_ACTIVATE_WITH_HOTKEY_BUTTON,
+			Layout::LSN_CWI_OK,
+			Layout::LSN_CWI_CANCEL,
+		};
+		static const Layout::LSN_CONTROL_IDS ciWiden[] = {
+			Layout::LSN_CWI_CHEAT_TREELISTVIEW,
+			Layout::LSN_CWI_GROUP,
+		};
+		for ( auto ciId : ciMove ) {
+			CWidget * pwThis = FindChild( ciId );
+			if ( !pwThis ) { continue; }
+			lsw::LSW_RECT rRect = pwThis->WindowRect().ScreenToClient( Wnd() );
+			::MoveWindow( pwThis->Wnd(), int( rRect.left + lDelta ), int( rRect.top ), int( rRect.Width() ), int( rRect.Height() ), FALSE );
+		}
+		for ( auto ciId : ciWiden ) {
+			CWidget * pwThis = FindChild( ciId );
+			if ( !pwThis ) { continue; }
+			lsw::LSW_RECT rRect = pwThis->WindowRect().ScreenToClient( Wnd() );
+			::MoveWindow( pwThis->Wnd(), int( rRect.left ), int( rRect.top ), int( std::max<LONG>( rRect.Width() + lDelta, 1 ) ), int( rRect.Height() ), FALSE );
+		}
+		lsw::LSW_RECT rThisRect = WindowRect();
+		::MoveWindow( Wnd(), int( rThisRect.left - lDelta / 2 ), int( rThisRect.top ), int( rThisRect.Width() + lDelta ), int( rThisRect.Height() ), FALSE );
+
+		CRebar * prRebar = static_cast<CRebar *>(FindChild( Layout::LSN_CWI_REBAR ));
+		if ( prRebar ) {
+			::MoveWindow( prRebar->Wnd(), 0, 0, ClientRect( this ).Width(), prRebar->WindowRect( this ).Height(), FALSE );
+			prRebar->UpdateRects();
+		}
 	}
 
 	/**

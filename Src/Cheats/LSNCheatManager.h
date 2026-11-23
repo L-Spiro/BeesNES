@@ -162,6 +162,34 @@ namespace lsn {
 		void										SetCheatSearch( const std::wstring &_wsSearch ) { m_wsSearch = _wsSearch; }
 
 		/**
+		 * Gets the folder from which cheats were last imported.
+		 *
+		 * \return Returns the folder from which cheats were last imported.
+		 **/
+		const std::wstring &						LastImportFolder() const { return m_wsImportFolder; }
+
+		/**
+		 * Sets the folder from which cheats were last imported.
+		 *
+		 * \param _wsFolder The folder.
+		 **/
+		void										SetLastImportFolder( const std::wstring &_wsFolder ) { m_wsImportFolder = _wsFolder; }
+
+		/**
+		 * Gets the folder to which cheats were last exported.
+		 *
+		 * \return Returns the folder to which cheats were last exported.
+		 **/
+		const std::wstring &						LastExportFolder() const { return m_wsExportFolder; }
+
+		/**
+		 * Sets the folder to which cheats were last exported.
+		 *
+		 * \param _wsFolder The folder.
+		 **/
+		void										SetLastExportFolder( const std::wstring &_wsFolder ) { m_wsExportFolder = _wsFolder; }
+
+		/**
 		 * Shuts down the cheat manager at the end of the application life cycle.
 		 **/
 		void										DestroyCheatLibrary();
@@ -512,6 +540,8 @@ namespace lsn {
 		std::u16string								m_u16sRunningGame;				/**< The name of the running game (without extension). */
 		std::vector<int32_t>						m_vHotkeyIds;					/**< The IDs of the hotkeys registered for cheats. */
 		std::wstring								m_wsSearch;						/**< The search string of the Cheats dialog. */
+		std::wstring								m_wsImportFolder;				/**< The folder from which cheats were last imported. */
+		std::wstring								m_wsExportFolder;				/**< The folder to which cheats were last exported. */
 		std::filesystem::path						m_pCustomPath;					/**< The path of the custom-cheats file. */
 		std::vector<uint8_t>						m_vLastSavedCustom;				/**< The contents of the custom-cheats file as last loaded or saved (to skip writing it when nothing changed). */
 

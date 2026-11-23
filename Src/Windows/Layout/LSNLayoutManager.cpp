@@ -25,6 +25,7 @@
 #include "../Patch/LSNPatchWindow.h"
 #include "../Patch/LSNPatchWindowTopPage.h"
 #include "../SelectRom/LSNSelectRomDialog.h"
+#include "../VideoOptions/LSNPaletteDisplay.h"
 #include "../VideoOptions/LSNVideoOptionsPage.h"
 #include "../VideoOptions/LSNVideoOptionsSettingsPage.h"
 #include "../VideoOptions/LSNVideoOptionsWindow.h"
@@ -132,6 +133,9 @@ namespace lsn {
 			}
 			case LSN_LT_VIDEO_OPTIONS_FIELD_PAGE : {
 				return new CVideoOptionsPage( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
+			}
+			case LSN_LT_PALETTE_DISPLAY : {
+				return new CPaletteDisplay( _wlLayout, _pwParent,  _bCreateWidget, _hMenu, _ui64Data );
 			}
 		}
 		return lsw::CLayoutManager::CreateWidget( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data );

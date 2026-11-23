@@ -11,6 +11,7 @@
 #pragma once
 
 #include "LSNVideoOptionsWindowLayout.h"
+#include "../../Filters/LSNNesPalette.h"
 
 #include <Widget/LSWWidget.h>
 
@@ -68,6 +69,8 @@ namespace lsn {
 		LSN_PPU_METRICS										m_pmRegion = LSN_PM_NTSC_M;					/**< The region being edited. */
 		std::vector<CVideoOptionsFields::LSN_VIDEO_FIELD>	m_vFields;									/**< The fields on the page. */
 		bool												m_bUpdating = false;						/**< True while the controls are being filled (their notifications are ignored). */
+		CNesPalette											m_npPreview;								/**< The palette shown in the palette display. */
+		std::wstring										m_wsPreviewPath;							/**< The path from which m_npPreview was loaded. */
 
 
 		// == Functions.
@@ -112,6 +115,11 @@ namespace lsn {
 		 *	and makes the Load combo box end where the display ends.
 		 */
 		void												SizePaletteDisplay();
+
+		/**
+		 * Shows the palette being edited (with its gamma curves and color spaces applied) in the palette display, if the page has one.
+		 */
+		void												UpdatePaletteDisplay();
 
 		/**
 		 * Fills in the descriptions of the Host Machine page and lays its rows out around their measured heights.

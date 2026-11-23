@@ -161,6 +161,23 @@ namespace lsn {
 			std::wstring &_wsError );
 
 		/**
+		 * Creates the text of a Mesen .JSON cheat file.  Notes are appended to the descriptions as {{notes}} (as in the built-in library).
+		 *
+		 * \param _vCheats The cheats to write.  Their bEnabled members are written as "Enabled".
+		 * \param _sJson Holds the UTF-8 JSON text.
+		 * \return Returns true if there was enough memory to create the text.
+		 **/
+		static bool										CreateMesenJson( const std::vector<LSN_CHEAT_ENTRY> &_vCheats, std::string &_sJson );
+
+		/**
+		 * Escapes a UTF-8 string for use inside a JSON string.
+		 *
+		 * \param _sText The text to escape.
+		 * \return Returns the escaped text.
+		 **/
+		static std::string								JsonEscape( const std::string &_sText );
+
+		/**
 		 * Parses and fixes the description of a cheat. Escapes will be handled, notes will be removed, and the description will be titlized.
 		 * 
 		 * \param _sDescription The cheat description to parse.

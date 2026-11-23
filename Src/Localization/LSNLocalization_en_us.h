@@ -846,6 +846,12 @@
 #define LSN_STR_CHEAT_ERR_SAME_KEY											The Enable and Disable hotkeys cannot be the same key.  To control the cheat with one key use Toggle instead.
 #define LSN_STR_DELETE_CHEATS_CONFIRM										Delete the selected custom cheats?  Built-in cheats are not affected.
 #define LSN_STR_CHEAT_CONFLICT												\u201C{}\u201D was not enabled because address ${:04X} is already used by the enabled cheat \u201C{}\u201D.
+#define LSN_STR_CHEAT_JSON_TYPES											Mesen Cheat Files (*.json)\0*.json\0All Files (*.*)\0*.*\0\0
+#define LSN_STR_IMPORT_CHEATS												Import Cheats
+#define LSN_STR_EXPORT_CHEATS_FOLDER										Choose the folder for the exported cheats.
+#define LSN_STR_CHEAT_IMPORT_DONE											Cheats imported: {}.\r\nAlready present (skipped): {}.\r\nInvalid or not for the NES (skipped): {}.
+#define LSN_STR_CHEAT_EXPORT_OVERWRITE										These files already exist:\r\n\r\n{}\r\n\r\nReplace them?
+#define LSN_STR_CHEAT_EXPORT_DONE											Cheats exported: {}.\r\nFiles written: {}.
 
 
 // Video export.

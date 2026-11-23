@@ -788,6 +788,19 @@ namespace lsn {
 		CNesPalette::PaletteF64					BakedPalette( bool _bEncode );
 
 		/**
+		 * Gets a palette with a CRT gamma curve (and its CRT1 parameters), a CRT color space, and (optionally) a monitor gamma curve baked in.
+		 * 
+		 * \param _npPalette The loaded palette.  Its CRT1 parameters are set from _gfoPalette.
+		 * \param _gCrtGamma The CRT gamma curve of the palette.
+		 * \param _gfoPalette The palette-filter settings (the CRT color space and the CRT1 parameters).
+		 * \param _dsDisplay The settings of the monitor.
+		 * \param _bEncode If true, the colors are encoded with the monitor gamma curve; otherwise they are left in linear light.
+		 * \return Returns the 512 colors of the palette in the color space of the monitor, or an empty vector if no palette is loaded.
+		 **/
+		static CNesPalette::PaletteF64			BakePalette( CNesPalette &_npPalette, CNesPalette::LSN_GAMMA _gCrtGamma, const LSN_GPU_FILTER_OPTIONS &_gfoPalette,
+			const CColorSpace::LSN_DISPLAY_SETTINGS &_dsDisplay, bool _bEncode );
+
+		/**
 		 * Gets the default folder for palettes.
 		 * 
 		 * \return Returns the default folder where default palettes can be found.
@@ -799,7 +812,7 @@ namespace lsn {
 		 * 
 		 * \return Return the default NTSC palette path.
 		 **/
-		std::wstring							DefaultNtscPalette() const {
+		static std::wstring						DefaultNtscPalette() {
 			return DefaultPaletteFolder() + L"2C02G_wiki.fpal";
 		}
 
@@ -808,7 +821,7 @@ namespace lsn {
 		 * 
 		 * \return Return the default PAL palette path.
 		 **/
-		std::wstring							DefaultPalPalette() const {
+		static std::wstring						DefaultPalPalette() {
 			return DefaultPaletteFolder() + L"2C07_wiki.fpal";
 		}
 
@@ -817,7 +830,7 @@ namespace lsn {
 		 * 
 		 * \return Return the default NTSC-J palette path.
 		 **/
-		std::wstring							DefaultNtscJPalette() const {
+		static std::wstring						DefaultNtscJPalette() {
 			return DefaultPaletteFolder() + L"2C02G_phs_aps_ela_applysrgb_NTSC-J.fpal";
 		}
 

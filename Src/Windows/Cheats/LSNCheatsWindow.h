@@ -195,6 +195,22 @@ namespace lsn {
 		void												DeleteCheats();
 
 		/**
+		 * Imports Mesen .JSON cheat files as custom cheats.  The name of each file (without its extension) is the game of its cheats.
+		 **/
+		void												ImportCheats();
+
+		/**
+		 * Exports the selected cheats to Mesen .JSON files (one per game, named after the game) in a folder chosen by the user.
+		 **/
+		void												ExportCheats();
+
+		/**
+		 * Moves the controls on the right side of the dialog so that they line up with the right side of the toolbar, and resizes the
+		 *	TreeListView, group box, and dialog to match.
+		 **/
+		void												FitToToolBar();
+
+		/**
 		 * Enables the selected cheats, or disables them if they are all enabled already.
 		 **/
 		void												ActivateCheats();

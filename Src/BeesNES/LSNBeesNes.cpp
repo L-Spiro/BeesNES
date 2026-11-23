@@ -1777,33 +1777,46 @@ namespace lsn {
 	 * \return Returns the 512 colors of the palette in the color space of the monitor, or an empty vector if no palette is loaded.
 	 **/
 	CNesPalette::PaletteF64 CBeesNes::BakedPalette( bool _bEncode ) {
-		const CNesPalette::PaletteF64 & pSrc = m_npPalette.Palette();
-		if ( pSrc.empty() ) { return CNesPalette::PaletteF64(); }
 		const LSN_PPU_METRICS pmRegion = size_t( m_pmSystem ) < LSN_PM_CONSOLE_TOTAL ? m_pmSystem : LSN_PM_NTSC_M;
-		const LSN_GPU_FILTER_OPTIONS & gfoPalette = FilterOptions( pmRegion ).gfoPalette;
-		const CColorSpace::LSN_DISPLAY_SETTINGS & dsDisplay = m_oOptions.hdoHostDisplay.dsDisplay;
+		return BakePalette( m_npPalette, m_gCrtGamma[pmRegion], FilterOptions( pmRegion ).gfoPalette, m_oOptions.hdoHostDisplay.dsDisplay, _bEncode );
+	}
+
+	/**
+	 * Gets a palette with a CRT gamma curve (and its CRT1 parameters), a CRT color space, and (optionally) a monitor gamma curve baked in.
+	 * 
+	 * \param _npPalette The loaded palette.  Its CRT1 parameters are set from _gfoPalette.
+	 * \param _gCrtGamma The CRT gamma curve of the palette.
+	 * \param _gfoPalette The palette-filter settings (the CRT color space and the CRT1 parameters).
+	 * \param _dsDisplay The settings of the monitor.
+	 * \param _bEncode If true, the colors are encoded with the monitor gamma curve; otherwise they are left in linear light.
+	 * \return Returns the 512 colors of the palette in the color space of the monitor, or an empty vector if no palette is loaded.
+	 **/
+	CNesPalette::PaletteF64 CBeesNes::BakePalette( CNesPalette &_npPalette, CNesPalette::LSN_GAMMA _gCrtGamma, const LSN_GPU_FILTER_OPTIONS &_gfoPalette,
+		const CColorSpace::LSN_DISPLAY_SETTINGS &_dsDisplay, bool _bEncode ) {
+		const CNesPalette::PaletteF64 & pSrc = _npPalette.Palette();
+		if ( pSrc.empty() ) { return CNesPalette::PaletteF64(); }
 
 		// From the CRT's color space to the monitor's.
-		const CColorSpace::LSN_COLOR_MATRIX cmMatrix = CColorSpace::ConversionMatrix( gfoPalette.cspColorSpace, dsDisplay.cspColorSpace, dsDisplay.waWhiteAdaptation );
+		const CColorSpace::LSN_COLOR_MATRIX cmMatrix = CColorSpace::ConversionMatrix( _gfoPalette.cspColorSpace, _dsDisplay.cspColorSpace, _dsDisplay.waWhiteAdaptation );
 		float fLuma[3];
-		CColorSpace::LuminanceCoefficients( dsDisplay.cspColorSpace, fLuma );
+		CColorSpace::LuminanceCoefficients( _dsDisplay.cspColorSpace, fLuma );
 		// Automatic means sRGB for the monitor (as in CColorSpace::OutputTransformStatement()).
-		const CNesPalette::LSN_GAMMA gMonitor = CColorSpace::IsMonitorGamma( dsDisplay.gGamma ) ? dsDisplay.gGamma : CNesPalette::LSN_G_sRGB;
+		const CNesPalette::LSN_GAMMA gMonitor = CColorSpace::IsMonitorGamma( _dsDisplay.gGamma ) ? _dsDisplay.gGamma : CNesPalette::LSN_G_sRGB;
 		// The CRT1 curve's parameters come from the palette filter's settings.
-		m_npPalette.SetCrt1Parms( gfoPalette.fCrt1White, gfoPalette.fCrt1Brightness );
+		_npPalette.SetCrt1Parms( _gfoPalette.fCrt1White, _gfoPalette.fCrt1Brightness );
 
 		CNesPalette::PaletteF64 vRet;
 		try {
 			vRet.resize( 512 );
 			for ( size_t I = 0; I < 512; ++I ) {
 				// The CRT gamma curve (to linear light).
-				CNesPalette::Float64_3 fColor = m_npPalette.UpdateEntry( pSrc[I%pSrc.size()], m_gCrtGamma[pmRegion], CNesPalette::LSN_G_NONE );
+				CNesPalette::Float64_3 fColor = _npPalette.UpdateEntry( pSrc[I%pSrc.size()], _gCrtGamma, CNesPalette::LSN_G_NONE );
 				// The color space (and gamut mapping).
-				CColorSpace::ConvertLinear( cmMatrix, fLuma, dsDisplay.gmGamutMapping, fColor.x );
+				CColorSpace::ConvertLinear( cmMatrix, fLuma, _dsDisplay.gmGamutMapping, fColor.x );
 				if ( _bEncode ) {
 					// The monitor's gamma curve.
 					for ( auto & dThis : fColor.x ) { dThis = std::clamp( dThis, 0.0, 1.0 ); }
-					fColor = m_npPalette.UpdateEntry( fColor, CNesPalette::LSN_G_NONE, gMonitor );
+					fColor = _npPalette.UpdateEntry( fColor, CNesPalette::LSN_G_NONE, gMonitor );
 				}
 				vRet[I] = fColor;
 			}
