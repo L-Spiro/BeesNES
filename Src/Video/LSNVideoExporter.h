@@ -39,8 +39,10 @@ namespace lsn {
 	 *	SubmitFrame() is called by the thread that renders (after each rendered frame has been captured).
 	 *	AddSample() and FrameBoundary() are called by the emulation thread.
 	 *
-	 * No frame is ever dropped:  at most LSN_POOL_SIZE frames are held in memory, and when they are all in use FrameBoundary() waits (the
-	 *	emulation slows down to the speed of FFmpeg).
+	 * No frame is ever dropped:  LSN_POOL_SIZE frames are held in memory, and when they are all in use FrameBoundary() waits (the
+	 *	emulation slows down to the speed of FFmpeg).  If FFmpeg stops reading video until it gets more audio (FFmpeg 7 does this when the
+	 *	audio encoder works in large blocks, such as ALAC's 4,096 samples), the pool grows (up to LSN_POOL_MAX frames and
+	 *	LSN_POOL_MAX_BYTES) so that the emulation can make that audio.
 	 *
 	 * Whenever the frame size, the frame format, the audio rate, or the emulation frame rate changes, the current movie is finished and a
 	 *	new one is started automatically.
@@ -54,7 +56,10 @@ namespace lsn {
 		// == Enumerations.
 		/** Sizes. */
 		enum LSN_SIZES : size_t {
-			LSN_POOL_SIZE										= 4,										/**< The number of frames that can be held in memory. */
+			LSN_POOL_SIZE										= 4,										/**< The number of frames that can be held in memory at first. */
+			LSN_POOL_MAX										= 32,										/**< The most frames the pool can grow to hold. */
+			LSN_POOL_MAX_BYTES									= 512 * 1024 * 1024,						/**< The pool grows only while its frames fit within this many bytes. */
+			LSN_POOL_GROW_MS									= 100,										/**< How long FrameBoundary() waits for a free frame before it grows the pool. */
 			LSN_MAX_AUDIO_BLOCKS								= 2048,										/**< The number of audio blocks (1 per frame) that can wait for the audio thread before the emulation waits.  FFmpeg stops reading audio until the video encoder has filled its look-ahead, so this must cover several seconds. */
 		};
 
@@ -402,7 +407,9 @@ namespace lsn {
 
 
 		// == Members.
-		LSN_CAPTURE_BUFFER										m_cbPool[LSN_POOL_SIZE];					/**< The frames held in memory. */
+		LSN_CAPTURE_BUFFER										m_cbPool[LSN_POOL_MAX];						/**< The frames held in memory (the first m_sPoolSize are in use). */
+		size_t													m_sPoolSize = 0;							/**< The number of pool frames in use.  Guarded by m_mPool. */
+		size_t													m_sFrameBytes = 0;							/**< The size of the last submitted frame.  Guarded by m_mPool. */
 		LSN_CAPTURE_BUFFER										m_cbConverted;								/**< Used to find the format of a frame after conversion. */
 		std::vector<size_t>										m_vFree;									/**< Unused pool frames. */
 		std::deque<size_t>										m_dIncoming;								/**< Pool frames submitted but not yet sent to a session. */

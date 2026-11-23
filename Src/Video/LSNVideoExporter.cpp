@@ -492,10 +492,13 @@ namespace lsn {
 
 		try {
 			m_vFree.clear();
+			m_vFree.reserve( LSN_POOL_MAX );
 			m_dIncoming.clear();
 			for ( size_t I = LSN_POOL_SIZE; I--; ) {
 				m_vFree.push_back( I );
 			}
+			m_sPoolSize = LSN_POOL_SIZE;
+			m_sFrameBytes = 0;
 			m_vStage.clear();
 			m_vStage.reserve( 1 << 16 );
 		}
@@ -542,8 +545,9 @@ namespace lsn {
 			std::lock_guard<std::mutex> lgLock( m_mPool );
 			m_dIncoming.clear();
 			m_vFree.clear();
+			m_sPoolSize = 0;
 		}
-		for ( size_t I = 0; I < LSN_POOL_SIZE; ++I ) {
+		for ( size_t I = 0; I < LSN_POOL_MAX; ++I ) {
 			m_cbPool[I].Reset();
 		}
 		m_cbConverted.Reset();
@@ -600,6 +604,7 @@ namespace lsn {
 			if ( m_vFree.empty() ) { return; }
 			sIdx = m_vFree.back();
 			m_vFree.pop_back();
+			m_sFrameBytes = _cbFrame.vBuffer.size();
 		}
 		try {
 			m_cbPool[sIdx] = _cbFrame;
@@ -672,8 +677,14 @@ namespace lsn {
 
 		// Make sure the next rendered frame will have a place to go.  If FFmpeg is behind, this is where the emulator slows down.
 		std::unique_lock<std::mutex> ulLock( m_mPool );
+		const auto aStart = std::chrono::steady_clock::now();
 		while ( m_vFree.empty() && !m_abFailed && !m_abAbort && !(m_psSession && m_psSession->Failed()) ) {
 			m_cvPool.wait_for( ulLock, std::chrono::milliseconds( 50 ) );
+			if ( m_vFree.empty() && m_sPoolSize < LSN_POOL_MAX && (m_sPoolSize + 1) * m_sFrameBytes <= LSN_POOL_MAX_BYTES &&
+				std::chrono::steady_clock::now() - aStart >= std::chrono::milliseconds( LSN_POOL_GROW_MS ) ) {
+				// FFmpeg may be waiting for audio that only more emulation can make.
+				m_vFree.push_back( m_sPoolSize++ );		// Cannot throw:  Start() reserved room for every pool frame.
+			}
 		}
 		return !m_abFailed;
 	}
