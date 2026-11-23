@@ -43,6 +43,13 @@ namespace lsn {
 
 		// == Functions.
 		/**
+		 * Attaches the window after the dialog creates it and subclasses it (dialog controls are not routed through CWidget::WindowProc()).
+		 *
+		 * \param _hWnd The created window.
+		 */
+		virtual void										InitControl( HWND _hWnd );
+
+		/**
 		 * Sets the colors to display.
 		 *
 		 * \param _vColors The colors to display.
@@ -115,6 +122,7 @@ namespace lsn {
 
 	protected :
 		// == Members.
+		static constexpr UINT_PTR							LSN_SUBCLASS_ID = 0x9A1E7E00;				/**< The ID of the subclass. */
 		std::vector<COLORREF>								m_vColors;									/**< The colors to display. */
 		HFONT												m_hFont = NULL;								/**< The font of the indices. */
 		int32_t												m_i32Scroll = 0;							/**< The vertical scroll position, in pixels. */
@@ -158,6 +166,19 @@ namespace lsn {
 		 * \return Returns true if black text should be used.
 		 */
 		static bool											UseBlackText( COLORREF _crColor );
+
+		/**
+		 * The subclass procedure of the control.
+		 *
+		 * \param _hWnd The control.
+		 * \param _uMsg The message.
+		 * \param _wParam The WPARAM of the message.
+		 * \param _lParam The LPARAM of the message.
+		 * \param _uiptrId The ID of the subclass.
+		 * \param _dwptrRef A pointer to the CPaletteDisplay.
+		 * \return Returns the result of the message.
+		 */
+		static LRESULT CALLBACK								SubclassProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam, UINT_PTR _uiptrId, DWORD_PTR _dwptrRef );
 
 
 	private :

@@ -1031,13 +1031,13 @@ namespace lsn {
 	}
 
 	/**
-	 * Moves the controls on the right side of the dialog so that they line up with the right side of the toolbar, and resizes the
-	 *	TreeListView, group box, and dialog to match.
+	 * Widens or narrows the outer group box so that it ends where the toolbar ends, moving the controls on the right side and resizing
+	 *	the TreeListView and the dialog to match.
 	 **/
 	void CCheatsWindow::FitToToolBar() {
 		CToolBar * ptbToolBar = static_cast<CToolBar *>(FindChild( Layout::LSN_CWI_TOOLBAR ));
-		CWidget * pwCodes = FindChild( Layout::LSN_CWI_CODE_EDIT );
-		if ( !ptbToolBar || !pwCodes ) { return; }
+		CWidget * pwGroup = FindChild( Layout::LSN_CWI_GROUP );
+		if ( !ptbToolBar || !pwGroup ) { return; }
 		DWORD dwButtons = ptbToolBar->GetButtonCount();
 		if ( !dwButtons ) { return; }
 		LONG lToolW = 0;
@@ -1045,7 +1045,7 @@ namespace lsn {
 			lToolW += ptbToolBar->GetButtonRect( I ).Width();
 		}
 		LONG lToolRight = ptbToolBar->WindowRect().ScreenToClient( Wnd() ).left + ptbToolBar->GetButtonRect( 0 ).left + lToolW;
-		LONG lDelta = lToolRight - pwCodes->WindowRect().ScreenToClient( Wnd() ).right;
+		LONG lDelta = lToolRight - pwGroup->WindowRect().ScreenToClient( Wnd() ).right;
 		if ( !lDelta ) { return; }
 
 		static const Layout::LSN_CONTROL_IDS ciMove[] = {

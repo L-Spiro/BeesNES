@@ -11,6 +11,7 @@
 #include "LSNPaletteDisplay.h"
 
 #include <algorithm>
+#include <commctrl.h>
 #include <cmath>
 #include <format>
 
@@ -28,6 +29,18 @@ namespace lsn {
 	}
 
 	// == Functions.
+	/**
+	 * Attaches the window after the dialog creates it and subclasses it (dialog controls are not routed through CWidget::WindowProc()).
+	 *
+	 * \param _hWnd The created window.
+	 */
+	void CPaletteDisplay::InitControl( HWND _hWnd ) {
+		Parent::InitControl( _hWnd );
+		::SetWindowSubclass( _hWnd, SubclassProc, LSN_SUBCLASS_ID, reinterpret_cast<DWORD_PTR>(this) );
+		UpdateScrollBar();
+		::InvalidateRect( _hWnd, nullptr, FALSE );
+	}
+
 	/**
 	 * Sets the colors to display.
 	 *
@@ -275,6 +288,51 @@ namespace lsn {
 		};
 		const double dLum = 0.2126 * Linear( GetRValue( _crColor ) ) + 0.7152 * Linear( GetGValue( _crColor ) ) + 0.0722 * Linear( GetBValue( _crColor ) );
 		return dLum > 0.179;
+	}
+
+	/**
+	 * The subclass procedure of the control.
+	 *
+	 * \param _hWnd The control.
+	 * \param _uMsg The message.
+	 * \param _wParam The WPARAM of the message.
+	 * \param _lParam The LPARAM of the message.
+	 * \param _uiptrId The ID of the subclass.
+	 * \param _dwptrRef A pointer to the CPaletteDisplay.
+	 * \return Returns the result of the message.
+	 */
+	LRESULT CALLBACK CPaletteDisplay::SubclassProc( HWND _hWnd, UINT _uMsg, WPARAM _wParam, LPARAM _lParam, UINT_PTR _uiptrId, DWORD_PTR _dwptrRef ) {
+		CPaletteDisplay * ppdThis = reinterpret_cast<CPaletteDisplay *>(_dwptrRef);
+		switch ( _uMsg ) {
+			case WM_ERASEBKGND : { return 1; }
+			case WM_PAINT : {
+				ppdThis->Paint();
+				return 0;
+			}
+			case WM_SIZE : {
+				ppdThis->Size( _wParam, LOWORD( _lParam ), HIWORD( _lParam ) );
+				return 0;
+			}
+			case WM_VSCROLL : {
+				if ( _lParam ) { break; }
+				ppdThis->VScroll( HIWORD( _wParam ), LOWORD( _wParam ), nullptr );
+				return 0;
+			}
+			case WM_MOUSEWHEEL : {
+				POINTS pPos = { SHORT( LOWORD( _lParam ) ), SHORT( HIWORD( _lParam ) ) };
+				ppdThis->MouseWheel( DWORD( _wParam ), pPos );
+				return 0;
+			}
+			case WM_NCHITTEST : {
+				// Static controls can report themselves as transparent, which would keep the scroll bar from being used.
+				return ::DefWindowProcW( _hWnd, _uMsg, _wParam, _lParam );
+			}
+			case WM_NCDESTROY : {
+				::RemoveWindowSubclass( _hWnd, SubclassProc, _uiptrId );
+				break;
+			}
+		}
+		return ::DefSubclassProc( _hWnd, _uMsg, _wParam, _lParam );
 	}
 
 }	// namespace lsn

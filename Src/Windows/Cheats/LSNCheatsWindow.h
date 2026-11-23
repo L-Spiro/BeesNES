@@ -205,8 +205,8 @@ namespace lsn {
 		void												ExportCheats();
 
 		/**
-		 * Moves the controls on the right side of the dialog so that they line up with the right side of the toolbar, and resizes the
-		 *	TreeListView, group box, and dialog to match.
+		 * Widens or narrows the outer group box so that it ends where the toolbar ends, moving the controls on the right side and resizing
+		 *	the TreeListView and the dialog to match.
 		 **/
 		void												FitToToolBar();
 
