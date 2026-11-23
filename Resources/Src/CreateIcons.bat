@@ -280,6 +280,10 @@ SurfaceLevel2.exe -file "icons8-filter-16.png" -outfile "..\icons8-filter-16.bmp
 SurfaceLevel2.exe -file "icons8-search-24.png" -outfile "..\icons8-search-24.bmp" -icon -fit 24 24 -bmp_format R8G8B8A8 -bmp_nomask
 SurfaceLevel2.exe -file "icons8-search-16.png" -outfile "..\icons8-search-16.bmp" -icon -fit 16 16 -bmp_format R8G8B8A8 -bmp_nomask
 
+SurfaceLevel2.exe -file "icons8-save-16.png" -outfile "..\icons8-save-16.bmp" -icon -fit 16 16 -bmp_format R8G8B8A8 -bmp_nomask
+
+SurfaceLevel2.exe -file "icons8-open-file-16.png" -outfile "..\icons8-open-file-16.bmp" -icon -fit 16 16 -bmp_format R8G8B8A8 -bmp_nomask
+
 SurfaceLevel2.exe -file "icons8-video-camera-48.png" -outfile "..\icons8-video-camera-48.ico" -icon -fit 48 48
 SurfaceLevel2.exe -file "icons8-video-camera-32.png" -outfile "..\icons8-video-camera-32.ico" -icon -fit 32 32
 SurfaceLevel2.exe -file "icons8-video-camera-16.png" -outfile "..\icons8-video-camera-16.ico" -icon -fit 16 16

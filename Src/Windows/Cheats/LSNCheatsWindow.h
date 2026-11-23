@@ -36,6 +36,8 @@ namespace lsn {
 		// == Enumerations.
 		// Images.
 		enum LSN_IMAGES {
+			LSN_I_IMPORT,
+			LSN_I_EXPORT,
 			LSN_I_ADD,
 			LSN_I_DELETE,
 			LSN_I_EDIT,

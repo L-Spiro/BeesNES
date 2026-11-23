@@ -2503,12 +2503,14 @@ xcopy "$(ProjectDir)Cheats" "$(SolutionDir)$(Platform)\$(Configuration)\Cheats" 
     <Image Include="Resources\icons8-joystick-16.ico" />
     <Image Include="Resources\icons8-joystick-32.ico" />
     <Image Include="Resources\icons8-minus-radio-waves-24.bmp" />
+    <Image Include="Resources\icons8-open-file-16.bmp" />
     <Image Include="Resources\icons8-patch-16.ico" />
     <Image Include="Resources\icons8-patch-32.ico" />
     <Image Include="Resources\icons8-puzzle-16.ico" />
     <Image Include="Resources\icons8-puzzle-32.ico" />
     <Image Include="Resources\icons8-radio-waves-16.ico" />
     <Image Include="Resources\icons8-radio-waves-32.ico" />
+    <Image Include="Resources\icons8-save-16.bmp" />
     <Image Include="Resources\icons8-search-16.bmp" />
     <Image Include="Resources\icons8-search-24.bmp" />
     <Image Include="Resources\icons8-sound-mixer-16.ico" />

@@ -47,12 +47,15 @@
 #define IDI_VIDEO_SETTINGS_32           150
 #define IDI_ICON5                       151
 #define IDI_VIDEO_SETTINGS_16           151
+#define IDB_CHEAT_OPEN_FILE_16          152
+#define IDB_BITMAP3                     153
+#define IDB_CHEAT_SAVE_16               153
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        152
+#define _APS_NEXT_RESOURCE_VALUE        154
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101

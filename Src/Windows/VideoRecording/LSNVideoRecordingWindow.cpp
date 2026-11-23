@@ -524,7 +524,7 @@ namespace lsn {
 			}
 			else {
 				CWidget * pwEdit = FindChild( Layout::LSN_VRWI_FPS_EDIT );
-				uint32_t ui32Num, ui32Den;
+				uint32_t ui32Num = 0, ui32Den = 0;
 				if ( !pwEdit || !ParseFrameRate( pwEdit->GetTextW(), ui32Num, ui32Den ) ) {
 					_wsError = std::format( LSN_LSTR( LSN_VR_ERR_FPS ), L"60", L"{60000,1001}", L"59.94", uint32_t( LSN_VIDEO_EXPORT_OPTIONS::LSN_MAX_FPS ) );
 					return pwEdit;

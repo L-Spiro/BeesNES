@@ -727,6 +727,8 @@
 #define LSN_STR_EDIT														Edit
 #define LSN_STR_DUPLICATE													Duplicate
 #define LSN_STR_FILTER														Filter
+#define LSN_STR_IMPORT														Import
+#define LSN_STR_EXPORT_SELECTED												Export Selected
 #define LSN_STR_SEARCH														Search
 #define LSN_STR_SEARCH_GAME													Search Game
 #define LSN_STR_ADD_CHEAT													Add Cheat

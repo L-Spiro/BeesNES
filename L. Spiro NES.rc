@@ -142,6 +142,10 @@ IDB_CHEAT_DUPLICATE_16  BITMAP                  "Resources\\icons8-duplicate-16.
 
 IDB_CHEAT_EDIT_16       BITMAP                  "Resources\\icons8-edit-16.bmp"
 
+IDB_CHEAT_OPEN_FILE_16  BITMAP                  "Resources\\icons8-open-file-16.bmp"
+
+IDB_CHEAT_SAVE_16       BITMAP                  "Resources\\icons8-save-16.bmp"
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

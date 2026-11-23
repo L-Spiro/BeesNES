@@ -29,30 +29,14 @@ namespace lsn {
 	CCheatsWindow::CCheatsWindow( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		lsw::CMainWindow( _wlLayout, _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
 		m_pcmCheatManager( reinterpret_cast<CCheatManager *>(_ui64Data) ) {
-		/*{
-			static const struct {
-				WORD				wImageName;
-				DWORD				dwConst;
-			} sImages[] = {
-				{ IDB_CHEAT_ADD_24,				LSN_I_ADD },
-				{ IDB_CHEAT_DELETE_24,			LSN_I_DELETE },
-				{ IDB_CHEAT_EDIT_24,			LSN_I_EDIT },
-				{ IDB_CHEAT_DUPLICATE_24,		LSN_I_DUPLICATE },
-				{ IDB_CHEAT_FILTER_24,			LSN_I_FILTER },
-				{ IDB_CHEAT_SEARCH_24,			LSN_I_SEARCH },
-			};
-			m_iImages.Create( 24, 24, ILC_COLOR32, LSN_I_TOTAL, LSN_I_TOTAL );
 
-			for ( size_t I = 0; I < std::size( sImages ); ++I ) {
-				m_bBitmaps24[sImages[I].dwConst].LoadFromResource( sImages[I].wImageName, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT | LR_CREATEDIBSECTION );
-				m_iImageMap[sImages[I].dwConst] = m_iImages.Add( m_bBitmaps24[sImages[I].dwConst].Handle() );
-			}
-		}*/
 		{
 			static const struct {
-				WORD				wImageName;
-				DWORD				dwConst;
+				WORD							wImageName;
+				DWORD							dwConst;
 			} sImages[] = {
+				{ IDB_CHEAT_OPEN_FILE_16,		LSN_I_IMPORT },
+				{ IDB_CHEAT_SAVE_16,			LSN_I_EXPORT },
 				{ IDB_CHEAT_ADD_16,				LSN_I_ADD },
 				{ IDB_CHEAT_DELETE_16,			LSN_I_DELETE },
 				{ IDB_CHEAT_EDIT_16,			LSN_I_EDIT },
@@ -93,6 +77,9 @@ namespace lsn {
 //#define LSN_TOOL_STR( TXT )					0
 			const TBBUTTON bButtons[] = {
 				// iBitmap									idCommand									fsState				fsStyle			bReserved	dwData	iString
+				{ m_iImageMap[LSN_I_IMPORT],				Layout::LSN_CWI_IMPORT_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_IMPORT ) ) },
+				{ m_iImageMap[LSN_I_EXPORT],				Layout::LSN_CWI_EXPORT_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_EXPORT_SELECTED ) ) },
+				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
 				{ m_iImageMap[LSN_I_ADD],					Layout::LSN_CWI_ADD_BUTTON,					TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_ADD ) ) },
 				{ m_iImageMap[LSN_I_DELETE],				Layout::LSN_CWI_DELETE_BUTTON,				TBSTATE_ENABLED,	BTNS_AUTOSIZE,	{ 0 },		0,		LSN_TOOL_STR( LSN_LSTR( LSN_STR_DELETE ) ) },
 				{ -1,										0,											TBSTATE_ENABLED,	BTNS_SEP,		{ 0 },		0,		0 },
@@ -640,6 +627,7 @@ namespace lsn {
 					Layout::LSN_CONTROL_IDS								wId;
 					bool												bCloseCondition0;
 				} cControls[] = {
+					{ Layout::LSN_CWI_EXPORT_BUTTON,					bSelected },
 					{ Layout::LSN_CWI_DELETE_BUTTON,					bSelected && bHasCustom },
 					{ Layout::LSN_CWI_DUPLICATE_BUTTON,					bSelected && vSelected.size() == 1 },
 					{ Layout::LSN_CWI_EDIT_BUTTON,						bSelected && bHasCustom && vSelected.size() == 1 },
