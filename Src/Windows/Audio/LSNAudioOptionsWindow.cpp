@@ -45,6 +45,7 @@ namespace lsn {
 
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
+			ptTab->SetWidthMode( lsw::CTab::LSW_TWM_FILL );
 
 
 			CWidget * pwGlobalPage = CAudioOptionsWindowLayout::CreateGlobalPage( this, (*m_poOptions) );

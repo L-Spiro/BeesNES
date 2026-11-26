@@ -244,6 +244,8 @@ namespace lsw {
 					::GetWindowRect( Wnd(), &m_rDragPlacementRect );
 					m_rDragStartRect = m_rDragPlacementRect;
 
+					BeginDragPreviews();
+
 					// TODO: Check this logic.
 					m_ddrtDragRectType = (m_dwState > 0) ? LSW_DDRT_SOLID : LSW_DDRT_CHECKERED;
 
@@ -638,6 +640,7 @@ namespace lsw {
 				CDockTarget * pdtTarget;
 				CDockTarget::LSW_DT_ATTACH adAttach = CheckDockingPos( m_rDragPlacementRect, pdtTarget );
 				LSW_DOCK_STATE dsDockSide = AttachToDockState( adAttach );
+				EndDragPreviews();
 
 
 				if ( !Floating() ) {
@@ -694,6 +697,7 @@ namespace lsw {
 				}
 			}
 			else {
+				EndDragPreviews();
 				DrawDragRect();
 			}
 
@@ -713,6 +717,25 @@ namespace lsw {
 				goto mousedone;
 			}
 #endif
+	}
+
+	/**
+	 * Tells every dock target that a drag has started, so that their attachment points are previewed as they will be once this
+	 *	widget has been detached from where it is docked now.
+	 **/
+	void CDockable::BeginDragPreviews() {
+		for ( size_t I = 0; I < m_vDockingTargets.size(); ++I ) {
+			if ( m_vDockingTargets[I] ) { m_vDockingTargets[I]->BeginDragPreview( this ); }
+		}
+	}
+
+	/**
+	 * Tells every dock target that the drag has ended, so that they use their actual layouts again.
+	 **/
+	void CDockable::EndDragPreviews() {
+		for ( size_t I = 0; I < m_vDockingTargets.size(); ++I ) {
+			if ( m_vDockingTargets[I] ) { m_vDockingTargets[I]->EndDragPreview(); }
+		}
 	}
 
 	// Redraws the docking state.

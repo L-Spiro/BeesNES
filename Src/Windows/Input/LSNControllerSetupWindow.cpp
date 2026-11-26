@@ -50,6 +50,7 @@ namespace lsn {
 		CTab * ptTab = GetTab();
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
+			ptTab->SetWidthMode( CTab::LSW_TWM_FILL );
 			LSW_RECT rPanelClient;
 			
 			static LPWSTR const lpwstrTabTitles[] = {

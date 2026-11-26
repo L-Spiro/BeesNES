@@ -35,6 +35,7 @@ namespace lsn {
 		lsw::CTab * ptTab = static_cast<lsw::CTab *>(FindChild( CWinUtilities::LSN_VOWI_SETTINGS_TAB ));
 		if ( !ptTab || !m_ppdData ) { return LSW_H_CONTINUE; }
 		ptTab->SetShowCloseBoxes( false );
+		ptTab->SetWidthMode( lsw::CTab::LSW_TWM_FILL );
 
 		static const CVideoOptionsFields::LSN_VIDEO_PAGE_KIND vpkKinds[] = {
 			CVideoOptionsFields::LSN_VPK_PALETTE,

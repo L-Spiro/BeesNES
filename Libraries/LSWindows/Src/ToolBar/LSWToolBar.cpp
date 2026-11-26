@@ -245,6 +245,13 @@ namespace lsw {
 	BOOL CToolBar::AddButtons( const TBBUTTON * _pbButtons, size_t _sTotal ) {
 		if ( !Wnd() ) { return FALSE; }
 		::SendMessageW( Wnd(), TB_BUTTONSTRUCTSIZE, sizeof( (*_pbButtons) ), 0L );
+		for ( size_t I = 0; I < _sTotal; ++I ) {
+			if ( _pbButtons[I].fsStyle & BTNS_DROPDOWN ) {
+				const DWORD dwExStyle = static_cast<DWORD>(::SendMessageW( Wnd(), TB_GETEXTENDEDSTYLE, 0L, 0L ));
+				::SendMessageW( Wnd(), TB_SETEXTENDEDSTYLE, 0L, static_cast<LPARAM>(dwExStyle | TBSTYLE_EX_DRAWDDARROWS) );
+				break;
+			}
+		}
 		BOOL bRet = static_cast<BOOL>(::SendMessageW( Wnd(), TB_ADDBUTTONSW, static_cast<WPARAM>(_sTotal), reinterpret_cast<LPARAM>(_pbButtons) ));
 		if ( bRet ) {
 			for ( size_t I = 0; I < _sTotal; ++I ) {
@@ -253,6 +260,119 @@ namespace lsw {
 			return TRUE;
 		}
 		return FALSE;
+	}
+
+	/**
+	 * Gives a button a drop-down menu.  The button should have the BTNS_DROPDOWN style (a separate arrow beside the button; clicking
+	 *	the button itself sends its command as usual) or BTNS_WHOLEDROPDOWN (the whole button shows the menu).  When the arrow is
+	 *	clicked the menu is shown below the button.  The owner receives WM_INITMENUPOPUP (to enable and check the items) and the
+	 *	WM_COMMAND of the chosen item, just as for its menu bar.
+	 *
+	 * \param _wId Command ID of the button.
+	 * \param _pmlLayouts The menu layouts (see CLayoutManager::CreatePopupMenu()).  The first is the menu shown; the rest are its
+	 *	submenus.  They must remain valid for as long as the toolbar exists.
+	 * \param _sTotal The number of layouts at _pmlLayouts.
+	 * \param _pwOwner The window that owns the menu.
+	 * \return Returns TRUE if successful, or FALSE otherwise.
+	 **/
+	BOOL CToolBar::SetDropDownMenu( WORD _wId, const LSW_MENU_LAYOUT * _pmlLayouts, size_t _sTotal, CWidget * _pwOwner ) {
+		if ( !_pmlLayouts || !_sTotal || !_pwOwner ) { return FALSE; }
+		try {
+			for ( auto &ddThis : m_vDropDowns ) {
+				if ( ddThis.wId == _wId ) {
+					ddThis.pmlLayouts = _pmlLayouts;
+					ddThis.sTotal = _sTotal;
+					ddThis.pwOwner = _pwOwner;
+					return TRUE;
+				}
+			}
+			m_vDropDowns.push_back( { _wId, _pmlLayouts, _sTotal, _pwOwner } );
+			return TRUE;
+		}
+		catch ( ... ) { return FALSE; }
+	}
+
+	/**
+	 * Shows the drop-down menu below a button, if one was given with SetDropDownMenu().
+	 *
+	 * \param _wId Command ID of the button.
+	 * \return Returns TRUE if a menu was shown.
+	 **/
+	BOOL CToolBar::ShowDropDownMenu( WORD _wId ) {
+		if ( !Wnd() ) { return FALSE; }
+		for ( const auto &ddThis : m_vDropDowns ) {
+			if ( ddThis.wId != _wId ) { continue; }
+			if ( !ddThis.pwOwner || !ddThis.pwOwner->Wnd() ) { return FALSE; }
+
+			HMENU hMenu = CBase::LayoutManager()->CreateDisplayPopupMenu( ddThis.pmlLayouts, ddThis.sTotal );
+			if ( !hMenu ) { return FALSE; }
+
+			// Below the button, or above it if there is no room below; never covering it.
+			LSW_RECT rButton;
+			if ( !GetRect( _wId, rButton ) ) {
+				::DestroyMenu( hMenu );
+				return FALSE;
+			}
+			::MapWindowPoints( Wnd(), NULL, reinterpret_cast<POINT *>(&rButton), 2 );
+			TPMPARAMS tpParms = { sizeof( TPMPARAMS ) };
+			tpParms.rcExclude = rButton;
+
+			// Shown as pressed while the menu is open.
+			::SendMessageW( Wnd(), TB_PRESSBUTTON, static_cast<WPARAM>(_wId), MAKELPARAM( TRUE, 0 ) );
+			::TrackPopupMenuEx( hMenu, TPM_LEFTALIGN | TPM_TOPALIGN | TPM_VERTICAL | TPM_RIGHTBUTTON,
+				rButton.left, rButton.bottom, ddThis.pwOwner->Wnd(), &tpParms );
+			::SendMessageW( Wnd(), TB_PRESSBUTTON, static_cast<WPARAM>(_wId), MAKELPARAM( FALSE, 0 ) );
+			// The chosen command was posted to the owner, so the menu can go.
+			::DestroyMenu( hMenu );
+			return TRUE;
+		}
+		return FALSE;
+	}
+
+	/**
+	 * Sets the text of a button's tooltip (the toolbar must have the TBSTYLE_TOOLTIPS style).  Tooltips can instead be supplied
+	 *	when they are needed by overriding TbnGetInfoTip() in the window that receives the toolbar's notifications, which avoids
+	 *	keeping the text in memory.
+	 *
+	 * \param _wId Command ID of the button.
+	 * \param _pwcText The text, or nullptr to remove the button's tooltip.
+	 * \return Returns TRUE if successful, or FALSE otherwise.
+	 **/
+	BOOL CToolBar::SetButtonToolTip( WORD _wId, LPCWSTR _pwcText ) {
+		try {
+			if ( !_pwcText ) {
+				m_mToolTips.erase( _wId );
+				return TRUE;
+			}
+			m_mToolTips[_wId] = _pwcText;
+			return TRUE;
+		}
+		catch ( ... ) { return FALSE; }
+	}
+
+	/**
+	 * TBN_GETINFOTIPW.  Supplies a button's tooltip text if one was given with SetButtonToolTip().
+	 *
+	 * \param _pgitTip The notification data.  iItem is the command ID of the button.
+	 * \return Returns LSW_H_HANDLED if text was supplied.
+	 **/
+	CWidget::LSW_HANDLED CToolBar::TbnGetInfoTip( LPNMTBGETINFOTIPW _pgitTip ) {
+		if ( !_pgitTip || !_pgitTip->pszText || _pgitTip->cchTextMax <= 0 ) { return LSW_H_CONTINUE; }
+		auto aFound = m_mToolTips.find( static_cast<WORD>(_pgitTip->iItem) );
+		if ( aFound == m_mToolTips.end() ) { return LSW_H_CONTINUE; }
+		::wcsncpy_s( _pgitTip->pszText, static_cast<size_t>(_pgitTip->cchTextMax), aFound->second.c_str(), _TRUNCATE );
+		return LSW_H_HANDLED;
+	}
+
+	/**
+	 * TBN_DROPDOWN.  Shows the button's drop-down menu, if it has one (see SetDropDownMenu()).
+	 *
+	 * \param _lptbToolBar A pointer to an NMTOOLBARW structure.
+	 * \return Returns LSW_H_HANDLED if a menu was shown.
+	 **/
+	CWidget::LSW_HANDLED CToolBar::TbnDropDown( LPNMTOOLBARW _lptbToolBar ) {
+		if ( _lptbToolBar && ShowDropDownMenu( static_cast<WORD>(_lptbToolBar->iItem) ) ) { return LSW_H_HANDLED; }
+		return LSW_H_CONTINUE;
 	}
 
 	/**

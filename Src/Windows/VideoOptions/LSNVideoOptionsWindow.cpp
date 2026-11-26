@@ -57,6 +57,7 @@ namespace lsn {
 		lsw::CTab * ptTab = static_cast<lsw::CTab *>(FindChild( CWinUtilities::LSN_VOWI_TAB ));
 		if ( !ptTab ) { return LSW_H_CONTINUE; }
 		ptTab->SetShowCloseBoxes( false );
+		ptTab->SetWidthMode( lsw::CTab::LSW_TWM_FILL );
 
 		m_pdHost.pvodData = m_pvodData;
 		m_pdHost.vpkKind = CVideoOptionsFields::LSN_VPK_HOST;

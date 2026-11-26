@@ -51,6 +51,7 @@ namespace lsn {
 
 		if ( ptTab ) {
 			ptTab->SetShowCloseBoxes( false );
+			ptTab->SetWidthMode( CTab::LSW_TWM_FILL );
 			TCITEMW tciItem = { 0 };
 			tciItem.mask = TCIF_TEXT;
 			for ( size_t I = 0; I < m_vPages.size(); ++I ) {
