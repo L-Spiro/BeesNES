@@ -137,6 +137,14 @@ namespace lsw {
 		HWND								Wnd() const { return m_hWnd; }
 
 		/**
+		 * Determines whether the widget is being destroyed by its destructor (its window and child windows are being destroyed, and
+		 *	the members of any derived class are already gone).
+		 * 
+		 * \return Returns TRUE if the widget's destructor is running.
+		 **/
+		BOOL								InDestructor() const { return m_bInDestructor; }
+
+		/**
 		 * The parent widget.
 		 * 
 		 * \return Returns a pointer to the parent or nullptr.
@@ -270,10 +278,17 @@ namespace lsw {
 			if ( _bRedraw ) {
 				if ( !--m_iSetRedraw ) {
 					::SendMessageW( Wnd(), WM_SETREDRAW, TRUE, 0 );
+					// WM_SETREDRAW TRUE sets WS_VISIBLE, which would show a window that was hidden (a dockable behind others in a
+					//	group, for example) without it being properly shown.
+					if ( m_bHiddenBeforeSetRedraw ) {
+						const LONG_PTR lpStyle = ::GetWindowLongPtrW( Wnd(), GWL_STYLE );
+						if ( lpStyle & WS_VISIBLE ) { ::SetWindowLongPtrW( Wnd(), GWL_STYLE, lpStyle & ~LONG_PTR( WS_VISIBLE ) ); }
+					}
 				}
 			}
 			else {
 				if ( !m_iSetRedraw++ ) {
+					m_bHiddenBeforeSetRedraw = Wnd() && !(::GetWindowLongPtrW( Wnd(), GWL_STYLE ) & WS_VISIBLE);
 					::SendMessageW( Wnd(), WM_SETREDRAW, FALSE, 0 );
 				}
 			}
@@ -1054,6 +1069,8 @@ namespace lsw {
 		INT									m_iLastHit = 0;
 		/** Redraw counter. */
 		INT									m_iSetRedraw = 0;
+		/** The window was hidden when SetRedraw() turned redrawing off (it is kept hidden when redrawing is turned back on). */
+		bool								m_bHiddenBeforeSetRedraw = false;
 		/** Enabled. */
 		BOOL								m_bEnabled = TRUE;
 		/** Default state.  Depends on the type of control. */
@@ -2188,6 +2205,13 @@ namespace lsw {
 
 
 		// == Functions.
+		/**
+		 * Destroys the window and its child windows now, while the whole object (including the members of any derived class) is still
+		 *	alive.  A derived class whose child windows use its members calls this first thing in its destructor; otherwise CWidget's
+		 *	destructor destroys the windows after those members are gone.  The object is not deleted when its window is destroyed.
+		 **/
+		void								DestroyWindowNow();
+
 		/**
 		 * Removes a child widget from this widget.
 		 * \brief Detaches the child from the internal child list.

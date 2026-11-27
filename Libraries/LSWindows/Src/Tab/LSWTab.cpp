@@ -708,8 +708,7 @@ namespace lsw {
 		const bool bFocus = ::GetFocus() == Wnd() &&
 			!(::SendMessageW( Wnd(), WM_QUERYUISTATE, 0, 0 ) & UISF_HIDEFOCUS);
 		LSW_SELECTOBJECT soFont( _hDc, TabFont() );
-		const int iOldMode = ::SetBkMode( _hDc, TRANSPARENT );
-		const COLORREF crOldText = ::GetTextColor( _hDc );
+		LSW_SETBKMODE sbmMode( _hDc, TRANSPARENT );
 
 		// Unselected tabs first; the selected one is drawn last, over its neighbors.
 		for ( INT J = 0; J <= iCount; ++J ) {
@@ -742,10 +741,12 @@ namespace lsw {
 			rText.right -= iBox ? iBox : LSW_TAB_PADDING;
 			if ( bSel ) { ::OffsetRect( &rText, 0, -1 ); }
 			const std::wstring wsText = GetItemTextW( I );
-			::SetTextColor( _hDc, crText );
+			LSW_SETTEXTCOLOR stcText( _hDc, crText );
 			if ( rText.right > rText.left ) {
+				const DWORD dwExStyle = static_cast<DWORD>(::GetWindowLongPtrW( Wnd(), GWL_EXSTYLE ));
+				const UINT uiAlign = (dwExStyle & (WS_EX_RTLREADING | WS_EX_RIGHT)) ? (DT_RIGHT | ((dwExStyle & WS_EX_RTLREADING) ? DT_RTLREADING : 0)) : DT_LEFT;
 				::DrawTextW( _hDc, wsText.c_str(), static_cast<int>(wsText.size()), &rText,
-					DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX | (iBox ? DT_LEFT : DT_CENTER) );
+					DT_SINGLELINE | DT_VCENTER | DT_END_ELLIPSIS | DT_NOPREFIX | uiAlign );
 			}
 
 			// The close box or check box.
@@ -762,9 +763,6 @@ namespace lsw {
 				::DrawFocusRect( _hDc, &rFocus );
 			}
 		}
-
-		::SetTextColor( _hDc, crOldText );
-		::SetBkMode( _hDc, iOldMode );
 	}
 
 	/**

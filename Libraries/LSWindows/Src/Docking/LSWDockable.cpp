@@ -76,6 +76,74 @@ namespace lsw {
 		}
 	}
 
+	/**
+	 * Docks into a dock target without dragging (for example, to place a dockable when it is first shown).
+	 *
+	 * \param _pdtTarget The dock target.
+	 * \param _atAttachTo Where to dock relative to the rectangle given by _dwId.
+	 * \param _dwId The rectangle of the dock target next to which (or onto which, for tabs) to dock.
+	 * \return Returns true if the dockable is now docked.
+	 **/
+	bool CDockable::DockTo( CDockTarget * _pdtTarget, CDockTarget::LSW_ATTACH_TYPE _atAttachTo, DWORD _dwId ) {
+		if ( !_pdtTarget || m_pwDraggingDockWnd == this ) { return false; }
+		if ( m_pdtDockedControl ) {
+			m_pdtDockedControl->Detach( Id() );
+			m_pdtDockedControl = nullptr;
+		}
+		CDockTarget::LSW_DT_ATTACH daAttach;
+		daAttach.pwWidget = this;
+		daAttach.dwId = _dwId;
+		daAttach.atAttachTo = _atAttachTo;
+		m_dwState = AttachToDockState( daAttach );
+		RedrawDockingState( daAttach, _pdtTarget );
+		return !Floating() && m_pdtDockedControl != nullptr;
+	}
+
+	/**
+	 * Marks the dockable as docked in a dock target that has placed it itself (used when a dock target restores a saved
+	 *	layout).  A floating dockable becomes a child window again.
+	 *
+	 * \param _pdtTarget The dock target.
+	 * \param _bTab If true, the dockable is docked over others, with tabs to choose between them.
+	 **/
+	void CDockable::SetDockedInto( CDockTarget * _pdtTarget, bool _bTab ) {
+		if ( !_pdtTarget ) { return; }
+		const DWORD dwStyle = m_dwDockStyle;
+		m_dwDockStyle |= LSW_DS_DONTSAVEPOS;
+		if ( Floating() ) {
+			SetVisible( FALSE );
+			m_dwState = _bTab ? LSW_DS_DOCKED_TAB : LSW_DS_DOCKED_LEFT;
+			BecomeChild();
+		}
+		else {
+			m_dwState = _bTab ? LSW_DS_DOCKED_TAB : LSW_DS_DOCKED_LEFT;
+		}
+		m_pdtDockedControl = _pdtTarget;
+		// Send WM_NCCALCSIZE.
+		::SetWindowPos( Wnd(), 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED );
+		m_dwDockStyle = dwStyle;
+	}
+
+	/**
+	 * Undocks the dockable (if it is docked) and optionally moves it.
+	 *
+	 * \param _prWindow If not nullptr, the window rectangle (in screen coordinates) to give the floating dockable.
+	 **/
+	void CDockable::Float( const LSW_RECT * _prWindow ) {
+		if ( m_pwDraggingDockWnd == this ) { return; }
+		if ( !Floating() ) {
+			m_dwState = LSW_DS_FLOATING;
+			CDockTarget::LSW_DT_ATTACH daAttach;
+			daAttach.pwWidget = this;
+			daAttach.dwId = 0;
+			daAttach.atAttachTo = CDockTarget::LSW_AT_LEFT;
+			RedrawDockingState( daAttach, nullptr );
+		}
+		if ( _prWindow && _prWindow->Width() > 0 && _prWindow->Height() > 0 ) {
+			::SetWindowPos( Wnd(), HWND_TOP, _prWindow->left, _prWindow->top, _prWindow->Width(), _prWindow->Height(), SWP_NOACTIVATE | SWP_SHOWWINDOW );
+		}
+	}
+
 	// Determines if the given target is already in the list of dock targets.
 	bool CDockable::HasDockTarget( CDockTarget * _pdtTarget ) {
 		return std::find( m_vDockingTargets.begin(), m_vDockingTargets.end(), _pdtTarget ) != m_vDockingTargets.end();
@@ -115,6 +183,7 @@ namespace lsw {
 			case CDockTarget::LSW_AT_RIGHT : { return LSW_DS_DOCKED_RIGHT; }
 			case CDockTarget::LSW_AT_TOP : { return LSW_DS_DOCKED_TOP; }
 			case CDockTarget::LSW_AT_BOTTOM : { return LSW_DS_DOCKED_BOTTOM; }
+			case CDockTarget::LSW_AT_TAB : { return LSW_DS_DOCKED_TAB; }
 		}
 		return LSW_DS_FLOATING;
 	}
@@ -543,7 +612,7 @@ namespace lsw {
 		// ===========================================================
 		BOOL bControlKeyDown = (::GetKeyState( VK_CONTROL ) & 0x8000) ? TRUE : FALSE;
 		m_ddrtDragRectType = LSW_DDRT_SOLID;
-		if ( !bControlKeyDown ) {
+		if ( !bControlKeyDown && m_bAllowDocking ) {
 			LONG lDistWin = LONG_MAX;
 			for ( size_t I = 0; I < m_vDockingTargets.size(); ++I ) {
 				CDockTarget::LSW_DT_ATTACH daTemp;

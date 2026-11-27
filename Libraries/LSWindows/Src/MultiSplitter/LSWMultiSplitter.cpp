@@ -3,12 +3,16 @@
 #include "../Brush/LSWBrush.h"
 #include "../Docking/LSWDockable.h"
 #include "../Images/LSWBitmap.h"
+#include "../Layout/LSWLayoutManager.h"
+#include "../Tab/LSWTab.h"
 
 namespace lsw {
 
 	// == Members.
 	// IDs.
 	DWORD CMultiSplitter::m_dwIds = 0;
+	// The control ID given to the next group's tab control.
+	WORD CMultiSplitter::m_wNextGroupId = 0xF000;
 
 	CMultiSplitter::CMultiSplitter( const LSW_WIDGET_LAYOUT &_wlLayout, CWidget * _pwParent, bool _bCreateWidget, HMENU _hMenu, uint64_t _ui64Data ) :
 		CWidget( _wlLayout.ChangeClass( reinterpret_cast<LPCWSTR>(CBase::MultiSplitterAtom()) ).AddStyle( WS_CLIPCHILDREN ), _pwParent, _bCreateWidget, _hMenu, _ui64Data ),
@@ -26,6 +30,8 @@ namespace lsw {
 		m_meDragRootCopy = m_meRoot;
 	}
 	CMultiSplitter::~CMultiSplitter() {
+		m_bDestroying = true;
+		m_vGroups.clear();
 		for ( size_t I = m_vLayers.size(); I--; ) {
 			LSW_MS_LAYER * pmlTemp = m_vLayers[I];
 			m_vLayers[I] = nullptr;
@@ -59,6 +65,18 @@ namespace lsw {
 
 	// Client rectangle.
 	LSW_RECT CMultiSplitter::ClientRect( const CWidget * pwChild ) const {
+		if ( pwChild ) {
+			size_t sMember;
+			const size_t sGroup = FindGroupOfMember( WORD( pwChild->Id() ), sMember );
+			if ( sGroup != SIZE_MAX && m_vGroups[sGroup].vMembers[sMember] == pwChild ) {
+				LSW_MS_RECT * pmrCell = FindCellByWidget( m_vGroups[sGroup].ptTab, const_cast<LSW_MS_RECT &>(m_meRoot) );
+				if ( pmrCell ) {
+					LSW_RECT rRect = pmrCell->rRect;
+					m_vGroups[sGroup].ptTab->AdjustRect( FALSE, &rRect );
+					return rRect;
+				}
+			}
+		}
 		for ( size_t I = 0; I < m_vLayers.size(); ++I ) {
 			for ( size_t J = 0; J < m_vLayers[I]->vRects.size(); ++J ) {
 				if ( m_vLayers[I]->vRects[J].bContainsWidget && m_vLayers[I]->vRects[J].u.pqWidget == pwChild ) {
@@ -122,6 +140,16 @@ namespace lsw {
 				LSW_RECT rAttachrectTemp;
 				LONG lDist = GetAttachPoint( pClientPoint, maAttach, rAttachrectTemp,
 					rRect, rRect, iDist, mrRoot.dwId, atAttaches[I], _iSizeSuggestion );
+				if ( lDist < lWinDist ) {
+					lWinDist = lDist;
+					_maAttach = maAttach;
+					_rDrawRect = rAttachrectTemp;
+				}
+			}
+			{
+				LSW_DT_ATTACH maAttach;
+				LSW_RECT rAttachrectTemp;
+				LONG lDist = GetTabAttachPoint( pClientPoint, maAttach, rAttachrectTemp, mrRoot );
 				if ( lDist < lWinDist ) {
 					lWinDist = lDist;
 					_maAttach = maAttach;
@@ -312,6 +340,8 @@ namespace lsw {
 
 	// Remove a child.
 	void CMultiSplitter::RemoveChild( const CWidget * _pwChild ) {
+		const size_t sGroup = FindGroup( _pwChild );
+		if ( sGroup != SIZE_MAX ) { m_vGroups.erase( m_vGroups.begin() + sGroup ); }
 		/*for ( size_t I = m_vLayers.size(); I--; ) {
 			for ( size_t J = m_vLayers[I]->vRects.size(); J--; ) {
 				if ( m_vLayers[I]->vRects[J].bContainsWidget && m_vLayers[I]->vRects[J].u.pqWidget == _pwChild ) {
@@ -524,7 +554,10 @@ namespace lsw {
 	// WM_SIZE.
 	CWidget::LSW_HANDLED CMultiSplitter::Size( WPARAM _wParam, LONG _lWidth, LONG _lHeight ) {
 		CalcRects();
-		return CWidget::Size( _wParam, _lWidth, _lHeight );
+		SizeGroups();
+		LSW_HANDLED hRet = CWidget::Size( _wParam, _lWidth, _lHeight );
+		ShowGroupSelections();
+		return hRet;
 	}
 
 	// WM_LBUTTONDOWN.
@@ -579,6 +612,7 @@ namespace lsw {
 			}
 			CalcRects();
 			SizeAttachments();
+			if ( m_vGroups.size() ) { ForceSizeUpdate(); }
 
 			m_pmlDragLayer = nullptr;
 		}
@@ -708,6 +742,16 @@ namespace lsw {
 					_rAttachRect = rAttachRectTemp;
 				}
 			}
+			{
+				LSW_DT_ATTACH maAttach;
+				LSW_RECT rAttachRectTemp;
+				LONG lDist = GetTabAttachPoint( _pPoint, maAttach, rAttachRectTemp, _mlLayer.vRects[I] );
+				if ( lDist < lWinDist ) {
+					lWinDist = lDist;
+					_maAttach = maAttach;
+					_rAttachRect = rAttachRectTemp;
+				}
+			}
 			if ( !_mlLayer.vRects[I].bContainsWidget && _mlLayer.vRects[I].u.pmlLayer ) {
 				LSW_DT_ATTACH maAttach;
 				LSW_RECT rAttachRectTemp;
@@ -791,6 +835,7 @@ namespace lsw {
  		if ( !_maAttach.pwWidget ) { return false; }
 		LSW_MS_LAYER_SEARCH mlsSer;
 		if ( !FindRectById( _maAttach.dwId, mlsSer, _mrRoot ) ) { return false; }
+		if ( _maAttach.atAttachTo == LSW_AT_TAB ) { return AttachAsTab( _maAttach, (*mlsSer.pmrRect) ); }
 
 
 		// If adding it in the same direction as what is already on the container (or
@@ -855,9 +900,20 @@ namespace lsw {
 
 	// Detaches a widget from the given root given its ID.
 	bool CMultiSplitter::Detach( WORD _wId, LSW_MS_RECT &_mrRoot ) {
+		const bool bResize = !m_bDestroying && !(Parent() && Parent()->InDestructor());
+		if ( &_mrRoot == &m_meRoot && RemoveFromGroup( _wId ) ) {
+			if ( bResize ) {
+				CalcRects();
+				SizeGroups();
+				ForceSizeUpdate();
+			}
+			return true;
+		}
 		if ( !DetachFromTree( _wId, _mrRoot, m_vLayers ) ) { return false; }
-		CalcRects();
-		ForceSizeUpdate();
+		if ( bResize ) {
+			CalcRects();
+			ForceSizeUpdate();
+		}
 		return true;
 	}
 
@@ -986,6 +1042,545 @@ namespace lsw {
 			CalcRects( (*m_meDragRootCopy.u.pmlLayer), m_meDragRootCopy.rRect );
 		}
 		return true;
+	}
+
+	/**
+	 * Brings a docked widget to the front: if it is in a group of tabbed dockables, its tab is selected.
+	 *
+	 * \param _pwWidget The widget.
+	 * \return Returns true if the widget is docked here.
+	 **/
+	bool CMultiSplitter::SelectDocked( const CWidget * _pwWidget ) {
+		if ( !_pwWidget ) { return false; }
+		size_t sMember;
+		const size_t sGroup = FindGroupOfMember( WORD( _pwWidget->Id() ), sMember );
+		if ( sGroup != SIZE_MAX && m_vGroups[sGroup].vMembers[sMember] == _pwWidget ) {
+			m_vGroups[sGroup].ptTab->SetCurSel( int( sMember ) );
+			return true;
+		}
+		return FindCellByWidget( _pwWidget, m_meRoot ) != nullptr;
+	}
+
+	/**
+	 * Notified when the selected tab of a tab control changes.  Changes in the tabs of groups of docked widgets are handled here
+	 *	and not passed on.
+	 *
+	 * \param _pwTab The tab control.
+	 * \param _iTab The selected tab.
+	 * \param _lpnHdr The notification header.
+	 **/
+	void CMultiSplitter::TabSelChanged( CWidget * _pwTab, int _iTab, LPNMHDR _lpnHdr ) {
+		// CWidget already showed the selected page (CTab::SetCurSel()).
+		if ( FindGroup( _pwTab ) != SIZE_MAX ) { return; }
+		CWidget::TabSelChanged( _pwTab, _iTab, _lpnHdr );
+	}
+
+	/**
+	 * Determines whether widgets can be docked over a widget as tabs (it is a dockable or a group of them).
+	 *
+	 * \param _pwWidget The widget in a rectangle.
+	 * \return Returns true if a dockable can be tabbed over it.
+	 **/
+	bool CMultiSplitter::CanTabOnto( const CWidget * _pwWidget ) const {
+		if ( !_pwWidget ) { return false; }
+		return _pwWidget->IsDockable() || FindGroup( _pwWidget ) != SIZE_MAX;
+	}
+
+	/**
+	 * Gets the attachment point for docking over the widget in a rectangle as a tab.
+	 *
+	 * \param _pPoint The point (client coordinates).
+	 * \param _maAttach Receives the attachment.
+	 * \param _rAttachRect Receives the rectangle to draw (client coordinates).
+	 * \param _mrRect The rectangle.
+	 * \return Returns the squared distance from the point to the center of the rectangle, or LONG_MAX if nothing can be tabbed
+	 *	there.
+	 **/
+	LONG CMultiSplitter::GetTabAttachPoint( const POINT &_pPoint, LSW_DT_ATTACH &_maAttach, LSW_RECT &_rAttachRect,
+		const LSW_MS_RECT &_mrRect ) const {
+		if ( !_mrRect.bContainsWidget || !CanTabOnto( _mrRect.u.pqWidget ) ) { return LONG_MAX; }
+		_rAttachRect = _mrRect.rRect;
+		_maAttach.atAttachTo = LSW_AT_TAB;
+		_maAttach.dwId = _mrRect.dwId;
+		_maAttach.pwWidget = nullptr;
+		const POINT pCenter = _rAttachRect.Center();
+		const LONG lX = _pPoint.x - pCenter.x;
+		const LONG lY = _pPoint.y - pCenter.y;
+		return lX * lX + lY * lY;
+	}
+
+	/**
+	 * Docks a widget over the widget in a rectangle, making a group if there is not one there yet.
+	 *
+	 * \param _maAttach The attachment (LSW_AT_TAB).
+	 * \param _mrRect The rectangle.
+	 * \return Returns true if the widget was docked.
+	 **/
+	bool CMultiSplitter::AttachAsTab( const LSW_DT_ATTACH &_maAttach, LSW_MS_RECT &_mrRect ) {
+		if ( !_maAttach.pwWidget || !_mrRect.bContainsWidget || !_mrRect.u.pqWidget ) { return false; }
+		size_t sGroup = FindGroup( _mrRect.u.pqWidget );
+		if ( sGroup == SIZE_MAX ) {
+			if ( !_mrRect.u.pqWidget->IsDockable() ) { return false; }
+			sGroup = CreateGroup();
+			if ( sGroup == SIZE_MAX ) { return false; }
+			CWidget * pwFirst = _mrRect.u.pqWidget;
+			_mrRect.u.pqWidget = m_vGroups[sGroup].ptTab;
+			if ( !AddToGroup( sGroup, pwFirst ) ) {
+				_mrRect.u.pqWidget = pwFirst;
+				CTab * ptTab = m_vGroups[sGroup].ptTab;
+				m_vGroups.erase( m_vGroups.begin() + sGroup );
+				delete ptTab;
+				return false;
+			}
+		}
+		if ( !AddToGroup( sGroup, _maAttach.pwWidget ) ) { return false; }
+		CalcRects();
+		SizeGroups();
+		return true;
+	}
+
+	/**
+	 * Finds the group whose tab control is a widget.
+	 *
+	 * \param _pwTab The widget.
+	 * \return Returns the index of the group, or SIZE_MAX.
+	 **/
+	size_t CMultiSplitter::FindGroup( const CWidget * _pwTab ) const {
+		if ( !_pwTab ) { return SIZE_MAX; }
+		for ( size_t I = 0; I < m_vGroups.size(); ++I ) {
+			if ( static_cast<const CWidget *>(m_vGroups[I].ptTab) == _pwTab ) { return I; }
+		}
+		return SIZE_MAX;
+	}
+
+	/**
+	 * Finds the group that contains a widget.
+	 *
+	 * \param _wId The ID of the widget.
+	 * \param _sMember Receives the index of the widget in the group.
+	 * \return Returns the index of the group, or SIZE_MAX.
+	 **/
+	size_t CMultiSplitter::FindGroupOfMember( WORD _wId, size_t &_sMember ) const {
+		for ( size_t I = 0; I < m_vGroups.size(); ++I ) {
+			for ( size_t J = 0; J < m_vGroups[I].vMembers.size(); ++J ) {
+				if ( m_vGroups[I].vMembers[J] && WORD( m_vGroups[I].vMembers[J]->Id() ) == _wId ) {
+					_sMember = J;
+					return I;
+				}
+			}
+		}
+		return SIZE_MAX;
+	}
+
+	/**
+	 * Creates an empty group (with its tab control).
+	 *
+	 * \return Returns the index of the new group, or SIZE_MAX on failure.
+	 **/
+	size_t CMultiSplitter::CreateGroup() {
+		CLayoutManager * plmLayout = CBase::LayoutManager();
+		if ( !plmLayout ) { return SIZE_MAX; }
+		try {
+			LSW_WIDGET_LAYOUT wlLayout = {};
+			wlLayout.ltType = LSW_LT_TAB;
+			wlLayout.wId = m_wNextGroupId++;
+			if ( m_wNextGroupId < 0xF000 ) { m_wNextGroupId = 0xF000; }
+			wlLayout.lpwcClass = WC_TABCONTROLW;
+			wlLayout.bEnabled = TRUE;
+			wlLayout.dwWidth = 1;
+			wlLayout.dwHeight = 1;
+			wlLayout.dwStyle = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TCS_HOTTRACK | TCS_FOCUSNEVER;
+			CTab * ptTab = static_cast<CTab *>(plmLayout->CreateWidget( wlLayout, this, true, NULL, 0 ));
+			if ( !ptTab ) { return SIZE_MAX; }
+			ptTab->InitControl( ptTab->Wnd() );
+			::SendMessageW( ptTab->Wnd(), WM_SETFONT, reinterpret_cast<WPARAM>(CBase::MessageBoxFont()), FALSE );
+			ptTab->SetShowCloseBoxes( false );
+			::SetWindowPos( ptTab->Wnd(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE );
+
+			LSW_MS_GROUP mgGroup;
+			mgGroup.ptTab = ptTab;
+			try {
+				m_vGroups.push_back( mgGroup );
+			}
+			catch ( ... ) {
+				delete ptTab;
+				return SIZE_MAX;
+			}
+			return m_vGroups.size() - 1;
+		}
+		catch ( ... ) { return SIZE_MAX; }
+	}
+
+	/**
+	 * Adds a widget to a group and shows it.
+	 *
+	 * \param _sGroup The index of the group.
+	 * \param _pwWidget The widget.
+	 * \return Returns true if it was added.
+	 **/
+	bool CMultiSplitter::AddToGroup( size_t _sGroup, CWidget * _pwWidget ) {
+		if ( _sGroup >= m_vGroups.size() || !_pwWidget ) { return false; }
+		LSW_MS_GROUP & mgGroup = m_vGroups[_sGroup];
+		try {
+			mgGroup.vMembers.push_back( _pwWidget );
+		}
+		catch ( ... ) { return false; }
+		std::wstring wsText = _pwWidget->GetTextW();
+		TCITEMW tciItem = {};
+		tciItem.mask = TCIF_TEXT;
+		tciItem.pszText = const_cast<LPWSTR>(wsText.c_str());
+		if ( mgGroup.ptTab->InsertItem( mgGroup.ptTab->GetItemCount(), &tciItem, _pwWidget ) == -1 ) {
+			mgGroup.vMembers.pop_back();
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Removes a widget from the group it is in.  A group left with one widget is replaced by that widget.
+	 *
+	 * \param _wId The ID of the widget.
+	 * \return Returns true if the widget was in a group.
+	 **/
+	bool CMultiSplitter::RemoveFromGroup( WORD _wId ) {
+		size_t sMember;
+		const size_t sGroup = FindGroupOfMember( _wId, sMember );
+		if ( sGroup == SIZE_MAX ) { return false; }
+		LSW_MS_GROUP & mgGroup = m_vGroups[sGroup];
+		mgGroup.vMembers.erase( mgGroup.vMembers.begin() + sMember );
+		if ( m_bDestroying ) { return true; }
+		mgGroup.ptTab->DeleteItem( int( sMember ), false );
+
+		if ( mgGroup.vMembers.size() <= 1 ) {
+			CTab * ptTab = mgGroup.ptTab;
+			CWidget * pwLeft = mgGroup.vMembers.empty() ? nullptr : mgGroup.vMembers[0];
+			LSW_MS_RECT * pmrCell = FindCellByWidget( ptTab, m_meRoot );
+			m_vGroups.erase( m_vGroups.begin() + sGroup );
+			if ( pmrCell ) {
+				if ( pwLeft ) {
+					pmrCell->u.pqWidget = pwLeft;
+				}
+				else {
+					// Nothing left at all (cannot normally happen): the rectangle is removed with the tab control below.
+				}
+			}
+			if ( pwLeft && pwLeft->Wnd() ) { ::ShowWindow( pwLeft->Wnd(), SW_SHOWNA ); }
+			delete ptTab;
+		}
+		return true;
+	}
+
+	/**
+	 * Finds the rectangle that holds a widget.
+	 *
+	 * \param _pwWidget The widget.
+	 * \param _mrRoot The root of the tree to search.
+	 * \return Returns the rectangle, or nullptr.
+	 **/
+	CMultiSplitter::LSW_MS_RECT * CMultiSplitter::FindCellByWidget( const CWidget * _pwWidget, LSW_MS_RECT &_mrRoot ) {
+		if ( !_pwWidget ) { return nullptr; }
+		if ( _mrRoot.bContainsWidget ) { return (_mrRoot.u.pqWidget == _pwWidget) ? &_mrRoot : nullptr; }
+		if ( !_mrRoot.u.pmlLayer ) { return nullptr; }
+		return FindCellByWidget( _pwWidget, (*_mrRoot.u.pmlLayer) );
+	}
+
+	/**
+	 * Finds the rectangle that holds a widget in a layer.
+	 *
+	 * \param _pwWidget The widget.
+	 * \param _mlLayer The layer to search.
+	 * \return Returns the rectangle, or nullptr.
+	 **/
+	CMultiSplitter::LSW_MS_RECT * CMultiSplitter::FindCellByWidget( const CWidget * _pwWidget, LSW_MS_LAYER &_mlLayer ) {
+		for ( size_t I = 0; I < _mlLayer.vRects.size(); ++I ) {
+			LSW_MS_RECT * pmrFound = FindCellByWidget( _pwWidget, _mlLayer.vRects[I] );
+			if ( pmrFound ) { return pmrFound; }
+		}
+		return nullptr;
+	}
+
+	/**
+	 * Makes sure that only the selected widget of each group is visible, that it is above the group's tab control, and that both
+	 *	are redrawn.
+	 **/
+	void CMultiSplitter::ShowGroupSelections() {
+		for ( size_t I = 0; I < m_vGroups.size(); ++I ) {
+			const LSW_MS_GROUP & mgGroup = m_vGroups[I];
+			if ( !mgGroup.ptTab || !mgGroup.ptTab->Wnd() ) { continue; }
+			const int iSel = mgGroup.ptTab->GetCurSel();
+			for ( size_t J = 0; J < mgGroup.vMembers.size(); ++J ) {
+				CWidget * pwMember = mgGroup.vMembers[J];
+				if ( !pwMember || !pwMember->Wnd() ) { continue; }
+				if ( int( J ) == iSel ) {
+					::SetWindowPos( pwMember->Wnd(), HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW );
+					::RedrawWindow( pwMember->Wnd(), nullptr, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN );
+				}
+				else if ( ::GetWindowLongPtrW( pwMember->Wnd(), GWL_STYLE ) & WS_VISIBLE ) {
+					::ShowWindow( pwMember->Wnd(), SW_HIDE );
+				}
+			}
+			::RedrawWindow( mgGroup.ptTab->Wnd(), nullptr, NULL, RDW_INVALIDATE | RDW_FRAME );
+		}
+	}
+
+	/**
+	 * Gets the arrangement of the splitter (to be saved).
+	 *
+	 * \param _lnRoot Receives the arrangement.
+	 **/
+	void CMultiSplitter::GetLayout( LSW_MS_LAYOUT_NODE &_lnRoot ) const {
+		_lnRoot = LSW_MS_LAYOUT_NODE();
+		try {
+			SaveLayoutNode( m_meRoot, _lnRoot );
+		}
+		catch ( ... ) { _lnRoot = LSW_MS_LAYOUT_NODE(); }
+	}
+
+	/**
+	 * Rearranges the splitter to a saved arrangement.  Widgets are found by their IDs in _vWidgets; areas whose widgets are not
+	 *	found are left out.  Dockables placed in the arrangement are docked (floating ones are docked), and dockables that were
+	 *	docked here but are not in the arrangement are made to float.  Nothing changes if a widget that is not a dockable (such as
+	 *	the main view) is docked here but is not in the arrangement.
+	 *
+	 * \param _lnRoot The arrangement.
+	 * \param _vWidgets The widgets that can be placed.
+	 * \return Returns true if the splitter was rearranged.
+	 **/
+	bool CMultiSplitter::SetLayout( const LSW_MS_LAYOUT_NODE &_lnRoot, const std::vector<CWidget *> &_vWidgets ) {
+		if ( m_bDragPreview || m_bDestroying ) { return false; }
+		try {
+			std::vector<CWidget *> vCurrent;
+			GatherWidgets( m_meRoot, vCurrent );
+			std::vector<CWidget *> vUsable;
+			for ( CWidget * pwThis : _vWidgets ) {
+				if ( !pwThis || !pwThis->Wnd() ) { continue; }
+				const bool bHere = std::find( vCurrent.begin(), vCurrent.end(), pwThis ) != vCurrent.end();
+				if ( bHere ) {
+					vUsable.push_back( pwThis );
+					continue;
+				}
+				if ( pwThis->IsDockable() ) {
+					CDockable * pdThis = static_cast<CDockable *>(pwThis);
+					if ( !pdThis->DockedInto() && pwThis->Parent() == this ) { vUsable.push_back( pwThis ); }
+				}
+			}
+
+			std::vector<WORD> vIds;
+			std::vector<const LSW_MS_LAYOUT_NODE *> vStack = { &_lnRoot };
+			while ( vStack.size() ) {
+				const LSW_MS_LAYOUT_NODE * plnThis = vStack.back();
+				vStack.pop_back();
+				vIds.insert( vIds.end(), plnThis->vWidgets.begin(), plnThis->vWidgets.end() );
+				for ( const auto & lnChild : plnThis->vChildren ) { vStack.push_back( &lnChild ); }
+			}
+			for ( CWidget * pwThis : vCurrent ) {
+				if ( !pwThis->IsDockable() && std::find( vIds.begin(), vIds.end(), WORD( pwThis->Id() ) ) == vIds.end() ) { return false; }
+			}
+
+			std::vector<CTab *> vTabs;
+			for ( auto & mgGroup : m_vGroups ) {
+				if ( mgGroup.ptTab ) { vTabs.push_back( mgGroup.ptTab ); }
+			}
+			m_vGroups.clear();
+			for ( size_t I = m_vLayers.size(); I--; ) {
+				LSW_MS_LAYER * pmlTemp = m_vLayers[I];
+				m_vLayers[I] = nullptr;
+				delete pmlTemp;
+			}
+			m_vLayers.clear();
+			m_meRoot.bContainsWidget = FALSE;
+			m_meRoot.u.pmlLayer = nullptr;
+			for ( CTab * ptTab : vTabs ) { delete ptTab; }
+
+			std::vector<CWidget *> vPlaced;
+			const DWORD dwRootId = m_meRoot.dwId;
+			if ( !BuildLayoutNode( _lnRoot, vUsable, vPlaced, m_meRoot ) ) {
+				m_meRoot.bContainsWidget = FALSE;
+				m_meRoot.u.pmlLayer = nullptr;
+			}
+			m_meRoot.dwId = dwRootId;
+
+			for ( CWidget * pwThis : vCurrent ) {
+				if ( std::find( vPlaced.begin(), vPlaced.end(), pwThis ) != vPlaced.end() ) { continue; }
+				if ( pwThis->IsDockable() ) {
+					static_cast<CDockable *>(pwThis)->Float();
+				}
+				else {
+					LSW_DT_ATTACH daAttach;
+					daAttach.pwWidget = pwThis;
+					daAttach.dwId = RootId();
+					daAttach.atAttachTo = LSW_AT_RIGHT;
+					Attach( daAttach );
+				}
+			}
+
+			for ( CWidget * pwThis : vPlaced ) {
+				size_t sMember;
+				if ( pwThis->Wnd() && FindGroupOfMember( WORD( pwThis->Id() ), sMember ) == SIZE_MAX ) { ::ShowWindow( pwThis->Wnd(), SW_SHOWNA ); }
+			}
+			CalcRects();
+			SizeGroups();
+			ForceSizeUpdate();
+			ShowGroupSelections();
+			::RedrawWindow( Wnd(), nullptr, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN );
+			return true;
+		}
+		catch ( ... ) { return false; }
+	}
+
+	/**
+	 * Saves a rectangle of the layout and everything under it.
+	 *
+	 * \param _mrRect The rectangle.
+	 * \param _lnNode Receives the saved rectangle.
+	 **/
+	void CMultiSplitter::SaveLayoutNode( const LSW_MS_RECT &_mrRect, LSW_MS_LAYOUT_NODE &_lnNode ) const {
+		_lnNode.iDist = _mrRect.iDist;
+		_lnNode.bLockToFar = _mrRect.bLockToFar != FALSE;
+		if ( _mrRect.bContainsWidget ) {
+			_lnNode.bLayer = false;
+			if ( !_mrRect.u.pqWidget ) { return; }
+			const size_t sGroup = FindGroup( _mrRect.u.pqWidget );
+			if ( sGroup != SIZE_MAX ) {
+				for ( const CWidget * pwMember : m_vGroups[sGroup].vMembers ) {
+					if ( pwMember ) { _lnNode.vWidgets.push_back( WORD( pwMember->Id() ) ); }
+				}
+				const int iSel = m_vGroups[sGroup].ptTab ? m_vGroups[sGroup].ptTab->GetCurSel() : 0;
+				_lnNode.sSelected = size_t( std::max( iSel, 0 ) );
+			}
+			else {
+				_lnNode.vWidgets.push_back( WORD( _mrRect.u.pqWidget->Id() ) );
+			}
+			return;
+		}
+		_lnNode.bLayer = true;
+		if ( !_mrRect.u.pmlLayer ) { return; }
+		_lnNode.stSplitType = _mrRect.u.pmlLayer->stSplitType;
+		for ( const auto & mrChild : _mrRect.u.pmlLayer->vRects ) {
+			_lnNode.vChildren.push_back( LSW_MS_LAYOUT_NODE() );
+			SaveLayoutNode( mrChild, _lnNode.vChildren.back() );
+		}
+	}
+
+	/**
+	 * Builds a rectangle of the layout from a saved one.
+	 *
+	 * \param _lnNode The saved rectangle.
+	 * \param _vWidgets The widgets that can be placed.
+	 * \param _vPlaced Receives the widgets placed.
+	 * \param _mrRect Receives the rectangle (its ID is not changed).
+	 * \return Returns false if nothing in the saved rectangle could be placed.
+	 **/
+	bool CMultiSplitter::BuildLayoutNode( const LSW_MS_LAYOUT_NODE &_lnNode, const std::vector<CWidget *> &_vWidgets,
+		std::vector<CWidget *> &_vPlaced, LSW_MS_RECT &_mrRect ) {
+		_mrRect.iDist = std::max( _lnNode.iDist, 0 );
+		_mrRect.bLockToFar = _lnNode.bLockToFar ? TRUE : FALSE;
+		_mrRect.rRect = LSW_RECT();
+		if ( !_lnNode.bLayer ) {
+			std::vector<CWidget *> vHere;
+			size_t sSelected = 0;
+			for ( size_t I = 0; I < _lnNode.vWidgets.size(); ++I ) {
+				for ( CWidget * pwThis : _vWidgets ) {
+					if ( WORD( pwThis->Id() ) != _lnNode.vWidgets[I] ) { continue; }
+					if ( std::find( _vPlaced.begin(), _vPlaced.end(), pwThis ) != _vPlaced.end() ) { break; }
+					if ( I == _lnNode.sSelected ) { sSelected = vHere.size(); }
+					vHere.push_back( pwThis );
+					break;
+				}
+			}
+			if ( vHere.empty() ) { return false; }
+			if ( vHere.size() > 1 ) {
+				vHere.erase( std::remove_if( vHere.begin() + 1, vHere.end(), []( CWidget * _pwThis ) { return !_pwThis->IsDockable(); } ), vHere.end() );
+				if ( !vHere[0]->IsDockable() ) { vHere.resize( 1 ); }
+				if ( sSelected >= vHere.size() ) { sSelected = 0; }
+			}
+			for ( CWidget * pwThis : vHere ) {
+				if ( pwThis->IsDockable() ) { static_cast<CDockable *>(pwThis)->SetDockedInto( this, vHere.size() > 1 ); }
+			}
+			_mrRect.bContainsWidget = TRUE;
+			if ( vHere.size() == 1 ) {
+				_mrRect.u.pqWidget = vHere[0];
+				_vPlaced.push_back( vHere[0] );
+				return true;
+			}
+			const size_t sGroup = CreateGroup();
+			if ( sGroup == SIZE_MAX ) {
+				_mrRect.u.pqWidget = vHere[0];
+				_vPlaced.push_back( vHere[0] );
+				return true;
+			}
+			for ( CWidget * pwThis : vHere ) {
+				if ( AddToGroup( sGroup, pwThis ) ) { _vPlaced.push_back( pwThis ); }
+			}
+			_mrRect.u.pqWidget = m_vGroups[sGroup].ptTab;
+			m_vGroups[sGroup].ptTab->SetCurSel( int( sSelected ) );
+			return true;
+		}
+
+		// A layer.
+		LSW_MS_LAYER * pmlLayer = new( std::nothrow ) LSW_MS_LAYER();
+		if ( !pmlLayer ) { return false; }
+		pmlLayer->stSplitType = _lnNode.stSplitType;
+		try {
+			m_vLayers.push_back( pmlLayer );
+		}
+		catch ( ... ) {
+			delete pmlLayer;
+			return false;
+		}
+		for ( const auto & lnChild : _lnNode.vChildren ) {
+			LSW_MS_RECT mrChild = {};
+			mrChild.dwId = ++m_dwIds;
+			if ( BuildLayoutNode( lnChild, _vWidgets, _vPlaced, mrChild ) ) {
+				pmlLayer->vRects.push_back( mrChild );
+			}
+		}
+		if ( pmlLayer->vRects.empty() ) {
+			m_vLayers.erase( std::find( m_vLayers.begin(), m_vLayers.end(), pmlLayer ) );
+			delete pmlLayer;
+			return false;
+		}
+		// The last area in a layer takes what is left.
+		_mrRect.bContainsWidget = FALSE;
+		_mrRect.u.pmlLayer = pmlLayer;
+		return true;
+	}
+
+	/**
+	 * Gathers the widgets in a rectangle of the layout and everything under it (the widgets in groups, not their tab controls).
+	 *
+	 * \param _mrRect The rectangle.
+	 * \param _vWidgets Receives the widgets.
+	 **/
+	void CMultiSplitter::GatherWidgets( const LSW_MS_RECT &_mrRect, std::vector<CWidget *> &_vWidgets ) const {
+		if ( _mrRect.bContainsWidget ) {
+			if ( !_mrRect.u.pqWidget ) { return; }
+			const size_t sGroup = FindGroup( _mrRect.u.pqWidget );
+			if ( sGroup != SIZE_MAX ) {
+				for ( CWidget * pwMember : m_vGroups[sGroup].vMembers ) {
+					if ( pwMember ) { _vWidgets.push_back( pwMember ); }
+				}
+			}
+			else {
+				_vWidgets.push_back( _mrRect.u.pqWidget );
+			}
+			return;
+		}
+		if ( !_mrRect.u.pmlLayer ) { return; }
+		for ( const auto & mrChild : _mrRect.u.pmlLayer->vRects ) { GatherWidgets( mrChild, _vWidgets ); }
+	}
+
+	/**
+	 * Moves the tab control of each group to its rectangle (the widgets in a group size themselves from ClientRect()).
+	 **/
+	void CMultiSplitter::SizeGroups() {
+		for ( size_t I = 0; I < m_vGroups.size(); ++I ) {
+			LSW_MS_RECT * pmrCell = FindCellByWidget( m_vGroups[I].ptTab, m_meRoot );
+			if ( !pmrCell || !m_vGroups[I].ptTab->Wnd() ) { continue; }
+			::SetWindowPos( m_vGroups[I].ptTab->Wnd(), HWND_BOTTOM,
+				pmrCell->rRect.left, pmrCell->rRect.top, pmrCell->rRect.Width(), pmrCell->rRect.Height(),
+				SWP_NOACTIVATE );
+		}
 	}
 
 }	// namespace lsw
