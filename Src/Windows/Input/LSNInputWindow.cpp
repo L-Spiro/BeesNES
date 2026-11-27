@@ -159,6 +159,10 @@ namespace lsn {
 		for ( auto I = m_vPages.size(); I--; ) {
 			m_vPages[I]->Save();
 		}
+		const CTab * ptTab = static_cast<const CTab *>(FindChild( Layout::LSN_IWI_TAB ));
+		if ( ptTab && m_poOptions ) {
+			m_poOptions->ioThisGameInputOptions.bUseGlobal = !ptTab->IsChecked( 1 );
+		}
 		::EndDialog( Wnd(), 0 );
 	}
 

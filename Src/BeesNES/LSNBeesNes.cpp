@@ -2557,6 +2557,8 @@ namespace lsn {
 	 */
 	bool CBeesNes::LoadInputSettings( uint32_t _ui32Version, CStream &_sFile, LSN_INPUT_OPTIONS &_ioInputOptions ) {
 		std::memset( &_ioInputOptions, 0, sizeof( _ioInputOptions ) );
+		// Older files did not save it (and the memset() made every loaded per-game file use its own settings).
+		_ioInputOptions.bUseGlobal = true;
 		if ( !_sFile.ReadUi8( _ioInputOptions.ui8ConsoleType ) ) { return false; }
 		if ( _ioInputOptions.ui8ConsoleType >= LSN_CT_TOTAL ) {
 			_ioInputOptions.ui8ConsoleType = LSN_CT_NES;
@@ -2596,6 +2598,9 @@ namespace lsn {
 					}
 				}
 			}
+		}
+		if ( _ui32Version >= LSN_BEESNES_SETTINGS_VERSION_INPUT_GLOBAL ) {
+			if ( !_sFile.ReadBool( _ioInputOptions.bUseGlobal ) ) { return false; }
 		}
 		return true;
 	}
@@ -2639,6 +2644,8 @@ namespace lsn {
 				}
 			}
 		}
+		// LSN_BEESNES_SETTINGS_VERSION_INPUT_GLOBAL.
+		if ( !_sFile.WriteBool( _ioInputOptions.bUseGlobal ) ) { return false; }
 		return true;
 	}
 

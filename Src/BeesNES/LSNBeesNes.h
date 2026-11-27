@@ -59,7 +59,7 @@
 #include <mutex>
 
 
-#define LSN_BEESNES_SETTINGS_VERSION			7
+#define LSN_BEESNES_SETTINGS_VERSION			8
 /** The last settings version written before NTSC-J was added (5 regions:  NTSC, PAL, Dendy, PAL-M, PAL-N). */
 #define LSN_BEESNES_SETTINGS_VERSION_5_REGIONS	2
 /** The first settings version in which the parameters of the filter functions are the values used directly (Lanczos lobes, Kaiser beta, etc.). */
@@ -71,6 +71,8 @@
 #define LSN_BEESNES_SETTINGS_VERSION_TV_CONTROLS	6
 /** The first settings version that saves the turbo patterns of the turbo buttons and the global turbo speed multiplier. */
 #define LSN_BEESNES_SETTINGS_VERSION_TURBO		7
+/** The first settings version that saves whether the per-game input settings use the global settings. */
+#define LSN_BEESNES_SETTINGS_VERSION_INPUT_GLOBAL	8
 
 namespace lsn {
 
