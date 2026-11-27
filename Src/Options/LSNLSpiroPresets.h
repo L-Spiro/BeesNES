@@ -59,14 +59,16 @@ namespace lsn {
 				// Name												PAL		Chroma											Kernel	Luma															Kernel	Comb
 				// == NTSC.
 				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP ),	false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 3.4f, 0.0f },				59,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP ),	false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 3.4f, 0.0f },				59,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				51,		LSN_FF_LANCZOSX,					{ 99.0f / 40.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_2 ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_LANCZOSX,					{ 50.0f / 19.0f, 0.0f },	48,		CLSpiroNtscFilterBase::LSN_CF_NONE },
+				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_3 ),			false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 2.0, 0.0f },				49,		CLSpiroNtscFilterBase::LSN_CF_3_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_LANCZOSX,					{ 100.0f / 65.0f, 0.0f },	35,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 				{ LSN_LSTR( LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2 ),		false,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				55,		LSN_FF_KAISER,						{ 5.45, 0.0f },				25,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 				{ LSN_LSTR( LSN_STR_VO_DP_FAST ),					false,	LSN_FF_BOX,			{ 0.0f, 0.0f },				12,		LSN_FF_BOX,							{ 0.0f, 0.0f },				12,		CLSpiroNtscFilterBase::LSN_CF_NONE },
 
 				// == PAL.
-				{ LSN_LSTR( LSN_STR_VO_DP_PAL_I ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 3.0f, 0.0f },				59,		CLSpiroPalFilterBase::LSN_CF_3_LINE },
+				{ LSN_LSTR( LSN_STR_VO_DP_PAL_I ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				53,		LSN_FF_LANCZOSX,					{ 2.0f, 0.0f },				49,		CLSpiroPalFilterBase::LSN_CF_3_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_PAL_DK ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				45,		LSN_FF_KAISER,						{ 15.0f, 0.0f },			47,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_PAL_M ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				59,		LSN_FF_CARDINAL_SPLINE_UNIFORM,		{ 0.0f, 0.0f },				45,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },
 				{ LSN_LSTR( LSN_STR_VO_DP_PAL_N ),					true,	LSN_FF_GAUSSIANX,	{ 0.0f, 0.0f },				49,		LSN_FF_GAUSSIANX,					{ 0.0f, 0.0f },				59,		CLSpiroPalFilterBase::LSN_CF_DELAY_LINE },

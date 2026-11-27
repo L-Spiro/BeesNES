@@ -1226,11 +1226,12 @@
 #define LSN_STR_VO_NCF_2_LINE														2-Line (1H) Comb
 #define LSN_STR_VO_NCF_3_LINE														3-Line (2H) Comb
 #define LSN_STR_VO_NCF_ADAPTIVE														Adaptive 3-Line (2D) Comb
-#define LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP										L. Spiro NTSC Very Sharp
-#define LSN_STR_VO_DP_LSPIRO_NTSC													L. Spiro NTSC Sharp
-#define LSN_STR_VO_DP_LSPIRO_NTSC_2													L. Spiro NTSC Slightly Sharp
-#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT												L. Spiro NTSC Soft
-#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2											L. Spiro NTSC Soft 2
+#define LSN_STR_VO_DP_LSPIRO_NTSC_VERY_SHARP										NTSC Very Sharp
+#define LSN_STR_VO_DP_LSPIRO_NTSC													NTSC Sharp
+#define LSN_STR_VO_DP_LSPIRO_NTSC_2													NTSC Slightly Sharp
+#define LSN_STR_VO_DP_LSPIRO_NTSC_3													NTSC Standard
+#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT												NTSC Soft
+#define LSN_STR_VO_DP_LSPIRO_NTSC_SOFT_2											NTSC Soft 2
 #define LSN_STR_VO_DP_FAST															Fast (Box)
 #define LSN_STR_VO_DP_PAL_I															PAL-I
 #define LSN_STR_VO_DP_PAL_DK														PAL-D/K (Dendy)
